@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Monitor, Moon, RotateCcw, Sun, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK_IDS, NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
@@ -15,6 +15,12 @@ import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
 
 type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; height: number; ms: number; coinset: boolean } | { status: "error"; message: string } | { status: "whitelist"; message: string; ok: boolean };
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: typeof Moon }[] = [
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "system", label: "Follow system", icon: Monitor },
+];
 
 function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
@@ -180,18 +186,27 @@ export function SettingsForm() {
       <Card>
         <CardHeader title="Appearance" />
         <CardBody className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
+          <div className="flex flex-col gap-1 text-sm">
             <span className="font-medium">Theme</span>
-            <select
-              value={settings.theme}
-              onChange={(e) => update({ theme: e.target.value as ThemePreference })}
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
-            >
-              <option value="dark">Dark (mempool.space style)</option>
-              <option value="light">Light</option>
-              <option value="system">Follow system</option>
-            </select>
-          </label>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Theme">
+              {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={settings.theme === value}
+                  onClick={() => update({ theme: value })}
+                  className={cn(
+                    "flex min-h-11 items-center gap-2 rounded-sm border px-4 text-sm font-semibold transition-colors",
+                    settings.theme === value ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+                  )}
+                >
+                  <Icon size={14} aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">Recent blocks on the dashboard</span>
             <input
