@@ -15,6 +15,7 @@ import { tokenLabel } from "@/shared/api/tokenList";
 import { TxSummaryList } from "@/widgets/assets/TxSummaryList";
 import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
+import { SageAddressPanel } from "@/widgets/wallet/SagePanels";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
 function Unavailable({ what }: { what: string }) {
@@ -56,6 +57,7 @@ export function AddressPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {resolved.address ? <SageAddressPanel address={resolved.address} /> : null}
       <Card>
         <CardHeader
           title={isDid ? "DID" : "Address"}

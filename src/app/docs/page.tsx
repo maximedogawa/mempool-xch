@@ -89,6 +89,11 @@ export default function DocsPage() {
           <Q q="Why does the network switch look disabled?">
             Inside Sage the app always shows the network your wallet is on.
           </Q>
+          <Q q="Where does the data come from inside Sage?">
+            Everything that is yours comes from the wallet itself: balance, sync state, pending and past transactions, your coins, whether an address is
+            yours, and the XCH price. Sage is a light wallet, and its app bridge offers no node queries (no peak, mempool or block lookups), so the
+            mempool, blocks and other people&apos;s addresses still come from the chain endpoint in Settings, Coinset by default or a node you whitelist.
+          </Q>
         </CardBody>
       </Card>
 

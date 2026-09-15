@@ -10,6 +10,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Hash, KindBadge, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 import { readSemantics } from "./semantics";
 import { useCoinChildren, useCoinDetails, useCoinMempoolSpends, useCoinRecord } from "./useCoin";
+import { SageCoinPanel } from "@/widgets/wallet/SagePanels";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -66,6 +67,7 @@ export function CoinPage({ id }: { id: string | null }) {
   return (
     <div className="flex flex-col gap-4">
       <Heading id={id} badge={semantics ? <KindBadge kind={kind} /> : null} spent={coin.spent} />
+      <SageCoinPanel coinId={id} />
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <StatTile label="Amount" value={amount} sub={`${coin.coin.amount.toString()} mojo`} tone="primary" />
         <StatTile

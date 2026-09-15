@@ -7,7 +7,7 @@
  */
 import { getSage } from "./bridge";
 
-export const WALLET_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions", "wallet.get_transactions", "wallet.get_coins"] as const;
+export const WALLET_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions", "wallet.get_transactions", "wallet.get_coins", "wallet.get_coins_by_ids", "wallet.check_address", "wallet.get_xch_usd_price"] as const;
 
 export interface WalletCoinRef {
   coinId: string;
@@ -139,4 +139,67 @@ export async function fetchWalletOverview(): Promise<WalletOverview | null> {
     totalCoinCount: num(asRaw(coinsRes).total) ?? 0,
     granted: caps,
   };
+}
+
+/* ---- Sage-first helpers used by the explorer pages inside Sage ---- */
+
+/** True when the wallet owns this address (wallet.check_address). Null when not in Sage / not granted. */
+export async function checkWalletAddress(address: string): Promise<boolean | null> {
+  const client = await getSage();
+  if (!client) return null;
+  try {
+    const result = await client.wallet.checkAddress({ address });
+    return Boolean((result as { valid?: boolean }).valid);
+  } catch {
+    return null;
+  }
+}
+
+/** The wallet's own record of a coin, or null when the coin is not in the wallet. */
+export async function fetchWalletCoin(coinId: string): Promise<WalletCoin | null> {
+  const client = await getSage();
+  if (!client) return null;
+  try {
+    const result = await client.wallet.getCoinsByIds({ coin_ids: [`0x${coinId.replace(/^0x/, "")}`] });
+    const raw = asRaw((asRaw(result).coins as unknown[] | undefined ?? [])[0]);
+    if (!raw.coin_id) return null;
+    return { coinId: String(raw.coin_id).replace(/^0x/, ""), address: str(raw.address) ?? "", amount: big(raw.amount), createdHeight: num(raw.created_height), spentHeight: num(raw.spent_height) };
+  } catch {
+    return null;
+  }
+}
+
+/** XCH/USD from the wallet's own price feed (wallet.get_xch_usd_price). */
+export async function fetchXchUsdPrice(): Promise<number | null> {
+  const client = await getSage();
+  if (!client) return null;
+  try {
+    const result = await client.wallet.getXchUsdPrice();
+    const usd = (result as { usd?: unknown }).usd;
+    return typeof usd === "number" && Number.isFinite(usd) ? usd : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ask Sage to whitelist a custom chain endpoint so the app may call it from inside the
+ * wallet (Sage only whitelists https and wss hosts). Returns granted / refused / not-in-sage.
+ */
+export async function requestEndpointWhitelist(url: string, networkId: string): Promise<"granted" | "refused" | "unsupported" | "not-in-sage"> {
+  const client = await getSage();
+  if (!client) return "not-in-sage";
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return "unsupported";
+  }
+  if (parsed.protocol !== "https:") return "unsupported";
+  try {
+    const result = await client.app.requestNetworkWhitelistGrant({ entry: { scheme: "https", host: parsed.host }, networkId });
+    return (result as { granted?: boolean }).granted ? "granted" : "refused";
+  } catch {
+    return "refused";
+  }
 }

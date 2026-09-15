@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { routes } from "@/shared/lib/routes";
+import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 
 export function Footer() {
   const { endpoints, networkConfig } = useSettings();
+  const { inSage } = useSage();
   const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
   const sha = process.env.NEXT_PUBLIC_COMMIT_SHA ?? "";
   return (
@@ -19,6 +21,7 @@ export function Footer() {
           </span>
           <span aria-hidden="true">·</span>
           <span>
+            {inSage ? "wallet data from Sage · chain data: " : ""}
             {networkConfig.label} via <span className="mono">{endpoints.rpcUrl.replace(/^https?:\/\//, "")}</span>
             {endpoints.isCoinset ? "" : " (custom node)"}
           </span>

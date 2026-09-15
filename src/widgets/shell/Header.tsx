@@ -11,6 +11,7 @@ import { useSage } from "@/shared/providers/SageProvider";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
 import { NetworkSwitch } from "./NetworkSwitch";
+import { SagePriceChip } from "@/widgets/wallet/SagePanels";
 
 const NAV = [
   { href: routes.home(), label: "Dashboard", match: (p: string) => p === "/" },
@@ -51,6 +52,7 @@ export function Header() {
           <SearchBox className="mx-auto max-w-xl" />
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <SagePriceChip />
           <NetworkSwitch className="hidden sm:inline-flex" />
           <ConnectionIndicator />
           <Link
