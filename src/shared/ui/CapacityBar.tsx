@@ -39,8 +39,8 @@ export function CapacityBar({
       {!compact ? (
         <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           <span>{label}</span>
-          <span className={cn("tabular text-xs normal-case tracking-normal", text)}>
-            {formatCost(used)} / {formatCost(max)} · {formatPercent(ratio)} · {(ratio * segments).toFixed(1)} of {segments} blocks
+          <span className={cn("tabular text-xs normal-case tracking-normal", text)} title={`${formatCost(used)} of ${formatCost(max)} cost`}>
+            {formatPercent(ratio)} · {(ratio * segments).toFixed(1)}/{segments} blocks
           </span>
         </div>
       ) : null}

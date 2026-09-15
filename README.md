@@ -1,44 +1,39 @@
 # Mempool.xch
 
-**Mempool.xch is a [mempool.space](https://mempool.space)-style explorer for the Chia (XCH) network.**
-It shows the live mempool as projected next blocks, the most recent confirmed blocks, fee
-estimates and mempool graphs, and lets you search for transactions (spend bundles), blocks,
-addresses, coins, CATs and NFTs. Data comes from the public [Coinset](https://coinset.org)
-full-node RPC and indexed API, so no own node is required, with a settings page to point the
-app at a custom or local node instead.
+**[mempoolxch.space](https://mempoolxch.space)** — see what the Chia network is doing right now.
 
-The app is a Next.js + React + TypeScript project managed with bun. One code base produces two
-outputs: a standalone server shipped as a Docker image and deployed via
-[ONCE](https://github.com/basecamp/once), and a static snapshot that installs directly into the
-[Sage wallet](https://github.com/xch-dev/sage) as an in-app app. The server keeps a compact,
-incrementally synced view of the mempool so phones never download raw spend bundles.
+Mempool.xch shows the Chia mempool the way mempool.space shows Bitcoin's: the blocks about to be
+farmed and what will be in them, the blocks just confirmed, what a transaction costs to get in,
+and a search box that understands anything you paste from a Chia wallet — a transaction id, a
+block height, an address, a coin id, a CAT, an NFT or a DID.
 
-## Related repositories
+It runs in any browser and installs into the [Sage wallet](https://github.com/xch-dev/sage) as an
+in-app app. Chain data comes from [Coinset](https://coinset.org), so nothing has to be synced;
+your own node can be plugged in from the settings page.
 
-| Repo | Contents |
-| --- | --- |
-| [mempool-xch-backlog](https://github.com/maximedogawa/mempool-xch-backlog) | Original memo, [Concept.md](https://github.com/maximedogawa/mempool-xch-backlog/blob/main/Concept.md), tasks, milestones and decisions (Backlog.md) |
-| [mempool-xch-wiki](https://github.com/maximedogawa/mempool-xch-wiki) | Architecture, data sources, deployment, Sage install and custom-node guides |
-
-## Development
+## Run it yourself
 
 ```bash
 bun install
 bun run dev          # http://localhost:3000
-bun run type-check
-bun run lint
-bun run test         # bun unit tests (no network)
-bun run test:e2e     # Playwright against a mocked Coinset
-bun run build        # standalone server (.next/standalone)
-bun run build:sage   # Sage snapshot (out/)
 ```
 
-## Deployment
+Production: `docker compose up --build` serves the same image ONCE runs at mempoolxch.space on
+http://localhost:8080. See [deployment/README.md](deployment/README.md).
 
-`docker compose up --build` serves the production image on http://localhost:8080. Production runs
-the same image under ONCE: see [deployment/README.md](deployment/README.md).
+## Develop
+
+```bash
+bun run type-check && bun run lint && bun run test   # unit tests, no network
+bun run build        # standalone server
+bun run test:e2e     # Playwright against a mocked Coinset
+bun run build:sage   # Sage wallet snapshot in out/
+```
+
+Architecture, data sources and guides live in the
+[wiki](https://github.com/maximedogawa/mempool-xch-wiki); work items in the
+[backlog](https://github.com/maximedogawa/mempool-xch-backlog) (Backlog.md).
 
 ## Licence
 
-MIT. The mempool.space frontend is AGPL and was used as a visual reference only; no code, assets
-or stylesheets were copied (see decision-003 in the backlog).
+[MIT](LICENSE). mempool.space was a visual reference only; no code was copied.

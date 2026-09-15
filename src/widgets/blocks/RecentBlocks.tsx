@@ -11,7 +11,15 @@ import { Skeleton } from "@/shared/ui/Skeleton";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { BlockCube } from "./BlockCube";
 
-const CONFIRMED_GRADIENT = "linear-gradient(160deg, var(--primary-strong) 0%, #1f6b8f 100%)";
+const CONFIRMED_GRADIENT = "linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%)";
+
+const CUBE = 138;
+
+/** Stable colour per farmer puzzle hash so repeat farmers are recognisable at a glance. */
+function farmerColor(ph: string): string {
+  const hue = parseInt(ph.slice(0, 6), 16) % 360;
+  return `hsl(${hue} 70% 60%)`;
+}
 
 function useNow(intervalMs = 10_000) {
   const [now, setNow] = useState(() => Date.now());
@@ -41,7 +49,7 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
     return (
       <div className="flex items-end gap-3">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-[140px] w-[140px]" />
+          <Skeleton key={i} className="h-[156px] w-[156px]" />
         ))}
       </div>
     );
@@ -67,17 +75,21 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
                 href={routes.block(block.height)}
                 ariaLabel={label}
                 animate={!seen.has(block.height) && i === 0}
+                size={CUBE}
               >
-                <span className="tabular text-[13px] font-semibold leading-tight">{formatAmount(fees)}</span>
-                <span className="text-[10px] uppercase tracking-wide text-fg/70">fees</span>
-                <span className="tabular mt-1 text-[11px] text-fg/80">{block.rewardClaimsIncorporated?.length ?? 0} claims</span>
-                <span className="tabular text-[11px] text-fg/80">{formatAge(ageMs, now)}</span>
-                <span className="mono mt-1 max-w-[100px] truncate text-[10px] text-fg/60">{shortId(block.farmerPuzzleHash, 4, 4)}</span>
+                <span className="tabular text-[15px] font-bold leading-tight">{formatAmount(fees)}</span>
+                <span className="text-[10px] font-medium text-fg/70">total fees</span>
+                <span className="tabular mt-1.5 text-[11px] text-fg/85">{block.rewardClaimsIncorporated?.length ?? 0} reward claims</span>
+                <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
               </BlockCube>
+              <span className="mono inline-flex max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] text-fg-muted" title={`Farmer ${block.farmerPuzzleHash}`}>
+                <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: farmerColor(block.farmerPuzzleHash) }} />
+                {shortId(block.farmerPuzzleHash, 5, 4)}
+              </span>
             </div>
             {gap > 0 ? (
               <Tooltip text={`${gap} non-transaction block${gap > 1 ? "s" : ""} between ${formatNumber(block.height)} and ${formatNumber(older!.height)} (they carry no spends)`}>
-                <span className="mb-10 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-faint">
+                <span className="mb-16 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-muted">
                   +{gap}
                 </span>
               </Tooltip>

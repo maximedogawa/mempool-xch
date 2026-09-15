@@ -4,7 +4,7 @@ import { classifyMempoolItem } from "./classify";
 import type { CompactCoin, CompactMempoolItem } from "./types";
 
 /** Cap per-item coin lists so a giant bundle cannot blow up the summary payload. */
-export const MAX_COINS_PER_ITEM = 16;
+export const MAX_COINS_PER_ITEM = 6;
 
 function compactCoin(coin: Coin): CompactCoin {
   return { ph: coin.puzzleHash, amount: coin.amount.toString(), parent: coin.parentCoinInfo };

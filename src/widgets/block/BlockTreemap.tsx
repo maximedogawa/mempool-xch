@@ -7,7 +7,7 @@ import { shortId } from "@/shared/lib/chia/hex";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
-import { squarify } from "./treemap";
+import { squarify } from "@/shared/lib/treemap";
 
 const W = 800;
 const H = 320;

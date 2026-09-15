@@ -9,6 +9,7 @@ import { isCoinsetUrl, NETWORKS, type NetworkId } from "@/shared/config/networks
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import type { CompactMempoolItem, MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 
 export const REFRESH_MS = 3_000;
@@ -128,7 +129,22 @@ export class MempoolSyncer {
     return this.inflight;
   }
 
+  /** Until when Coinset asked us to back off (HTTP 429), as a timestamp. */
+  private backoffUntil = 0;
+
   private async doRefresh(): Promise<void> {
+    if (this.now() < this.backoffUntil) return;
+    try {
+      await this.doRefreshInner();
+    } catch (error) {
+      if (error instanceof RpcError && error.kind === "http" && error.status === 429) {
+        this.backoffUntil = this.now() + 30_000;
+      }
+      throw error;
+    }
+  }
+
+  private async doRefreshInner(): Promise<void> {
     const [state, ids] = await Promise.all([
       this.deps.client.getBlockchainState().then((s) => {
         this.stats.stateFetches += 1;

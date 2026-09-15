@@ -25,7 +25,7 @@ export function Footer() {
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Link href={routes.docs()} className="hover:text-fg">
-            Docs
+            Help
           </Link>
           <Link href={routes.settings()} className="hover:text-fg">
             Settings

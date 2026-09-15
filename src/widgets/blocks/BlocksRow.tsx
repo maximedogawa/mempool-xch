@@ -22,7 +22,7 @@ export function BlocksRow() {
   const blockMaxCost = projected.summary?.state.blockMaxCost ?? CHIA.BLOCK_MAX_COST;
 
   return (
-    <section aria-label="Blocks" className="rounded-card border border-border/60 bg-bg-elevated/60">
+    <section aria-label="Blocks" className="rounded-card border border-border/60 bg-[linear-gradient(180deg,var(--bg-elevated),color-mix(in_srgb,var(--bg)_85%,black))]">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 px-4 pb-4 pt-4">
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-right text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Projected · next blocks</span>
@@ -30,7 +30,10 @@ export function BlocksRow() {
             <ProjectedBlocks blocks={projected.blocks} loading={projected.isLoading} selected={selected} onSelect={setSelected} />
           </div>
         </div>
-        <div aria-hidden="true" className="mb-1 h-[164px] w-0 border-l-2 border-dashed border-fg-faint/70" />
+        <div aria-hidden="true" className="relative mb-1 h-[196px] w-0 border-l-2 border-dashed border-fg-faint/70">
+          <span className="absolute -left-[7px] -top-4 text-[11px] text-fg-faint">⇅</span>
+          <span className="absolute -bottom-4 -left-[7px] text-[11px] text-fg-faint">⇄</span>
+        </div>
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Confirmed · recent transaction blocks</span>
           <div className="overflow-x-auto overscroll-x-contain pb-1" style={{ scrollbarWidth: "thin" }}>

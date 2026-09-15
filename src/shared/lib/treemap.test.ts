@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { squarify } from "./treemap";
+import { squarify } from "@/shared/lib/treemap";
 
 describe("squarify", () => {
   test("empty and zero weights give no cells", () => {

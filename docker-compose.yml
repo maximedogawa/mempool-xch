@@ -6,6 +6,7 @@ services:
       dockerfile: deployment/Dockerfile
       args:
         NEXT_PUBLIC_APP_VERSION: dev
+        NEXT_PUBLIC_APP_URL: https://mempoolxch.space
     image: mempool-xch:local
     ports:
       - "8080:80"
