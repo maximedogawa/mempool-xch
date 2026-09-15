@@ -26,7 +26,7 @@ export function BlockTreemap({ transactions, blockCost }: { transactions: TxSumm
   const label = `Treemap of ${transactions.length} transactions sized by cost (${formatCost(total)} of ${formatCost(blockCost)}) and coloured by fee per cost`;
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block h-auto max-h-[320px] w-full rounded-sm">
+      <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block h-auto max-h-[320px] w-full rounded-sm">
         <title>{label}</title>
         {cells.map((cell) => {
           const tx = cell.item;

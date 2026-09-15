@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Docs" };
 const WIKI = "https://github.com/maximedogawa/mempool-xch-wiki/blob/main";
 
 function Code({ children }: { children: string }) {
-  return <pre className="mono overflow-x-auto rounded-sm border border-border bg-bg p-3 text-xs leading-relaxed text-fg-muted">{children}</pre>;
+  return <pre tabIndex={0} className="mono overflow-x-auto rounded-sm border border-border bg-bg p-3 text-xs leading-relaxed text-fg-muted">{children}</pre>;
 }
 
 export default function DocsPage() {

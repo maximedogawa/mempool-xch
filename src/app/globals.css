@@ -18,7 +18,7 @@
 
   --fg: #e8ebf5;
   --fg-muted: #9aa3c2;
-  --fg-faint: #67708f;
+  --fg-faint: #8d96b5;
 
   --primary: #5ece7b;
   --primary-strong: #3aac59;
@@ -32,7 +32,7 @@
   --info: #8aa4ff;
 
   /* Fee-band gradient: 0 fee (grey-green) → low → medium → high → extreme */
-  --fee-0: #43516e;
+  --fee-0: #4c5b7b;
   --fee-1: #3aac59;
   --fee-2: #8fd35c;
   --fee-3: #f5c542;
@@ -70,7 +70,7 @@
   --border-strong: #b9c1d9;
   --fg: #10142a;
   --fg-muted: #4d5674;
-  --fg-faint: #7d86a6;
+  --fg-faint: #5f6886;
   --primary: #2f9a4d;
   --primary-strong: #237a3b;
   --primary-soft: rgba(47, 154, 77, 0.12);
@@ -135,6 +135,7 @@ body {
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);

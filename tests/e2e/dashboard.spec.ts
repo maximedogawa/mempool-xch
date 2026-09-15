@@ -32,7 +32,7 @@ test.describe("dashboard", () => {
     const search = page.getByRole("searchbox").first();
     await search.fill("not a valid id");
     await search.press("Enter");
-    await expect(page.getByRole("alert")).toContainText("Not recognised");
+    await expect(page.getByRole("alert").filter({ hasText: "Not recognised" }).first()).toBeVisible();
     await search.fill("9295514");
     await search.press("Enter");
     await expect(page).toHaveURL(/\/block\/9295514/);

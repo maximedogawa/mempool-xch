@@ -68,7 +68,7 @@ export function AddressPage() {
         />
         <CardBody className="flex flex-col gap-4 md:flex-row md:items-start">
           <div className="shrink-0 self-center rounded-card bg-white p-2 md:self-start" aria-label={`QR code for ${addressText}`} role="img">
-            <QRCodeSVG value={addressText} size={132} level="M" bgColor="#ffffff" fgColor="#0f1220" />
+            <QRCodeSVG title="QR code of this address" value={addressText} size={132} level="M" bgColor="#ffffff" fgColor="#0f1220" />
           </div>
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">
