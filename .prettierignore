@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+sage-snapshot
+bun.lock
+coverage
+playwright-report
+test-results

@@ -1,0 +1,42 @@
+"use client";
+
+import Link from "next/link";
+import { routes } from "@/shared/lib/routes";
+import { useSettings } from "@/shared/providers/SettingsProvider";
+
+export function Footer() {
+  const { endpoints, networkConfig } = useSettings();
+  const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
+  const sha = process.env.NEXT_PUBLIC_COMMIT_SHA ?? "";
+  return (
+    <footer className="mt-10 border-t border-border" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-3 px-4 py-6 text-xs text-fg-faint sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>
+            Mempool.xch v{version}
+            {sha ? <span className="mono"> ({sha})</span> : null}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {networkConfig.label} via <span className="mono">{endpoints.rpcUrl.replace(/^https?:\/\//, "")}</span>
+            {endpoints.isCoinset ? "" : " (custom node)"}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link href={routes.docs()} className="hover:text-fg">
+            Docs
+          </Link>
+          <Link href={routes.settings()} className="hover:text-fg">
+            Settings
+          </Link>
+          <a href="https://coinset.org" target="_blank" rel="noreferrer" className="hover:text-fg">
+            Data by Coinset
+          </a>
+          <a href="https://github.com/maximedogawa/mempool-xch" target="_blank" rel="noreferrer" className="hover:text-fg">
+            GitHub
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
+}

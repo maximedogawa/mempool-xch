@@ -1,0 +1,24 @@
+{
+ "p2": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+ "balances": [
+  {
+   "cat_asset_id": "0x00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5",
+   "confirmed_balance": "213125",
+   "locked_balance": "0",
+   "revocable_balance": "0",
+   "pending_balance": "0",
+   "pending_locked_balance": "0",
+   "pending_revocable_balance": "0"
+  },
+  {
+   "cat_asset_id": "0x0dcfd6b2c61b696dde9974bd5fdbc9cc1b03f7572a0bf0ae2476580f2913a7b9",
+   "confirmed_balance": "5003",
+   "locked_balance": "0",
+   "revocable_balance": "0",
+   "pending_balance": "0",
+   "pending_locked_balance": "0",
+   "pending_revocable_balance": "0"
+  }
+ ],
+ "success": true
+}

@@ -1,0 +1,26 @@
+{
+ "current_fee_rate": 0.3736876890037907,
+ "estimates": [
+  373687,
+  1713,
+  214
+ ],
+ "fee_rate_last_block": 1.0864375843545994e-06,
+ "fees_last_block": 10000,
+ "full_node_synced": true,
+ "last_block_cost": 9204394384,
+ "last_peak_timestamp": 1789478949,
+ "last_tx_block_height": 9295523,
+ "mempool_fees": 300,
+ "mempool_max_size": 110000000000,
+ "mempool_size": 100636754421,
+ "node_time_utc": 1789479004,
+ "num_spends": 69,
+ "peak_height": 9295525,
+ "success": true,
+ "target_times": [
+  60,
+  300,
+  600
+ ]
+}

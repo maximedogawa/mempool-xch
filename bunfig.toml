@@ -1,0 +1,4 @@
+[test]
+preload = ["./src/test-utils/setup.ts"]
+root = "./src"
+timeout = 30000
