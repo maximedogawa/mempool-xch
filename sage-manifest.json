@@ -52,7 +52,10 @@
         "storage.persistent_webview"
       ],
       "optional": [
-        "wallet.get_sync_status"
+        "wallet.get_sync_status",
+        "wallet.get_pending_transactions",
+        "wallet.get_transactions",
+        "wallet.get_coins"
       ]
     }
   }

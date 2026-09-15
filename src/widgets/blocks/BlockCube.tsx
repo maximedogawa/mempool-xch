@@ -34,7 +34,7 @@ export function BlockCube({
   animate?: boolean;
   size?: number;
 }) {
-  const depth = Math.round(size * 0.14);
+  const depth = Math.round(size * 0.2);
   const pct = Math.round(Math.min(1, Math.max(0, fill)) * 100);
   const empty = variant === "empty";
   const front: CSSProperties = {
@@ -65,12 +65,11 @@ export function BlockCube({
         style={{
           width: size,
           height: depth,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to right, color-mix(in srgb, var(--block-top) 70%, white 8%), var(--block-top))",
-          transform: `translateX(${depth}px) skewX(-45deg)`,
+          background: empty ? "var(--block-empty)" : "linear-gradient(to right, color-mix(in srgb, var(--block-top) 78%, white 14%), var(--block-top))",
+          transform: "skewX(-45deg)",
           transformOrigin: "bottom left",
-          borderTopLeftRadius: 3,
           borderTopRightRadius: 3,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14)",
         }}
       />
       {/* side face: shaded */}
@@ -82,17 +81,16 @@ export function BlockCube({
           top: depth,
           width: depth,
           height: size,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to bottom, var(--block-side), color-mix(in srgb, var(--block-side) 70%, black))",
-          transform: `translateY(-${depth}px) skewY(-45deg)`,
+          background: empty ? "var(--block-empty)" : "linear-gradient(to bottom, color-mix(in srgb, var(--block-side) 85%, black), color-mix(in srgb, var(--block-side) 55%, black))",
+          transform: "skewY(-45deg)",
           transformOrigin: "top left",
-          borderTopRightRadius: 3,
           borderBottomRightRadius: 3,
         }}
       />
       {/* front face */}
       <div
         className={cn(
-          "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[4px] text-center text-fg transition-transform duration-200",
+          "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[3px] rounded-tr-none text-center text-fg transition-transform duration-200",
           variant === "projected" && "outline-1 outline-dashed outline-white/15 -outline-offset-4",
           (onClick || href) && "group-hover:-translate-y-1"
         )}

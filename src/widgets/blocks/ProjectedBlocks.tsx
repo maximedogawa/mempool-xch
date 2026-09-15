@@ -41,7 +41,7 @@ export function ProjectedBlocks({
   }
   // Row-reversed so the next block sits against the divider and the scroll starts there.
   return (
-    <ul className="flex min-w-max flex-row-reverse items-end gap-3" aria-label="Projected next blocks">
+    <ul className="flex min-w-max flex-row-reverse items-end gap-4" aria-label="Projected next blocks">
       {blocks.map((block) => {
         const zero = block.maxFeeRate === 0;
         const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;

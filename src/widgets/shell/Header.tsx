@@ -22,10 +22,8 @@ const NAV = [
 export function Header() {
   const pathname = normalisePath(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
-  const { walletAddress } = useSage();
-  const nav = walletAddress
-    ? [...NAV, { href: routes.address(walletAddress), label: "My wallet", match: (p: string) => p.startsWith("/address") }]
-    : NAV;
+  const { inSage } = useSage();
+  const nav = inSage ? [...NAV, { href: routes.wallet(), label: "My wallet", match: (p: string) => p.startsWith("/wallet") }] : NAV;
   return (
     <header className="relative sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />

@@ -288,3 +288,12 @@ body {
   transform: translateY(-1px);
   border-color: var(--border-strong);
 }
+
+/* Hidden but functional scrollbars (block queue) */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

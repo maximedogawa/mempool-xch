@@ -20,7 +20,7 @@ function makeSyncer(initialIds: string[]) {
       return found;
     },
   };
-  const syncer = new MempoolSyncer("mainnet", { client, now: () => now });
+  const syncer = new MempoolSyncer("mainnet", { client, now: () => now, awaitItems: true });
   return {
     syncer,
     setIds: (next: string[]) => {

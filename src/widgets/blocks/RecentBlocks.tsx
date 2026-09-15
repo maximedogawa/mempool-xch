@@ -56,7 +56,7 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
   }
   const blocks = data?.txBlocks ?? [];
   return (
-    <ul className="flex min-w-max items-end gap-3" aria-label="Recent transaction blocks">
+    <ul className="flex min-w-max items-end gap-4" aria-label="Recent transaction blocks">
       {blocks.map((block, i) => {
         const older = blocks[i + 1];
         const gap = older && data ? gapBetween(data.all, block, older) : 0;

@@ -26,6 +26,8 @@ export interface SyncerDeps {
   now?: () => number;
   /** Keep refreshing in the background between requests (off in unit tests). */
   backgroundLoop?: boolean;
+  /** Await item fetches inside refresh() (tests); production answers before they finish. */
+  awaitItems?: boolean;
 }
 
 export function stateSummary(state: BlockchainState): MempoolStateSummary {
@@ -104,9 +106,9 @@ export class MempoolSyncer {
       } catch {
         // Transient upstream error: the next tick retries.
       }
-      this.loop = setTimeout(tick, REFRESH_MS);
+      this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
     };
-    this.loop = setTimeout(tick, REFRESH_MS);
+    this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
   }
 
   snapshot(): MempoolSummary {
@@ -163,7 +165,11 @@ export class MempoolSyncer {
     unseen.forEach((id) => this.pending.add(id));
     const batch = [...this.pending].slice(0, FETCH_BATCH);
     const seenAt = this.now();
-    await mapWithConcurrency(batch, FETCH_CONCURRENCY, async (id) => {
+    this.lastRefresh = this.now();
+    // Item fetches are the slow part (one round trip each). They are not awaited by the
+    // request that triggered the refresh: the first response carries the state and whatever
+    // items are already known, and the background loop fills in the rest within seconds.
+    const fetching = mapWithConcurrency(batch, FETCH_CONCURRENCY, async (id) => {
       try {
         const item = await this.deps.client.getMempoolItemByTxId(id);
         this.stats.itemFetches += 1;
@@ -174,7 +180,18 @@ export class MempoolSyncer {
         // dropped when it disappears from the next id list, or retried otherwise.
       }
     });
-    this.lastRefresh = this.now();
+    this.itemFetch = fetching.then(() => {
+      this.itemFetch = null;
+    });
+    if (this.deps.awaitItems) await fetching;
+  }
+
+  /** In-flight item fetches, exposed so tests can wait for them. */
+  private itemFetch: Promise<void> | null = null;
+
+  /** Wait for background item fetches (tests). */
+  settle(): Promise<void> {
+    return this.itemFetch ?? Promise.resolve();
   }
 
   get pendingCount(): number {

@@ -89,7 +89,13 @@ export function useMempoolSummary() {
         items: compact,
       };
     },
-    refetchInterval: interval,
+    // While the server is still filling its view (fewer items than the node reports), poll
+    // quickly so the first visitor after a restart sees projected blocks within seconds.
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9) return 1_500;
+      return interval;
+    },
     placeholderData: keepPreviousData,
   });
 }
