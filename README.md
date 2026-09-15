@@ -1,6 +1,6 @@
 # mempoolxch.space
 
-**[mempoolxch.space](https://mempoolxch.space)** shows what the Chia network is doing right now: it shows the Chia mempool the way mempool.space shows Bitcoin's: the blocks about to be
+**[mempoolxch.space](https://mempoolxch.space)** shows the Chia mempool the way mempool.space shows Bitcoin's: the blocks about to be
 farmed and what will be in them, the blocks just confirmed, what a transaction costs to get in,
 and a search box that understands anything you paste from a Chia wallet — a transaction id, a
 block height, an address, a coin id, a CAT, an NFT or a DID.
