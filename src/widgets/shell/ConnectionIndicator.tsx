@@ -44,11 +44,11 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     offline: "border-danger/40 bg-danger-soft text-danger",
   }[status];
   return (
-    <Tooltip text={hint}>
+    <Tooltip text={hint} placement="bottom">
       <span
         role="status"
         aria-live="polite"
-        className={cn("inline-flex h-8 items-center gap-2 rounded-full border px-2.5 text-xs font-semibold", styles, compact && "px-2")}
+        className={cn("inline-flex h-8 items-center gap-1.5 rounded-full border px-2 text-xs font-semibold sm:gap-2 sm:px-2.5", styles, compact && "px-2")}
       >
         <span className="relative inline-flex h-2.5 w-2.5 items-center justify-center" aria-hidden="true">
           {status === "live" ? <span className="live-ring absolute inset-0 rounded-full" /> : null}
@@ -69,7 +69,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
             <span className="text-fg-faint">▲</span> {formatNumber(peak)}
           </span>
         ) : null}
-        {!compact && lastEventAt ? <span className="hidden font-normal text-fg-faint lg:inline">{age}</span> : null}
+        {!compact && lastEventAt ? <span className="tabular hidden min-w-[6ch] text-right font-normal text-fg-faint lg:inline-block">{age}</span> : null}
         <span className="sr-only">{`${LABEL[status]}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
       </span>
     </Tooltip>
