@@ -1,12 +1,13 @@
 "use client";
 
-import { Menu, Settings, X } from "lucide-react";
+import { Menu, Settings, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SearchBox } from "@/features/search/SearchBox";
 import { cn } from "@/shared/lib/cn";
-import { routes } from "@/shared/lib/routes";
+import { normalisePath, routes } from "@/shared/lib/routes";
+import { useSage } from "@/shared/providers/SageProvider";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
 import { NetworkSwitch } from "./NetworkSwitch";
@@ -19,8 +20,12 @@ const NAV = [
 ];
 
 export function Header() {
-  const pathname = usePathname() ?? "/";
+  const pathname = normalisePath(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
+  const { walletAddress } = useSage();
+  const nav = walletAddress
+    ? [...NAV, { href: routes.address(walletAddress), label: "My wallet", match: (p: string) => p.startsWith("/address") }]
+    : NAV;
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-3 px-4">
@@ -28,7 +33,7 @@ export function Header() {
           <Logo />
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -38,6 +43,7 @@ export function Header() {
                 item.match(pathname) && "bg-surface-2 text-fg"
               )}
             >
+              {item.label === "My wallet" ? <Wallet size={14} className="mr-1 inline" aria-hidden="true" /> : null}
               {item.label}
             </Link>
           ))}
@@ -72,7 +78,7 @@ export function Header() {
       {open ? (
         <nav aria-label="Mobile" className="border-t border-border bg-bg-elevated px-4 py-3 lg:hidden">
           <ul className="flex flex-col gap-1">
-            {[...NAV, { href: routes.settings(), label: "Settings", match: (p: string) => p.startsWith("/settings") }].map((item) => (
+            {[...nav, { href: routes.settings(), label: "Settings", match: (p: string) => p.startsWith("/settings") }].map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

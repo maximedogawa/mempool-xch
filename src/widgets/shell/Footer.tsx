@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { ExternalLink } from "@/shared/ui/ExternalLink";
 
 export function Footer() {
   const { endpoints, networkConfig } = useSettings();
@@ -29,12 +30,12 @@ export function Footer() {
           <Link href={routes.settings()} className="hover:text-fg">
             Settings
           </Link>
-          <a href="https://coinset.org" target="_blank" rel="noreferrer" className="hover:text-fg">
+          <ExternalLink href="https://coinset.org" className="hover:text-fg">
             Data by Coinset
-          </a>
-          <a href="https://github.com/maximedogawa/mempool-xch" target="_blank" rel="noreferrer" className="hover:text-fg">
+          </ExternalLink>
+          <ExternalLink href="https://github.com/maximedogawa/mempool-xch" className="hover:text-fg">
             GitHub
-          </a>
+          </ExternalLink>
         </div>
       </div>
     </footer>

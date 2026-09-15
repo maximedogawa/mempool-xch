@@ -29,7 +29,7 @@ export function StatTile({
         <span className="truncate">{label}</span>
         {hint ? <Tooltip text={hint} /> : null}
       </div>
-      <div className={cn("tabular truncate text-xl font-semibold leading-tight", valueTone)}>{value}</div>
+      <div className={cn("tabular truncate text-lg font-semibold leading-tight", valueTone)}>{value}</div>
       {sub ? <div className="truncate text-xs text-fg-faint">{sub}</div> : null}
     </div>
   );

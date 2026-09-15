@@ -21,7 +21,7 @@ export function FeeCards() {
   const state = summary.data?.state;
   const minFeeRate = state?.minFeeRate ?? 0;
   const fillRatio = state && state.mempoolMaxTotalCost > 0 ? state.mempoolCost / state.mempoolMaxTotalCost : 0;
-  const zeroFeeOk = minFeeRate === 0;
+  const zeroFeeOk = minFeeRate === 0 && fillRatio < 0.95;
 
   return (
     <Card>
@@ -69,8 +69,12 @@ export function FeeCards() {
               </>
             ) : (
               <>
-                <span className="font-semibold text-warning">Minimum fee to enter the mempool: {formatFeeRate(minFeeRate)} mojo/cost.</span>{" "}
-                <span className="text-fg-muted">The mempool is {formatPercent(fillRatio)} full; lower-fee spends are rejected until it drains.</span>
+                <span className="font-semibold text-warning">
+                  {minFeeRate > 0 ? `Minimum fee to enter the mempool: ${formatFeeRate(minFeeRate)} mojo/cost.` : "The mempool is near capacity."}
+                </span>{" "}
+                <span className="text-fg-muted">
+                  It is {formatPercent(fillRatio)} full; paying a fee gets a spend included ahead of the 0-fee backlog, and 0-fee spends may be evicted.
+                </span>
               </>
             )
           ) : (

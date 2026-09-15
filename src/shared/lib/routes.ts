@@ -7,11 +7,20 @@ const QUERY_ROUTES = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
 
 function detail(base: string, id: string): string {
   const clean = encodeURIComponent(id);
-  return QUERY_ROUTES ? `/${base}/?id=${clean}` : `/${base}/${clean}`;
+  return QUERY_ROUTES ? `/${base}?id=${clean}` : `/${base}/${clean}`;
 }
 
 function page(path: string): string {
-  return QUERY_ROUTES ? `/${path}/` : `/${path}`;
+  return `/${path}`;
+}
+
+/**
+ * Inside Sage the webview URL can read `/index.html` or `/blocks.html` (static-export files);
+ * normalise before comparing with a route.
+ */
+export function normalisePath(pathname: string): string {
+  const stripped = pathname.replace(/\.html?$/i, "").replace(/\/+$/, "");
+  return stripped === "" || stripped === "/index" ? "/" : stripped;
 }
 
 export const routes = {

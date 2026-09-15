@@ -41,7 +41,7 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
     return (
       <div className="flex items-end gap-3">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-[126px] w-[126px]" />
+          <Skeleton key={i} className="h-[140px] w-[140px]" />
         ))}
       </div>
     );

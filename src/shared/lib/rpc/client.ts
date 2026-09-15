@@ -297,9 +297,16 @@ export function createRpcClient(options: RpcClientOptions) {
       return normaliseTxList(r);
     },
 
-    async getTransactionsByCoinName(coinName: string, signal?: AbortSignal): Promise<TxList> {
+    /** The creating and spending tx ids of a coin (get_transactions_by_coin_name). */
+    async getTransactionsByCoinName(coinName: string, signal?: AbortSignal): Promise<CoinTxLinks> {
       const r = await indexed("get_transactions_by_coin_name", { coin_name: withHexPrefix(coinName) }, signal);
-      return normaliseTxList(r);
+      const id = (v: unknown) => (typeof v === "string" && v ? v.replace(/^0x/, "").toLowerCase() : null);
+      return {
+        createdInTxId: id(r.created_in_tx_id),
+        spentInTxId: id(r.spent_in_tx_id),
+        createdTransaction: r.created_transaction ? normaliseTxSummary(r.created_transaction) : null,
+        spentTransaction: r.spent_transaction ? normaliseTxSummary(r.spent_transaction) : null,
+      };
     },
 
     async getXchBalanceByP2(p2: string, signal?: AbortSignal): Promise<XchBalance> {
@@ -335,3 +342,10 @@ export function createRpcClient(options: RpcClientOptions) {
 }
 
 export type RpcClient = ReturnType<typeof createRpcClient>;
+
+export interface CoinTxLinks {
+  createdInTxId: string | null;
+  spentInTxId: string | null;
+  createdTransaction: TxSummary | null;
+  spentTransaction: TxSummary | null;
+}

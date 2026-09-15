@@ -38,7 +38,7 @@ ENV HOSTNAME="0.0.0.0"
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Sage snapshot, served by src/proxy.ts under /sage/ (not part of Next's module graph).
+# Sage snapshot, served from the origin root by src/proxy.ts (not part of Next's module graph).
 COPY --from=builder --chown=nextjs:nodejs /app/out ./sage-snapshot
 
 USER nextjs

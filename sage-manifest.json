@@ -1,0 +1,59 @@
+{
+  "manifestVersion": 0,
+  "name": "Mempool.xch",
+  "version": "0.1.0",
+  "icon": "icons/icon-512.png",
+  "entry": "index.html",
+  "sageVersion": {
+    "min": "0.13.0"
+  },
+  "author": {
+    "name": "Mempool.xch",
+    "avatar": "icons/icon-192.png"
+  },
+  "permissions": {
+    "network": {
+      "whitelist": {
+        "required": [
+          "https://api.coinset.org",
+          "wss://api.coinset.org",
+          "https://testnet11.api.coinset.org",
+          "wss://testnet11.api.coinset.org",
+          "https://api.spacescan.io",
+          "https://assets.spacescan.io",
+          "https://api.mintgarden.io",
+          "https://assets.mainnet.mintgarden.io",
+          "https://ipfs.mintgarden.io"
+        ],
+        "optional": []
+      },
+      "whitelistByNetwork": {
+        "mainnet": {
+          "required": [],
+          "optional": []
+        },
+        "testnet11": {
+          "required": [],
+          "optional": []
+        }
+      }
+    },
+    "capabilities": {
+      "required": [
+        "app.get_info",
+        "app.get_capabilities",
+        "app.request_capability_grant",
+        "app.lifecycle.set_before_stop_listener",
+        "app.lifecycle.ready_to_stop",
+        "environment.get_network",
+        "environment.theme.get_current",
+        "environment.theme.css_vars",
+        "environment.theme.listen_changed",
+        "storage.persistent_webview"
+      ],
+      "optional": [
+        "wallet.get_sync_status"
+      ]
+    }
+  }
+}

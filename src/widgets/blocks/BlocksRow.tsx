@@ -22,7 +22,7 @@ export function BlocksRow() {
   const blockMaxCost = projected.summary?.state.blockMaxCost ?? CHIA.BLOCK_MAX_COST;
 
   return (
-    <section aria-label="Blocks" className="rounded-card border border-border bg-surface/60">
+    <section aria-label="Blocks" className="rounded-card border border-border/60 bg-bg-elevated/60">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 px-4 pb-4 pt-4">
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-right text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Projected · next blocks</span>
@@ -30,7 +30,7 @@ export function BlocksRow() {
             <ProjectedBlocks blocks={projected.blocks} loading={projected.isLoading} selected={selected} onSelect={setSelected} />
           </div>
         </div>
-        <div aria-hidden="true" className="mb-1 h-[150px] w-0 border-l-2 border-dashed border-fg-faint/60" />
+        <div aria-hidden="true" className="mb-1 h-[164px] w-0 border-l-2 border-dashed border-fg-faint/70" />
         <div className="flex min-w-0 flex-col gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Confirmed · recent transaction blocks</span>
           <div className="overflow-x-auto overscroll-x-contain pb-1" style={{ scrollbarWidth: "thin" }}>

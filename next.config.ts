@@ -21,7 +21,6 @@ const isSageBuild = process.env.SAGE_BUILD === "1";
 
 const nextConfig: NextConfig = {
   output: isSageBuild ? "export" : "standalone",
-  trailingSlash: isSageBuild,
   ...(isSageBuild ? { images: { unoptimized: true }, pageExtensions: ["tsx", "jsx"] } : {}),
   compress: true,
   poweredByHeader: false,

@@ -57,5 +57,6 @@ docker run --rm -p 8080:80 mempool-xch:local
 - `/` and the explorer pages: the standalone Next.js server (`output: "standalone"`).
 - `/api/<network>/mempool`: the compact mempool summary API (in-memory, refreshed every 3 s,
   Coinset hosts only). Sends `Access-Control-Allow-Origin: *` so the Sage snapshot can call it.
-- `/sage/`: the Sage wallet snapshot (`bun run build:sage` → `out/`), the URL to paste into
-  Sage → Apps → Install from URL.
+- `/sage-manifest.json` and every file it lists: the Sage wallet snapshot (`bun run build:sage`
+  → `out/`), served from the origin root by `src/proxy.ts`. The install URL for Sage → Apps →
+  Install from URL is the origin itself.

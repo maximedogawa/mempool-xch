@@ -18,7 +18,7 @@ export function BlockCube({
   ariaLabel,
   className,
   animate = false,
-  size = 112,
+  size = 124,
 }: {
   /** 0..1 */
   fill: number;
