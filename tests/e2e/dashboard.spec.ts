@@ -13,7 +13,7 @@ test.describe("dashboard", () => {
     await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible();
     await expect(page.getByText("9,295,514", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Transaction fees")).toBeVisible();
-    await expect(page.getByText("Next block", { exact: true })).toBeVisible();
+    await expect(page.getByText("Next block", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Latest transactions")).toBeVisible();
     await expect(page.getByText("Latest blocks")).toBeVisible();
     // Connection indicator falls back to polling because the WebSocket is closed by the mock.
