@@ -91,7 +91,7 @@ export function WalletPage() {
   if (!inSage) {
     return (
       <EmptyState
-        title="Open Mempool.xch inside the Sage wallet"
+        title="Open mempoolxch.space inside the Sage wallet"
         description="This page reads balances, pending transactions and coins directly from your wallet. In a browser, search for your address instead."
         action={
           <Link href={routes.home()} className="text-accent hover:underline">

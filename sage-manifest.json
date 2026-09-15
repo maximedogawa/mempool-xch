@@ -1,6 +1,6 @@
 {
   "manifestVersion": 0,
-  "name": "Mempool.xch",
+  "name": "mempoolxch.space",
   "version": "0.1.0",
   "icon": "icons/icon-512.png",
   "entry": "index.html",
@@ -8,7 +8,7 @@
     "min": "0.13.0"
   },
   "author": {
-    "name": "Mempool.xch",
+    "name": "mempoolxch.space",
     "avatar": "icons/icon-192.png"
   },
   "permissions": {

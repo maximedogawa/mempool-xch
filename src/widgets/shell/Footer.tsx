@@ -16,7 +16,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-[1280px] flex-col gap-3 px-4 py-6 text-xs text-fg-faint sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span>
-            Mempool.xch v{version}
+            mempoolxch.space v{version}
             {sha ? <span className="mono"> ({sha})</span> : null}
           </span>
           <span aria-hidden="true">·</span>

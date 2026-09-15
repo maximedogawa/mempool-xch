@@ -6,7 +6,7 @@ import { FeeCards } from "@/widgets/fees/FeeCards";
 import { NextBlockGoggles } from "@/widgets/goggles/NextBlockGoggles";
 import { MempoolStats } from "@/widgets/mempool/MempoolStats";
 
-export const metadata: Metadata = { title: "Mempool.xch · Chia mempool explorer" };
+export const metadata: Metadata = { title: { absolute: "mempoolxch.space · Chia mempool explorer" } };
 
 export default function HomePage() {
   return (

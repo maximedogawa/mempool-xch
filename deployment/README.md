@@ -1,6 +1,6 @@
 # Deployment
 
-Mempool.xch ships as a single Docker image that [ONCE](https://github.com/basecamp/once) pulls
+mempoolxch.space ships as a single Docker image that [ONCE](https://github.com/basecamp/once) pulls
 from GitHub Container Registry and keeps updated. ONCE owns TLS, the reverse proxy and the
 container lifecycle, so there is no nginx or deploy script to maintain here.
 

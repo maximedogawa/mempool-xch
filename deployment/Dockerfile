@@ -1,4 +1,4 @@
-# Mempool.xch - Docker image for ONCE (https://github.com/basecamp/once).
+# mempoolxch.space - Docker image for ONCE (https://github.com/basecamp/once).
 # Build stage: bun installs and builds the standalone Next.js server plus the Sage snapshot.
 FROM oven/bun:1.3-alpine AS builder
 

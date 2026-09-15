@@ -8,7 +8,7 @@ test.describe("dashboard", () => {
 
   test("renders projected and confirmed blocks, fees and feeds from fixtures", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Mempool\.xch/);
+    await expect(page).toHaveTitle(/mempoolxch\.space/);
     await expect(page.getByRole("list", { name: "Projected next blocks" }).getByRole("listitem").first()).toBeVisible();
     await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible();
     await expect(page.getByText("9,295,514", { exact: true }).first()).toBeVisible();

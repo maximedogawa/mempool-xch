@@ -161,7 +161,7 @@ export function SettingsForm() {
             </p>
           ) : null}
           <p className="text-sm text-fg-muted">
-            By default Mempool.xch reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed.
+            By default mempoolxch.space reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed.
             You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history, the WebSocket stream and the server-side mempool summary) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.
           </p>
           {NETWORK_IDS.map((id) => (
