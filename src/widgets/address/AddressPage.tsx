@@ -10,11 +10,12 @@ import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, CopyButton, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
-import { AssetImage } from "@/widgets/assets/AssetImage";
-import { tokenLabel } from "@/widgets/assets/tokenList";
+import { AssetImage } from "@/shared/ui/AssetImage";
+import { tokenLabel } from "@/shared/api/tokenList";
 import { TxSummaryList } from "@/widgets/assets/TxSummaryList";
-import { useTokenList } from "@/widgets/assets/useTokenList";
+import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
+import { SageAddressPanel } from "@/widgets/wallet/SagePanels";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
 function Unavailable({ what }: { what: string }) {
@@ -56,6 +57,7 @@ export function AddressPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {resolved.address ? <SageAddressPanel address={resolved.address} /> : null}
       <Card>
         <CardHeader
           title={isDid ? "DID" : "Address"}
@@ -68,7 +70,7 @@ export function AddressPage() {
         />
         <CardBody className="flex flex-col gap-4 md:flex-row md:items-start">
           <div className="shrink-0 self-center rounded-card bg-white p-2 md:self-start" aria-label={`QR code for ${addressText}`} role="img">
-            <QRCodeSVG value={addressText} size={132} level="M" bgColor="#ffffff" fgColor="#0f1220" />
+            <QRCodeSVG title="QR code of this address" value={addressText} size={132} level="M" bgColor="#ffffff" fgColor="#0f1220" />
           </div>
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">

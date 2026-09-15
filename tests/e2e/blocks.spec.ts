@@ -21,7 +21,8 @@ test.describe("block pages", () => {
 
   test("blocks list paginates and filters", async ({ page }) => {
     await page.goto("/blocks");
-    await expect(page.getByRole("link", { name: "9,295,519" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "9,295,514" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "9,295,513" }).first()).toBeVisible();
     await page.getByLabel(/transaction blocks only/i).check();
     await expect(page.getByRole("link", { name: "9,295,513" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "9,295,514" }).first()).toBeVisible();
@@ -31,7 +32,8 @@ test.describe("block pages", () => {
     await page.goto("/mempool");
     const table = page.getByRole("table").first();
     await expect(table.getByRole("row")).toHaveCount(4); // header + 3 fixture items
-    await page.getByRole("columnheader", { name: /cost/i }).filter({ hasNotText: /fee/i }).first().click();
-    await expect(page.getByRole("columnheader", { name: /cost/i }).filter({ hasNotText: /fee/i }).first()).toHaveAttribute("aria-sort", /ascending|descending/);
+    // "Age" stays visible on phones; the cost column is hidden under sm.
+    await table.getByRole("button", { name: /^age$/i }).click();
+    await expect(page.getByRole("columnheader", { name: /^age$/i })).toHaveAttribute("aria-sort", /ascending|descending/);
   });
 });

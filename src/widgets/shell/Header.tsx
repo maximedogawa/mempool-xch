@@ -11,25 +11,25 @@ import { useSage } from "@/shared/providers/SageProvider";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
 import { NetworkSwitch } from "./NetworkSwitch";
+import { SagePriceChip } from "@/widgets/wallet/SagePanels";
 
 const NAV = [
   { href: routes.home(), label: "Dashboard", match: (p: string) => p === "/" },
   { href: routes.blocks(), label: "Blocks", match: (p: string) => p.startsWith("/blocks") || p.startsWith("/block") },
   { href: routes.mempool(), label: "Mempool", match: (p: string) => p.startsWith("/mempool") },
-  { href: routes.docs(), label: "Docs", match: (p: string) => p.startsWith("/docs") },
+  { href: routes.docs(), label: "Help", match: (p: string) => p.startsWith("/docs") },
 ];
 
 export function Header() {
   const pathname = normalisePath(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
-  const { walletAddress } = useSage();
-  const nav = walletAddress
-    ? [...NAV, { href: routes.address(walletAddress), label: "My wallet", match: (p: string) => p.startsWith("/address") }]
-    : NAV;
+  const { inSage } = useSage();
+  const nav = inSage ? [...NAV, { href: routes.wallet(), label: "My wallet", match: (p: string) => p.startsWith("/wallet") }] : NAV;
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-3 px-4">
-        <Link href={routes.home()} aria-label="Mempool.xch home" className="shrink-0">
+    <header className="relative sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-2 px-3 sm:gap-3 sm:px-4">
+        <Link href={routes.home()} aria-label="mempoolxch.space home" className="shrink-0">
           <Logo />
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
@@ -52,6 +52,7 @@ export function Header() {
           <SearchBox className="mx-auto max-w-xl" />
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <SagePriceChip />
           <NetworkSwitch className="hidden sm:inline-flex" />
           <ConnectionIndicator />
           <Link

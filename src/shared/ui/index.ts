@@ -1,4 +1,7 @@
 export { Amount } from "./Amount";
+export { AssetBadge, AssetIcon, XchIcon } from "./AssetBadge";
+export { AssetImage } from "./AssetImage";
+export { CapacityBar } from "./CapacityBar";
 export { Badge, KindBadge, StatusBadge, SummaryKindBadge } from "./Badge";
 export { Button } from "./Button";
 export { Card, CardBody, CardHeader } from "./Card";

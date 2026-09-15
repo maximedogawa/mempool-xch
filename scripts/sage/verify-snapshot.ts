@@ -78,7 +78,7 @@ if (finalManifest) {
   else if (finalManifest.icon) pass(`icon "${finalManifest.icon}" is listed`);
   const avatar = finalManifest.author?.avatar;
   if (avatar && !listed.has(avatar)) fail(`author.avatar "${avatar}" is not listed`);
-  ["tx.html", "block.html", "address.html", "coin.html", "blocks.html", "mempool.html", "settings.html"].forEach((page) => {
+  ["tx.html", "block.html", "address.html", "coin.html", "blocks.html", "mempool.html", "settings.html", "wallet.html"].forEach((page) => {
     if (!listed.has(page)) fail(`route file ${page} is missing from the export`);
   });
 }

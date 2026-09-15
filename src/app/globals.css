@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Mempool.xch design tokens (decision-003): mempool.space's dark navy base with the accent
+ * mempoolxch.space design tokens (decision-003): mempool.space's dark navy base with the accent
  * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
  * Every colour used by components is a token here so Sage's theme can remap them later.
  */
@@ -18,7 +18,7 @@
 
   --fg: #e8ebf5;
   --fg-muted: #9aa3c2;
-  --fg-faint: #67708f;
+  --fg-faint: #8d96b5;
 
   --primary: #5ece7b;
   --primary-strong: #3aac59;
@@ -32,7 +32,7 @@
   --info: #8aa4ff;
 
   /* Fee-band gradient: 0 fee (grey-green) → low → medium → high → extreme */
-  --fee-0: #43516e;
+  --fee-0: #4c5b7b;
   --fee-1: #3aac59;
   --fee-2: #8fd35c;
   --fee-3: #f5c542;
@@ -70,7 +70,7 @@
   --border-strong: #b9c1d9;
   --fg: #10142a;
   --fg-muted: #4d5674;
-  --fg-faint: #7d86a6;
+  --fg-faint: #5f6886;
   --primary: #2f9a4d;
   --primary-strong: #237a3b;
   --primary-soft: rgba(47, 154, 77, 0.12);
@@ -135,6 +135,7 @@ body {
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
@@ -201,4 +202,126 @@ a {
 
 .animate-row-in {
   animation: row-in 1.6s ease-out;
+}
+
+/* Capacity bar: eased fill, travelling sheen */
+.capacity-fill {
+  transition: width 900ms cubic-bezier(0.2, 0.8, 0.2, 1), background 600ms ease;
+}
+
+@keyframes sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.capacity-sheen {
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  animation: sheen 2.8s ease-in-out infinite;
+}
+
+/* Live indicator ring */
+@keyframes ping-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.live-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--primary);
+  animation: ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes radar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radar 2.4s linear infinite;
+}
+
+/* Page flair: soft green glow at the top, gradient hairline under the header */
+body {
+  background-image: radial-gradient(1200px 420px at 50% -120px, rgba(94, 206, 123, 0.12), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+.header-hairline {
+  background: linear-gradient(90deg, transparent, var(--primary) 30%, var(--accent) 70%, transparent);
+  opacity: 0.55;
+}
+
+/* Glow that follows the cube silhouette (drop-shadow respects the transformed faces) */
+@keyframes cube-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(94, 206, 123, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(94, 206, 123, 0.55));
+  }
+}
+
+.animate-cube-glow {
+  animation: cube-glow 3s ease-in-out infinite;
+}
+
+/* Treemap cells slide to their new place instead of jumping */
+.treemap-cell rect {
+  transition:
+    x 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    fill 300ms ease;
+}
+
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.treemap-cell {
+  animation: cell-in 350ms ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.card-lift {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+/* Hidden but functional scrollbars (block queue) */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

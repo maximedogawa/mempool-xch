@@ -1,12 +1,12 @@
 # Deployment
 
-Mempool.xch ships as a single Docker image that [ONCE](https://github.com/basecamp/once) pulls
+mempoolxch.space ships as a single Docker image that [ONCE](https://github.com/basecamp/once) pulls
 from GitHub Container Registry and keeps updated. ONCE owns TLS, the reverse proxy and the
 container lifecycle, so there is no nginx or deploy script to maintain here.
 
 | What | Image | Hostname (example) |
 | --- | --- | --- |
-| App (Next.js) | `ghcr.io/maximedogawa/mempool-xch:latest` | `mempool.xch.example` |
+| App (Next.js) | `ghcr.io/maximedogawa/mempool-xch:latest` | `mempoolxch.space` |
 
 ## The contract
 
@@ -24,8 +24,8 @@ right to bind port 80.
 ## Deploy
 
 ```bash
-once deploy ghcr.io/maximedogawa/mempool-xch:latest --host mempool.xch.example
-curl https://mempool.xch.example/up
+once deploy ghcr.io/maximedogawa/mempool-xch:latest --host mempoolxch.space
+curl https://mempoolxch.space/up
 ```
 
 Run once, by hand, on the server. `once deploy` enables `--auto-update`, so every image CI

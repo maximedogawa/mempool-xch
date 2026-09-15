@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2026 Maxime Dogawa
+Copyright (c) 2026 Maxime Dogawa and the mempoolxch.space contributors
+https://mempoolxch.space · https://github.com/maximedogawa/mempool-xch
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Notes that are not part of the licence terms:
+
+- The mempool.space frontend (AGPL-3.0) served as a visual reference only. No source
+  code, stylesheets or artwork were copied; everything here is an original implementation.
+- Chain data is provided by Coinset (https://coinset.org), CAT token metadata by Spacescan
+  (https://spacescan.io) and NFT metadata by MintGarden (https://mintgarden.io), each under
+  their own terms.

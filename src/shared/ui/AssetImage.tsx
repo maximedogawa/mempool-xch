@@ -1,7 +1,7 @@
 "use client";
 
 import { ImageOff } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { cn } from "@/shared/lib/cn";
 
 /**
@@ -9,19 +9,19 @@ import { cn } from "@/shared/lib/cn";
  * Plain <img> on purpose: next/image needs a server and host allow-list, neither of which the
  * Sage snapshot has.
  */
-export function AssetImage({ urls, alt, className, rounded = "rounded-card" }: { urls: string[]; alt: string; className?: string; rounded?: string }) {
+export function AssetImage({ urls, alt, className, rounded = "rounded-card", style }: { urls: string[]; alt: string; className?: string; rounded?: string; style?: CSSProperties }) {
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const src = urls[index];
   if (!src) {
     return (
-      <div role="img" aria-label={`${alt} (no image)`} className={cn("flex items-center justify-center bg-surface-2 text-fg-faint", rounded, className)}>
+      <div role="img" aria-label={`${alt} (no image)`} style={style} className={cn("flex items-center justify-center bg-surface-2 text-fg-faint", rounded, className)}>
         <ImageOff size={28} aria-hidden="true" />
       </div>
     );
   }
   return (
-    <div className={cn("relative overflow-hidden bg-surface-2", rounded, className)}>
+    <div style={style} className={cn("relative overflow-hidden bg-surface-2", rounded, className)}>
       {!loaded ? <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-surface-2" /> : null}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

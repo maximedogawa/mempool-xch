@@ -30,7 +30,13 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const peakRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Network or endpoint changed: forget everything learnt from the previous one so widgets
+    // that key on the peak (recent blocks, confirmations) wait for the new chain's first poll.
     peakRef.current = null;
+    setPeakHeight(null);
+    setLastEventAt(null);
+    setLastTxEvent(null);
+    setStatus("connecting");
     const stream = createLiveStream({
       wsUrl: endpoints.wsUrl,
       pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,

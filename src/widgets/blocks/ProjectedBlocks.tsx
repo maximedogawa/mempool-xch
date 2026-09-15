@@ -1,11 +1,13 @@
 "use client";
 
-import { formatFeeRate, formatCost } from "@/shared/lib/chia/amounts";
+import { formatAmount, formatFeeRate, formatCost } from "@/shared/lib/chia/amounts";
 import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { BlockCube } from "./BlockCube";
+
+const CUBE = 138;
 
 /** Projected blocks, furthest-in-the-future on the left, next block right next to the divider. */
 export function ProjectedBlocks({
@@ -23,7 +25,7 @@ export function ProjectedBlocks({
     return (
       <div className="flex items-end gap-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-[140px] w-[140px]" />
+          <Skeleton key={i} className="h-[156px] w-[156px]" />
         ))}
       </div>
     );
@@ -38,12 +40,13 @@ export function ProjectedBlocks({
   }
   // Row-reversed so the next block sits against the divider and the scroll starts there.
   return (
-    <ul className="flex min-w-max flex-row-reverse items-end gap-3" aria-label="Projected next blocks">
+    <ul className="flex min-w-max flex-row-reverse items-end gap-4" aria-label="Projected next blocks">
       {blocks.map((block) => {
         const zero = block.maxFeeRate === 0;
         const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
-          <li key={block.index} className={selected === block.index ? "rounded-sm ring-2 ring-primary ring-offset-2 ring-offset-bg" : undefined}>
+          <li key={block.index} className="flex flex-col items-center gap-1">
+            <span className="tabular h-4 text-xs font-semibold text-fg-muted">{block.index === 0 ? "Next block" : `+${block.index}`}</span>
             <BlockCube
               fill={block.fill}
               gradient={feeGradient(block.minFeeRate, block.maxFeeRate)}
@@ -51,19 +54,16 @@ export function ProjectedBlocks({
               ariaLabel={label}
               onClick={() => onSelect(selected === block.index ? null : block.index)}
               animate
+              glow={block.index === 0}
+              selected={selected === block.index}
+              size={CUBE}
             >
-              <span className="tabular text-[13px] font-semibold leading-tight">
-                {zero ? "0" : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)}`}
-              </span>
-              <span className="text-[10px] uppercase tracking-wide text-fg/70">mojo / cost</span>
-              <span className="tabular mt-1 text-[11px] text-fg/80">
-                ~{formatFeeRate(block.medianFeeRate)} median
-              </span>
-              <span className="tabular text-[11px] text-fg/80">
-                {formatCost(block.totalCost)} · {block.items.length} tx
-              </span>
-              <span className="mt-1 text-[11px] font-semibold text-primary">{formatEta(block.etaSeconds)}</span>
+              <span className="tabular text-[15px] font-bold leading-tight">~{zero ? "0" : formatFeeRate(block.medianFeeRate)} <span className="text-[10px] font-medium text-fg/70">mojo/cost</span></span>
+              <span className="tabular text-[10px] font-medium text-warning/90">{zero ? "0 fee" : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}</span>
+              <span className="tabular mt-1.5 text-[13px] font-semibold">{formatAmount(block.totalFee)}</span>
+              <span className="tabular text-[11px] text-fg/80">{block.items.length} tx · {formatCost(block.totalCost)}</span>
             </BlockCube>
+            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">In {formatEta(block.etaSeconds)}</span>
           </li>
         );
       })}

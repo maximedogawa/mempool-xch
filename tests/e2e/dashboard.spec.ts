@@ -8,12 +8,12 @@ test.describe("dashboard", () => {
 
   test("renders projected and confirmed blocks, fees and feeds from fixtures", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Mempool\.xch/);
+    await expect(page).toHaveTitle(/mempoolxch\.space/);
     await expect(page.getByRole("list", { name: "Projected next blocks" }).getByRole("listitem").first()).toBeVisible();
     await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible();
     await expect(page.getByText("9,295,514", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Transaction fees")).toBeVisible();
-    await expect(page.getByText("Next block", { exact: true })).toBeVisible();
+    await expect(page.getByText("Next block", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Latest transactions")).toBeVisible();
     await expect(page.getByText("Latest blocks")).toBeVisible();
     // Connection indicator falls back to polling because the WebSocket is closed by the mock.
@@ -32,7 +32,7 @@ test.describe("dashboard", () => {
     const search = page.getByRole("searchbox").first();
     await search.fill("not a valid id");
     await search.press("Enter");
-    await expect(page.getByRole("alert")).toContainText("Not recognised");
+    await expect(page.getByRole("alert").filter({ hasText: "Not recognised" }).first()).toBeVisible();
     await search.fill("9295514");
     await search.press("Enter");
     await expect(page).toHaveURL(/\/block\/9295514/);

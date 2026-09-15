@@ -8,7 +8,7 @@ test.describe("detail pages", () => {
 
   test("confirmed transaction shows block, kind and coin flow", async ({ page }) => {
     await page.goto(`/tx/${TX_ID}`);
-    await expect(page.getByRole("heading", { name: /Transaction/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Transaction" })).toBeVisible();
     await expect(page.getByText("Confirmed", { exact: true }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: "9,295,514" }).first()).toBeVisible();
     await expect(page.getByText(/Inputs/i).first()).toBeVisible();

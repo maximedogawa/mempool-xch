@@ -1,6 +1,6 @@
 {
   "manifestVersion": 0,
-  "name": "Mempool.xch",
+  "name": "mempoolxch.space",
   "version": "0.1.0",
   "icon": "icons/icon-512.png",
   "entry": "index.html",
@@ -8,7 +8,7 @@
     "min": "0.13.0"
   },
   "author": {
-    "name": "Mempool.xch",
+    "name": "mempoolxch.space",
     "avatar": "icons/icon-192.png"
   },
   "permissions": {
@@ -49,10 +49,17 @@
         "environment.theme.get_current",
         "environment.theme.css_vars",
         "environment.theme.listen_changed",
-        "storage.persistent_webview"
+        "storage.persistent_webview",
+        "app.request_network_whitelist_grant"
       ],
       "optional": [
-        "wallet.get_sync_status"
+        "wallet.get_sync_status",
+        "wallet.get_pending_transactions",
+        "wallet.get_transactions",
+        "wallet.get_coins",
+        "wallet.get_coins_by_ids",
+        "wallet.check_address",
+        "wallet.get_xch_usd_price"
       ]
     }
   }

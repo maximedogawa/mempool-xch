@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { DEFAULT_SETTINGS, getSettingsStore, resolveEndpoints, type ResolvedEndpoints, type Settings } from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
@@ -29,6 +29,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     () => false
   );
   const endpoints = useMemo(() => resolveEndpoints(settings), [settings]);
+  // Scroll to the top and drop transient per-network UI state when the network changes.
+  const previousNetwork = useRef(settings.network);
+  useEffect(() => {
+    if (previousNetwork.current === settings.network) return;
+    previousNetwork.current = settings.network;
+    window.scrollTo({ top: 0 });
+  }, [settings.network]);
   const client = useMemo(
     () => createRpcClient({ rpcUrl: endpoints.rpcUrl, indexedUrl: endpoints.indexedUrl }),
     [endpoints.rpcUrl, endpoints.indexedUrl]

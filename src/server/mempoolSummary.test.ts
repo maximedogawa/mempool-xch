@@ -20,7 +20,7 @@ function makeSyncer(initialIds: string[]) {
       return found;
     },
   };
-  const syncer = new MempoolSyncer("mainnet", { client, now: () => now });
+  const syncer = new MempoolSyncer("mainnet", { client, now: () => now, awaitItems: true });
   return {
     syncer,
     setIds: (next: string[]) => {
@@ -93,9 +93,9 @@ describe("MempoolSyncer", () => {
     const { syncer } = makeSyncer(fullItems.map((i) => i.name));
     const summary = await syncer.getSummary();
     const bytes = JSON.stringify(summary).length;
-    // Worst case: the fixture items carry dozens of coins each (capped at 16 per list).
+    // Worst case: the fixture items carry hundreds of coins each (capped at 6 per list).
     // 100 such items stay under 200 KB; typical 2-4 coin items are well under 1 KB.
-    expect(bytes / summary.items.length).toBeLessThan(3_500);
+    expect(bytes / summary.items.length).toBeLessThan(1_800);
     console.log(`summary bytes per item: ${Math.round(bytes / summary.items.length)}`);
   });
 });

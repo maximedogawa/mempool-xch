@@ -18,7 +18,8 @@ export function useBlockchainState() {
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
     queryFn: ({ signal }) => client.getBlockchainState(signal),
-    refetchInterval: 20_000,
+    // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
+    refetchInterval: 60_000,
   });
 }
 
@@ -42,7 +43,11 @@ async function fetchSummaryFromServer(url: string, signal: AbortSignal): Promise
  */
 export function useMempoolSummary() {
   const { client, endpoints } = useSettings();
+  const { status } = useLive();
   const source = endpoints.summaryUrl ?? "browser";
+  // With a live WebSocket, transaction and peak events already invalidate the summary, so the
+  // interval is only a safety net; while polling it carries the updates itself.
+  const interval = endpoints.summaryUrl ? (status === "live" ? 12_000 : 4_000) : 20_000;
   return useQuery({
     queryKey: queryKeys.mempoolSummary(endpoints.network, source),
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
@@ -84,7 +89,13 @@ export function useMempoolSummary() {
         items: compact,
       };
     },
-    refetchInterval: endpoints.summaryUrl ? 4_000 : 20_000,
+    // While the server is still filling its view (fewer items than the node reports), poll
+    // quickly so the first visitor after a restart sees projected blocks within seconds.
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9) return 1_500;
+      return interval;
+    },
     placeholderData: keepPreviousData,
   });
 }
@@ -139,7 +150,7 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
     queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
-    refetchInterval: 20_000,
+    refetchInterval: 45_000,
     placeholderData: keepPreviousData,
   });
 }

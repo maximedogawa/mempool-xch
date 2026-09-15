@@ -9,13 +9,16 @@ import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import type { ThemePreference } from "@/shared/lib/settings/store";
+import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
 
-type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; height: number; ms: number; coinset: boolean } | { status: "error"; message: string };
+type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; height: number; ms: number; coinset: boolean } | { status: "error"; message: string } | { status: "whitelist"; message: string; ok: boolean };
 
 function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
+  const { inSage } = useSage();
   const config = NETWORKS[network];
   const value = settings.endpoints[network].rpcUrl;
   const [draft, setDraft] = useState(value);
@@ -61,7 +64,28 @@ function EndpointRow({ network }: { network: NetworkId }) {
         <Button size="sm" onClick={runTest} disabled={test.status === "testing" || !draft.trim()}>
           {test.status === "testing" ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : null} Test connection
         </Button>
-        <Button size="sm" variant="primary" disabled={!dirty} onClick={() => update((prev) => ({ ...prev, endpoints: { ...prev.endpoints, [network]: { rpcUrl: draft.trim() } } }))}>
+        <Button
+          size="sm"
+          variant="primary"
+          disabled={!dirty}
+          onClick={async () => {
+            const rpcUrl = draft.trim();
+            if (inSage && !isCoinsetUrl(network, rpcUrl)) {
+              // Sage blocks calls to hosts outside the granted whitelist: ask for this one first.
+              const result = await requestEndpointWhitelist(rpcUrl, network);
+              if (result === "unsupported") {
+                setTest({ status: "whitelist", ok: false, message: "Inside Sage only https endpoints can be whitelisted." });
+                return;
+              }
+              if (result === "refused") {
+                setTest({ status: "whitelist", ok: false, message: "Sage did not allow this host; the endpoint was not saved." });
+                return;
+              }
+              setTest({ status: "whitelist", ok: true, message: "Sage allowed this host." });
+            }
+            update((prev) => ({ ...prev, endpoints: { ...prev.endpoints, [network]: { rpcUrl } } }));
+          }}
+        >
           Save
         </Button>
         <Button
@@ -81,6 +105,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
             <CheckCircle2 size={14} aria-hidden="true" /> Peak {test.height.toLocaleString("en-US")} in {test.ms} ms{test.coinset ? "" : " · custom node: indexed API, WebSocket and summary API off"}
           </span>
         ) : null}
+        {test.status === "whitelist" ? (
+          <span role="status" className={cn("inline-flex items-center gap-1 text-xs", test.ok ? "text-primary" : "text-danger")}>
+            {test.ok ? <CheckCircle2 size={14} aria-hidden="true" /> : <XCircle size={14} aria-hidden="true" />} {test.message}
+          </span>
+        ) : null}
         {test.status === "error" ? (
           <span role="alert" className="inline-flex items-center gap-1 text-xs text-danger">
             <XCircle size={14} aria-hidden="true" /> {test.message}
@@ -93,6 +122,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
 
 export function SettingsForm() {
   const { settings, update, reset, endpoints } = useSettings();
+  const { inSage } = useSage();
   return (
     <div className="flex flex-col gap-5">
       <Card>
@@ -125,8 +155,13 @@ export function SettingsForm() {
       <Card>
         <CardHeader title="Full-node RPC endpoints" />
         <CardBody className="flex flex-col gap-3">
+          {inSage ? (
+            <p className="rounded-sm border border-primary/40 bg-primary-soft px-3 py-2 text-xs text-fg-muted">
+              <strong className="text-primary">Inside Sage:</strong> your balance, coins and transactions come from the wallet itself. Sage&apos;s app bridge has no node RPC (no peak, mempool or block queries), so chain-wide data comes from the endpoint below; a custom endpoint is whitelisted in Sage when you save it.
+            </p>
+          ) : null}
           <p className="text-sm text-fg-muted">
-            By default Mempool.xch reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed.
+            By default mempoolxch.space reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed.
             You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history, the WebSocket stream and the server-side mempool summary) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.
           </p>
           {NETWORK_IDS.map((id) => (

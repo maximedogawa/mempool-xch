@@ -5,7 +5,7 @@ import { useMempoolSummary } from "@/shared/api/hooks";
 import { formatAmount, formatCost, formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { FEE_BANDS } from "@/shared/lib/mempool/feeBands";
 import { routes } from "@/shared/lib/routes";
-import { Card, CardBody, CardHeader, StatTile } from "@/shared/ui";
+import { CapacityBar, Card, CardBody, CardHeader, StatTile } from "@/shared/ui";
 import { StackedAreaChart } from "@/shared/ui/charts/StackedAreaChart";
 import { useMempoolHistory } from "./useMempoolHistory";
 
@@ -40,7 +40,7 @@ export function MempoolStats() {
           <StatTile
             label="Cost used"
             value={state ? formatPercent(fill) : "…"}
-            sub={state ? `${formatCost(state.mempoolCost)} of ${formatCost(state.mempoolMaxTotalCost)}` : undefined}
+            sub={state ? <CapacityBar compact used={state.mempoolCost} max={state.mempoolMaxTotalCost} segmentCost={state.blockMaxCost} className="mt-1" /> : undefined}
             tone={fill > 0.9 ? "danger" : fill > 0.6 ? "warning" : "default"}
             hint="Total CLVM cost of all pending spend bundles versus the node's mempool limit (10 blocks worth)."
           />

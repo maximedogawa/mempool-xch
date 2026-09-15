@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { normaliseMintGardenNft } from "./nftMetadata";
-import { normaliseTokenList, readTokenCache, TOKEN_LIST_CACHE_KEY, TOKEN_LIST_TTL_MS, tokenLabel, writeTokenCache } from "./tokenList";
+import { normaliseTokenList, readTokenCache, TOKEN_LIST_CACHE_KEY, TOKEN_LIST_TTL_MS, tokenLabel, writeTokenCache } from "@/shared/api/tokenList";
 
 describe("tokenList", () => {
   const raw = {

@@ -2,10 +2,10 @@
 
 import { FEE_TARGETS_S, useFeeEstimate, useMempoolSummary } from "@/shared/api/hooks";
 import { CHIA } from "@/shared/config/networks";
-import { formatAmount, formatFeeRate, formatPercent } from "@/shared/lib/chia/amounts";
+import { formatAmount, formatFeeRate } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
-import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
+import { CapacityBar, Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 
 const TARGET_LABELS: Record<(typeof FEE_TARGETS_S)[number], string> = {
   60: "Next block",
@@ -58,29 +58,25 @@ export function FeeCards() {
             );
           })}
         </div>
-        <div className={cn("rounded-sm border px-3 py-2.5 text-sm", zeroFeeOk ? "border-primary/40 bg-primary-soft" : "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)]")}>
+        {state ? (
+          <CapacityBar used={state.mempoolCost} max={state.mempoolMaxTotalCost} segmentCost={state.blockMaxCost} />
+        ) : (
+          <Skeleton className="h-9 w-full" />
+        )}
+        <p className={cn("text-xs", zeroFeeOk ? "text-primary" : "text-warning")}>
           {state ? (
             zeroFeeOk ? (
               <>
-                <span className="font-semibold text-primary">Mempool has capacity.</span>{" "}
-                <span className="text-fg-muted">
-                  0-fee spends are accepted right now ({formatPercent(fillRatio)} of the {formatCostShort(state.mempoolMaxTotalCost)} cost limit used).
-                </span>
+                <span className="font-semibold">Capacity available.</span> <span className="text-fg-muted">0-fee spends are accepted.</span>
               </>
             ) : (
               <>
-                <span className="font-semibold text-warning">
-                  {minFeeRate > 0 ? `Minimum fee to enter the mempool: ${formatFeeRate(minFeeRate)} mojo/cost.` : "The mempool is near capacity."}
-                </span>{" "}
-                <span className="text-fg-muted">
-                  It is {formatPercent(fillRatio)} full; paying a fee gets a spend included ahead of the 0-fee backlog, and 0-fee spends may be evicted.
-                </span>
+                <span className="font-semibold">{minFeeRate > 0 ? `Min ${formatFeeRate(minFeeRate)} mojo/cost to enter.` : "Near capacity."}</span>{" "}
+                <span className="text-fg-muted">Paid spends go ahead of the 0-fee backlog.</span>
               </>
             )
-          ) : (
-            <Skeleton className="h-5 w-3/4" />
-          )}
-        </div>
+          ) : null}
+        </p>
         {fee.data ? (
           <p className="text-xs text-fg-faint">
             Last transaction block paid {formatAmount(fee.data.feesLastBlock)} in fees at {formatFeeRate(fee.data.feeRateLastBlock)} mojo/cost · current rate {formatFeeRate(fee.data.currentFeeRate)} mojo/cost.
@@ -89,8 +85,4 @@ export function FeeCards() {
       </CardBody>
     </Card>
   );
-}
-
-function formatCostShort(cost: number): string {
-  return cost >= 1_000_000_000 ? `${(cost / 1_000_000_000).toFixed(0)}B` : cost.toLocaleString("en-US");
 }

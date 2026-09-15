@@ -18,7 +18,7 @@ export function Logo({ className }: { className?: string }) {
     <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark />
       <span className="text-lg font-semibold tracking-tight">
-        mempool<span className="text-primary">.xch</span>
+        mempoolxch<span className="text-primary">.space</span>
       </span>
     </span>
   );

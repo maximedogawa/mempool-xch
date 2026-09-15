@@ -7,7 +7,7 @@ import { shortId } from "@/shared/lib/chia/hex";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
-import { squarify } from "./treemap";
+import { squarify } from "@/shared/lib/treemap";
 
 const W = 800;
 const H = 320;
@@ -26,7 +26,7 @@ export function BlockTreemap({ transactions, blockCost }: { transactions: TxSumm
   const label = `Treemap of ${transactions.length} transactions sized by cost (${formatCost(total)} of ${formatCost(blockCost)}) and coloured by fee per cost`;
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block h-auto max-h-[320px] w-full rounded-sm">
+      <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block h-auto max-h-[320px] w-full rounded-sm">
         <title>{label}</title>
         {cells.map((cell) => {
           const tx = cell.item;

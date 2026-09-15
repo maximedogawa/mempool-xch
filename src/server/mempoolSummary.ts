@@ -9,6 +9,7 @@ import { isCoinsetUrl, NETWORKS, type NetworkId } from "@/shared/config/networks
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import type { CompactMempoolItem, MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 
 export const REFRESH_MS = 3_000;
@@ -25,6 +26,8 @@ export interface SyncerDeps {
   now?: () => number;
   /** Keep refreshing in the background between requests (off in unit tests). */
   backgroundLoop?: boolean;
+  /** Await item fetches inside refresh() (tests); production answers before they finish. */
+  awaitItems?: boolean;
 }
 
 export function stateSummary(state: BlockchainState): MempoolStateSummary {
@@ -103,9 +106,9 @@ export class MempoolSyncer {
       } catch {
         // Transient upstream error: the next tick retries.
       }
-      this.loop = setTimeout(tick, REFRESH_MS);
+      this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
     };
-    this.loop = setTimeout(tick, REFRESH_MS);
+    this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
   }
 
   snapshot(): MempoolSummary {
@@ -128,7 +131,22 @@ export class MempoolSyncer {
     return this.inflight;
   }
 
+  /** Until when Coinset asked us to back off (HTTP 429), as a timestamp. */
+  private backoffUntil = 0;
+
   private async doRefresh(): Promise<void> {
+    if (this.now() < this.backoffUntil) return;
+    try {
+      await this.doRefreshInner();
+    } catch (error) {
+      if (error instanceof RpcError && error.kind === "http" && error.status === 429) {
+        this.backoffUntil = this.now() + 30_000;
+      }
+      throw error;
+    }
+  }
+
+  private async doRefreshInner(): Promise<void> {
     const [state, ids] = await Promise.all([
       this.deps.client.getBlockchainState().then((s) => {
         this.stats.stateFetches += 1;
@@ -147,7 +165,11 @@ export class MempoolSyncer {
     unseen.forEach((id) => this.pending.add(id));
     const batch = [...this.pending].slice(0, FETCH_BATCH);
     const seenAt = this.now();
-    await mapWithConcurrency(batch, FETCH_CONCURRENCY, async (id) => {
+    this.lastRefresh = this.now();
+    // Item fetches are the slow part (one round trip each). They are not awaited by the
+    // request that triggered the refresh: the first response carries the state and whatever
+    // items are already known, and the background loop fills in the rest within seconds.
+    const fetching = mapWithConcurrency(batch, FETCH_CONCURRENCY, async (id) => {
       try {
         const item = await this.deps.client.getMempoolItemByTxId(id);
         this.stats.itemFetches += 1;
@@ -158,7 +180,18 @@ export class MempoolSyncer {
         // dropped when it disappears from the next id list, or retried otherwise.
       }
     });
-    this.lastRefresh = this.now();
+    this.itemFetch = fetching.then(() => {
+      this.itemFetch = null;
+    });
+    if (this.deps.awaitItems) await fetching;
+  }
+
+  /** In-flight item fetches, exposed so tests can wait for them. */
+  private itemFetch: Promise<void> | null = null;
+
+  /** Wait for background item fetches (tests). */
+  settle(): Promise<void> {
+    return this.itemFetch ?? Promise.resolve();
   }
 
   get pendingCount(): number {

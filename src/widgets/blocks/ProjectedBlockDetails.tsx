@@ -6,7 +6,7 @@ import { formatAmount, formatCost, formatFeeRate } from "@/shared/lib/chia/amoun
 import { formatAge, formatEta } from "@/shared/lib/format/time";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { routes } from "@/shared/lib/routes";
-import { Card, CardBody, CardHeader, Hash, KindBadge, Table, Td, Th, Tr } from "@/shared/ui";
+import { AssetBadge, Card, CardBody, CardHeader, Hash, Table, Td, Th, Tr } from "@/shared/ui";
 import { Button } from "@/shared/ui/Button";
 
 export function ProjectedBlockDetails({ block, onClose }: { block: ProjectedBlock; onClose: () => void }) {
@@ -41,7 +41,7 @@ export function ProjectedBlockDetails({ block, onClose }: { block: ProjectedBloc
                   <Hash value={item.id} href={routes.tx(item.id)} />
                 </Td>
                 <Td>
-                  <KindBadge kind={item.kind} />
+                  <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
                 </Td>
                 <Td className="tabular text-right">{formatAmount(BigInt(item.fee))}</Td>
                 <Td className="tabular text-right">{formatCost(item.cost)}</Td>

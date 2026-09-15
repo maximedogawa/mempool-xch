@@ -2,6 +2,9 @@
   "name": "mempool-xch",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "homepage": "https://mempoolxch.space",
+  "repository": { "type": "git", "url": "https://github.com/maximedogawa/mempool-xch.git" },
   "description": "A mempool.space-style explorer for the Chia (XCH) network",
   "engines": {
     "node": ">=20.19.0 || >=22.12.0"

@@ -9,7 +9,7 @@ import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
 import { Button, EmptyState, Hash, Skeleton, StatusBadge, SummaryKindBadge } from "@/shared/ui";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
-import { tokenLabel, type TokenMap } from "./tokenList";
+import { tokenLabel, type TokenMap } from "@/shared/api/tokenList";
 
 export interface TxSummaryListProps {
   transactions: TxSummary[];
