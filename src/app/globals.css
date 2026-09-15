@@ -266,18 +266,46 @@ body {
   opacity: 0.55;
 }
 
-@keyframes next-block-pulse {
+/* Glow that follows the cube silhouette (drop-shadow respects the transformed faces) */
+@keyframes cube-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(94, 206, 123, 0);
+    filter: drop-shadow(0 0 0 rgba(94, 206, 123, 0));
   }
   50% {
-    box-shadow: 0 0 22px 2px rgba(94, 206, 123, 0.35);
+    filter: drop-shadow(0 0 14px rgba(94, 206, 123, 0.55));
   }
 }
 
-.animate-next-block {
-  animation: next-block-pulse 3s ease-in-out infinite;
+.animate-cube-glow {
+  animation: cube-glow 3s ease-in-out infinite;
+}
+
+/* Treemap cells slide to their new place instead of jumping */
+.treemap-cell rect {
+  transition:
+    x 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    fill 300ms ease;
+}
+
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.treemap-cell {
+  animation: cell-in 350ms ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .card-lift {

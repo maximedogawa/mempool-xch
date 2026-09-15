@@ -14,7 +14,7 @@ import { squarify } from "@/shared/lib/treemap";
 import { Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 
 const W = 800;
-const H = 360;
+const H = 170;
 
 type Filter = "all" | TxKindHint;
 const FILTERS: { id: Filter; label: string }[] = [
@@ -90,7 +90,7 @@ export function NextBlockGoggles() {
       />
       <CardBody>
         {isLoading && !next ? (
-          <Skeleton className="h-[220px] w-full" />
+          <Skeleton className="h-[120px] w-full" />
         ) : !next ? (
           <p className="py-10 text-center text-sm text-fg-faint">The mempool is empty: the next transaction block will carry no spends.</p>
         ) : (
@@ -104,19 +104,20 @@ export function NextBlockGoggles() {
                   <line x1="0" y1="0" x2="0" y2="10" stroke="var(--border)" strokeWidth="1" />
                 </pattern>
               </defs>
-              {cells.map((cell) => {
+              {cells.map((cell, cellIndex) => {
                 const item = cell.item;
                 const band = feeBandFor(item.feeRate);
                 const dim = filter !== "all" && item.kind !== filter;
-                const big = cell.width > 64 && cell.height > 26;
+                const big = cell.width > 60 && cell.height > 24;
                 return (
                   <Link key={item.id} href={routes.tx(item.id)} aria-label={`Spend bundle ${shortId(item.id)}, ${item.kind}, cost ${formatCost(item.cost)}, ${formatFeeRate(item.feeRate)} mojo per cost`}>
                     <g
+                      className="treemap-cell"
                       onMouseEnter={() => setHover(item)}
                       onMouseLeave={() => setHover(null)}
                       onFocus={() => setHover(item)}
                       onBlur={() => setHover(null)}
-                      style={{ opacity: dim ? 0.18 : 1, transition: "opacity 200ms" }}
+                      style={{ opacity: dim ? 0.18 : 1, transition: "opacity 200ms", animationDelay: `${Math.min(cellIndex, 40) * 12}ms` }}
                     >
                       <rect x={cell.x + 1} y={cell.y + 1} width={Math.max(0, cell.width - 2)} height={Math.max(0, cell.height - 2)} rx={2} fill={`var(${band.cssVar})`} fillOpacity={0.85} stroke={KIND_COLOR[item.kind]} strokeWidth={item.kind === "xch" ? 0 : 2} />
                       {big ? (

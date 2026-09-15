@@ -19,6 +19,8 @@ export function BlockCube({
   ariaLabel,
   className,
   animate = false,
+  glow = false,
+  selected = false,
   size = 124,
 }: {
   /** 0..1 */
@@ -32,6 +34,10 @@ export function BlockCube({
   ariaLabel: string;
   className?: string;
   animate?: boolean;
+  /** Soft pulsing glow following the cube silhouette (the next block). */
+  glow?: boolean;
+  /** Highlight the front face (drill-down open). */
+  selected?: boolean;
   size?: number;
 }) {
   const depth = Math.round(size * 0.2);
@@ -57,7 +63,7 @@ export function BlockCube({
     textShadow: "0 1px 2px rgba(0,0,0,0.65)",
   };
   const body = (
-    <div className={cn("relative", animate && "animate-block-in")} style={{ width: size + depth, height: size + depth }}>
+    <div className={cn("relative", animate && "animate-block-in", glow && "animate-cube-glow")} style={{ width: size + depth, height: size + depth }}>
       {/* top face: lit */}
       <div
         aria-hidden="true"
@@ -91,7 +97,8 @@ export function BlockCube({
       <div
         className={cn(
           "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[3px] rounded-tr-none text-center text-fg transition-transform duration-200",
-          variant === "projected" && "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          variant === "projected" && !selected && "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          selected && "outline-2 outline-solid outline-primary -outline-offset-2",
           (onClick || href) && "group-hover:-translate-y-1"
         )}
         style={front}

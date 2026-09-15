@@ -20,23 +20,33 @@ export function BlocksRow() {
   const [selected, setSelected] = useState<number | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const divider = useRef<HTMLDivElement>(null);
-  const centred = useRef(false);
+  const userScrolled = useRef(false);
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
   const selectedBlock = selected !== null ? projected.blocks.find((b) => b.index === selected) : undefined;
   const blockMaxCost = projected.summary?.state.blockMaxCost ?? CHIA.BLOCK_MAX_COST;
   const ready = projected.blocks.length > 0 || !!recent.data;
 
-  // Anchor the divider once data is in: on wide screens slightly left of centre so more
-  // confirmed blocks show, on phones near the left so the next block is fully visible.
+  // Keep the divider anchored (next block and newest block side by side) while the row is
+  // still settling; stop as soon as the visitor scrolls or drags it themselves.
+  const projectedCount = projected.blocks.length;
+  const confirmedCount = recent.data?.txBlocks.length ?? 0;
   useEffect(() => {
-    if (centred.current || !ready || !scroller.current || !divider.current) return;
+    if (userScrolled.current || !ready || !scroller.current || !divider.current) return;
     const el = scroller.current;
     const share = el.clientWidth < 640 ? 0.42 : 0.46;
-    el.scrollLeft = Math.max(0, divider.current.offsetLeft - el.clientWidth * share);
-    centred.current = true;
-  }, [ready]);
+    const target = Math.max(0, divider.current.offsetLeft - el.clientWidth * share);
+    el.scrollLeft = target;
+    // Layout can still shift when cubes animate in; re-anchor once more on the next frame.
+    const id = requestAnimationFrame(() => {
+      if (!userScrolled.current && scroller.current && divider.current) {
+        scroller.current.scrollLeft = Math.max(0, divider.current.offsetLeft - scroller.current.clientWidth * share);
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [ready, projectedCount, confirmedCount]);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    userScrolled.current = true;
     if (e.pointerType !== "mouse" || !scroller.current) return;
     drag.current = { x: e.clientX, left: scroller.current.scrollLeft, moved: false };
   };
@@ -57,6 +67,12 @@ export function BlocksRow() {
         ref={scroller}
         className="scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
         onPointerDown={onPointerDown}
+        onWheel={() => {
+          userScrolled.current = true;
+        }}
+        onTouchStart={() => {
+          userScrolled.current = true;
+        }}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
@@ -69,7 +85,7 @@ export function BlocksRow() {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Projected · next blocks</span>
             <ProjectedBlocks blocks={projected.blocks} loading={projected.isLoading} selected={selected} onSelect={setSelected} />
           </div>
-          <div ref={divider} aria-hidden="true" className="relative mb-1 h-[210px] w-0 self-end border-l-2 border-dashed border-fg-faint/70">
+          <div ref={divider} aria-hidden="true" className="relative mb-7 h-[196px] w-0 self-end border-l-2 border-dashed border-fg-faint/70">
             <span className="absolute -left-[7px] -top-4 text-[11px] text-fg-faint">⇅</span>
             <span className="absolute -bottom-4 -left-[7px] text-[11px] text-fg-faint">⇄</span>
           </div>

@@ -67,7 +67,7 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
         return (
           <li key={block.height} className="flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
-              <span className="tabular text-xs font-semibold text-fg-muted">{formatNumber(block.height)}</span>
+              <span className="tabular h-4 text-xs font-semibold text-fg-muted">{formatNumber(block.height)}</span>
               <BlockCube
                 fill={fill}
                 gradient={CONFIRMED_GRADIENT}
@@ -82,14 +82,14 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
                 <span className="tabular mt-1.5 text-[11px] text-fg/85">{block.rewardClaimsIncorporated?.length ?? 0} reward claims</span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
               </BlockCube>
-              <span className="mono inline-flex max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] text-fg-muted" title={`Farmer ${block.farmerPuzzleHash}`}>
+              <span className="mono inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted" title={`Farmer ${block.farmerPuzzleHash}`}>
                 <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: farmerColor(block.farmerPuzzleHash) }} />
                 {shortId(block.farmerPuzzleHash, 5, 4)}
               </span>
             </div>
             {gap > 0 ? (
               <Tooltip text={`${gap} non-transaction block${gap > 1 ? "s" : ""} between ${formatNumber(block.height)} and ${formatNumber(older!.height)} (they carry no spends)`}>
-                <span className="mb-16 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-muted">
+                <span className="mb-[72px] inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-muted">
                   +{gap}
                 </span>
               </Tooltip>

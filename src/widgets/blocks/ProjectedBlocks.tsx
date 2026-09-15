@@ -1,7 +1,6 @@
 "use client";
 
 import { formatAmount, formatFeeRate, formatCost } from "@/shared/lib/chia/amounts";
-import { cn } from "@/shared/lib/cn";
 import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
@@ -46,7 +45,8 @@ export function ProjectedBlocks({
         const zero = block.maxFeeRate === 0;
         const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
-          <li key={block.index} className={cn("rounded-sm", block.index === 0 && "animate-next-block", selected === block.index && "ring-2 ring-primary ring-offset-2 ring-offset-bg")}>
+          <li key={block.index} className="flex flex-col items-center gap-1">
+            <span className="tabular h-4 text-xs font-semibold text-fg-muted">{block.index === 0 ? "Next block" : `+${block.index}`}</span>
             <BlockCube
               fill={block.fill}
               gradient={feeGradient(block.minFeeRate, block.maxFeeRate)}
@@ -54,14 +54,16 @@ export function ProjectedBlocks({
               ariaLabel={label}
               onClick={() => onSelect(selected === block.index ? null : block.index)}
               animate
+              glow={block.index === 0}
+              selected={selected === block.index}
               size={CUBE}
             >
               <span className="tabular text-[15px] font-bold leading-tight">~{zero ? "0" : formatFeeRate(block.medianFeeRate)} <span className="text-[10px] font-medium text-fg/70">mojo/cost</span></span>
               <span className="tabular text-[10px] font-medium text-warning/90">{zero ? "0 fee" : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}</span>
               <span className="tabular mt-1.5 text-[13px] font-semibold">{formatAmount(block.totalFee)}</span>
               <span className="tabular text-[11px] text-fg/80">{block.items.length} tx · {formatCost(block.totalCost)}</span>
-              <span className="mt-1.5 text-[11px] font-semibold text-primary">In {formatEta(block.etaSeconds).replace(/^~/, "~")}</span>
             </BlockCube>
+            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">In {formatEta(block.etaSeconds)}</span>
           </li>
         );
       })}
