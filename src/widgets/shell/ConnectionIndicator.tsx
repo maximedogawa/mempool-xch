@@ -1,6 +1,9 @@
 "use client";
 
+import { Loader2, Radar, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useBlockchainState } from "@/shared/api/hooks";
+import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { useLive } from "@/shared/providers/LiveProvider";
@@ -9,41 +12,65 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 
 const LABEL = { live: "Live", polling: "Polling", connecting: "Connecting", offline: "Offline" } as const;
 
+/**
+ * Connection pill: a pulsing green ring while the WebSocket stream is live, a sweeping radar
+ * while polling, a spinner while connecting, red when offline. Shows the peak height and the
+ * age of the last update so "alive" is visible at a glance.
+ */
 export function ConnectionIndicator({ compact = false }: { compact?: boolean }) {
-  const { status, lastEventAt } = useLive();
+  const { status, lastEventAt, peakHeight } = useLive();
   const { endpoints } = useSettings();
+  const state = useBlockchainState();
+  const peak = peakHeight ?? state.data?.peak.height ?? null;
   const [, tick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => tick((n) => n + 1), 5_000);
     return () => clearInterval(id);
   }, []);
-  const dot = {
-    live: "bg-primary shadow-[0_0_0_3px_var(--primary-soft)]",
-    polling: "bg-warning",
-    connecting: "bg-fg-faint animate-pulse",
-    offline: "bg-danger",
-  }[status];
-  const text = LABEL[status];
   const age = lastEventAt ? formatAge(lastEventAt) : "no data yet";
+  const host = new URL(status === "live" && endpoints.wsUrl ? endpoints.wsUrl : endpoints.rpcUrl).host;
   const hint =
     status === "live"
-      ? `WebSocket stream from ${new URL(endpoints.wsUrl ?? endpoints.rpcUrl).host}. Last event ${age}.`
+      ? `Streaming peak and transaction events from ${host}. Last event ${age}.`
       : status === "polling"
-        ? `Polling ${new URL(endpoints.rpcUrl).host} every few seconds. Last update ${age}.`
+        ? `Polling ${host} every few seconds. Last update ${age}.`
         : status === "connecting"
           ? "Connecting to the live stream…"
           : "No connection to the node.";
+  const styles = {
+    live: "border-primary/40 bg-primary-soft text-primary",
+    polling: "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning",
+    connecting: "border-border bg-surface text-fg-muted",
+    offline: "border-danger/40 bg-danger-soft text-danger",
+  }[status];
   return (
     <Tooltip text={hint}>
       <span
         role="status"
         aria-live="polite"
-        className={cn("inline-flex items-center gap-1.5 rounded-sm border border-border px-2 py-1 text-xs text-fg-muted", compact && "px-1.5")}
+        className={cn("inline-flex h-8 items-center gap-2 rounded-full border px-2.5 text-xs font-semibold", styles, compact && "px-2")}
       >
-        <span className={cn("h-2 w-2 rounded-full", dot)} aria-hidden="true" />
-        {!compact ? <span className="whitespace-nowrap">{text}</span> : null}
-        {!compact && lastEventAt ? <span className="hidden text-fg-faint md:inline">· {age}</span> : null}
-        <span className="sr-only">{`${text}, last update ${age}`}</span>
+        <span className="relative inline-flex h-2.5 w-2.5 items-center justify-center" aria-hidden="true">
+          {status === "live" ? <span className="live-ring absolute inset-0 rounded-full" /> : null}
+          {status === "polling" ? (
+            <Radar size={14} className="animate-radar absolute -inset-0.5 h-3.5 w-3.5" />
+          ) : status === "connecting" ? (
+            <Loader2 size={14} className="absolute -inset-0.5 h-3.5 w-3.5 animate-spin" />
+          ) : status === "offline" ? (
+            <WifiOff size={14} className="absolute -inset-0.5 h-3.5 w-3.5" />
+          ) : (
+            <span className="relative h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+          )}
+        </span>
+        {!compact ? <span className="whitespace-nowrap">{LABEL[status]}</span> : null}
+        {!compact && status === "live" ? <Zap size={12} aria-hidden="true" className="-ml-1 hidden md:inline" /> : null}
+        {!compact && peak !== null ? (
+          <span className="tabular hidden items-center gap-1 border-l border-current/30 pl-2 font-medium text-fg md:inline-flex">
+            <span className="text-fg-faint">▲</span> {formatNumber(peak)}
+          </span>
+        ) : null}
+        {!compact && lastEventAt ? <span className="hidden font-normal text-fg-faint lg:inline">{age}</span> : null}
+        <span className="sr-only">{`${LABEL[status]}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
       </span>
     </Tooltip>
   );

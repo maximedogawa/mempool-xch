@@ -6,7 +6,7 @@ import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Hash, KindBadge } from "@/shared/ui";
+import { AssetBadge, Hash } from "@/shared/ui";
 import type { Flow, FlowCoin } from "./flow";
 
 const MAX_ROWS = 60;
@@ -25,7 +25,7 @@ function CoinRow({ coin }: { coin: FlowCoin }) {
       </div>
       <div className="flex items-center justify-between gap-2 text-xs text-fg-faint">
         <span className="inline-flex items-center gap-1.5">
-          <KindBadge kind={coin.kind} />
+          <AssetBadge kind={coin.kind} assetId={coin.assetId} />
           {coin.assetId ? (
             <Hash value={coin.assetId} href={coin.kind === "cat" ? routes.cat(coin.assetId) : routes.nft(coin.assetId)} head={6} tail={4} />
           ) : null}

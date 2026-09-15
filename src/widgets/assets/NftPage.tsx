@@ -12,7 +12,7 @@ import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, CopyButton, EmptyState, Hash, KindBadge, Skeleton } from "@/shared/ui";
-import { AssetImage } from "./AssetImage";
+import { AssetImage } from "@/shared/ui/AssetImage";
 import { CoinsetNotice } from "./CatPage";
 import { fetchNftMetadata } from "./nftMetadata";
 import { TxSummaryList } from "./TxSummaryList";

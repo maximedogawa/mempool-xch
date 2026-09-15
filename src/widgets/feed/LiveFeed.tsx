@@ -8,7 +8,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Card, CardBody, CardHeader, Hash, KindBadge, Skeleton } from "@/shared/ui";
+import { AssetBadge, Card, CardBody, CardHeader, Hash, Skeleton } from "@/shared/ui";
 
 const FEED_CAP = 50;
 
@@ -74,7 +74,7 @@ export function LiveTransactions() {
               {shown.map((item) => (
                 <li key={item.id} className={cn("flex items-center gap-3 py-2 text-sm", fresh.has(item.id) && "animate-row-in")}>
                   <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} />
-                  <KindBadge kind={item.kind} />
+                  <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
                   <span className="tabular ml-auto hidden text-fg-muted sm:inline">{formatAmount(BigInt(item.value))}</span>
                   <span className="tabular w-20 text-right text-fg-muted" title={`${formatCost(item.cost)} cost`}>
                     {BigInt(item.fee) === 0n ? <span className="text-fg-faint">0 fee</span> : `${formatFeeRate(item.feeRate)} m/c`}

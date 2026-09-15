@@ -1,6 +1,7 @@
 "use client";
 
 import { formatFeeRate, formatCost } from "@/shared/lib/chia/amounts";
+import { cn } from "@/shared/lib/cn";
 import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
@@ -43,7 +44,7 @@ export function ProjectedBlocks({
         const zero = block.maxFeeRate === 0;
         const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
-          <li key={block.index} className={selected === block.index ? "rounded-sm ring-2 ring-primary ring-offset-2 ring-offset-bg" : undefined}>
+          <li key={block.index} className={cn("rounded-sm", block.index === 0 && "animate-next-block", selected === block.index && "ring-2 ring-primary ring-offset-2 ring-offset-bg")}>
             <BlockCube
               fill={block.fill}
               gradient={feeGradient(block.minFeeRate, block.maxFeeRate)}

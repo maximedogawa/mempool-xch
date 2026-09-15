@@ -14,7 +14,7 @@ import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
 import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Button, Card, CardBody, CardHeader, EmptyState, Hash, KindBadge, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
+import { AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useTransaction } from "./useTransaction";
@@ -237,7 +237,7 @@ export function TransactionPage({ id }: { id: string | null }) {
     const memos = view.summary ? collectMemos(view.summary.events) : [];
     return (
       <div className="flex flex-col gap-4">
-        <Heading id={id} status="pending" kind={<KindBadge kind={view.kind} />} />
+        <Heading id={id} status="pending" kind={<AssetBadge kind={view.kind} assetId={view.assetIds[0]} />} />
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <StatTile label="Fee" value={formatAmount(item.fee)} sub={item.fee === 0n ? "0-fee spend" : `${item.fee.toString()} mojo`} tone={item.fee === 0n ? "default" : "primary"} />
           <StatTile label="Cost" value={formatCost(item.cost)} sub={`${formatNumber(item.cost)} CLVM cost`} hint="Total CLVM cost of the spend bundle; blocks hold 11B cost." />

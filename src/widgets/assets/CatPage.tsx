@@ -11,11 +11,11 @@ import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, CopyButton, EmptyState, Hash, KindBadge, Table, Td, Th, Tr } from "@/shared/ui";
-import { AssetImage } from "./AssetImage";
-import { tokenLabel } from "./tokenList";
+import { AssetImage } from "@/shared/ui/AssetImage";
+import { tokenLabel } from "@/shared/api/tokenList";
 import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
-import { useTokenList } from "./useTokenList";
+import { useTokenList } from "@/shared/api/useTokenList";
 
 export function CoinsetNotice({ what }: { what: string }) {
   return (

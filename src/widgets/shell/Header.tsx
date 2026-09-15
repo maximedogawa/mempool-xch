@@ -27,7 +27,8 @@ export function Header() {
     ? [...NAV, { href: routes.address(walletAddress), label: "My wallet", match: (p: string) => p.startsWith("/address") }]
     : NAV;
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <header className="relative sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />
       <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-3 px-4">
         <Link href={routes.home()} aria-label="Mempool.xch home" className="shrink-0">
           <Logo />

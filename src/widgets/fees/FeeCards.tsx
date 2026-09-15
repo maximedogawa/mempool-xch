@@ -5,7 +5,7 @@ import { CHIA } from "@/shared/config/networks";
 import { formatAmount, formatFeeRate, formatPercent } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
-import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
+import { CapacityBar, Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 
 const TARGET_LABELS: Record<(typeof FEE_TARGETS_S)[number], string> = {
   60: "Next block",
@@ -58,6 +58,11 @@ export function FeeCards() {
             );
           })}
         </div>
+        {state ? (
+          <CapacityBar used={state.mempoolCost} max={state.mempoolMaxTotalCost} segmentCost={state.blockMaxCost} />
+        ) : (
+          <Skeleton className="h-9 w-full" />
+        )}
         <div className={cn("rounded-sm border px-3 py-2.5 text-sm", zeroFeeOk ? "border-primary/40 bg-primary-soft" : "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)]")}>
           {state ? (
             zeroFeeOk ? (

@@ -10,10 +10,10 @@ import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, CopyButton, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
-import { AssetImage } from "@/widgets/assets/AssetImage";
-import { tokenLabel } from "@/widgets/assets/tokenList";
+import { AssetImage } from "@/shared/ui/AssetImage";
+import { tokenLabel } from "@/shared/api/tokenList";
 import { TxSummaryList } from "@/widgets/assets/TxSummaryList";
-import { useTokenList } from "@/widgets/assets/useTokenList";
+import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
