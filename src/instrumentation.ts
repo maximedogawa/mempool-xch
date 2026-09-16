@@ -6,6 +6,7 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || process.env.MEMPOOL_NO_WARMUP === "1") return;
   try {
     const { getSyncer } = await import("@/server/mempoolSummary");
+    // getSyncer also starts the Coinset event hub for the network (decision-006).
     void getSyncer("mainnet").getSummary();
   } catch {
     // Warm-up is best effort; the first request will sync instead.
