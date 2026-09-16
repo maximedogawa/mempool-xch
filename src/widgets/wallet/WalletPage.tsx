@@ -3,7 +3,7 @@
 import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
 import { Wallet } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CHIA } from "@/shared/config/networks";
 import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { formatAmount, formatCat, formatNumber, formatXch } from "@/shared/lib/chia/amounts";
@@ -16,13 +16,14 @@ import {
   fetchWalletOverview,
   fetchWalletTransactionsPage,
   mergePages,
-  WALLET_CAPABILITIES,
   type WalletAsset,
   type WalletCoinRef,
   type WalletTx,
 } from "@/shared/lib/sage/wallet";
+import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { cn } from "@/shared/lib/cn";
 import { AssetIcon, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 
 const TX_PAGE = 25;
@@ -53,12 +54,15 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   const sent = tx.spent.filter(mine);
   const primary = received[0] ?? sent[0];
   return (
-    <li className="flex items-center gap-3 py-2 text-sm">
-      {primary ? <AssetIcon kind={kindOf(primary)} assetId={primary.assetId ?? undefined} /> : null}
+    <li className="flex items-center gap-3 py-2.5 text-sm">
+      <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full", received.length && !sent.length ? "bg-primary-soft" : sent.length && !received.length ? "bg-danger-soft" : "bg-surface-2")}>
+        {primary ? <AssetIcon kind={kindOf(primary)} assetId={primary.assetId ?? undefined} size={22} /> : null}
+      </span>
       <div className="flex min-w-0 flex-col">
         <span className="truncate font-medium">
           {tx.pending ? "Pending · " : ""}
           {received.length && !sent.length ? "Received" : sent.length && !received.length ? "Sent" : "Transaction"}
+          {primary?.assetName ? <span className="font-normal text-fg-muted"> · {primary.assetName}</span> : null}
         </span>
         <span className="text-xs text-fg-faint">
           {tx.height ? (
@@ -123,6 +127,47 @@ function LoadMore({ loaded, total, hasMore, loading, onMore, label }: { loaded: 
   );
 }
 
+/** Quiet prompt shown in a section whose capability was refused: one button, one more ask. */
+function EnableNotice({ capability, what }: { capability: string; what: string }) {
+  const { refused, granted, enable } = useSageCapability(capability);
+  if (granted || !refused) return null;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
+      <span>Sage access to {what} is off.</span>
+      <Button size="sm" onClick={() => void enable()}>
+        Enable in Sage
+      </Button>
+    </div>
+  );
+}
+
+type Tab = "assets" | "transactions" | "coins";
+
+function Tabs({ tab, onChange, counts }: { tab: Tab; onChange: (t: Tab) => void; counts: Record<Tab, string> }) {
+  const items: { id: Tab; label: string }[] = [
+    { id: "assets", label: "Assets" },
+    { id: "transactions", label: "Transactions" },
+    { id: "coins", label: "Coins" },
+  ];
+  return (
+    <div role="tablist" aria-label="Wallet sections" className="flex gap-1 rounded-full border border-border bg-bg p-1">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          role="tab"
+          type="button"
+          aria-selected={tab === it.id}
+          onClick={() => onChange(it.id)}
+          className={cn("flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors", tab === it.id ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg")}
+        >
+          {it.label}
+          <span className="tabular text-xs font-normal text-fg-faint">{counts[it.id]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AssetsCard({ assets, loaded, total }: { assets: WalletAsset[]; loaded: number; total: number }) {
   const balances = useQueries({
     queries: assets.map((a) => ({
@@ -135,32 +180,41 @@ function AssetsCard({ assets, loaded, total }: { assets: WalletAsset[]; loaded: 
     <Card>
       <CardHeader
         title={`Assets · ${formatNumber(assets.length)}`}
-        action={loaded < total ? <span className="text-xs text-fg-faint">from the first {formatNumber(loaded)} of {formatNumber(total)} transactions</span> : null}
+        action={loaded < total ? <span className="text-xs text-fg-faint">seen in the first {formatNumber(loaded)} of {formatNumber(total)} transactions · scroll Transactions to find more</span> : null}
       />
-      <CardBody>
-        <ul className="divide-y divide-border/60">
+      <CardBody className="flex flex-col gap-3">
+        <EnableNotice capability="wallet.get_asset_balance" what="asset balances" />
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {assets.map((a, i) => {
             const b = balances[i]?.data;
             const href = a.kind === "cat" && a.assetId ? routes.cat(a.assetId) : a.kind === "nft" && a.assetId ? routes.nft(launcherIdToNftId(a.assetId)) : null;
             const balance =
-              b === undefined ? "…" : b === null ? "n/a" : a.kind === "xch" ? formatAmount(b.confirmed) : a.kind === "cat" ? `${formatCat(b.confirmed)} ${a.ticker ?? "CAT"}` : formatNumber(b.coins);
-            return (
-              <li key={`${a.kind}:${a.assetId ?? "xch"}`} className="flex items-center gap-3 py-2 text-sm">
-                <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} size={22} />
-                <div className="flex min-w-0 flex-col">
-                  {href ? (
-                    <Link href={href} className="truncate font-medium hover:underline">
-                      {a.name ?? a.ticker ?? a.assetId?.slice(0, 12) ?? a.kind.toUpperCase()}
-                    </Link>
-                  ) : (
-                    <span className="truncate font-medium">{a.name ?? a.ticker ?? a.kind.toUpperCase()}</span>
-                  )}
-                  <span className="text-xs text-fg-faint">
-                    {a.kind.toUpperCase()} · {formatNumber(a.txCount)} transaction{a.txCount === 1 ? "" : "s"}
-                    {b?.coins ? ` · ${formatNumber(b.coins)} spendable coin${b.coins === 1 ? "" : "s"}` : ""}
+              b === undefined ? "…" : b === null ? "—" : a.kind === "xch" ? formatAmount(b.confirmed) : a.kind === "cat" ? `${formatCat(b.confirmed)} ${a.ticker ?? "CAT"}` : `${formatNumber(b.coins)} owned`;
+            const body = (
+              <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
+                <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} size={34} />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-semibold">{a.name ?? a.ticker ?? a.assetId?.slice(0, 12) ?? a.kind.toUpperCase()}</span>
+                  <span className="text-[11px] uppercase tracking-wide text-fg-faint">
+                    {a.kind}
+                    {a.ticker && a.name ? ` · ${a.ticker}` : ""} · {formatNumber(a.txCount)} tx
                   </span>
                 </div>
-                <span className="tabular ml-auto text-right font-medium">{balance}</span>
+                <div className="flex flex-col items-end">
+                  <span className="tabular font-semibold">{balance}</span>
+                  {b?.coins ? <span className="tabular text-[11px] text-fg-faint">{formatNumber(b.coins)} coin{b.coins === 1 ? "" : "s"}</span> : null}
+                </div>
+              </div>
+            );
+            return (
+              <li key={`${a.kind}:${a.assetId ?? "xch"}`}>
+                {href ? (
+                  <Link href={href} className="block h-full">
+                    {body}
+                  </Link>
+                ) : (
+                  body
+                )}
               </li>
             );
           })}
@@ -174,6 +228,7 @@ function AssetsCard({ assets, loaded, total }: { assets: WalletAsset[]; loaded: 
 export function WalletPage() {
   const { inSage, walletAddress } = useSage();
   const { networkConfig } = useSettings();
+  const [tab, setTab] = useState<Tab>("assets");
   const overview = useQuery({ queryKey: ["sageWallet", networkConfig.id], queryFn: fetchWalletOverview, enabled: inSage, refetchInterval: 15_000 });
   const txs = useInfiniteQuery({
     queryKey: ["sageWalletTxs", networkConfig.id],
@@ -216,7 +271,6 @@ export function WalletPage() {
   }
   const w = overview.data;
   const address = w?.receiveAddress ?? walletAddress;
-  const missing = WALLET_CAPABILITIES.filter((c) => !(w?.granted ?? []).includes(c));
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -256,21 +310,21 @@ export function WalletPage() {
               </CardBody>
             </Card>
           ) : null}
-          {missing.length > 0 ? (
-            <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] px-3 py-2 text-xs text-fg-muted">
-              Not granted in Sage: <span className="mono">{missing.join(", ")}</span>. The matching sections stay empty until you allow them.
-            </p>
+          <EnableNotice capability="wallet.get_sync_status" what="your balance and address" />
+          {w.pending.length > 0 ? (
+            <Card className="border-warning/40">
+              <CardHeader title={`Pending · ${w.pending.length}`} />
+              <CardBody>
+                <ul className="divide-y divide-border/60">{w.pending.map((tx, i) => <TxRow key={tx.id ?? i} tx={tx} walletAddress={address} />)}</ul>
+              </CardBody>
+            </Card>
           ) : null}
-          <Card>
-            <CardHeader title={`Pending transactions${w.pending.length ? ` · ${w.pending.length}` : ""}`} />
+          <Tabs tab={tab} onChange={setTab} counts={{ assets: formatNumber(assets.length), transactions: txTotal ? formatNumber(txTotal) : "…", coins: coinTotal ? formatNumber(coinTotal) : "…" }} />
+          {tab === "assets" ? <AssetsCard assets={assets} loaded={txItems.length} total={txTotal} /> : null}
+          <Card className={tab === "transactions" ? "" : "hidden"}>
+            <CardHeader title="Transactions" action={<span className="text-xs text-fg-faint">newest first</span>} />
             <CardBody>
-              {w.pending.length === 0 ? <p className="py-4 text-center text-sm text-fg-faint">Nothing in flight.</p> : <ul className="divide-y divide-border/60">{w.pending.map((tx, i) => <TxRow key={tx.id ?? i} tx={tx} walletAddress={address} />)}</ul>}
-            </CardBody>
-          </Card>
-          {txItems.length > 0 || txs.isLoading ? <AssetsCard assets={assets} loaded={txItems.length} total={txTotal} /> : null}
-          <Card>
-            <CardHeader title="Transactions" />
-            <CardBody>
+              <EnableNotice capability="wallet.get_transactions" what="your transaction history" />
               {txs.isLoading ? (
                 <Skeleton className="h-32 w-full" />
               ) : txItems.length === 0 ? (
@@ -287,9 +341,10 @@ export function WalletPage() {
               )}
             </CardBody>
           </Card>
-          <Card>
-            <CardHeader title="Coins" />
+          <Card className={tab === "coins" ? "" : "hidden"}>
+            <CardHeader title="Coins" action={<span className="text-xs text-fg-faint">unspent, newest first</span>} />
             <CardBody>
+              <EnableNotice capability="wallet.get_coins" what="your coins" />
               {coins.isLoading ? (
                 <Skeleton className="h-32 w-full" />
               ) : coinItems.length === 0 ? (

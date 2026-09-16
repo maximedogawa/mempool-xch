@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { fetchSageNetwork, fetchSageTheme, fetchSageWalletAddress, listenSageTheme } from "@/shared/lib/sage/bridge";
+import { capabilities, fetchSageNetwork, fetchSageTheme, fetchSageWalletAddress, listenSageTheme } from "@/shared/lib/sage/bridge";
 import { isSageRuntime } from "@/shared/lib/sage/mappers";
 import { useSettings } from "./SettingsProvider";
 
@@ -33,6 +33,7 @@ export function SageProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     let unlisten: (() => void) | undefined;
     void (async () => {
+      await capabilities.load();
       const [network, theme] = await Promise.all([fetchSageNetwork(), fetchSageTheme()]);
       if (cancelled) return;
       if (network) update({ network });

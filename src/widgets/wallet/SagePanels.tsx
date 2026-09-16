@@ -7,6 +7,7 @@ import { formatAmount, formatNumber, formatXch } from "@/shared/lib/chia/amounts
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { checkWalletAddress, fetchWalletCoin, fetchWalletOverview, fetchXchUsdPrice } from "@/shared/lib/sage/wallet";
+import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Hash, StatTile } from "@/shared/ui";
@@ -83,7 +84,8 @@ export function SageCoinPanel({ coinId }: { coinId: string }) {
 /** XCH price chip from the wallet's own feed, header only, Sage only. */
 export function SagePriceChip() {
   const { inSage } = useSage();
-  const price = useQuery({ queryKey: ["sagePrice"], queryFn: fetchXchUsdPrice, enabled: inSage, refetchInterval: 60_000 });
+  const { granted } = useSageCapability("wallet.get_xch_usd_price");
+  const price = useQuery({ queryKey: ["sagePrice"], queryFn: fetchXchUsdPrice, enabled: inSage && granted, refetchInterval: 60_000 });
   if (!inSage || price.data === null || price.data === undefined) return null;
   return (
     <span className="tabular hidden items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-fg-muted md:inline-flex" title={`XCH price from your Sage wallet, ${formatAge(price.dataUpdatedAt)}`}>
