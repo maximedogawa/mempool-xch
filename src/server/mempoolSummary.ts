@@ -9,6 +9,7 @@ import { isCoinsetUrl, NETWORKS, type NetworkId } from "@/shared/config/networks
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import type { CompactMempoolItem, MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { coinsetWsUrl, getHub, hasHub, RESYNC_MS, type HubEvent, type MempoolDeltaItem } from "./eventHub";
 import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 
@@ -76,7 +77,9 @@ export class MempoolSyncer {
   private pending = new Set<string>();
   private lastRequest = 0;
   private loop: ReturnType<typeof setTimeout> | null = null;
-  readonly stats = { itemFetches: 0, idListFetches: 0, stateFetches: 0 };
+  /** True while a push channel (WebSocket / webhook) feeds mempool deltas; polling then only resyncs every RESYNC_MS. */
+  private eventDriven = false;
+  readonly stats = { itemFetches: 0, idListFetches: 0, stateFetches: 0, deltas: 0, deltaAdded: 0, deltaRemoved: 0 };
 
   constructor(
     readonly network: NetworkId,
@@ -93,10 +96,68 @@ export class MempoolSyncer {
    */
   async getSummary(): Promise<MempoolSummary> {
     this.lastRequest = this.now();
-    const stale = this.now() - this.lastRefresh >= REFRESH_MS;
+    const stale = this.now() - this.lastRefresh >= this.refreshInterval();
     if (stale) await this.refresh();
     this.ensureLoop();
     return this.snapshot();
+  }
+
+  /** Full id-list refresh cadence: every 3 s when polling, every 5 min when events drive the view. */
+  private refreshInterval(): number {
+    return this.eventDriven ? RESYNC_MS : REFRESH_MS;
+  }
+
+  /** Switch between event-driven (push) and polling operation; a reconnect forces a resync. */
+  setEventDriven(on: boolean): void {
+    if (on && !this.eventDriven) this.lastRefresh = 0; // resync once after (re)connecting
+    this.eventDriven = on;
+  }
+
+  /** Apply a Coinset mempool_delta: fetch only the added bundles, drop the removed ones. */
+  async applyDelta(added: MempoolDeltaItem[], removed: string[]): Promise<void> {
+    this.stats.deltas += 1;
+    removed.forEach((id) => {
+      if (this.items.delete(id)) this.stats.deltaRemoved += 1;
+      this.pending.delete(id);
+    });
+    const fresh = added.filter((a) => !this.items.has(a.id));
+    await mapWithConcurrency(fresh, FETCH_CONCURRENCY, async (a) => {
+      try {
+        const item = await this.deps.client.getMempoolItemByTxId(a.id);
+        this.stats.itemFetches += 1;
+        this.stats.deltaAdded += 1;
+        this.items.set(a.id, compactMempoolItem(item, a.firstSeenMs ?? this.now()));
+        this.pending.delete(a.id);
+      } catch {
+        this.pending.add(a.id);
+      }
+    });
+    if (this.state) this.state = { ...this.state, mempoolSize: this.items.size };
+  }
+
+  /** Apply Coinset's live totals (tx count, cost, fees) without a state call. */
+  applyLive(live: { txCount: number; totalCost: number; totalFee: string }): void {
+    if (!this.state) return;
+    this.state = { ...this.state, mempoolSize: live.txCount, mempoolCost: live.totalCost, mempoolFees: live.totalFee };
+  }
+
+  /** Refresh only the chain state (one get_blockchain_state), e.g. on a new peak. */
+  async refreshState(): Promise<void> {
+    try {
+      const state = await this.deps.client.getBlockchainState();
+      this.stats.stateFetches += 1;
+      this.state = stateSummary(state);
+    } catch {
+      // Keep the last state; the next peak retries.
+    }
+  }
+
+  /** Route a hub event into the syncer. */
+  handleHubEvent(event: HubEvent): void {
+    if (event.type === "mempool_delta") void this.applyDelta(event.added, event.removed);
+    else if (event.type === "live") this.applyLive(event);
+    else if (event.type === "peak") void this.refreshState();
+    else if (event.type === "status") this.setEventDriven(event.channel === "websocket" || event.channel === "webhook");
   }
 
   /** Background refresh every REFRESH_MS while clients are active; stops after IDLE_AFTER_MS. */
@@ -110,9 +171,9 @@ export class MempoolSyncer {
       } catch {
         // Transient upstream error: the next tick retries.
       }
-      this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
+      this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : this.refreshInterval());
     };
-    this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : REFRESH_MS);
+    this.loop = setTimeout(tick, this.pending.size > 0 ? 250 : this.refreshInterval());
   }
 
   snapshot(): MempoolSummary {
@@ -234,5 +295,13 @@ export function getSyncer(network: NetworkId): MempoolSyncer {
   const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000 });
   const syncer = new MempoolSyncer(network, { client, backgroundLoop: true });
   registry.set(network, syncer);
+  // One Coinset subscription per network drives the syncer (decision-006).
+  if (!hasHub(network)) {
+    const hub = getHub(network, { wsUrl: coinsetWsUrl(network, rpcUrl), poll: () => client.getBlockchainState() });
+    hub.on((e) => syncer.handleHubEvent(e.event));
+    hub.start();
+  } else {
+    getHub(network).on((e) => syncer.handleHubEvent(e.event));
+  }
   return syncer;
 }
