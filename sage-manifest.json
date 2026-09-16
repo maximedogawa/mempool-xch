@@ -19,8 +19,8 @@
           "wss://api.coinset.org",
           "https://testnet11.api.coinset.org",
           "wss://testnet11.api.coinset.org",
-          "https://api.spacescan.io",
-          "https://assets.spacescan.io",
+          "https://api.dexie.space",
+          "https://icons.dexie.space",
           "https://api.mintgarden.io",
           "https://assets.mainnet.mintgarden.io",
           "https://ipfs.mintgarden.io"
@@ -50,7 +50,8 @@
         "environment.theme.css_vars",
         "environment.theme.listen_changed",
         "storage.persistent_webview",
-        "app.request_network_whitelist_grant"
+        "app.request_network_whitelist_grant",
+        "wallet.get_asset_balance"
       ],
       "optional": [
         "wallet.get_sync_status",

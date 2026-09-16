@@ -11,13 +11,24 @@ import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { fetchChainSnapshot, isChainFallbackError as isFallbackError } from "./chain";
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
-    queryFn: ({ signal }) => client.getBlockchainState(signal),
+    enabled: hydrated,
+    queryFn: async ({ signal }) => {
+      if (endpoints.chainUrl) {
+        try {
+          return (await fetchChainSnapshot(endpoints.chainUrl, signal)).state;
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      return client.getBlockchainState(signal);
+    },
     // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
     refetchInterval: 60_000,
   });
@@ -42,7 +53,7 @@ async function fetchSummaryFromServer(url: string, signal: AbortSignal): Promise
  * assembled in the browser from get_all_mempool_items (heavy, but only for custom nodes).
  */
 export function useMempoolSummary() {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const { status } = useLive();
   const source = endpoints.summaryUrl ?? "browser";
   // With a live WebSocket, transaction and peak events already invalidate the summary, so the
@@ -50,6 +61,7 @@ export function useMempoolSummary() {
   const interval = endpoints.summaryUrl ? (status === "live" ? 12_000 : 4_000) : 20_000;
   return useQuery({
     queryKey: queryKeys.mempoolSummary(endpoints.network, source),
+    enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
       if (endpoints.summaryUrl) {
         try {
@@ -68,7 +80,8 @@ export function useMempoolSummary() {
         browserFirstSeen.set(item.name, seen);
         return compactMempoolItem(item, seen);
       });
-      const minFeeTier = state.mempoolMinFees.cost_5000000 ?? 0;
+      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost), see server/mempoolSummary.ts
+      const minFeeRate = state.mempoolMinFees.cost_5000000 ?? 0;
       return {
         network: endpoints.network,
         generatedAt: now,
@@ -83,17 +96,19 @@ export function useMempoolSummary() {
           mempoolFees: state.mempoolFees.toString(),
           blockMaxCost: state.blockMaxCost,
           averageBlockTime: state.averageBlockTime,
-          minFeeRate: minFeeTier / 5_000_000,
+          minFeeRate,
           synced: state.synced,
         },
         items: compact,
       };
     },
     // While the server is still filling its view (fewer items than the node reports), poll
-    // quickly so the first visitor after a restart sees projected blocks within seconds.
+    // faster so the first visitor after a restart sees projected blocks within seconds; but
+    // only for the first refetches, a busy mempool can stay "filling" for minutes and each
+    // summary is tens of KB.
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9) return 1_500;
+      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9 && query.state.dataUpdateCount < 12) return 3_000;
       return interval;
     },
     placeholderData: keepPreviousData,
@@ -123,18 +138,29 @@ export interface RecentBlocksResult {
 
 /** The last `count` transaction blocks (plus the non-transaction blocks between them). */
 export function useRecentBlocks(count: number) {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const state = useBlockchainState();
   const { peakHeight } = useLive();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   return useQuery({
     queryKey: queryKeys.recentBlocks(endpoints.network, count, peak),
-    enabled: peak !== null,
+    enabled: hydrated && peak !== null,
     placeholderData: keepPreviousData,
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
-      const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
+      let records: BlockRecord[] | null = null;
+      if (endpoints.chainUrl) {
+        try {
+          // The peak event reaches the tab before the server has the new record; the window is
+          // refetched when the server sends its `chain` event, so a lagging snapshot is used as is.
+          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
+          records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      if (!records) records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
       const all = [...records].sort((a, b) => b.height - a.height);
       const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
       const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
@@ -146,13 +172,47 @@ export function useRecentBlocks(count: number) {
 export const FEE_TARGETS_S = [60, 300, 600] as const;
 
 export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
-    queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
+    enabled: hydrated,
+    queryFn: async ({ signal }) => {
+      if (endpoints.chainUrl) {
+        try {
+          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
+          if (snapshot.fee && snapshot.fee.cost === cost) return snapshot.fee.estimate;
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      return client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal);
+    },
     refetchInterval: 45_000,
     placeholderData: keepPreviousData,
   });
 }
 
 export { parseJsonSafe };
+
+export interface ServerStatus {
+  hub: { channel: "websocket" | "webhook" | "polling" | "connecting"; socket: string; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
+  mempool: { items: number; generatedAt: number };
+  now: number;
+}
+
+/** The hosted server's own Coinset channel (/api/<network>/status); null when not hosted. */
+export function useServerStatus() {
+  const { endpoints, hydrated } = useSettings();
+  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain(\?.*)?$/, "/status") : null;
+  return useQuery({
+    queryKey: ["server", endpoints.network, "status"],
+    enabled: hydrated && url !== null,
+    refetchInterval: 60_000,
+    retry: false,
+    queryFn: async ({ signal }): Promise<ServerStatus | null> => {
+      const response = await fetch(url!, { signal });
+      if (!response.ok) return null;
+      return (await response.json()) as ServerStatus;
+    },
+  });
+}

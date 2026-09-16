@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { AssetRegistryLoader } from "@/shared/api/useTokenList";
 import { LiveProvider } from "./LiveProvider";
 import { QueryProvider } from "./QueryProvider";
 import { SageProvider } from "./SageProvider";
@@ -13,6 +14,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <SageProvider>
         <ThemeProvider>
           <QueryProvider>
+            <AssetRegistryLoader />
             <LiveProvider>{children}</LiveProvider>
           </QueryProvider>
         </ThemeProvider>

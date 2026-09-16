@@ -82,7 +82,8 @@ describe("normalisers with recorded Coinset fixtures", () => {
     expect(f.targetTimes).toEqual([60, 300, 600]);
     expect(f.estimates).toEqual([373687n, 1713n, 214n]);
     expect(f.currentFeeRate).toBeCloseTo(0.3737, 3);
-    expect(f.mempoolMaxSize).toBe(110_000_000_000);
+    expect(f.mempoolMaxCost).toBe(110_000_000_000);
+    expect(f.mempoolCost).toBe(100_636_754_421);
   });
   test("transaction list and kind derivation", () => {
     const list = normaliseTxList(blockTransactions);

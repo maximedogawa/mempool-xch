@@ -11,6 +11,10 @@ import type { TxKindHint } from "./types";
 export const MOD_HASHES = {
   CAT2: "37bef360ee858133b69d595a906dc45d01af50379dad515eb9518abb7c1d2a7a",
   SINGLETON_TOP_LAYER_V1_1: "7faa3253bfddd1e0decb0906b2dc6247bbc4cf608f58345d173adb63e8b47c9f",
+  /** singleton_top_layer.clsp (v1), still used by plot NFTs (pooling). */
+  SINGLETON_TOP_LAYER_V1: "24e044101e57b3d8c908b8a38ad57848afd29d3eecc439dba45f4412df4954fd",
+  /** Pool reward puzzle-hash prefix curried into pool singletons (mainnet genesis challenge prefix). */
+  POOL_REWARD_PREFIX: "ccd5bb71183532bff220ba46c268991a00000000000000000000000000000000",
   NFT_STATE_LAYER: "a04d9f57764f54a43e4030befb4d80026e870519aaa66334aef8304f5d0393c2",
   NFT_OWNERSHIP_LAYER: "c5abea79afaa001b5427dfa0c8cf42ca6e38f5748bd5a91cd5a6b8c7fbf4b0d0",
   DID_INNERPUZ: "33143d2bef64f14036742673afd158126b94284b4530a28c354fac202b0c910e",
@@ -58,39 +62,28 @@ function extractLauncherIds(reveal: string): string[] {
   return [...ids];
 }
 
+/** Kind and asset id of one coin spend, from its puzzle reveal and coin puzzle hash. */
+export function classifyCoinSpend(spend: CoinSpend): { kind: TxKindHint; assetId?: string } {
+  const reveal = spend.puzzleReveal.toLowerCase().replace(/^0x/, "");
+  if (spend.coin.puzzleHash === MOD_HASHES.SETTLEMENT_PAYMENTS) return { kind: "offer" };
+  const launcher = extractLauncherIds(reveal)[0];
+  if (reveal.includes(MOD_HASHES.NFT_STATE_LAYER) || reveal.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER)) return { kind: "nft", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.DID_INNERPUZ)) return { kind: "did", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.CAT2)) return { kind: "cat", assetId: extractCatAssetIds(reveal)[0] };
+  if (reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1) && reveal.includes(MOD_HASHES.POOL_REWARD_PREFIX)) return { kind: "pool", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1) || reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1)) return { kind: "singleton", assetId: launcher };
+  return { kind: "xch" };
+}
+
+const KIND_PRIORITY: TxKindHint[] = ["offer", "nft", "did", "cat", "pool", "singleton", "xch", "unknown"];
+
+/** Bundle-level kind (most specific kind of any spend) and every asset id seen. */
 export function classifyCoinSpends(coinSpends: CoinSpend[]): Classification {
-  const reveals = coinSpends.map((cs) => cs.puzzleReveal.toLowerCase().replace(/^0x/, ""));
-  const joined = reveals.join("|");
-  const puzzleHashes = new Set(coinSpends.map((cs) => cs.coin.puzzleHash));
-
-  const isOffer = puzzleHashes.has(MOD_HASHES.SETTLEMENT_PAYMENTS);
-  const isNft =
-    joined.includes(MOD_HASHES.NFT_STATE_LAYER) || joined.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER);
-  const isDid = joined.includes(MOD_HASHES.DID_INNERPUZ);
-  const isCat = joined.includes(MOD_HASHES.CAT2);
-  const isSingleton = joined.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1);
-
-  const assetIds = isCat
-    ? reveals.flatMap(extractCatAssetIds)
-    : isNft || isDid || isSingleton
-      ? reveals.flatMap(extractLauncherIds)
-      : [];
-
-  const kind: TxKindHint = isOffer
-    ? "offer"
-    : isNft
-      ? "nft"
-      : isDid
-        ? "did"
-        : isCat
-          ? "cat"
-          : isSingleton
-            ? "singleton"
-            : coinSpends.length > 0
-              ? "xch"
-              : "unknown";
-
-  return { kind, assetIds: [...new Set(assetIds)] };
+  if (coinSpends.length === 0) return { kind: "unknown", assetIds: [] };
+  const per = coinSpends.map(classifyCoinSpend);
+  const kind = KIND_PRIORITY.find((k) => per.some((p) => p.kind === k)) ?? "unknown";
+  const assetIds = [...new Set(per.map((p) => p.assetId).filter((a): a is string => !!a))];
+  return { kind, assetIds };
 }
 
 export function classifyMempoolItem(item: MempoolItem): Classification {

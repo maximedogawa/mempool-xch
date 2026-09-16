@@ -21,8 +21,8 @@ const summary: MempoolSummary = {
     synced: true,
   },
   items: [
-    { id: "a", fee: "0", cost: 10, feeRate: 0, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, value: "0", firstSeen: 0, kind: "xch", assetIds: [] },
-    { id: "b", fee: "100", cost: 20, feeRate: 5, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, value: "0", firstSeen: 0, kind: "cat", assetIds: [] },
+    { id: "a", fee: "0", cost: 10, feeRate: 0, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 }, firstSeen: 0, kind: "xch", assetIds: [] },
+    { id: "b", fee: "100", cost: 20, feeRate: 5, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 }, firstSeen: 0, kind: "cat", assetIds: [] },
   ],
 };
 

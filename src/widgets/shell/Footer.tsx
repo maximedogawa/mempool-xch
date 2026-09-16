@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useServerStatus } from "@/shared/api/hooks";
+import { describeChannel } from "@/shared/lib/live/channel";
 import { routes } from "@/shared/lib/routes";
+import { useLive } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
@@ -9,6 +12,9 @@ import { ExternalLink } from "@/shared/ui/ExternalLink";
 export function Footer() {
   const { endpoints, networkConfig } = useSettings();
   const { inSage } = useSage();
+  const { status, transport } = useLive();
+  const server = useServerStatus();
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
   const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
   const sha = process.env.NEXT_PUBLIC_COMMIT_SHA ?? "";
   return (
@@ -25,6 +31,8 @@ export function Footer() {
             {networkConfig.label} via <span className="mono">{endpoints.rpcUrl.replace(/^https?:\/\//, "")}</span>
             {endpoints.isCoinset ? "" : " (custom node)"}
           </span>
+          <span aria-hidden="true">·</span>
+          <span title={channel.detail}>live: {channel.name.toLowerCase()}</span>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Link href={routes.docs()} className="hover:text-fg">

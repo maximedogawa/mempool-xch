@@ -14,7 +14,8 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton } from "@/shared/ui";
 import { BlockCoins } from "./BlockCoins";
 import { BlockTransactions } from "./BlockTransactions";
-import { parseBlockId, useBlock, useBlockCoins, useNextTransactionBlock } from "./useBlock";
+import { AssetsMoved } from "./AssetsMoved";
+import { parseBlockId, useBlock, useBlockAssetTotals, useBlockCoins, useNextTransactionBlock } from "./useBlock";
 
 function Row({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -38,6 +39,7 @@ export function BlockDetails({ id }: { id: string }) {
   const isTx = record?.isTransactionBlock ?? false;
   const coins = useBlockCoins(record?.headerHash ?? null, isTx);
   const nextTx = useNextTransactionBlock(record?.height ?? null, record !== undefined && !isTx);
+  const totals = useBlockAssetTotals(record?.height ?? null, record?.headerHash ?? null, isTx);
 
   if (!parsed) {
     return <EmptyState tone="danger" title="Invalid block id" description="Use a block height (e.g. 9295514) or a 64-character header hash." />;
@@ -90,6 +92,8 @@ export function BlockDetails({ id }: { id: string }) {
           </Link>
         </nav>
       </div>
+
+      {isTx ? <AssetsMoved totals={totals.data} loading={totals.isLoading} /> : null}
 
       <Card>
         <CardHeader title="Details" />

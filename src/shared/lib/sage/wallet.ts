@@ -5,7 +5,7 @@
  * full node: it knows your addresses, balances, coins and transactions, but not the mempool or
  * other people's blocks, so chain-wide data keeps coming from the configured RPC endpoint.
  */
-import { getSage } from "./bridge";
+import { capabilities, getSage } from "./bridge";
 
 export const WALLET_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions", "wallet.get_transactions", "wallet.get_coins", "wallet.get_coins_by_ids", "wallet.check_address", "wallet.get_xch_usd_price"] as const;
 
@@ -18,6 +18,8 @@ export interface WalletCoinRef {
   assetName: string | null;
   ticker: string | null;
   precision: number;
+  /** Icon Sage resolved for the asset, if any. */
+  iconUrl: string | null;
 }
 
 export interface WalletTx {
@@ -77,43 +79,42 @@ function coinRef(raw: unknown): WalletCoinRef {
     assetName: str(asset.name),
     ticker: str(asset.ticker),
     precision: num(asset.precision) ?? 12,
+    iconUrl: (() => {
+      const u = str(asset.icon_url);
+      return u && /^https:\/\//.test(u) ? u : null;
+    })(),
   };
 }
 
-async function granted(): Promise<string[]> {
+/** Capabilities the overview needs; each is requested at most once per session. */
+const OVERVIEW_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions"] as const;
+
+async function ensureAll(caps: readonly string[]): Promise<string[]> {
+  const results = await Promise.all(caps.map(async (c) => ((await capabilities.ensure(c)) ? c : null)));
+  return results.filter((c): c is string => c !== null);
+}
+
+/** Only the pending transactions (dashboard panel); null outside Sage or when refused. */
+export async function fetchWalletPending(): Promise<WalletTx[] | null> {
   const client = await getSage();
-  if (!client) return [];
-  const list: string[] = [];
-  try {
-    const caps = await client.app.getCapabilities();
-    const have = (caps as { granted?: string[]; capabilities?: string[] }).granted ?? (caps as { capabilities?: string[] }).capabilities ?? [];
-    list.push(...have);
-  } catch {
-    return [];
-  }
-  const missing = WALLET_CAPABILITIES.filter((c) => !list.includes(c));
-  await Promise.all(
-    missing.map(async (capability) => {
-      try {
-        const result = await client.app.requestCapabilityGrant({ capability: capability as never });
-        if ((result as { granted?: boolean }).granted ?? (result as { ok?: boolean }).ok) list.push(capability);
-      } catch {
-        // Refused: the section that needs it stays hidden.
-      }
-    })
-  );
-  return list;
+  if (!client || !(await capabilities.ensure("wallet.get_pending_transactions"))) return null;
+  const res = await client.wallet.getPendingTransactions().catch(() => null);
+  if (!res) return null;
+  return (asRaw(res).transactions as unknown[] | undefined ?? []).map((t) => {
+    const r = asRaw(t);
+    return { id: str(r.transaction_id)?.replace(/^0x/, "") ?? null, height: null, timestamp: num(r.submitted_at), fee: big(r.fee), spent: (r.spent as unknown[] | undefined ?? []).map(coinRef), created: (r.created as unknown[] | undefined ?? []).map(coinRef), pending: true };
+  });
 }
 
 export async function fetchWalletOverview(): Promise<WalletOverview | null> {
   const client = await getSage();
   if (!client) return null;
-  const caps = await granted();
-  const has = (c: string) => caps.includes(c);
+  await ensureAll(OVERVIEW_CAPABILITIES);
+  const has = (c: string) => capabilities.has(c);
   const status = has("wallet.get_sync_status") ? await client.wallet.getSyncStatus().catch(() => null) : null;
   const pendingRes = has("wallet.get_pending_transactions") ? await client.wallet.getPendingTransactions().catch(() => null) : null;
-  const txRes = has("wallet.get_transactions") ? await client.wallet.getTransactions({ offset: 0, limit: 25, ascending: false, find_value: null }).catch(() => null) : null;
-  const coinsRes = has("wallet.get_coins") ? await client.wallet.getCoins({ offset: 0, limit: 50, ascending: false } as never).catch(() => null) : null;
+  const txRes = null;
+  const coinsRes = null;
   const s = asRaw(status);
   const unit = asRaw(s.unit);
   return {
@@ -137,7 +138,7 @@ export async function fetchWalletOverview(): Promise<WalletOverview | null> {
       return { coinId: String(r.coin_id ?? "").replace(/^0x/, ""), address: str(r.address) ?? "", amount: big(r.amount), createdHeight: num(r.created_height), spentHeight: num(r.spent_height) };
     }),
     totalCoinCount: num(asRaw(coinsRes).total) ?? 0,
-    granted: caps,
+    granted: capabilities.snapshot().granted,
   };
 }
 
@@ -146,7 +147,7 @@ export async function fetchWalletOverview(): Promise<WalletOverview | null> {
 /** True when the wallet owns this address (wallet.check_address). Null when not in Sage / not granted. */
 export async function checkWalletAddress(address: string): Promise<boolean | null> {
   const client = await getSage();
-  if (!client) return null;
+  if (!client || !(await capabilities.ensure("wallet.check_address"))) return null;
   try {
     const result = await client.wallet.checkAddress({ address });
     return Boolean((result as { valid?: boolean }).valid);
@@ -158,7 +159,7 @@ export async function checkWalletAddress(address: string): Promise<boolean | nul
 /** The wallet's own record of a coin, or null when the coin is not in the wallet. */
 export async function fetchWalletCoin(coinId: string): Promise<WalletCoin | null> {
   const client = await getSage();
-  if (!client) return null;
+  if (!client || !(await capabilities.ensure("wallet.get_coins_by_ids"))) return null;
   try {
     const result = await client.wallet.getCoinsByIds({ coin_ids: [`0x${coinId.replace(/^0x/, "")}`] });
     const raw = asRaw((asRaw(result).coins as unknown[] | undefined ?? [])[0]);
@@ -172,7 +173,8 @@ export async function fetchWalletCoin(coinId: string): Promise<WalletCoin | null
 /** XCH/USD from the wallet's own price feed (wallet.get_xch_usd_price). */
 export async function fetchXchUsdPrice(): Promise<number | null> {
   const client = await getSage();
-  if (!client) return null;
+  // Never requests the grant here: the header chip only appears once the user enabled it.
+  if (!client || !capabilities.has("wallet.get_xch_usd_price")) return null;
   try {
     const result = await client.wallet.getXchUsdPrice();
     const usd = (result as { usd?: unknown }).usd;
@@ -202,4 +204,118 @@ export async function requestEndpointWhitelist(url: string, networkId: string): 
   } catch {
     return "refused";
   }
+}
+
+/* ---- Paged history (TASK-032) ---- */
+
+export interface WalletTxPage {
+  items: WalletTx[];
+  total: number;
+  offset: number;
+}
+
+export interface WalletCoinPage {
+  items: WalletCoin[];
+  total: number;
+  offset: number;
+}
+
+function toWalletTx(raw: unknown): WalletTx {
+  const r = asRaw(raw);
+  return {
+    id: str(r.transaction_id)?.replace(/^0x/, "") ?? null,
+    height: num(r.height),
+    timestamp: num(r.timestamp),
+    fee: r.fee === undefined ? null : big(r.fee),
+    spent: (r.spent as unknown[] | undefined ?? []).map(coinRef),
+    created: (r.created as unknown[] | undefined ?? []).map(coinRef),
+    pending: false,
+  };
+}
+
+function toWalletCoin(raw: unknown): WalletCoin {
+  const r = asRaw(raw);
+  return { coinId: String(r.coin_id ?? "").replace(/^0x/, ""), address: str(r.address) ?? "", amount: big(r.amount), createdHeight: num(r.created_height), spentHeight: num(r.spent_height) };
+}
+
+/** One page of the wallet's confirmed transactions, newest first. */
+export async function fetchWalletTransactionsPage(offset: number, limit = 25): Promise<WalletTxPage> {
+  const client = await getSage();
+  if (!client || !(await capabilities.ensure("wallet.get_transactions"))) return { items: [], total: 0, offset };
+  const res = asRaw(await client.wallet.getTransactions({ offset, limit, ascending: false, find_value: null }).catch(() => null));
+  return { items: (res.transactions as unknown[] | undefined ?? []).map(toWalletTx), total: num(res.total) ?? 0, offset };
+}
+
+/** One page of the wallet's coins, newest first. */
+export async function fetchWalletCoinsPage(offset: number, limit = 50): Promise<WalletCoinPage> {
+  const client = await getSage();
+  if (!client || !(await capabilities.ensure("wallet.get_coins"))) return { items: [], total: 0, offset };
+  const res = asRaw(await client.wallet.getCoins({ offset, limit, ascending: false } as never).catch(() => null));
+  return { items: (res.coins as unknown[] | undefined ?? []).map(toWalletCoin), total: num(res.total) ?? 0, offset };
+}
+
+export interface WalletAsset {
+  kind: "xch" | "cat" | "nft" | "did";
+  /** Hex asset id / launcher id; null for XCH. */
+  assetId: string | null;
+  name: string | null;
+  ticker: string | null;
+  precision: number;
+  iconUrl: string | null;
+  /** Number of loaded transactions touching the asset. */
+  txCount: number;
+}
+
+function kindOfRef(ref: WalletCoinRef): WalletAsset["kind"] {
+  const k = ref.assetKind.toLowerCase();
+  if (k.includes("nft")) return "nft";
+  if (k.includes("did")) return "did";
+  if (k.includes("cat") || k.includes("token") || (ref.assetId && !k.includes("xch"))) return "cat";
+  return "xch";
+}
+
+/** Distinct assets seen in the loaded history (XCH first, then by activity), pure and testable. */
+export function deriveAssets(txs: WalletTx[]): WalletAsset[] {
+  const map = new Map<string, WalletAsset>();
+  map.set("xch", { kind: "xch", assetId: null, name: "Chia", ticker: "XCH", precision: 12, iconUrl: null, txCount: 0 });
+  txs.forEach((tx) => {
+    const seen = new Set<string>();
+    [...tx.spent, ...tx.created].forEach((ref) => {
+      const kind = kindOfRef(ref);
+      const key = kind === "xch" ? "xch" : `${kind}:${ref.assetId ?? "?"}`;
+      const existing = map.get(key) ?? { kind, assetId: kind === "xch" ? null : ref.assetId, name: ref.assetName, ticker: ref.ticker, precision: ref.precision, iconUrl: ref.iconUrl, txCount: 0 };
+      if (!existing.name && ref.assetName) existing.name = ref.assetName;
+      if (!existing.ticker && ref.ticker) existing.ticker = ref.ticker;
+      if (!existing.iconUrl && ref.iconUrl) existing.iconUrl = ref.iconUrl;
+      if (!seen.has(key)) {
+        existing.txCount += 1;
+        seen.add(key);
+      }
+      map.set(key, existing);
+    });
+  });
+  return [...map.values()].sort((a, b) => (a.kind === "xch" ? -1 : b.kind === "xch" ? 1 : b.txCount - a.txCount));
+}
+
+export interface WalletAssetBalance {
+  confirmed: bigint;
+  spendable: bigint;
+  coins: number;
+}
+
+/** Balance of one asset from the wallet (XCH when assetId is null). */
+export async function fetchAssetBalance(kind: WalletAsset["kind"], assetId: string | null): Promise<WalletAssetBalance | null> {
+  const client = await getSage();
+  if (!client || !(await capabilities.ensure("wallet.get_asset_balance"))) return null;
+  try {
+    const res = asRaw(await client.wallet.getAssetBalance(kind === "xch" ? {} : { type: kind, assetId: assetId ? `0x${assetId}` : null }));
+    return { confirmed: big(res.confirmed), spendable: big(res.spendable), coins: num(res.spendableCoinCount) ?? 0 };
+  } catch {
+    return null;
+  }
+}
+
+/** Merge pages in offset order, dropping duplicates by id/height (pure). */
+export function mergePages<T extends { offset: number; items: unknown[] }>(pages: T[]): T["items"] {
+  return [...pages].sort((a, b) => a.offset - b.offset).flatMap((p) => p.items);
 }

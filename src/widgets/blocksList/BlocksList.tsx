@@ -1,5 +1,7 @@
 "use client";
 
+import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -41,6 +43,8 @@ export function BlocksList() {
     queryFn: ({ signal }) => client.getBlockRecords(start!, end! + 1, signal),
   });
   const rows = [...(query.data ?? [])].sort((a, b) => b.height - a.height).filter((r) => !txOnly || r.isTransactionBlock).slice(0, PAGE);
+  const totals = useBlocksAssetTotals(rows.filter((b) => b.isTransactionBlock).map((b) => ({ height: b.height, hash: b.headerHash })));
+  const movedByHeight = new Map(rows.filter((b) => b.isTransactionBlock).map((b, i) => [b.height, totals[i]?.data ? formatAmount(BigInt(totals[i]!.data!.xch)) : null]));
   const oldestShown = rows[rows.length - 1]?.height ?? start;
   const now = Date.now();
 
@@ -77,6 +81,7 @@ export function BlocksList() {
                 <Th className="hidden sm:table-cell">Age</Th>
                 <Th className="hidden text-right md:table-cell">Reward claims</Th>
                 <Th className="text-right">Fees</Th>
+                <Th className="hidden text-right md:table-cell">XCH moved</Th>
                 <Th className="hidden lg:table-cell">Farmer</Th>
                 <Th className="hidden xl:table-cell">Header hash</Th>
               </tr>
@@ -97,6 +102,7 @@ export function BlocksList() {
                   <Td className="tabular hidden whitespace-nowrap text-fg-muted sm:table-cell">{b.timestamp ? formatAge(b.timestamp * 1000, now) : "—"}</Td>
                   <Td className="tabular hidden text-right text-fg-muted md:table-cell">{b.isTransactionBlock ? (b.rewardClaimsIncorporated?.length ?? 0) : "—"}</Td>
                   <Td className="tabular text-right">{b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : <span className="text-fg-faint">—</span>}</Td>
+                  <Td className="tabular hidden text-right text-fg-muted md:table-cell">{b.isTransactionBlock ? (movedByHeight.get(b.height) ?? <span className="text-fg-faint">…</span>) : <span className="text-fg-faint">—</span>}</Td>
                   <Td className="mono hidden text-xs text-fg-faint lg:table-cell" title={b.farmerPuzzleHash}>
                     {shortId(b.farmerPuzzleHash, 8, 4)}
                   </Td>

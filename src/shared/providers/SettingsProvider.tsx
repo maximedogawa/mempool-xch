@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { DEFAULT_SETTINGS, getSettingsStore, resolveEndpoints, type ResolvedEndpoints, type Settings } from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { RpcError } from "@/shared/lib/rpc/errors";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
 
 export interface SettingsContextValue {
@@ -36,8 +37,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     previousNetwork.current = settings.network;
     window.scrollTo({ top: 0 });
   }, [settings.network]);
+  // The hydration render still sees the SSR defaults (Coinset). Any fetch started from that
+  // render must not go out: a user with a custom node would otherwise leak a burst of calls
+  // to Coinset and the hosted APIs on every page load. LiveProvider refetches once hydrated.
+  const hydratedRef = useRef(hydrated);
+  hydratedRef.current = hydrated;
   const client = useMemo(
-    () => createRpcClient({ rpcUrl: endpoints.rpcUrl, indexedUrl: endpoints.indexedUrl }),
+    () =>
+      createRpcClient({
+        rpcUrl: endpoints.rpcUrl,
+        indexedUrl: endpoints.indexedUrl,
+        fetchImpl: (input, init) => (hydratedRef.current ? fetch(input, init) : Promise.reject(new RpcError("aborted", "hydration", "Settings not hydrated yet"))),
+      }),
     [endpoints.rpcUrl, endpoints.indexedUrl]
   );
   const value = useMemo<SettingsContextValue>(

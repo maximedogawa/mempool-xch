@@ -1,11 +1,13 @@
-# Local production-like run: `docker compose up --build`, then open http://localhost:8080.
+# Local production-like run: `COMMIT_SHA=$(git rev-parse --short HEAD) docker compose up --build`,
+# then open http://localhost:8080. On macOS, Docker comes from Colima (see the wiki testing guide).
 services:
   app:
     build:
       context: .
       dockerfile: deployment/Dockerfile
       args:
-        NEXT_PUBLIC_APP_VERSION: dev
+        NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-dev}
+        NEXT_PUBLIC_COMMIT_SHA: ${COMMIT_SHA:-local}
         NEXT_PUBLIC_APP_URL: https://mempoolxch.space
     image: mempool-xch:local
     ports:

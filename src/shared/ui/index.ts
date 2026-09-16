@@ -1,7 +1,9 @@
 export { Amount } from "./Amount";
+export { AssetAmount } from "./AssetAmount";
 export { AssetBadge, AssetIcon, XchIcon } from "./AssetBadge";
 export { AssetImage } from "./AssetImage";
 export { CapacityBar } from "./CapacityBar";
+export { CatRef, useCatLabel } from "./CatRef";
 export { Badge, KindBadge, StatusBadge, SummaryKindBadge } from "./Badge";
 export { Button } from "./Button";
 export { Card, CardBody, CardHeader } from "./Card";
@@ -12,3 +14,4 @@ export { Skeleton } from "./Skeleton";
 export { StatTile } from "./StatTile";
 export { Table, Td, Th, Tr } from "./Table";
 export { Tooltip } from "./Tooltip";
+export { YoursChip } from "./YoursChip";

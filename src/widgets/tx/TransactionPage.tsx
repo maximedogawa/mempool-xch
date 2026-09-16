@@ -8,13 +8,14 @@ import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { feePerCost, formatAmount, formatCat, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { hexToUtf8IfText } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime, formatEta } from "@/shared/lib/format/time";
+import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
 import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
+import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useTransaction } from "./useTransaction";
@@ -69,9 +70,7 @@ function AssetList({ amounts }: { amounts: AssetAmounts }) {
   if (amounts.xch !== 0n) parts.push(<span key="xch">{formatAmount(amounts.xch)}</span>);
   amounts.cats.forEach((c) =>
     parts.push(
-      <span key={c.assetId} className="inline-flex items-center gap-1">
-        {formatCat(c.amount)} <Hash value={c.assetId} href={routes.cat(c.assetId)} head={4} tail={4} />
-      </span>
+      <CatRef key={c.assetId} assetId={c.assetId} amountText={formatCat(c.amount)} />
     )
   );
   amounts.nfts.forEach((n) =>
@@ -154,14 +153,22 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
       ) : null}
       {minted ? (
         <p className="mt-2 text-sm">
-          Minted {minted.asset_type?.toUpperCase()} {minted.amount ? `${formatCat(BigInt(minted.amount))} ` : ""}
-          {minted.asset_id ? <Hash value={minted.asset_id} href={minted.asset_type === "nft" ? routes.nft(minted.asset_id.replace(/^0x/, "")) : routes.cat(minted.asset_id.replace(/^0x/, ""))} head={6} tail={4} /> : null}
+          Minted {minted.asset_type?.toUpperCase()}{" "}
+          {minted.asset_id && minted.asset_type !== "nft" ? (
+            <CatRef assetId={minted.asset_id} amountText={minted.amount ? formatCat(BigInt(minted.amount)) : undefined} showId />
+          ) : minted.asset_id ? (
+            <Hash value={minted.asset_id} href={routes.nft(minted.asset_id.replace(/^0x/, ""))} head={6} tail={4} />
+          ) : null}
         </p>
       ) : null}
       {melted ? (
         <p className="mt-2 text-sm">
-          Melted {melted.asset_type?.toUpperCase()} {melted.amount ? `${formatCat(BigInt(melted.amount))} ` : ""}
-          {melted.asset_id ? <Hash value={melted.asset_id} head={6} tail={4} /> : null}
+          Melted {melted.asset_type?.toUpperCase()}{" "}
+          {melted.asset_id && melted.asset_type !== "nft" ? (
+            <CatRef assetId={melted.asset_id} amountText={melted.amount ? formatCat(BigInt(melted.amount)) : undefined} showId />
+          ) : melted.asset_id ? (
+            <Hash value={melted.asset_id} head={6} tail={4} />
+          ) : null}
         </p>
       ) : null}
     </div>
@@ -251,14 +258,14 @@ export function TransactionPage({ id }: { id: string | null }) {
           />
         </div>
         <p className="text-xs text-fg-faint">
-          {item.spendBundle.coinSpends.length} coin spend{item.spendBundle.coinSpends.length === 1 ? "" : "s"} · {item.removals.length} removals → {item.additions.length} additions
+          {item.spendBundle.coinSpends.length} coin spend{item.spendBundle.coinSpends.length === 1 ? "" : "s"} · {item.removals.length} removals → {item.additions.length} additions · spends <AssetAmount assets={bundleAssets(item)} kind={view.kind} full />
           {view.assetIds.length > 0 ? (
             <>
               {" "}
               · asset{view.assetIds.length > 1 ? "s" : ""}{" "}
-              {view.assetIds.map((a) => (
-                <Hash key={a} value={a} href={view.kind === "cat" ? routes.cat(a) : routes.nft(a)} head={6} tail={4} className="ml-1" />
-              ))}
+              {view.assetIds.map((a) =>
+                view.kind === "cat" ? <CatRef key={a} assetId={a} showId className="ml-1" /> : <Hash key={a} value={a} href={routes.nft(a)} head={6} tail={4} className="ml-1" />
+              )}
             </>
           ) : null}
           {" · "}updates live; refreshes every 10 s while pending.

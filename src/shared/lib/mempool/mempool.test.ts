@@ -20,7 +20,7 @@ function item(id: string, fee: bigint, cost: number, firstSeen = 0): CompactMemp
     removals: [],
     additionCount: 0,
     removalCount: 0,
-    value: "0",
+    assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 },
     firstSeen,
     kind: "xch",
     assetIds: [],
@@ -81,6 +81,14 @@ describe("packProjectedBlocks", () => {
     expect(blocks[0]!.totalFee).toBe(100n);
     expect(blocks[0]!.etaSeconds).toBe(Math.round(18.75 / 0.36));
     expect(blocks[0]!.minFeeRate).toBe(blocks[0]!.maxFeeRate);
+  });
+  test("skips items that do not fit and keeps filling, like the node", () => {
+    // 7B (best rate) + 6B does not fit; the node takes the next smaller ones instead of
+    // opening a new block, so the 3B and 1B items land in block 1 and 6B waits for block 2.
+    const items = [item("big", 70n, 7_000_000_000, 1), item("six", 12n, 6_000_000_000, 2), item("three", 3n, 3_000_000_000, 3), item("one", 1n, 1_000_000_000, 4)];
+    const blocks = packProjectedBlocks(items, OPTS);
+    expect(blocks.map((b) => b.items.map((i) => i.id))).toEqual([["big", "three", "one"], ["six"]]);
+    expect(blocks[0]!.fill).toBeCloseTo(1, 5);
   });
   test("packs by descending fee rate and overflows into the next block", () => {
     const items = [

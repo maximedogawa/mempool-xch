@@ -13,6 +13,8 @@ export interface Settings {
   theme: ThemePreference;
   /** Number of recent blocks on the dashboard strip. */
   recentBlocks: number;
+  /** Soft chime when one of the connected wallet's transactions lands in a block. */
+  sounds: boolean;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   theme: "dark",
   recentBlocks: 8,
+  sounds: true,
 };
 
 export interface ResolvedEndpoints {
@@ -36,8 +39,17 @@ export interface ResolvedEndpoints {
   wsUrl: string | null;
   /** Summary API on the hosted origin; null when the endpoint is custom (browser fallback). */
   summaryUrl: string | null;
+  /** Chain cache (state, recent blocks, fee) on the hosted origin; null for custom endpoints. */
+  chainUrl: string | null;
+  /**
+   * Server-sent events on the hosted origin. Null for custom endpoints and in the static Sage
+   * snapshot, which keeps the direct Coinset WebSocket as its live channel (decision-006).
+   */
+  eventsUrl: string | null;
   isCoinset: boolean;
 }
+
+const SAGE_SNAPSHOT = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
 
 /** Origin of the hosted app for the Sage snapshot; same-origin ("") for the hosted build. */
 export function apiOrigin(): string {
@@ -53,6 +65,9 @@ export function resolveEndpoints(settings: Settings, network: NetworkId = settin
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
     summaryUrl: isCoinset ? `${apiOrigin()}/api/${network}/mempool` : null,
+    // 64 records cover the widest recent-block strip (20 tx blocks) at ~40 KB per response.
+    chainUrl: isCoinset ? `${apiOrigin()}/api/${network}/chain?blocks=64` : null,
+    eventsUrl: isCoinset && !SAGE_SNAPSHOT ? `${apiOrigin()}/api/${network}/events` : null,
     isCoinset,
   };
 }
@@ -68,7 +83,8 @@ function sanitise(raw: unknown): Settings {
   ) as Settings["endpoints"];
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
   const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
-  return { network, endpoints, theme, recentBlocks };
+  const sounds = r.sounds !== false;
+  return { network, endpoints, theme, recentBlocks, sounds };
 }
 
 type Listener = () => void;

@@ -2,7 +2,8 @@
 
 import { Loader2, Radar, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useBlockchainState } from "@/shared/api/hooks";
+import { useBlockchainState, useServerStatus } from "@/shared/api/hooks";
+import { describeChannel } from "@/shared/lib/live/channel";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
@@ -18,9 +19,10 @@ const LABEL = { live: "Live", polling: "Polling", connecting: "Connecting", offl
  * age of the last update so "alive" is visible at a glance.
  */
 export function ConnectionIndicator({ compact = false }: { compact?: boolean }) {
-  const { status, lastEventAt, peakHeight } = useLive();
+  const { status, transport, lastEventAt, peakHeight } = useLive();
   const { endpoints } = useSettings();
   const state = useBlockchainState();
+  const server = useServerStatus();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const [, tick] = useState(0);
   useEffect(() => {
@@ -28,15 +30,8 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     return () => clearInterval(id);
   }, []);
   const age = lastEventAt ? formatAge(lastEventAt) : "no data yet";
-  const host = new URL(status === "live" && endpoints.wsUrl ? endpoints.wsUrl : endpoints.rpcUrl).host;
-  const hint =
-    status === "live"
-      ? `Streaming peak and transaction events from ${host}. Last event ${age}.`
-      : status === "polling"
-        ? `Polling ${host} every few seconds. Last update ${age}.`
-        : status === "connecting"
-          ? "Connecting to the live stream…"
-          : "No connection to the node.";
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
+  const hint = status === "connecting" ? `Connecting: ${channel.name}…` : `${channel.name}: ${channel.detail} Last update ${age}.`;
   const styles = {
     live: "border-primary/40 bg-primary-soft text-primary",
     polling: "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning",
@@ -70,7 +65,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
           </span>
         ) : null}
         {!compact && lastEventAt ? <span className="tabular hidden min-w-[6ch] text-right font-normal text-fg-faint lg:inline-block">{age}</span> : null}
-        <span className="sr-only">{`${LABEL[status]}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
+        <span className="sr-only">{`${LABEL[status]} via ${channel.name}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
       </span>
     </Tooltip>
   );
