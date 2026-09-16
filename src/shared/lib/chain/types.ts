@@ -21,7 +21,7 @@ export interface BlockStats {
   costPercent: number;
 }
 
-export type ChainChannel = "websocket" | "webhook" | "polling" | "connecting";
+export type ChainChannel = "websocket" | "polling" | "connecting";
 
 export interface ChainSnapshot {
   network: NetworkId;

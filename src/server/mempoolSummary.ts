@@ -78,7 +78,7 @@ export class MempoolSyncer {
   private pending = new Set<string>();
   private lastRequest = 0;
   private loop: ReturnType<typeof setTimeout> | null = null;
-  /** True while a push channel (WebSocket / webhook) feeds mempool deltas; polling then only resyncs every RESYNC_MS. */
+  /** True while the WebSocket feeds mempool deltas; polling then only resyncs every RESYNC_MS. */
   private eventDriven = false;
   readonly stats = { itemFetches: 0, idListFetches: 0, stateFetches: 0, deltas: 0, deltaAdded: 0, deltaRemoved: 0 };
 
@@ -158,7 +158,7 @@ export class MempoolSyncer {
     if (event.type === "mempool_delta") void this.applyDelta(event.added, event.removed);
     else if (event.type === "live") this.applyLive(event);
     else if (event.type === "peak") void this.refreshState();
-    else if (event.type === "status") this.setEventDriven(event.channel === "websocket" || event.channel === "webhook");
+    else if (event.type === "status") this.setEventDriven(event.channel === "websocket");
   }
 
   /** Background refresh every REFRESH_MS while clients are active; stops after IDLE_AFTER_MS. */
@@ -293,8 +293,7 @@ export function getSyncer(network: NetworkId): MempoolSyncer {
   if (!isCoinsetUrl(network, rpcUrl)) {
     throw new Error(`Summary API only proxies Coinset hosts; refusing ${rpcUrl}`);
   }
-  const key = process.env.COINSET_API_KEY?.trim();
-  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000, headers: key ? { authorization: `Bearer ${key}` } : {}, fetchImpl: meteredFetch() });
+  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000, fetchImpl: meteredFetch() });
   const syncer = new MempoolSyncer(network, { client, backgroundLoop: true });
   registry.set(network, syncer);
   // One Coinset subscription per network drives the syncer (decision-006).

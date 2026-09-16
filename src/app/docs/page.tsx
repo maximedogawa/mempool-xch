@@ -128,7 +128,7 @@ export default function DocsPage() {
           <Q q="Where do live updates come from?" id="channels">
             The connection pill (hover it), the footer and Settings name the channel your tab is on:
             <ul className="mt-1 list-disc pl-5">
-              <li><strong className="text-fg">Server events</strong>: this site&apos;s server keeps one Coinset connection per network (a WebSocket, or Coinset webhooks when registered) and relays it to every viewer, together with cached chain state, recent blocks and fees. The normal mode on mempoolxch.space.</li>
+              <li><strong className="text-fg">Server events</strong>: this site&apos;s server keeps one Coinset WebSocket per network and relays it to every viewer, together with cached chain state, recent blocks and fees. The normal mode on mempoolxch.space.</li>
               <li><strong className="text-fg">Coinset socket</strong>: the tab streams from Coinset directly. Used by the Sage in-app snapshot, which has no server of its own.</li>
               <li><strong className="text-fg">Polling</strong>: no stream is available, so the tab asks the endpoint every few seconds. Always the case with a custom node.</li>
             </ul>

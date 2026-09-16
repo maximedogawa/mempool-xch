@@ -19,7 +19,7 @@ export interface ChannelInput {
   wsUrl: string | null;
   isCoinset: boolean;
   /** Channel the hosted server itself is on, when known from /api/<network>/status. */
-  serverChannel?: "websocket" | "webhook" | "polling" | "connecting" | null;
+  serverChannel?: "websocket" | "polling" | "connecting" | null;
 }
 
 const host = (url: string) => {
@@ -37,7 +37,7 @@ export function describeChannel(input: ChannelInput): ChannelDescription {
   }
   if (input.status === "offline") return { name: "Offline", detail: `No connection to ${rpcHost}.` };
   if (input.transport === "sse" && input.eventsUrl) {
-    const upstream = input.serverChannel === "webhook" ? "Coinset webhooks" : input.serverChannel === "polling" ? "polling Coinset" : "one Coinset WebSocket";
+    const upstream = input.serverChannel === "polling" ? "polling Coinset" : "one Coinset WebSocket";
     const origin = host(input.eventsUrl);
     return input.status === "live"
       ? { name: "Server events", detail: `Live from ${origin}, which relays ${upstream} to every viewer.` }
