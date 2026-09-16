@@ -24,3 +24,8 @@ export function parseJsonSafe(text: string): unknown {
 export function stringifyJsonSafe(value: unknown): string {
   return JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? Number(v) : v));
 }
+
+/** JSON.stringify that keeps bigint exact as tagged strings; parseJsonSafe revives them. */
+export function stringifyJsonTagged(value: unknown): string {
+  return JSON.stringify(value, (_key, v) => (typeof v === "bigint" ? `${BIG_INT_TAG}${v.toString()}` : v));
+}

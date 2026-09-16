@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createLiveStream, type LiveEvent, type LiveStatus } from "@/shared/lib/live/stream";
+import { fetchChainSnapshot, isChainFallbackError } from "@/shared/api/chain";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { useSettings } from "./SettingsProvider";
 
@@ -38,10 +39,20 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     setLastTxEvent(null);
     setStatus("connecting");
     const stream = createLiveStream({
+      sseUrl: endpoints.eventsUrl,
       wsUrl: endpoints.wsUrl,
-      pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,
+      pollIntervalMs: endpoints.eventsUrl || endpoints.wsUrl ? 15_000 : 5_000,
       poll: async () => {
-        const state = await client.getBlockchainState();
+        // Hosted: the safety poll reads our own chain cache, not Coinset.
+        let state = null;
+        if (endpoints.chainUrl) {
+          try {
+            state = (await fetchChainSnapshot(endpoints.chainUrl)).state;
+          } catch (error) {
+            if (!isChainFallbackError(error)) throw error;
+          }
+        }
+        if (!state) state = await client.getBlockchainState();
         queryClient.setQueryData(queryKeys.state(network), state);
         return { peakHeight: state.peak.height, peakIsTx: state.peak.isTransactionBlock, mempoolSize: state.mempoolSize };
       },
@@ -65,14 +76,19 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           if (event.status === "confirmed") {
             void queryClient.invalidateQueries({ queryKey: queryKeys.addressRoot(network) });
           }
-        } else if (event.type === "mempool") {
+        } else if (event.type === "mempool" || event.type === "mempool_delta") {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });
+        } else if (event.type === "block") {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.chainRoot(network) });
+        } else if (event.type === "resync") {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.chainRoot(network) });
           void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });
         }
       },
     });
     stream.start();
     return () => stream.stop();
-  }, [client, endpoints.wsUrl, network, queryClient]);
+  }, [client, endpoints.chainUrl, endpoints.eventsUrl, endpoints.wsUrl, network, queryClient]);
 
   const value = useMemo<LiveContextValue>(
     () => ({ status, lastEventAt, peakHeight, txBatch, lastTxEvent }),

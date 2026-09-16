@@ -7,23 +7,11 @@
  */
 import { NETWORKS, type NetworkId } from "@/shared/config/networks";
 import { backoffDelay, BACKOFF_MAX_MS } from "@/shared/lib/live/stream";
+import type { BlockStats, ChainChannel } from "@/shared/lib/chain/types";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 
-export type HubChannel = "websocket" | "webhook" | "polling" | "connecting";
-
-export interface BlockStats {
-  height: number;
-  headerHash: string;
-  timestampMs: number | null;
-  isTransactionBlock: boolean;
-  txCount: number;
-  coinSpendCount: number;
-  totalCost: number;
-  /** Mojos as a decimal string. */
-  totalFee: string;
-  avgFeeRate: number;
-  costPercent: number;
-}
+export type HubChannel = ChainChannel;
+export type { BlockStats };
 
 export interface MempoolDeltaItem {
   id: string;

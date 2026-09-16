@@ -36,8 +36,17 @@ export interface ResolvedEndpoints {
   wsUrl: string | null;
   /** Summary API on the hosted origin; null when the endpoint is custom (browser fallback). */
   summaryUrl: string | null;
+  /** Chain cache (state, recent blocks, fee) on the hosted origin; null for custom endpoints. */
+  chainUrl: string | null;
+  /**
+   * Server-sent events on the hosted origin. Null for custom endpoints and in the static Sage
+   * snapshot, which keeps the direct Coinset WebSocket as its live channel (decision-006).
+   */
+  eventsUrl: string | null;
   isCoinset: boolean;
 }
+
+const SAGE_SNAPSHOT = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
 
 /** Origin of the hosted app for the Sage snapshot; same-origin ("") for the hosted build. */
 export function apiOrigin(): string {
@@ -53,6 +62,8 @@ export function resolveEndpoints(settings: Settings, network: NetworkId = settin
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
     summaryUrl: isCoinset ? `${apiOrigin()}/api/${network}/mempool` : null,
+    chainUrl: isCoinset ? `${apiOrigin()}/api/${network}/chain` : null,
+    eventsUrl: isCoinset && !SAGE_SNAPSHOT ? `${apiOrigin()}/api/${network}/events` : null,
     isCoinset,
   };
 }

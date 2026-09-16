@@ -11,13 +11,23 @@ import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { fetchChainSnapshot, isChainFallbackError as isFallbackError } from "./chain";
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
   const { client, endpoints } = useSettings();
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
-    queryFn: ({ signal }) => client.getBlockchainState(signal),
+    queryFn: async ({ signal }) => {
+      if (endpoints.chainUrl) {
+        try {
+          return (await fetchChainSnapshot(endpoints.chainUrl, signal)).state;
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      return client.getBlockchainState(signal);
+    },
     // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
     refetchInterval: 60_000,
   });
@@ -135,7 +145,20 @@ export function useRecentBlocks(count: number) {
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
-      const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
+      let records: BlockRecord[] | null = null;
+      if (endpoints.chainUrl) {
+        try {
+          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
+          const newest = snapshot.blocks[0]?.height ?? -1;
+          // Use the server window once it covers this peak; a lagging server falls through to RPC.
+          if (newest >= end - 1) {
+            records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
+          }
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      if (!records) records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
       const all = [...records].sort((a, b) => b.height - a.height);
       const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
       const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
@@ -150,7 +173,17 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
   const { client, endpoints } = useSettings();
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
-    queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
+    queryFn: async ({ signal }) => {
+      if (endpoints.chainUrl) {
+        try {
+          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
+          if (snapshot.fee && snapshot.fee.cost === cost) return snapshot.fee.estimate;
+        } catch (error) {
+          if (!isFallbackError(error)) throw error;
+        }
+      }
+      return client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal);
+    },
     refetchInterval: 45_000,
     placeholderData: keepPreviousData,
   });
