@@ -3,6 +3,7 @@ export { AssetAmount } from "./AssetAmount";
 export { AssetBadge, AssetIcon, XchIcon } from "./AssetBadge";
 export { AssetImage } from "./AssetImage";
 export { CapacityBar } from "./CapacityBar";
+export { CatRef, useCatLabel } from "./CatRef";
 export { Badge, KindBadge, StatusBadge, SummaryKindBadge } from "./Badge";
 export { Button } from "./Button";
 export { Card, CardBody, CardHeader } from "./Card";

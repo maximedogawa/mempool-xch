@@ -17,6 +17,7 @@ import {
   fetchWalletTransactionsPage,
   mergePages,
   type WalletAsset,
+  type WalletAssetBalance,
   type WalletCoinRef,
   type WalletTx,
 } from "@/shared/lib/sage/wallet";
@@ -24,7 +25,8 @@ import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { cn } from "@/shared/lib/cn";
-import { AssetIcon, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import { useAsset } from "@/shared/api/useTokenList";
+import { AssetIcon, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 
 const TX_PAGE = 25;
 const COIN_PAGE = 50;
@@ -38,14 +40,27 @@ function kindOf(ref: WalletCoinRef): "xch" | "cat" | "nft" | "did" | "unknown" {
   return ref.assetId ? "cat" : "xch";
 }
 
-function amountOf(ref: WalletCoinRef): string {
-  const kind = kindOf(ref);
-  if (kind === "xch") return formatAmount(ref.amount);
-  if (kind === "nft" || kind === "did") return "1";
+function catUnits(ref: WalletCoinRef): string {
   const p = BigInt(10) ** BigInt(ref.precision);
   const whole = ref.amount / p;
   const frac = (ref.amount % p).toString().padStart(ref.precision, "0").replace(/0+$/, "");
-  return `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""} ${ref.ticker ?? "CAT"}`;
+  return `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""}`;
+}
+
+/** One wallet coin amount in its own unit; CATs resolve ticker and icon through the token registry. */
+function WalletAmount({ refItem, sign }: { refItem: WalletCoinRef; sign: "+" | "−" }) {
+  const kind = kindOf(refItem);
+  const cls = sign === "+" ? "block text-primary" : "block text-danger";
+  if (kind === "cat" && refItem.assetId) {
+    return <CatRef assetId={refItem.assetId} amountText={`${sign}${catUnits(refItem)}`} size={14} className={cls} />;
+  }
+  const text = kind === "xch" ? formatAmount(refItem.amount) : kind === "nft" || kind === "did" ? `1 ${kind.toUpperCase()}` : `${catUnits(refItem)} ${refItem.ticker ?? "CAT"}`;
+  return (
+    <span className={cls}>
+      {sign}
+      {text}
+    </span>
+  );
 }
 
 function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | null }) {
@@ -53,6 +68,8 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   const received = tx.created.filter(mine);
   const sent = tx.spent.filter(mine);
   const primary = received[0] ?? sent[0];
+  const primaryToken = useAsset(primary && kindOf(primary) === "cat" ? primary.assetId : undefined);
+  const primaryName = primaryToken?.name ?? primary?.assetName ?? null;
   return (
     <li className="flex items-center gap-3 py-2.5 text-sm">
       <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full", received.length && !sent.length ? "bg-primary-soft" : sent.length && !received.length ? "bg-danger-soft" : "bg-surface-2")}>
@@ -62,7 +79,7 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
         <span className="truncate font-medium">
           {tx.pending ? "Pending · " : ""}
           {received.length && !sent.length ? "Received" : sent.length && !received.length ? "Sent" : "Transaction"}
-          {primary?.assetName ? <span className="font-normal text-fg-muted"> · {primary.assetName}</span> : null}
+          {primaryName ? <span className="font-normal text-fg-muted"> · {primaryName}</span> : null}
         </span>
         <span className="text-xs text-fg-faint">
           {tx.height ? (
@@ -83,14 +100,10 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
       </div>
       <span className="tabular ml-auto text-right">
         {received.slice(0, 2).map((r, i) => (
-          <span key={`r${i}`} className="block text-primary">
-            +{amountOf(r)}
-          </span>
+          <WalletAmount key={`r${i}`} refItem={r} sign="+" />
         ))}
         {sent.slice(0, 2).map((r, i) => (
-          <span key={`s${i}`} className="block text-danger">
-            −{amountOf(r)}
-          </span>
+          <WalletAmount key={`s${i}`} refItem={r} sign="−" />
         ))}
       </span>
     </li>
@@ -168,6 +181,42 @@ function Tabs({ tab, onChange, counts }: { tab: Tab; onChange: (t: Tab) => void;
   );
 }
 
+function AssetTile({ asset: a, balance: b }: { asset: WalletAsset; balance: WalletAssetBalance | null | undefined }) {
+  const token = useAsset(a.kind === "cat" ? a.assetId : undefined);
+  const name = token?.name ?? a.name ?? token?.symbol ?? a.ticker ?? a.assetId?.slice(0, 12) ?? a.kind.toUpperCase();
+  const ticker = token?.symbol ?? a.ticker;
+  const href = a.kind === "cat" && a.assetId ? routes.cat(a.assetId) : a.kind === "nft" && a.assetId ? routes.nft(launcherIdToNftId(a.assetId)) : null;
+  const balance =
+    b === undefined ? "…" : b === null ? "—" : a.kind === "xch" ? formatAmount(b.confirmed) : a.kind === "cat" ? `${formatCat(b.confirmed)} ${ticker ?? "CAT"}` : `${formatNumber(b.coins)} owned`;
+  const body = (
+    <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
+      <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} size={34} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate font-semibold">{name}</span>
+        <span className="text-[11px] uppercase tracking-wide text-fg-faint">
+          {a.kind}
+          {ticker && ticker !== name ? ` · ${ticker}` : ""} · {formatNumber(a.txCount)} tx
+        </span>
+      </div>
+      <div className="flex flex-col items-end">
+        <span className="tabular font-semibold">{balance}</span>
+        {b?.coins ? <span className="tabular text-[11px] text-fg-faint">{formatNumber(b.coins)} coin{b.coins === 1 ? "" : "s"}</span> : null}
+      </div>
+    </div>
+  );
+  return (
+    <li>
+      {href ? (
+        <Link href={href} className="block h-full">
+          {body}
+        </Link>
+      ) : (
+        body
+      )}
+    </li>
+  );
+}
+
 function AssetsCard({ assets, loaded, total }: { assets: WalletAsset[]; loaded: number; total: number }) {
   const balances = useQueries({
     queries: assets.map((a) => ({
@@ -185,39 +234,9 @@ function AssetsCard({ assets, loaded, total }: { assets: WalletAsset[]; loaded: 
       <CardBody className="flex flex-col gap-3">
         <EnableNotice capability="wallet.get_asset_balance" what="asset balances" />
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {assets.map((a, i) => {
-            const b = balances[i]?.data;
-            const href = a.kind === "cat" && a.assetId ? routes.cat(a.assetId) : a.kind === "nft" && a.assetId ? routes.nft(launcherIdToNftId(a.assetId)) : null;
-            const balance =
-              b === undefined ? "…" : b === null ? "—" : a.kind === "xch" ? formatAmount(b.confirmed) : a.kind === "cat" ? `${formatCat(b.confirmed)} ${a.ticker ?? "CAT"}` : `${formatNumber(b.coins)} owned`;
-            const body = (
-              <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
-                <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} size={34} />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-semibold">{a.name ?? a.ticker ?? a.assetId?.slice(0, 12) ?? a.kind.toUpperCase()}</span>
-                  <span className="text-[11px] uppercase tracking-wide text-fg-faint">
-                    {a.kind}
-                    {a.ticker && a.name ? ` · ${a.ticker}` : ""} · {formatNumber(a.txCount)} tx
-                  </span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="tabular font-semibold">{balance}</span>
-                  {b?.coins ? <span className="tabular text-[11px] text-fg-faint">{formatNumber(b.coins)} coin{b.coins === 1 ? "" : "s"}</span> : null}
-                </div>
-              </div>
-            );
-            return (
-              <li key={`${a.kind}:${a.assetId ?? "xch"}`}>
-                {href ? (
-                  <Link href={href} className="block h-full">
-                    {body}
-                  </Link>
-                ) : (
-                  body
-                )}
-              </li>
-            );
-          })}
+          {assets.map((a, i) => (
+            <AssetTile key={`${a.kind}:${a.assetId ?? "xch"}`} asset={a} balance={balances[i]?.data} />
+          ))}
         </ul>
       </CardBody>
     </Card>

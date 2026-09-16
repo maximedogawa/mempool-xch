@@ -15,6 +15,8 @@ export interface SearchMatch {
   kind: "tx" | "coin" | "block" | "cat" | "address" | "nft" | "did";
   label: string;
   href: string;
+  /** CAT asset id (no 0x) so the result row can show the token icon and ticker. */
+  assetId?: string;
 }
 
 async function probe<T>(fn: () => Promise<T>): Promise<T | null> {
@@ -46,7 +48,7 @@ export async function resolveHex32(client: RpcClient, network: NetworkId, hex: s
   if (singleton?.singletonType === "nft") matches.push({ kind: "nft", label: "NFT", href: routes.nft(hex) });
   else if (singleton?.singletonType === "did") matches.push({ kind: "did", label: "DID", href: routes.address(hex) });
   if (catCoins && catCoins.length > 0 && !singleton) {
-    matches.push({ kind: "cat", label: "CAT asset", href: routes.cat(hex) });
+    matches.push({ kind: "cat", label: "CAT asset", href: routes.cat(hex), assetId: hex });
   }
   const address = puzzleHashToAddress(hex, NETWORKS[network].addressPrefix);
   matches.push({ kind: "address", label: "Address (puzzle hash)", href: routes.address(address) });

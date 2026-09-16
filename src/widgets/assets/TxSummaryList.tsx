@@ -7,9 +7,9 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
-import { Button, EmptyState, Hash, Skeleton, StatusBadge, SummaryKindBadge } from "@/shared/ui";
+import { Button, CatRef, EmptyState, Hash, Skeleton, StatusBadge, SummaryKindBadge } from "@/shared/ui";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
-import { tokenLabel, type TokenMap } from "@/shared/api/tokenList";
+import type { TokenMap } from "@/shared/api/tokenList";
 
 export interface TxSummaryListProps {
   transactions: TxSummary[];
@@ -36,7 +36,7 @@ function signed(amount: bigint, format: (v: bigint) => string): string {
   return `${amount > 0n ? "+" : amount < 0n ? "−" : ""}${format(abs)}`;
 }
 
-export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, emptyText, hasMore, onLoadMore, loadingMore }: TxSummaryListProps) {
+export function TxSummaryList({ transactions, loading, error, viewedP2, emptyText, hasMore, onLoadMore, loadingMore }: TxSummaryListProps) {
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -69,9 +69,7 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, 
                       <span className={cn("tabular font-medium", flow.xch > 0n ? "text-primary" : "text-danger")}>{signed(flow.xch, formatAmount)}</span>
                     ) : null}
                     {flow.cats.map((c) => (
-                      <Link key={c.assetId} href={routes.cat(c.assetId)} className={cn("tabular text-xs hover:underline", c.amount > 0n ? "text-primary" : "text-danger")}>
-                        {signed(c.amount, formatCat)} {tokens?.[c.assetId]?.symbol ?? tokenLabel(undefined, c.assetId)}
-                      </Link>
+                      <CatRef key={c.assetId} assetId={c.assetId} amountText={signed(c.amount, formatCat)} size={14} className={cn("text-xs", c.amount > 0n ? "text-primary" : "text-danger")} />
                     ))}
                     {flow.nftsIn.map((n) => (
                       <Link key={n} href={routes.nft(n)} className="text-xs text-primary hover:underline">

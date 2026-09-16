@@ -6,8 +6,23 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { AssetIcon } from "@/shared/ui/AssetBadge";
+import { useCatLabel } from "@/shared/ui/CatRef";
 import { parseSearchInput } from "./parse";
 import { directRoute, resolveHex32, type SearchMatch } from "./resolve";
+
+function CandidateLabel({ match }: { match: SearchMatch }) {
+  const ticker = useCatLabel(match.assetId);
+  if (match.kind === "cat" && match.assetId) {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium">
+        <AssetIcon kind="cat" assetId={match.assetId} size={16} />
+        {ticker}
+      </span>
+    );
+  }
+  return <span className="font-medium">{match.label}</span>;
+}
 
 export function SearchBox({ className, autoFocus = false, size = "md" }: { className?: string; autoFocus?: boolean; size?: "md" | "lg" }) {
   const router = useRouter();
@@ -138,7 +153,7 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
               onClick={clear}
               className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
             >
-              <span className="font-medium">{c.label}</span>
+              <CandidateLabel match={c} />
               <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
             </Link>
           ))}

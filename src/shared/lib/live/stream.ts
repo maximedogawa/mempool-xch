@@ -194,7 +194,13 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       socket = null;
       if (ws) {
         ws.onclose = null;
-        ws.close();
+        ws.onmessage = null;
+        ws.onerror = null;
+        // Closing a socket that is still in CONNECTING makes browsers log
+        // "WebSocket is closed before the connection is established" (React dev mode mounts
+        // twice, so this happened on every page). Let the handshake finish, then close.
+        if (ws.readyState === 0) ws.onopen = () => ws.close();
+        else ws.close();
       }
       setStatus("offline");
     },

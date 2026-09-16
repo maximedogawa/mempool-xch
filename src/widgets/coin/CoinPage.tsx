@@ -7,7 +7,7 @@ import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage, isNotFound } from "@/shared/lib/rpc/errors";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Hash, KindBadge, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import { Badge, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, KindBadge, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 import { readSemantics } from "./semantics";
 import { useCoinChildren, useCoinDetails, useCoinMempoolSpends, useCoinRecord } from "./useCoin";
 import { SageCoinPanel } from "@/widgets/wallet/SagePanels";
@@ -177,7 +177,10 @@ export function CoinPage({ id }: { id: string | null }) {
               {semantics.assetId ? (
                 <Row label={kind === "cat" ? "CAT asset id" : kind === "nft" ? "NFT" : "Launcher id"}>
                   {kind === "cat" ? (
-                    <Hash value={semantics.assetId} href={routes.cat(semantics.assetId)} full copy />
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <CatRef assetId={semantics.assetId} size={20} />
+                      <Hash value={semantics.assetId} href={routes.cat(semantics.assetId)} full copy />
+                    </span>
                   ) : kind === "nft" ? (
                     <Hash value={launcherIdToNftId(semantics.assetId)} href={routes.nft(launcherIdToNftId(semantics.assetId))} full copy />
                   ) : (

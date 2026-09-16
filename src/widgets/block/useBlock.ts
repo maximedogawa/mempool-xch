@@ -5,6 +5,7 @@ import { assetTotalsFromSpends, assetTotalsFromSummaries, type BlockAssetTotals 
 import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
+import { createLimiter } from "@/shared/lib/limit";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export interface BlockData {
@@ -81,6 +82,9 @@ export function useNextTransactionBlock(height: number | null, enabled: boolean)
 /** Total XCH moved by a Coinset transaction summary (sum of what participants received). */
 const TOTALS_PAGES = 4;
 
+/** At most this many per-block indexed calls in flight per tab (recent cubes + blocks list). */
+const blockTotalsLimit = createLimiter(3);
+
 /** Per-asset totals of one block: Coinset summaries (up to 4 pages of 50) or the block's spends. */
 export function useBlockAssetTotals(height: number | null, hash: string | null, enabled: boolean) {
   const { client, endpoints } = useSettings();
@@ -94,7 +98,8 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
         let cursor: string | null = null;
         let partial = false;
         for (let page = 0; page < TOTALS_PAGES; page += 1) {
-          const list: TxList = await client.getBlockTransactions(height!, { limit: 50, ...(cursor ? { cursor } : {}) }, signal);
+          const c = cursor;
+          const list: TxList = await blockTotalsLimit(() => client.getBlockTransactions(height!, { limit: 50, ...(c ? { cursor: c } : {}) }, signal));
           txs.push(...list.transactions);
           cursor = list.nextCursor;
           if (!cursor) break;
@@ -116,7 +121,7 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
       staleTime: Infinity,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
         if (client.hasIndexed) {
-          const list = await client.getBlockTransactions(b.height, { limit: 50 }, signal);
+          const list = await blockTotalsLimit(() => client.getBlockTransactions(b.height, { limit: 50 }, signal));
           return assetTotalsFromSummaries(list.transactions, list.nextCursor !== null);
         }
         return assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal));
