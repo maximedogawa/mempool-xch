@@ -100,8 +100,10 @@ export interface FeeEstimate {
   lastBlockCost: number;
   lastTxBlockHeight: number;
   peakHeight: number;
-  mempoolSize: number;
-  mempoolMaxSize: number;
+  /** Total CLVM cost in the mempool (the RPC field is named mempool_size but holds cost). */
+  mempoolCost: number;
+  /** Mempool capacity in cost. */
+  mempoolMaxCost: number;
   mempoolFees: Mojos;
   numSpends: number;
   nodeTimeUtc: number;

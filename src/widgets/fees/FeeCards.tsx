@@ -71,8 +71,8 @@ export function FeeCards() {
               </>
             ) : (
               <>
-                <span className="font-semibold">{minFeeRate > 0 ? `Min ${formatFeeRate(minFeeRate)} mojo/cost to enter.` : "Near capacity."}</span>{" "}
-                <span className="text-fg-muted">Paid spends go ahead of the 0-fee backlog.</span>
+                <span className="font-semibold">{minFeeRate > 0 ? `Above ${formatFeeRate(Math.max(minFeeRate, 5))} mojo/cost to enter.` : "Near capacity."}</span>{" "}
+                <span className="text-fg-muted">{minFeeRate > 0 ? "A full mempool takes at least 5 mojo/cost and only above the cheapest spends it can evict." : "Paid spends go ahead of the 0-fee backlog."}</span>
               </>
             )
           ) : null}

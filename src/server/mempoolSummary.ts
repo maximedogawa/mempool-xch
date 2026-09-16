@@ -18,8 +18,12 @@ export const IDLE_AFTER_MS = 2 * 60_000;
 /** How many unseen items to fetch per refresh; the rest arrive on the next tick. */
 const FETCH_BATCH = 40;
 const FETCH_CONCURRENCY = 8;
-/** Coinset's mempool_min_fees tier key (cost bucket). */
-const MIN_FEE_TIER_COST = 5_000_000;
+/**
+ * get_blockchain_state.mempool_min_fees.cost_5000000 is Mempool.get_min_fee_rate(5_000_000): the
+ * fee rate in mojos per cost a 5M-cost spend must beat to enter a full mempool (0 while there is
+ * room). It is already a rate, not an amount.
+ */
+const MIN_FEE_TIER_KEY = "cost_5000000";
 
 export interface SyncerDeps {
   client: Pick<RpcClient, "getBlockchainState" | "getAllMempoolTxIds" | "getMempoolItemByTxId">;
@@ -31,7 +35,7 @@ export interface SyncerDeps {
 }
 
 export function stateSummary(state: BlockchainState): MempoolStateSummary {
-  const minFeeTier = state.mempoolMinFees[`cost_${MIN_FEE_TIER_COST}`] ?? 0;
+  const minFeeRate = state.mempoolMinFees[MIN_FEE_TIER_KEY] ?? 0;
   return {
     peakHeight: state.peak.height,
     peakHash: state.peak.headerHash,
@@ -42,7 +46,7 @@ export function stateSummary(state: BlockchainState): MempoolStateSummary {
     mempoolFees: state.mempoolFees.toString(),
     blockMaxCost: state.blockMaxCost,
     averageBlockTime: state.averageBlockTime,
-    minFeeRate: minFeeTier / MIN_FEE_TIER_COST,
+    minFeeRate,
     synced: state.synced,
   };
 }

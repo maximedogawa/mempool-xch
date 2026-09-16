@@ -68,7 +68,8 @@ export function useMempoolSummary() {
         browserFirstSeen.set(item.name, seen);
         return compactMempoolItem(item, seen);
       });
-      const minFeeTier = state.mempoolMinFees.cost_5000000 ?? 0;
+      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost), see server/mempoolSummary.ts
+      const minFeeRate = state.mempoolMinFees.cost_5000000 ?? 0;
       return {
         network: endpoints.network,
         generatedAt: now,
@@ -83,7 +84,7 @@ export function useMempoolSummary() {
           mempoolFees: state.mempoolFees.toString(),
           blockMaxCost: state.blockMaxCost,
           averageBlockTime: state.averageBlockTime,
-          minFeeRate: minFeeTier / 5_000_000,
+          minFeeRate,
           synced: state.synced,
         },
         items: compact,
