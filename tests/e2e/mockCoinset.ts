@@ -63,6 +63,7 @@ export function mockChain() {
     state: normaliseBlockchainState(blockchainState.blockchain_state),
     blocks,
     stats: [],
+    assets: {},
     fee: { cost: CHIA.REFERENCE_SPEND_COST, estimate: normaliseFeeEstimate(feeEstimate) },
   };
 }

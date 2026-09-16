@@ -6,6 +6,7 @@
  * one per REFRESH_MS regardless of how many clients ask.
  */
 import { isCoinsetUrl, NETWORKS, type NetworkId } from "@/shared/config/networks";
+import { meteredFetch } from "./coinsetMeter";
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import type { CompactMempoolItem, MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
@@ -293,7 +294,7 @@ export function getSyncer(network: NetworkId): MempoolSyncer {
     throw new Error(`Summary API only proxies Coinset hosts; refusing ${rpcUrl}`);
   }
   const key = process.env.COINSET_API_KEY?.trim();
-  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000, headers: key ? { authorization: `Bearer ${key}` } : {} });
+  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000, headers: key ? { authorization: `Bearer ${key}` } : {}, fetchImpl: meteredFetch() });
   const syncer = new MempoolSyncer(network, { client, backgroundLoop: true });
   registry.set(network, syncer);
   // One Coinset subscription per network drives the syncer (decision-006).

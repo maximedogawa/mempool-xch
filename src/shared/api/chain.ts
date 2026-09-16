@@ -10,13 +10,15 @@ import { parseJsonSafe } from "@/shared/lib/rpc/json";
 const inflight = new Map<string, { at: number; promise: Promise<ChainSnapshot> }>();
 const SHARE_MS = 800;
 
-export async function fetchChainSnapshot(url: string, signal?: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<ChainSnapshot> {
+export async function fetchChainSnapshot(url: string, _signal?: AbortSignal, fetchImpl: typeof fetch = fetch, fresh = false): Promise<ChainSnapshot> {
   const cached = inflight.get(url);
-  if (cached && Date.now() - cached.at < SHARE_MS) return cached.promise;
+  if (!fresh && cached && Date.now() - cached.at < SHARE_MS) return cached.promise;
+  // Deliberately no abort signal: the promise is shared between hooks, and one unmounting
+  // caller must not turn everyone else's result into a network error (→ RPC fallback).
   const promise = (async () => {
     let response: Response;
     try {
-      response = await fetchImpl(url, { signal });
+      response = await fetchImpl(url);
     } catch (error) {
       throw new RpcError("network", "chain", "Chain API unreachable", { detail: error });
     }

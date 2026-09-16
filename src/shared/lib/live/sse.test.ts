@@ -79,6 +79,27 @@ describe("live stream over server-sent events", () => {
     expect(es.closed).toBe(true);
   });
 
+  test("a safety poll finishing after the stream opened does not downgrade 'live'", async () => {
+    let resolvePoll: (v: { peakHeight: number; peakIsTx: boolean; mempoolSize: number }) => void = () => {};
+    FakeEventSource.instances = [];
+    const stream = createLiveStream({
+      sseUrl: "/api/mainnet/events",
+      wsUrl: null,
+      poll: () => new Promise((r) => (resolvePoll = r)),
+      onEvent: () => {},
+      EventSourceImpl: FakeEventSource as unknown as typeof EventSource,
+      setTimeoutImpl: () => 0 as unknown as ReturnType<typeof setTimeout>,
+      clearTimeoutImpl: () => {},
+    });
+    stream.start();
+    FakeEventSource.instances[0]!.open();
+    expect(stream.status).toBe("live");
+    resolvePoll({ peakHeight: 1, peakIsTx: true, mempoolSize: 0 });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(stream.status).toBe("live");
+    stream.stop();
+  });
+
   test("a browser-side reconnect keeps 'live' until the grace period passes", () => {
     const { stream, timers } = build();
     stream.start();

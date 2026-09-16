@@ -103,10 +103,12 @@ export function useMempoolSummary() {
       };
     },
     // While the server is still filling its view (fewer items than the node reports), poll
-    // quickly so the first visitor after a restart sees projected blocks within seconds.
+    // faster so the first visitor after a restart sees projected blocks within seconds; but
+    // only for the first refetches, a busy mempool can stay "filling" for minutes and each
+    // summary is tens of KB.
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9) return 1_500;
+      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9 && query.state.dataUpdateCount < 12) return 3_000;
       return interval;
     },
     placeholderData: keepPreviousData,
@@ -150,12 +152,10 @@ export function useRecentBlocks(count: number) {
       let records: BlockRecord[] | null = null;
       if (endpoints.chainUrl) {
         try {
+          // The peak event reaches the tab before the server has the new record; the window is
+          // refetched when the server sends its `chain` event, so a lagging snapshot is used as is.
           const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-          const newest = snapshot.blocks[0]?.height ?? -1;
-          // Use the server window once it covers this peak; a lagging server falls through to RPC.
-          if (newest >= end - 1) {
-            records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
-          }
+          records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
         } catch (error) {
           if (!isFallbackError(error)) throw error;
         }
@@ -203,7 +203,7 @@ export interface ServerStatus {
 /** The hosted server's own Coinset channel (/api/<network>/status); null when not hosted. */
 export function useServerStatus() {
   const { endpoints, hydrated } = useSettings();
-  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain$/, "/status") : null;
+  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain(\?.*)?$/, "/status") : null;
   return useQuery({
     queryKey: ["server", endpoints.network, "status"],
     enabled: hydrated && url !== null,

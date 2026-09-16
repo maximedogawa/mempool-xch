@@ -28,6 +28,8 @@ export type HubEvent =
   | { type: "live"; txCount: number; totalCost: number; totalFee: string; avgFeeRate: number; backlogBlocks: number }
   | { type: "netspace"; bytes: string; difficulty: number }
   | { type: "reorg"; oldHeight: number; newHeight: number; depth: number }
+  /** The server's chain cache caught up with a peak (records, and later asset totals). */
+  | { type: "chain"; height: number; assets: boolean }
   | { type: "status"; channel: HubChannel };
 
 export interface SequencedEvent {

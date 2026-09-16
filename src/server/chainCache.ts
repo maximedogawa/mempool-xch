@@ -5,11 +5,18 @@
  */
 import type { NetworkId } from "@/shared/config/networks";
 import { CHIA } from "@/shared/config/networks";
+import { assetTotalsFromSummaries, type BlockAssetTotals } from "@/shared/lib/blocks/assetTotals";
+import { createLimiter } from "@/shared/lib/limit";
 import type { BlockStats, ChainSnapshot } from "@/shared/lib/chain/types";
-import type { BlockchainState, BlockRecord, FeeEstimate } from "@/shared/lib/rpc/types";
+import type { BlockchainState, BlockRecord, FeeEstimate, TxList } from "@/shared/lib/rpc/types";
 import type { CoinsetHub, HubEvent } from "./eventHub";
 
 export const RECORDS_KEEP = 80;
+/** Transaction blocks whose asset totals the server keeps ready for the block strips. */
+export const ASSETS_KEEP = 16;
+/** After a failed asset-totals fetch, leave that block alone for this long. */
+const ASSETS_RETRY_MS = 90_000;
+const assetsLimit = createLimiter(2);
 export const STATE_SAFETY_MS = 30_000;
 export const FEE_SAFETY_MS = 60_000;
 const FEE_MIN_GAP_MS = 5_000;
@@ -20,8 +27,10 @@ export interface ChainCacheDeps {
     getBlockchainState: (signal?: AbortSignal) => Promise<BlockchainState>;
     getBlockRecords: (start: number, end: number, signal?: AbortSignal) => Promise<BlockRecord[]>;
     getFeeEstimate: (cost: number, targetTimes: number[], signal?: AbortSignal) => Promise<FeeEstimate>;
+    /** Coinset indexed API; absent for non-Coinset servers (no asset totals then). */
+    getBlockTransactions?: (height: number, opts: { limit: number }, signal?: AbortSignal) => Promise<TxList>;
   };
-  hub: Pick<CoinsetHub, "on" | "status" | "blockStats">;
+  hub: Pick<CoinsetHub, "on" | "status" | "blockStats" | "emit">;
   feeCost?: number;
   feeTargets?: number[];
   now?: () => number;
@@ -37,6 +46,9 @@ export class ChainCache {
   private fee: FeeEstimate | null = null;
   private feeAt = 0;
   private readonly records = new Map<number, BlockRecord>();
+  private readonly assets = new Map<number, BlockAssetTotals>();
+  private assetsInFlight = new Set<number>();
+  private assetsFailedAt = new Map<number, number>();
   private inflightState: Promise<void> | null = null;
   private inflightFee: Promise<void> | null = null;
   private inflightRecords: Promise<void> | null = null;
@@ -166,6 +178,9 @@ export class ChainCache {
         records.forEach((r) => this.records.set(r.height, r));
         while (this.records.size > RECORDS_KEEP) this.records.delete(Math.min(...this.records.keys()));
         this.count("records");
+        // Tell browsers the window is ready for this peak; they refetch once instead of polling.
+        this.deps.hub.emit({ type: "chain", height: Math.max(...this.records.keys()), assets: false });
+        void this.refreshAssets();
       } catch {
         this.count("records_failures");
       } finally {
@@ -173,6 +188,38 @@ export class ChainCache {
       }
     })();
     return this.inflightRecords;
+  }
+
+  /** One indexed call per new transaction block (server-wide) instead of one per viewer. */
+  async refreshAssets(): Promise<void> {
+    const fetchTxs = this.deps.client.getBlockTransactions;
+    if (!fetchTxs) return;
+    const wanted = this.recentBlocks()
+      .filter((b) => b.isTransactionBlock)
+      .slice(0, ASSETS_KEEP)
+      .filter((b) => !this.assets.has(b.height) && !this.assetsInFlight.has(b.height) && this.now() - (this.assetsFailedAt.get(b.height) ?? 0) > ASSETS_RETRY_MS);
+    if (wanted.length === 0) return;
+    let added = 0;
+    await Promise.all(
+      wanted.map(async (b) => {
+        this.assetsInFlight.add(b.height);
+        try {
+          const list = await assetsLimit(() => fetchTxs(b.height, { limit: 50 }));
+          this.assets.set(b.height, assetTotalsFromSummaries(list.transactions, list.nextCursor !== null));
+          this.assetsFailedAt.delete(b.height);
+          this.count("block_assets");
+          added += 1;
+        } catch {
+          this.assetsFailedAt.set(b.height, this.now());
+          this.count("block_assets_failures");
+        } finally {
+          this.assetsInFlight.delete(b.height);
+        }
+      })
+    );
+    if (added > 0) this.deps.hub.emit({ type: "chain", height: Math.max(...this.records.keys()), assets: true });
+    const keep = new Set(this.recentBlocks().map((b) => b.height));
+    [...this.assets.keys()].filter((h) => !keep.has(h)).forEach((h) => this.assets.delete(h));
   }
 
   get ready(): boolean {
@@ -188,6 +235,11 @@ export class ChainCache {
     if (!this.state) return null;
     const blocks = this.recentBlocks(limit);
     const stats: BlockStats[] = blocks.map((b) => this.deps.hub.blockStats.get(b.height)).filter((s): s is BlockStats => s !== undefined);
+    const assets: Record<string, BlockAssetTotals> = {};
+    blocks.forEach((b) => {
+      const a = this.assets.get(b.height);
+      if (a) assets[String(b.height)] = a;
+    });
     return {
       network: this.network,
       generatedAt: this.now(),
@@ -195,6 +247,7 @@ export class ChainCache {
       state: this.state,
       blocks,
       stats,
+      assets,
       fee: this.fee ? { cost: this.deps.feeCost ?? CHIA.REFERENCE_SPEND_COST, estimate: this.fee } : null,
     };
   }

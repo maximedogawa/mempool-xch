@@ -62,7 +62,8 @@ export function resolveEndpoints(settings: Settings, network: NetworkId = settin
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
     summaryUrl: isCoinset ? `${apiOrigin()}/api/${network}/mempool` : null,
-    chainUrl: isCoinset ? `${apiOrigin()}/api/${network}/chain` : null,
+    // 64 records cover the widest recent-block strip (20 tx blocks) at ~40 KB per response.
+    chainUrl: isCoinset ? `${apiOrigin()}/api/${network}/chain?blocks=64` : null,
     eventsUrl: isCoinset && !SAGE_SNAPSHOT ? `${apiOrigin()}/api/${network}/events` : null,
     isCoinset,
   };

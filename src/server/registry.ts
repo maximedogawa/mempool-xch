@@ -5,6 +5,7 @@
 import { NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
 import { createRpcClient, type RpcClientOptions } from "@/shared/lib/rpc/client";
 import { getChainCache, type ChainCache } from "./chainCache";
+import { meteredFetch } from "./coinsetMeter";
 import { getHub, hasHub, type CoinsetHub } from "./eventHub";
 import { getSyncer } from "./mempoolSummary";
 
@@ -26,7 +27,8 @@ export function serverRpcHeaders(env: Record<string, string | undefined> = proce
 
 /** Options every server-side RPC client shares (URL override, key, timeout). */
 export function serverClientOptions(network: NetworkId): RpcClientOptions {
-  return { rpcUrl: serverRpcUrl(network), indexedUrl: null, timeoutMs: 15_000, headers: serverRpcHeaders() };
+  const rpcUrl = serverRpcUrl(network);
+  return { rpcUrl, indexedUrl: isCoinsetUrl(network, rpcUrl) ? NETWORKS[network].indexedUrl : null, timeoutMs: 15_000, headers: serverRpcHeaders(), fetchImpl: meteredFetch() };
 }
 
 export function getChain(network: NetworkId): ChainCache {

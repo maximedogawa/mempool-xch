@@ -15,7 +15,9 @@ export type LiveEvent =
   /** Server hub: a block with statistics landed. */
   | { type: "block"; height: number; tx: boolean }
   /** Server hub could not replay what was missed: refetch everything. */
-  | { type: "resync" };
+  | { type: "resync" }
+  /** The hosted chain cache is ready for a new peak (records; later asset totals). */
+  | { type: "chain"; height: number; assets: boolean };
 
 /** Transport the stream ended up using. */
 export type LiveTransport = "sse" | "websocket" | "polling";
@@ -80,12 +82,16 @@ export function parseServerEvent(name: string, raw: string): LiveEvent | null {
     }
     case "resync":
       return { type: "resync" };
+    case "chain": {
+      const height = Number(data.height);
+      return Number.isFinite(height) ? { type: "chain", height, assets: Boolean(data.assets) } : null;
+    }
     default:
       return null;
   }
 }
 
-const SERVER_EVENT_NAMES = ["peak", "transaction", "live", "mempool_delta", "block", "resync"] as const;
+const SERVER_EVENT_NAMES = ["peak", "transaction", "live", "mempool_delta", "block", "resync", "chain"] as const;
 /** After an SSE drop the browser reconnects by itself; only show "connecting" if that takes long. */
 const SSE_GRACE_MS = 10_000;
 
@@ -242,7 +248,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     try {
       const sample = await options.poll();
       pollFailures = 0;
-      if (socket === null) setStatus("polling");
+      // Only the fallback poll owns the status; with a stream (socket or SSE) open or opening,
+      // a poll that finishes later must not overwrite "live" with "polling".
+      if (socket === null && source === null) setStatus("polling");
       if (lastSample === null || sample.peakHeight !== lastSample.peakHeight) {
         options.onEvent({ type: "peak", height: sample.peakHeight, tx: sample.peakIsTx });
       }
@@ -252,7 +260,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       lastSample = sample;
     } catch {
       pollFailures += 1;
-      if (pollFailures >= 2 && socket === null) setStatus("offline");
+      if (pollFailures >= 2 && socket === null && source === null) setStatus("offline");
     }
     schedulePoll(pollInterval);
   };

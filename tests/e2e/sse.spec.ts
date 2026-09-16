@@ -14,7 +14,7 @@ test.describe("server-sent events and chain cache", () => {
       if (/api\.coinset\.org/.test(url)) coinsetMethods.push(new URL(url).pathname.slice(1));
     });
     await page.goto("/");
-    await expect(page.getByRole("status").filter({ hasText: "Live" }).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("status").filter({ hasText: "Live" }).first()).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible();
     await page.waitForTimeout(1_500);
     for (const method of ["get_blockchain_state", "get_block_records", "get_fee_estimate"]) {

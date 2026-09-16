@@ -6,6 +6,8 @@ import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
 import { createLimiter } from "@/shared/lib/limit";
+import { fetchChainSnapshot, isChainFallbackError } from "@/shared/api/chain";
+import { RpcError } from "@/shared/lib/rpc/errors";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export interface BlockData {
@@ -120,6 +122,21 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
       queryKey: [...queryKeys.blockRoot(endpoints.network), "assetTotals", b.height, client.hasIndexed ? "coinset" : "rpc"],
       staleTime: Infinity,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
+        // Hosted: the server fetches each block's summaries once for everyone and announces
+        // them with a `chain` event (LiveProvider refetches this query then). Until that, the
+        // cube shows no totals rather than every tab asking Coinset itself.
+        if (endpoints.chainUrl) {
+          try {
+            const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
+            const cached = snapshot.assets[String(b.height)];
+            if (cached) return cached;
+            if (snapshot.blocks.some((r) => r.height === b.height) || (snapshot.blocks[0]?.height ?? 0) < b.height) {
+              throw new RpcError("not_found", "chain", "Asset totals not cached yet");
+            }
+          } catch (error) {
+            if (!isChainFallbackError(error)) throw error;
+          }
+        }
         if (client.hasIndexed) {
           const list = await blockTotalsLimit(() => client.getBlockTransactions(b.height, { limit: 50 }, signal));
           return assetTotalsFromSummaries(list.transactions, list.nextCursor !== null);

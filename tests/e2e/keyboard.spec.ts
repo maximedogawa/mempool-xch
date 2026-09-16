@@ -37,6 +37,8 @@ test.describe("keyboard and touch access", () => {
   test("search shortcut, enter and escape work from the keyboard", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop only");
     await page.goto("/");
+    // The shortcut is attached after hydration; the connection pill only renders client-side.
+    await expect(page.getByRole("status").first()).toBeVisible();
     await page.keyboard.press("/");
     await expect(page.getByRole("searchbox").first()).toBeFocused();
     await page.keyboard.type("9295514");

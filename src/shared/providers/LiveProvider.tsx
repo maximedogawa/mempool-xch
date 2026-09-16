@@ -21,6 +21,25 @@ export interface LiveContextValue {
 
 const LiveContext = createContext<LiveContextValue | null>(null);
 
+/** Coalesces bursts of invalidations (Coinset sends several mempool deltas per second when busy). */
+function throttled(fn: () => void, ms: number) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let last = 0;
+  return () => {
+    const due = last + ms - Date.now();
+    if (due <= 0) {
+      last = Date.now();
+      fn();
+    } else if (timer === null) {
+      timer = setTimeout(() => {
+        timer = null;
+        last = Date.now();
+        fn();
+      }, due);
+    }
+  };
+}
+
 export function LiveProvider({ children }: { children: ReactNode }) {
   const { client, endpoints, hydrated } = useSettings();
   const queryClient = useQueryClient();
@@ -46,6 +65,21 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     setLastEventAt(null);
     setLastTxEvent(null);
     setStatus("connecting");
+    // Only the families that change with a new peak: state, the recent window and fees. Per-block
+    // data (records by hash, transactions, asset totals) is immutable and keyed by height/hash;
+    // invalidating the whole chain root made every tab refetch every recent block on each peak.
+    const invalidateChain = throttled(() => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
+      // Without a hosted cache the tab fetches the window itself right away.
+      if (!endpoints.chainUrl) void queryClient.invalidateQueries({ queryKey: [...queryKeys.chainRoot(network), "recent"] });
+    }, 1_000);
+    // Hosted: the server says when its window (and later the asset totals) is ready for the peak.
+    const invalidateWindow = () => {
+      void queryClient.invalidateQueries({ queryKey: [...queryKeys.chainRoot(network), "recent"] });
+      void queryClient.invalidateQueries({ queryKey: [...queryKeys.blockRoot(network), "assetTotals"] });
+    };
+    const invalidateMempool = throttled(() => void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) }), 3_000);
     const stream = createLiveStream({
       sseUrl: endpoints.eventsUrl,
       wsUrl: endpoints.wsUrl,
@@ -75,20 +109,22 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           if (peakRef.current === event.height) return;
           peakRef.current = event.height;
           setPeakHeight(event.height);
-          void queryClient.invalidateQueries({ queryKey: queryKeys.chainRoot(network) });
-          void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });
+          invalidateChain();
+          invalidateMempool();
         } else if (event.type === "transaction") {
           setTxBatch((n) => n + 1);
           setLastTxEvent(event);
-          void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });
+          invalidateMempool();
           event.ids.forEach((id) => void queryClient.invalidateQueries({ queryKey: queryKeys.tx(network, id) }));
           if (event.status === "confirmed") {
             void queryClient.invalidateQueries({ queryKey: queryKeys.addressRoot(network) });
           }
         } else if (event.type === "mempool" || event.type === "mempool_delta") {
-          void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });
+          invalidateMempool();
         } else if (event.type === "block") {
-          void queryClient.invalidateQueries({ queryKey: queryKeys.chainRoot(network) });
+          invalidateChain();
+        } else if (event.type === "chain") {
+          invalidateWindow();
         } else if (event.type === "resync") {
           void queryClient.invalidateQueries({ queryKey: queryKeys.chainRoot(network) });
           void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) });

@@ -23,6 +23,7 @@ const record = (height: number): BlockRecord => ({
 
 function setup(peak: number) {
   const calls: string[] = [];
+  const emitted: { type: string }[] = [];
   const listeners = new Set<(e: SequencedEvent) => void>();
   const blockStats = new Map<number, BlockStats>();
   let now = 1_000_000;
@@ -38,17 +39,21 @@ function setup(peak: number) {
         calls.push(`records:${start}-${end}`);
         return Array.from({ length: end - start }, (_, i) => record(start + i));
       },
+      getBlockTransactions: async (height) => {
+        calls.push(`txs:${height}`);
+        return { transactions: [], truncated: false, nextCursor: null };
+      },
       getFeeEstimate: async () => {
         calls.push("fee");
         return { targetTimes: [60], estimates: [1n], currentFeeRate: 0, feeRateLastBlock: 0, feesLastBlock: 0n, lastBlockCost: 0, lastTxBlockHeight: current, peakHeight: current, mempoolCost: 0, mempoolMaxCost: 1, mempoolFees: 0n, numSpends: 0, nodeTimeUtc: 0, synced: true } satisfies FeeEstimate;
       },
     },
-    hub: { on: (l) => (listeners.add(l), () => listeners.delete(l)), status: () => ({ network: "mainnet", channel: "websocket", socket: "websocket", lastWebhookAt: null, connectedAt: 1, lastEventAt: 1, reconnects: 0, counters: {}, seq: 1 }), blockStats },
+    hub: { emit: (event) => emitted.push(event), on: (l) => (listeners.add(l), () => listeners.delete(l)), status: () => ({ network: "mainnet", channel: "websocket", socket: "websocket", lastWebhookAt: null, connectedAt: 1, lastEventAt: 1, reconnects: 0, counters: {}, seq: 1 }), blockStats },
     now: () => now,
     timers: false,
   });
   const emit = (event: SequencedEvent["event"]) => listeners.forEach((l) => l({ seq: 1, at: now, event }));
-  return { cache, calls, emit, setPeak: (h: number) => (current = h), tick: (ms: number) => (now += ms), blockStats };
+  return { cache, calls, emit, emitted, setPeak: (h: number) => (current = h), tick: (ms: number) => (now += ms), blockStats };
 }
 
 describe("ChainCache", () => {
@@ -90,6 +95,23 @@ describe("ChainCache", () => {
     await new Promise((r) => setTimeout(r, 5));
     expect(calls.some((c) => c.startsWith("records:"))).toBe(true);
     expect(cache.recentBlocks(1)[0]?.height).toBe(999);
+  });
+
+  test("fetches asset totals once per transaction block and serves them in the snapshot", async () => {
+    const { cache, calls, emitted } = setup(1000);
+    cache.start();
+    await cache.refreshAll();
+    await new Promise((r) => setTimeout(r, 5));
+    const txCalls = calls.filter((c) => c.startsWith("txs:"));
+    expect(txCalls.length).toBeGreaterThan(0);
+    expect(new Set(txCalls).size).toBe(txCalls.length);
+    const snap = cache.snapshot()!;
+    expect(Object.keys(snap.assets).length).toBe(txCalls.length);
+    expect(emitted.map((e) => e.type)).toEqual(["chain", "chain"]);
+    expect(snap.assets["999"]).toMatchObject({ source: "coinset", count: 0 });
+    calls.length = 0;
+    await cache.refreshAssets();
+    expect(calls.filter((c) => c.startsWith("txs:"))).toEqual([]);
   });
 
   test("attaches dashboard block stats to the records it has", async () => {
