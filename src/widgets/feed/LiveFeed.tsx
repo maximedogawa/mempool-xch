@@ -8,7 +8,8 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { AssetAmount, AssetBadge, Card, CardBody, CardHeader, Hash, Skeleton } from "@/shared/ui";
+import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
+import { AssetAmount, AssetBadge, Card, CardBody, CardHeader, Hash, Skeleton, YoursChip } from "@/shared/ui";
 
 const FEED_CAP = 50;
 
@@ -23,6 +24,7 @@ function useTicker(ms: number) {
 /** Newest spend bundles entering the mempool. Pauses while hovered so rows stay clickable. */
 export function LiveTransactions() {
   const summary = useMempoolSummary();
+  const mine = useWalletPendingIds();
   const [paused, setPaused] = useState(false);
   const frozen = useRef<typeof rows>([]);
   useTicker(10_000);
@@ -74,6 +76,7 @@ export function LiveTransactions() {
               {shown.map((item) => (
                 <li key={item.id} className={cn("flex items-center gap-3 py-2 text-sm", fresh.has(item.id) && "animate-row-in")}>
                   <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} />
+                  {mine.has(item.id) ? <YoursChip /> : null}
                   <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
                   <AssetAmount assets={item.assets} kind={item.kind} className="ml-auto hidden text-fg-muted sm:inline" />
                   <span className="tabular w-20 text-right text-fg-muted" title={`${formatCost(item.cost)} cost`}>

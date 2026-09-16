@@ -211,6 +211,13 @@ export function SettingsForm() {
               <option value="system">Follow system</option>
             </select>
           </label>
+          <label className="flex items-center gap-3 text-sm">
+            <input type="checkbox" checked={settings.sounds} onChange={(e) => update({ sounds: e.target.checked })} className="h-4 w-4 accent-[var(--primary)]" />
+            <span>
+              <span className="font-medium">Confirmation chime</span>
+              <span className="block text-xs text-fg-muted">A soft coin sound when one of your wallet&apos;s transactions lands in a block (Sage only).</span>
+            </span>
+          </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">Recent blocks on the dashboard</span>
             <input

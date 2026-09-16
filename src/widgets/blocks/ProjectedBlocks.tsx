@@ -5,6 +5,7 @@ import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { Skeleton } from "@/shared/ui/Skeleton";
+import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { BlockCube } from "./BlockCube";
 
 const CUBE = 138;
@@ -21,6 +22,7 @@ export function ProjectedBlocks({
   selected: number | null;
   onSelect: (index: number | null) => void;
 }) {
+  const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (
       <div className="flex items-end gap-3">
@@ -43,7 +45,8 @@ export function ProjectedBlocks({
     <ul className="flex min-w-max flex-row-reverse items-end gap-4" aria-label="Projected next blocks">
       {blocks.map((block) => {
         const zero = block.maxFeeRate === 0;
-        const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
+        const yours = mine.size ? block.items.filter((i) => mine.has(i.id)).length : 0;
+        const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles${yours ? `, ${yours} of yours` : ""}, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
           <li key={block.index} className="flex flex-col items-center gap-1">
             <span className="tabular h-4 text-xs font-semibold text-fg-muted">{block.index === 0 ? "Next block" : `+${block.index}`}</span>
@@ -62,6 +65,7 @@ export function ProjectedBlocks({
               <span className="tabular text-[10px] font-medium text-warning/90">{zero ? "0 fee" : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}</span>
               <span className="tabular mt-1.5 text-[13px] font-semibold">{formatAmount(block.totalFee)}</span>
               <span className="tabular text-[11px] text-fg/80">{block.items.length} tx · {formatCost(block.totalCost)}</span>
+              {yours ? <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">{yours} yours</span> : null}
             </BlockCube>
             <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">In {formatEta(block.etaSeconds)}</span>
           </li>
