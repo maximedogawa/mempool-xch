@@ -203,3 +203,115 @@ export async function requestEndpointWhitelist(url: string, networkId: string): 
     return "refused";
   }
 }
+
+/* ---- Paged history (TASK-032) ---- */
+
+export interface WalletTxPage {
+  items: WalletTx[];
+  total: number;
+  offset: number;
+}
+
+export interface WalletCoinPage {
+  items: WalletCoin[];
+  total: number;
+  offset: number;
+}
+
+function toWalletTx(raw: unknown): WalletTx {
+  const r = asRaw(raw);
+  return {
+    id: str(r.transaction_id)?.replace(/^0x/, "") ?? null,
+    height: num(r.height),
+    timestamp: num(r.timestamp),
+    fee: r.fee === undefined ? null : big(r.fee),
+    spent: (r.spent as unknown[] | undefined ?? []).map(coinRef),
+    created: (r.created as unknown[] | undefined ?? []).map(coinRef),
+    pending: false,
+  };
+}
+
+function toWalletCoin(raw: unknown): WalletCoin {
+  const r = asRaw(raw);
+  return { coinId: String(r.coin_id ?? "").replace(/^0x/, ""), address: str(r.address) ?? "", amount: big(r.amount), createdHeight: num(r.created_height), spentHeight: num(r.spent_height) };
+}
+
+/** One page of the wallet's confirmed transactions, newest first. */
+export async function fetchWalletTransactionsPage(offset: number, limit = 25): Promise<WalletTxPage> {
+  const client = await getSage();
+  if (!client) return { items: [], total: 0, offset };
+  const res = asRaw(await client.wallet.getTransactions({ offset, limit, ascending: false, find_value: null }).catch(() => null));
+  return { items: (res.transactions as unknown[] | undefined ?? []).map(toWalletTx), total: num(res.total) ?? 0, offset };
+}
+
+/** One page of the wallet's coins, newest first. */
+export async function fetchWalletCoinsPage(offset: number, limit = 50): Promise<WalletCoinPage> {
+  const client = await getSage();
+  if (!client) return { items: [], total: 0, offset };
+  const res = asRaw(await client.wallet.getCoins({ offset, limit, ascending: false } as never).catch(() => null));
+  return { items: (res.coins as unknown[] | undefined ?? []).map(toWalletCoin), total: num(res.total) ?? 0, offset };
+}
+
+export interface WalletAsset {
+  kind: "xch" | "cat" | "nft" | "did";
+  /** Hex asset id / launcher id; null for XCH. */
+  assetId: string | null;
+  name: string | null;
+  ticker: string | null;
+  precision: number;
+  /** Number of loaded transactions touching the asset. */
+  txCount: number;
+}
+
+function kindOfRef(ref: WalletCoinRef): WalletAsset["kind"] {
+  const k = ref.assetKind.toLowerCase();
+  if (k.includes("nft")) return "nft";
+  if (k.includes("did")) return "did";
+  if (k.includes("cat") || k.includes("token") || (ref.assetId && !k.includes("xch"))) return "cat";
+  return "xch";
+}
+
+/** Distinct assets seen in the loaded history (XCH first, then by activity), pure and testable. */
+export function deriveAssets(txs: WalletTx[]): WalletAsset[] {
+  const map = new Map<string, WalletAsset>();
+  map.set("xch", { kind: "xch", assetId: null, name: "Chia", ticker: "XCH", precision: 12, txCount: 0 });
+  txs.forEach((tx) => {
+    const seen = new Set<string>();
+    [...tx.spent, ...tx.created].forEach((ref) => {
+      const kind = kindOfRef(ref);
+      const key = kind === "xch" ? "xch" : `${kind}:${ref.assetId ?? "?"}`;
+      const existing = map.get(key) ?? { kind, assetId: kind === "xch" ? null : ref.assetId, name: ref.assetName, ticker: ref.ticker, precision: ref.precision, txCount: 0 };
+      if (!existing.name && ref.assetName) existing.name = ref.assetName;
+      if (!existing.ticker && ref.ticker) existing.ticker = ref.ticker;
+      if (!seen.has(key)) {
+        existing.txCount += 1;
+        seen.add(key);
+      }
+      map.set(key, existing);
+    });
+  });
+  return [...map.values()].sort((a, b) => (a.kind === "xch" ? -1 : b.kind === "xch" ? 1 : b.txCount - a.txCount));
+}
+
+export interface WalletAssetBalance {
+  confirmed: bigint;
+  spendable: bigint;
+  coins: number;
+}
+
+/** Balance of one asset from the wallet (XCH when assetId is null). */
+export async function fetchAssetBalance(kind: WalletAsset["kind"], assetId: string | null): Promise<WalletAssetBalance | null> {
+  const client = await getSage();
+  if (!client) return null;
+  try {
+    const res = asRaw(await client.wallet.getAssetBalance(kind === "xch" ? {} : { type: kind, assetId: assetId ? `0x${assetId}` : null }));
+    return { confirmed: big(res.confirmed), spendable: big(res.spendable), coins: num(res.spendableCoinCount) ?? 0 };
+  } catch {
+    return null;
+  }
+}
+
+/** Merge pages in offset order, dropping duplicates by id/height (pure). */
+export function mergePages<T extends { offset: number; items: unknown[] }>(pages: T[]): T["items"] {
+  return [...pages].sort((a, b) => a.offset - b.offset).flatMap((p) => p.items);
+}
