@@ -16,8 +16,8 @@ export const REFRESH_MS = 3_000;
 /** Background refresh keeps running this long after the last client request, then idles. */
 export const IDLE_AFTER_MS = 2 * 60_000;
 /** How many unseen items to fetch per refresh; the rest arrive on the next tick. */
-const FETCH_BATCH = 40;
-const FETCH_CONCURRENCY = 8;
+const FETCH_BATCH = 80;
+const FETCH_CONCURRENCY = 12;
 /**
  * get_blockchain_state.mempool_min_fees.cost_5000000 is Mempool.get_min_fee_rate(5_000_000): the
  * fee rate in mojos per cost a 5M-cost spend must beat to enter a full mempool (0 while there is

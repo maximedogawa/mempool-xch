@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
 import { useTokenList } from "@/shared/api/useTokenList";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
@@ -39,8 +39,17 @@ export function AssetIcon({ kind, assetId, size = 18, className }: { kind: TxKin
       </span>
     );
   }
-  const Icon = kind === "nft" ? ImageIcon : kind === "did" ? Fingerprint : kind === "offer" ? ArrowLeftRight : kind === "singleton" ? Hexagon : HelpCircle;
-  const tone = kind === "nft" ? "text-kind-nft bg-[color-mix(in_srgb,var(--kind-nft)_20%,transparent)]" : kind === "did" || kind === "singleton" ? "text-kind-did bg-[color-mix(in_srgb,var(--kind-did)_20%,transparent)]" : kind === "offer" ? "text-kind-offer bg-[color-mix(in_srgb,var(--kind-offer)_20%,transparent)]" : "text-fg-faint bg-surface-2";
+  const Icon = kind === "nft" ? ImageIcon : kind === "did" ? Fingerprint : kind === "offer" ? ArrowLeftRight : kind === "pool" ? Pickaxe : kind === "singleton" ? Hexagon : HelpCircle;
+  const tone =
+    kind === "nft"
+      ? "text-kind-nft bg-[color-mix(in_srgb,var(--kind-nft)_20%,transparent)]"
+      : kind === "did" || kind === "singleton"
+        ? "text-kind-did bg-[color-mix(in_srgb,var(--kind-did)_20%,transparent)]"
+        : kind === "offer"
+          ? "text-kind-offer bg-[color-mix(in_srgb,var(--kind-offer)_20%,transparent)]"
+          : kind === "pool"
+            ? "text-info bg-[color-mix(in_srgb,var(--info)_20%,transparent)]"
+            : "text-fg-faint bg-surface-2";
   return (
     <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full", tone, className)} style={{ width: size, height: size }}>
       <Icon size={Math.round(size * 0.6)} />

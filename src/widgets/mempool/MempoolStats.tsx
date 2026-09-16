@@ -36,7 +36,12 @@ export function MempoolStats() {
       />
       <CardBody className="flex flex-col gap-3">
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-          <StatTile label="Spend bundles" value={state ? formatNumber(state.mempoolSize) : "…"} sub={items.length !== state?.mempoolSize && state ? `${formatNumber(items.length)} summarised` : undefined} />
+          <StatTile
+            label="Spend bundles"
+            value={state ? formatNumber(state.mempoolSize) : "…"}
+            sub={items.length !== state?.mempoolSize && state ? `${formatNumber(items.length)} summarised${items.length < state.mempoolSize ? " · syncing" : ""}` : undefined}
+            hint="Count reported by the node. When the summary is still catching up after a restart the summarised number is lower for a few seconds."
+          />
           <StatTile
             label="Cost used"
             value={state ? formatPercent(fill) : "…"}

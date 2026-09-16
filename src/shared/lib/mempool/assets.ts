@@ -25,7 +25,7 @@ export function primaryAsset(input: CompactAssets | undefined | null, fallbackKi
   if (cats[0]) return { kind: "cat", assetId: cats[0].assetId, amount: BigInt(cats[0].amount) };
   if (assets.nfts > 0) return { kind: "nft", amount: BigInt(assets.nfts) };
   if (assets.dids > 0) return { kind: "did", amount: BigInt(assets.dids) };
-  if (assets.singletons > 0) return { kind: "singleton", amount: BigInt(assets.singletons) };
+  if (assets.singletons > 0) return { kind: fallbackKind === "pool" ? "pool" : "singleton", amount: BigInt(assets.singletons) };
   return { kind: fallbackKind === "offer" ? "offer" : "xch", amount: BigInt(assets.xch) };
 }
 
@@ -40,6 +40,8 @@ export function formatPrimaryAsset(asset: PrimaryAsset, ticker?: string | null):
       return `${asset.amount.toString()} DID${asset.amount === 1n ? "" : "s"}`;
     case "singleton":
       return `${asset.amount.toString()} singleton${asset.amount === 1n ? "" : "s"}`;
+    case "pool":
+      return `${asset.amount.toString()} pool claim${asset.amount === 1n ? "" : "s"}`;
     default:
       return formatAmount(asset.amount);
   }

@@ -38,6 +38,7 @@ const KIND_LABELS: Record<TxKindHint, { label: string; tone: Tone }> = {
   nft: { label: "NFT", tone: "nft" },
   did: { label: "DID", tone: "did" },
   offer: { label: "Offer", tone: "offer" },
+  pool: { label: "Pool", tone: "info" },
   singleton: { label: "Singleton", tone: "did" },
   unknown: { label: "Unknown", tone: "unknown" },
 };
