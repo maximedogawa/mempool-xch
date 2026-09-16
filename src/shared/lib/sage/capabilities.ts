@@ -50,6 +50,10 @@ export class CapabilityManager {
         if (!client) return;
         try {
           extractGranted(await client.app.getCapabilities()).forEach((c) => this.granted.add(c));
+          // A refusal remembered earlier is void once Sage grants the capability (for example
+          // after it moved to the manifest's required list).
+          this.granted.forEach((c) => this.refused.delete(c));
+          this.persist();
         } catch {
           // Not granted app.get_capabilities: assume nothing.
         }
