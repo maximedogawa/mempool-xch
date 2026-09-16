@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Repository layout
 
-Mempool.xch is split across sibling repositories checked out next to each other:
+mempoolxch.space is split across sibling repositories checked out next to each other:
 
 | Path | Repo | Contents |
 | --- | --- | --- |
