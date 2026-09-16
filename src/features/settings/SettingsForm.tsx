@@ -10,11 +10,29 @@ import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import type { ThemePreference } from "@/shared/lib/settings/store";
 import { useSage } from "@/shared/providers/SageProvider";
+import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { useServerStatus } from "@/shared/api/hooks";
+import { describeChannel } from "@/shared/lib/live/channel";
 import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
 
 type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; height: number; ms: number; coinset: boolean } | { status: "error"; message: string } | { status: "whitelist"; message: string; ok: boolean };
+
+
+/** Which live channel this tab is on and where the data comes from (same words as the pill and footer). */
+function ChannelLine() {
+  const { endpoints } = useSettings();
+  const { status, transport } = useLive();
+  const server = useServerStatus();
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
+  return (
+    <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
+      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail}
+      {endpoints.chainUrl ? " Chain state, recent blocks, fees and the mempool summary come from this site's server cache; detail pages and search call the endpoint directly." : " Everything is read from the endpoint directly."}
+    </p>
+  );
+}
 
 function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
@@ -149,6 +167,7 @@ export function SettingsForm() {
             The whole app follows the active network: address prefixes, explorer links, the live stream and the mempool summary. Active endpoint:{" "}
             <span className="mono text-fg-muted">{endpoints.rpcUrl}</span>
           </p>
+          <ChannelLine />
         </CardBody>
       </Card>
 

@@ -15,9 +15,10 @@ import { fetchChainSnapshot, isChainFallbackError as isFallbackError } from "./c
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
+    enabled: hydrated,
     queryFn: async ({ signal }) => {
       if (endpoints.chainUrl) {
         try {
@@ -52,7 +53,7 @@ async function fetchSummaryFromServer(url: string, signal: AbortSignal): Promise
  * assembled in the browser from get_all_mempool_items (heavy, but only for custom nodes).
  */
 export function useMempoolSummary() {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const { status } = useLive();
   const source = endpoints.summaryUrl ?? "browser";
   // With a live WebSocket, transaction and peak events already invalidate the summary, so the
@@ -60,6 +61,7 @@ export function useMempoolSummary() {
   const interval = endpoints.summaryUrl ? (status === "live" ? 12_000 : 4_000) : 20_000;
   return useQuery({
     queryKey: queryKeys.mempoolSummary(endpoints.network, source),
+    enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
       if (endpoints.summaryUrl) {
         try {
@@ -134,13 +136,13 @@ export interface RecentBlocksResult {
 
 /** The last `count` transaction blocks (plus the non-transaction blocks between them). */
 export function useRecentBlocks(count: number) {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const state = useBlockchainState();
   const { peakHeight } = useLive();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   return useQuery({
     queryKey: queryKeys.recentBlocks(endpoints.network, count, peak),
-    enabled: peak !== null,
+    enabled: hydrated && peak !== null,
     placeholderData: keepPreviousData,
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
@@ -170,9 +172,10 @@ export function useRecentBlocks(count: number) {
 export const FEE_TARGETS_S = [60, 300, 600] as const;
 
 export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
+    enabled: hydrated,
     queryFn: async ({ signal }) => {
       if (endpoints.chainUrl) {
         try {
@@ -190,3 +193,26 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
 }
 
 export { parseJsonSafe };
+
+export interface ServerStatus {
+  hub: { channel: "websocket" | "webhook" | "polling" | "connecting"; socket: string; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
+  mempool: { items: number; generatedAt: number };
+  now: number;
+}
+
+/** The hosted server's own Coinset channel (/api/<network>/status); null when not hosted. */
+export function useServerStatus() {
+  const { endpoints, hydrated } = useSettings();
+  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain$/, "/status") : null;
+  return useQuery({
+    queryKey: ["server", endpoints.network, "status"],
+    enabled: hydrated && url !== null,
+    refetchInterval: 60_000,
+    retry: false,
+    queryFn: async ({ signal }): Promise<ServerStatus | null> => {
+      const response = await fetch(url!, { signal });
+      if (!response.ok) return null;
+      return (await response.json()) as ServerStatus;
+    },
+  });
+}

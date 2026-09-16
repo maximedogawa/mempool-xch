@@ -85,14 +85,8 @@ export const TX_ID = blockTransactions.transactions[0]!.id;
 export const TX_BLOCK_HEIGHT = 9295514;
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
 
-/** Intercepts every Coinset call and the summary API; anything unknown answers not found. */
-export async function mockCoinset(page: Page) {
-  await page.route("**/api/mainnet/mempool", (route) => json(route, mockSummary()));
-  await page.route("**/api/testnet11/mempool", (route) => json(route, { ...mockSummary(), network: "testnet11" }));
-  await page.route("**/api/mainnet/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged(mockChain()) }));
-  await page.route("**/api/testnet11/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged({ ...mockChain(), network: "testnet11" }) }));
-  await page.route("**/api/*/events**", (route) => route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*", "cache-control": "no-cache" }, body: mockEventsBody() }));
-  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, async (route) => {
+/** Route handler answering full-node RPC (and Coinset indexed) methods from the fixtures. */
+export async function answerNodeMethod(route: Route) {
     const url = new URL(route.request().url());
     const method = url.pathname.slice(1);
     let body: Record<string, unknown> = {};
@@ -186,7 +180,31 @@ export async function mockCoinset(page: Page) {
       default:
         return json(route, { success: false, error: `unmocked method ${method}` }, 404);
     }
-  });
+}
+
+/** Intercepts every Coinset call and the hosted APIs; anything unknown answers not found. */
+export async function mockCoinset(page: Page) {
+  await page.route("**/api/mainnet/mempool", (route) => json(route, mockSummary()));
+  await page.route("**/api/testnet11/mempool", (route) => json(route, { ...mockSummary(), network: "testnet11" }));
+  await page.route("**/api/mainnet/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged(mockChain()) }));
+  await page.route("**/api/testnet11/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged({ ...mockChain(), network: "testnet11" }) }));
+  await page.route("**/api/*/events**", (route) => route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*", "cache-control": "no-cache" }, body: mockEventsBody() }));
+  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+}
+
+export const CUSTOM_NODE_URL = "https://node.example.test:8556";
+
+/** A custom full-node RPC (no Coinset, no hosted APIs): the app must poll and fetch the mempool itself. */
+export async function mockCustomNode(page: Page) {
+  await page.addInitScript((rpcUrl) => {
+    window.localStorage.setItem(
+      "mempool-xch:settings:v1",
+      JSON.stringify({ network: "mainnet", endpoints: { mainnet: { rpcUrl }, testnet11: { rpcUrl: "https://testnet11.api.coinset.org" } }, theme: "dark", recentBlocks: 8 })
+    );
+  }, CUSTOM_NODE_URL);
+  await page.route(/https:\/\/node\.example\.test:8556\/.*/, answerNodeMethod);
+  // Anything that still goes to Coinset or the hosted APIs is a bug: answer 599 so the test can see it.
+  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => route.fulfill({ status: 599, body: "must not be called with a custom node" }));
 }
