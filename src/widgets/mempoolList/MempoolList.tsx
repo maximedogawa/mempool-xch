@@ -8,6 +8,8 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
+import { YoursChip } from "@/shared/ui/YoursChip";
 import { sortMempoolItems, type MempoolSortKey, type SortDirection } from "./sort";
 
 const PAGE = 100;
@@ -20,6 +22,7 @@ const COLUMNS: { key: MempoolSortKey; label: string; className?: string }[] = [
 ];
 
 export function MempoolList() {
+  const mine = useWalletPendingIds();
   const summary = useMempoolSummary();
   const [sortKey, setSortKey] = useState<MempoolSortKey>("feeRate");
   const [direction, setDirection] = useState<SortDirection>("desc");
@@ -88,7 +91,10 @@ export function MempoolList() {
                 {shown.map((item) => (
                   <Tr key={item.id}>
                     <Td className="whitespace-nowrap">
-                      <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} className="break-normal" />
+                      <span className="inline-flex items-center gap-2">
+                        <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} className="break-normal" />
+                        {mine.has(item.id) ? <YoursChip /> : null}
+                      </span>
                     </Td>
                     <Td>
                       <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />

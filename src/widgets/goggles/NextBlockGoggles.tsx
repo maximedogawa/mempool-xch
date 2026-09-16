@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { useTokenList } from "@/shared/api/useTokenList";
+import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { formatAmount, formatCost, formatFeeRate } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
@@ -60,6 +61,7 @@ export function NextBlockGoggles() {
   const [mode, setMode] = useState<ColorMode>("fee");
   const [hover, setHover] = useState<CompactMempoolItem | null>(null);
   const tokens = useTokenList();
+  const mine = useWalletPendingIds();
   const next = blocks[0];
   const blockMax = summary?.state.blockMaxCost ?? 11_000_000_000;
   const fillHeight = next ? H * Math.max(0.15, next.fill) : 0;
@@ -158,8 +160,9 @@ export function NextBlockGoggles() {
                 const primary = primaryAsset(item.assets, item.kind);
                 const token = primary.kind === "cat" && primary.assetId ? tokens.data?.[primary.assetId] : undefined;
                 const image = item.kind === "nft" && item.assetIds[0] ? nftImage.get(item.assetIds[0]) : null;
+                const yours = mine.has(item.id);
                 return (
-                  <Link key={item.id} href={routes.tx(item.id)} aria-label={`Spend bundle ${shortId(item.id)}, ${item.kind}, ${formatPrimaryAsset(primary, token?.symbol)}, cost ${formatCost(item.cost)}, ${formatFeeRate(item.feeRate)} mojo per cost`}>
+                  <Link key={item.id} href={routes.tx(item.id)} aria-label={`${yours ? "Your " : ""}spend bundle ${shortId(item.id)}, ${item.kind}, ${formatPrimaryAsset(primary, token?.symbol)}, cost ${formatCost(item.cost)}, ${formatFeeRate(item.feeRate)} mojo per cost`}>
                     <g
                       className="treemap-cell"
                       onMouseEnter={() => setHover(item)}
@@ -169,6 +172,19 @@ export function NextBlockGoggles() {
                       style={{ opacity: dim ? 0.15 : 1, transition: "opacity 200ms", animationDelay: `${Math.min(cellIndex, 40) * 12}ms` }}
                     >
                       <rect x={cell.x + 1} y={cell.y + 1} width={Math.max(0, cell.width - 2)} height={Math.max(0, cell.height - 2)} rx={3} fill={fill} fillOpacity={mode === "fee" ? 0.85 : 0.55} stroke={KIND_COLOR[item.kind]} strokeWidth={item.kind === "xch" ? 0 : 2} />
+                      {yours ? (
+                        <>
+                          <rect x={cell.x + 2} y={cell.y + 2} width={Math.max(0, cell.width - 4)} height={Math.max(0, cell.height - 4)} rx={3} fill="none" stroke="var(--primary)" strokeWidth={3} className="animate-pulse" />
+                          {cell.width >= 34 && cell.height >= 16 ? (
+                            <>
+                              <rect x={cell.x + cell.width - 32} y={cell.y + 3} width={29} height={12} rx={6} fill="var(--primary)" />
+                              <text x={cell.x + cell.width - 17.5} y={cell.y + 12} fontSize="8" fontWeight="700" textAnchor="middle" fill="#0a0d18" className="pointer-events-none">
+                                YOURS
+                              </text>
+                            </>
+                          ) : null}
+                        </>
+                      ) : null}
                       {image && big ? (
                         <>
                           <clipPath id={`clip-${item.id.slice(0, 12)}`}>

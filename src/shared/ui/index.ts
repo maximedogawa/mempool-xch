@@ -14,3 +14,4 @@ export { Skeleton } from "./Skeleton";
 export { StatTile } from "./StatTile";
 export { Table, Td, Th, Tr } from "./Table";
 export { Tooltip } from "./Tooltip";
+export { YoursChip } from "./YoursChip";

@@ -94,6 +94,18 @@ async function ensureAll(caps: readonly string[]): Promise<string[]> {
   return results.filter((c): c is string => c !== null);
 }
 
+/** Only the pending transactions (dashboard panel); null outside Sage or when refused. */
+export async function fetchWalletPending(): Promise<WalletTx[] | null> {
+  const client = await getSage();
+  if (!client || !(await capabilities.ensure("wallet.get_pending_transactions"))) return null;
+  const res = await client.wallet.getPendingTransactions().catch(() => null);
+  if (!res) return null;
+  return (asRaw(res).transactions as unknown[] | undefined ?? []).map((t) => {
+    const r = asRaw(t);
+    return { id: str(r.transaction_id)?.replace(/^0x/, "") ?? null, height: null, timestamp: num(r.submitted_at), fee: big(r.fee), spent: (r.spent as unknown[] | undefined ?? []).map(coinRef), created: (r.created as unknown[] | undefined ?? []).map(coinRef), pending: true };
+  });
+}
+
 export async function fetchWalletOverview(): Promise<WalletOverview | null> {
   const client = await getSage();
   if (!client) return null;

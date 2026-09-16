@@ -26,42 +26,11 @@ import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { cn } from "@/shared/lib/cn";
 import { useAsset } from "@/shared/api/useTokenList";
-import { AssetIcon, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import { kindOf, WalletAmount } from "./amounts";
+import { AssetIcon, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 
 const TX_PAGE = 25;
 const COIN_PAGE = 50;
-
-function kindOf(ref: WalletCoinRef): "xch" | "cat" | "nft" | "did" | "unknown" {
-  const k = ref.assetKind.toLowerCase();
-  if (k.includes("nft")) return "nft";
-  if (k.includes("did")) return "did";
-  if (k.includes("cat") || k.includes("token")) return "cat";
-  if (k.includes("xch") || (!ref.assetId && k !== "unknown")) return "xch";
-  return ref.assetId ? "cat" : "xch";
-}
-
-function catUnits(ref: WalletCoinRef): string {
-  const p = BigInt(10) ** BigInt(ref.precision);
-  const whole = ref.amount / p;
-  const frac = (ref.amount % p).toString().padStart(ref.precision, "0").replace(/0+$/, "");
-  return `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""}`;
-}
-
-/** One wallet coin amount in its own unit; CATs resolve ticker and icon through the token registry. */
-function WalletAmount({ refItem, sign }: { refItem: WalletCoinRef; sign: "+" | "−" }) {
-  const kind = kindOf(refItem);
-  const cls = sign === "+" ? "block text-primary" : "block text-danger";
-  if (kind === "cat" && refItem.assetId) {
-    return <CatRef assetId={refItem.assetId} iconUrl={refItem.iconUrl} amountText={`${sign}${catUnits(refItem)}`} size={14} className={cls} />;
-  }
-  const text = kind === "xch" ? formatAmount(refItem.amount) : kind === "nft" || kind === "did" ? `1 ${kind.toUpperCase()}` : `${catUnits(refItem)} ${refItem.ticker ?? "CAT"}`;
-  return (
-    <span className={cls}>
-      {sign}
-      {text}
-    </span>
-  );
-}
 
 function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | null }) {
   const mine = (ref: WalletCoinRef) => ref.address === walletAddress || ref.address === null;

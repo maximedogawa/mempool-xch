@@ -13,6 +13,8 @@ export interface Settings {
   theme: ThemePreference;
   /** Number of recent blocks on the dashboard strip. */
   recentBlocks: number;
+  /** Soft chime when one of the connected wallet's transactions lands in a block. */
+  sounds: boolean;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   theme: "dark",
   recentBlocks: 8,
+  sounds: true,
 };
 
 export interface ResolvedEndpoints {
@@ -80,7 +83,8 @@ function sanitise(raw: unknown): Settings {
   ) as Settings["endpoints"];
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
   const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
-  return { network, endpoints, theme, recentBlocks };
+  const sounds = r.sounds !== false;
+  return { network, endpoints, theme, recentBlocks, sounds };
 }
 
 type Listener = () => void;
