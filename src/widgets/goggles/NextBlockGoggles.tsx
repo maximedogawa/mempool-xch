@@ -24,6 +24,7 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "nft", label: "NFT" },
   { id: "offer", label: "Offers" },
   { id: "did", label: "DID" },
+  { id: "pool", label: "Pool" },
 ];
 
 const KIND_COLOR: Record<TxKindHint, string> = {
@@ -32,6 +33,7 @@ const KIND_COLOR: Record<TxKindHint, string> = {
   nft: "var(--kind-nft)",
   did: "var(--kind-did)",
   offer: "var(--kind-offer)",
+  pool: "var(--info)",
   singleton: "var(--kind-did)",
   unknown: "var(--kind-unknown)",
 };

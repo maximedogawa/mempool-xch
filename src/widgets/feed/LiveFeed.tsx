@@ -79,7 +79,7 @@ export function LiveTransactions() {
                   <span className="tabular w-20 text-right text-fg-muted" title={`${formatCost(item.cost)} cost`}>
                     {BigInt(item.fee) === 0n ? <span className="text-fg-faint">0 fee</span> : `${formatFeeRate(item.feeRate)} m/c`}
                   </span>
-                  <span className="tabular w-14 text-right text-xs text-fg-faint">{formatAge(item.firstSeen)}</span>
+                  <span className="tabular w-14 text-right text-xs text-fg-faint" title="First observed by the mempoolxch.space server (not the network's first-seen time)">{formatAge(item.firstSeen)}</span>
                 </li>
               ))}
             </ul>

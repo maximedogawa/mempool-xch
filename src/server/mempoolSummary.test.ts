@@ -32,6 +32,25 @@ function makeSyncer(initialIds: string[]) {
   };
 }
 
+describe("convergence", () => {
+  test("a 150-item mempool is fully summarised within two refresh cycles", async () => {
+    const base = fullItems[0]!;
+    const ids = Array.from({ length: 150 }, (_, i) => `${i.toString(16).padStart(4, "0")}${"ab".repeat(30)}`);
+    let now = 5_000_000;
+    const client = {
+      getBlockchainState: async () => state,
+      getAllMempoolTxIds: async () => ids,
+      getMempoolItemByTxId: async (id: string) => ({ ...base, name: id }),
+    };
+    const syncer = new MempoolSyncer("mainnet", { client, now: () => now, awaitItems: true });
+    await syncer.getSummary();
+    now += REFRESH_MS;
+    const second = await syncer.getSummary();
+    expect(second.items.length).toBe(150);
+    expect(second.items.length).toBe(second.state.mempoolSize === 74 ? 150 : second.items.length);
+  });
+});
+
 describe("stateSummary", () => {
   test("derives min fee rate and last tx block", () => {
     const s = stateSummary(state);

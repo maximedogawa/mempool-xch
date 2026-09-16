@@ -24,7 +24,7 @@ export function bundleAssets(item: MempoolItem): CompactAssets {
       cats.set(key, (cats.get(key) ?? 0n) + spend.coin.amount);
     } else if (c.kind === "nft") nfts += 1;
     else if (c.kind === "did") dids += 1;
-    else if (c.kind === "singleton") singletons += 1;
+    else if (c.kind === "singleton" || c.kind === "pool") singletons += 1;
     else xch += spend.coin.amount;
   });
   return {

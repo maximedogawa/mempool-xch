@@ -97,7 +97,7 @@ export function MempoolList() {
                     <Td className="tabular text-right">{BigInt(item.fee) === 0n ? <span className="text-fg-faint">0</span> : formatFeeRate(item.feeRate)}</Td>
                     <Td className="tabular hidden text-right sm:table-cell">{formatAmount(BigInt(item.fee))}</Td>
                     <Td className="tabular hidden text-right md:table-cell">{formatCost(item.cost)}</Td>
-                    <Td className="tabular whitespace-nowrap text-right text-fg-faint">{formatAge(item.firstSeen, now)}</Td>
+                    <Td className="tabular whitespace-nowrap text-right text-fg-faint" title="First observed by the mempoolxch.space server">{formatAge(item.firstSeen, now)}</Td>
                   </Tr>
                 ))}
               </tbody>

@@ -3,7 +3,7 @@
  * the dashboard, the projected blocks and the mempool table consume: no puzzle reveals, amounts
  * as decimal strings so the JSON stays exact (TASK-025).
  */
-export type TxKindHint = "xch" | "cat" | "nft" | "did" | "offer" | "singleton" | "unknown";
+export type TxKindHint = "xch" | "cat" | "nft" | "did" | "offer" | "pool" | "singleton" | "unknown";
 
 export interface CompactCoin {
   /** Puzzle hash without 0x. */

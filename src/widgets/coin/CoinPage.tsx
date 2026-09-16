@@ -56,7 +56,9 @@ export function CoinPage({ id }: { id: string | null }) {
   }
 
   const coin = record.data;
-  const semantics = readSemantics(details.data?.details?.semantics ?? null);
+  const semantics =
+    readSemantics(details.data?.details?.semantics ?? null) ??
+    (details.data?.ref ? readSemantics({ coin_id: id, outer_puzzle_type: details.data.ref.outerPuzzleType, asset_id: details.data.ref.assetId }) : null);
   const links = details.data?.links ?? null;
   const owner = semantics?.custodyP2 ?? coin.coin.puzzleHash;
   const address = safeAddress(owner, networkConfig.addressPrefix);
