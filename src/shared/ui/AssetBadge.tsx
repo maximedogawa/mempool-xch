@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
-import { useTokenList } from "@/shared/api/useTokenList";
+import { useAsset } from "@/shared/api/useTokenList";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import { AssetImage } from "./AssetImage";
@@ -26,8 +26,7 @@ export function XchIcon({ size = 18, className }: { size?: number; className?: s
 
 /** Icon for an asset kind; CAT icons come from the Spacescan token list when known. */
 export function AssetIcon({ kind, assetId, size = 18, className }: { kind: TxKindHint; assetId?: string; size?: number; className?: string }) {
-  const tokens = useTokenList();
-  const token = kind === "cat" && assetId ? tokens.data?.[assetId] : undefined;
+  const token = useAsset(kind === "cat" ? assetId : undefined);
   if (kind === "xch") return <XchIcon size={size} className={className} />;
   if (kind === "cat") {
     if (token?.iconUrl) {
@@ -59,8 +58,7 @@ export function AssetIcon({ kind, assetId, size = 18, className }: { kind: TxKin
 
 /** Kind badge with the asset icon in front and the CAT ticker when Spacescan knows it. */
 export function AssetBadge({ kind, assetId, className }: { kind: TxKindHint; assetId?: string; className?: string }) {
-  const tokens = useTokenList();
-  const token = kind === "cat" && assetId ? tokens.data?.[assetId] : undefined;
+  const token = useAsset(kind === "cat" ? assetId : undefined);
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)} title={token ? `${token.name} (${token.symbol})` : undefined}>
       <AssetIcon kind={kind} assetId={assetId} />
