@@ -10,6 +10,7 @@ import type { RecentBlocksResult } from "@/shared/api/hooks";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { BlockCube } from "./BlockCube";
+import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
 
 const CONFIRMED_GRADIENT = "linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%)";
 
@@ -45,6 +46,8 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
     return () => clearTimeout(id);
   }, [newest]);
 
+  const totals = useBlocksAssetTotals((data?.txBlocks ?? []).map((b) => ({ height: b.height, hash: b.headerHash })));
+
   if (loading && !data) {
     return (
       <div className="flex items-end gap-3">
@@ -79,7 +82,9 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
               >
                 <span className="tabular text-[15px] font-bold leading-tight">{formatAmount(fees)}</span>
                 <span className="text-[10px] font-medium text-fg/70">total fees</span>
-                <span className="tabular mt-1.5 text-[11px] text-fg/85">{block.rewardClaimsIncorporated?.length ?? 0} reward claims</span>
+                <span className="tabular mt-1.5 text-[11px] text-fg/85">
+                  {totals[i]?.data ? `${formatAmount(BigInt(totals[i]!.data!.xch))} moved` : `${block.rewardClaimsIncorporated?.length ?? 0} reward claims`}
+                </span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
               </BlockCube>
               <span className="mono inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted" title={`Farmer ${block.farmerPuzzleHash}`}>

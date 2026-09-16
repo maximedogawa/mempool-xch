@@ -6,6 +6,7 @@ export const queryKeys = {
   state: (network: NetworkId) => ["chain", network, "state"] as const,
   blockRecords: (network: NetworkId, start: number, end: number) => ["chain", network, "records", start, end] as const,
   recentBlocks: (network: NetworkId, count: number, peak: number | null) => ["chain", network, "recent", count, peak] as const,
+  blockRoot: (network: NetworkId) => ["chain", network, "block"] as const,
   block: (network: NetworkId, id: string) => ["chain", network, "block", id] as const,
   blockTxs: (network: NetworkId, height: number, cursor: string | null) => ["chain", network, "blockTxs", height, cursor] as const,
   blockSpends: (network: NetworkId, hash: string) => ["chain", network, "blockSpends", hash] as const,
