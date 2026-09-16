@@ -3,7 +3,7 @@ import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { sortMempoolItems } from "./sort";
 
 function item(id: string, fee: string, cost: number, firstSeen: number): CompactMempoolItem {
-  return { id, fee, cost, feeRate: Number(fee) / cost, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, value: "0", firstSeen, kind: "xch", assetIds: [] };
+  return { id, fee, cost, feeRate: Number(fee) / cost, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 }, firstSeen, kind: "xch", assetIds: [] };
 }
 const items = [item("a", "0", 100, 3), item("b", "50", 10, 1), item("c", "100", 1000, 2)];
 

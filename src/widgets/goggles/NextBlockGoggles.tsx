@@ -11,7 +11,7 @@ import { feeBandFor } from "@/shared/lib/mempool/feeBands";
 import type { CompactMempoolItem, TxKindHint } from "@/shared/lib/mempool/types";
 import { routes } from "@/shared/lib/routes";
 import { squarify } from "@/shared/lib/treemap";
-import { Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
+import { AssetAmount, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 
 const W = 800;
 const H = 170;
@@ -141,7 +141,7 @@ export function NextBlockGoggles() {
                 <div className="text-fg-muted">
                   {hover.kind.toUpperCase()} · {formatCost(hover.cost)} cost · fee {formatAmount(BigInt(hover.fee))} ({formatFeeRate(hover.feeRate)} m/c)
                 </div>
-                <div className="text-fg-faint">moves {formatAmount(BigInt(hover.value))} · {hover.spends} coin spend{hover.spends === 1 ? "" : "s"}</div>
+                <div className="text-fg-faint">spends <AssetAmount assets={hover.assets} kind={hover.kind} full /> · {hover.spends} coin spend{hover.spends === 1 ? "" : "s"}</div>
               </div>
             ) : null}
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-faint">

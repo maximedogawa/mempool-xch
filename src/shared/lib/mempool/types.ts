@@ -14,6 +14,18 @@ export interface CompactCoin {
   parent: string;
 }
 
+/** Per-asset totals of a bundle's removals; amounts are decimal mojo strings. */
+export interface CompactAssets {
+  /** Plain XCH mojos spent (excludes CAT-wrapped and singleton coins). */
+  xch: string;
+  /** CAT mojos spent per asset id (1000 mojos = 1 CAT unit). */
+  cats: { assetId: string; amount: string }[];
+  /** Number of NFT coins spent (each is one NFT). */
+  nfts: number;
+  dids: number;
+  singletons: number;
+}
+
 export interface CompactMempoolItem {
   /** Spend bundle name / tx id without 0x. */
   id: string;
@@ -29,8 +41,8 @@ export interface CompactMempoolItem {
   removals: CompactCoin[];
   additionCount: number;
   removalCount: number;
-  /** Total XCH-like value moved (sum of removals) as decimal mojos. */
-  value: string;
+  /** What the bundle spends, per asset (sums of the removed coins). */
+  assets: CompactAssets;
   /** Unix ms when this item was first observed by the source. */
   firstSeen: number;
   kind: TxKindHint;
