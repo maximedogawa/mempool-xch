@@ -9,8 +9,8 @@ describe("describeChannel", () => {
     expect(d.name).toBe("Server events");
     expect(d.detail).toContain("one Coinset WebSocket");
   });
-  test("server on webhooks is named", () => {
-    expect(describeChannel({ ...base, status: "live", transport: "sse", serverChannel: "webhook" }).detail).toContain("webhooks");
+  test("server polling Coinset is named", () => {
+    expect(describeChannel({ ...base, status: "live", transport: "sse", serverChannel: "polling" }).detail).toContain("polling Coinset");
   });
   test("snapshot on the direct socket", () => {
     expect(describeChannel({ ...base, eventsUrl: null, status: "live", transport: "websocket" }).name).toBe("Coinset socket");

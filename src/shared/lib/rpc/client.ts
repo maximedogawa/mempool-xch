@@ -47,8 +47,6 @@ export interface RpcClientOptions {
   fetchImpl?: FetchLike;
   /** Per-request timeout in ms. */
   timeoutMs?: number;
-  /** Extra request headers, e.g. `Authorization: Bearer <COINSET_API_KEY>` on the server. */
-  headers?: Record<string, string>;
 }
 
 type Raw = Record<string, unknown>;
@@ -65,8 +63,7 @@ async function post(
   method: string,
   params: Raw,
   timeoutMs: number,
-  signal?: AbortSignal,
-  headers: Record<string, string> = {}
+  signal?: AbortSignal
 ): Promise<Raw> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -76,7 +73,7 @@ async function post(
   try {
     response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/${method}`, {
       method: "POST",
-      headers: { ...headers, "content-type": "application/json" },
+      headers: { "content-type": "application/json" },
       body: stringifyJsonSafe(params),
       signal: controller.signal,
     });
@@ -115,14 +112,13 @@ async function post(
 export function createRpcClient(options: RpcClientOptions) {
   const fetchImpl: FetchLike = options.fetchImpl ?? ((input, init) => globalThis.fetch(input, init));
   const timeoutMs = options.timeoutMs ?? 20_000;
-  const headers = options.headers ?? {};
   const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
-    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal, headers);
+    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal);
   const indexed = (method: string, params: Raw = {}, signal?: AbortSignal) => {
     if (!options.indexedUrl) {
       throw new RpcError("rpc", method, "Indexed API is only available with Coinset endpoints");
     }
-    return post(fetchImpl, options.indexedUrl, method, params, timeoutMs, signal, headers);
+    return post(fetchImpl, options.indexedUrl, method, params, timeoutMs, signal);
   };
   const hasIndexed = options.indexedUrl !== null;
 

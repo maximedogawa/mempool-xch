@@ -195,7 +195,7 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
 export { parseJsonSafe };
 
 export interface ServerStatus {
-  hub: { channel: "websocket" | "webhook" | "polling" | "connecting"; socket: string; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
+  hub: { channel: "websocket" | "polling" | "connecting"; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
   mempool: { items: number; generatedAt: number };
   now: number;
 }
