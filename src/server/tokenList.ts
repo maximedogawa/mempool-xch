@@ -1,16 +1,16 @@
 /**
- * Server-side token registry (TASK-031): fetches the Spacescan CAT token list once per TTL and
- * serves the normalised map to every client, so browsers never hit Spacescan's rate limit.
- * On upstream failure the last good map keeps being served (stale-on-error).
+ * Server-side token registry (TASK-031, Dexie since TASK-041): fetches Dexie's CAT asset pages
+ * once per TTL and serves the normalised map to every client, so browsers make one small
+ * request instead of ten. On upstream failure the last good map keeps being served.
  */
-import { normaliseTokenList, TOKEN_LIST_URL, type TokenMap } from "@/shared/api/tokenList";
+import { fetchDexieTokenMap, type MinimalResponse, type TokenMap } from "@/shared/api/tokenList";
 
 export const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;
 /** Retry an upstream failure no sooner than this. */
 const RETRY_MS = 5 * 60 * 1000;
 
 export interface TokenRegistryDeps {
-  fetchImpl?: (url: string) => Promise<{ ok: boolean; status: number; text: () => Promise<string> }>;
+  fetchImpl?: (url: string) => Promise<MinimalResponse>;
   now?: () => number;
   ttlMs?: number;
 }
@@ -45,18 +45,14 @@ export class TokenRegistry {
     if (!this.inflight) {
       const fetchImpl = this.deps.fetchImpl ?? ((url: string) => fetch(url, { headers: { accept: "application/json" } }));
       this.inflight = (async () => {
-        const response = await fetchImpl(TOKEN_LIST_URL);
         this.stats.upstreamFetches += 1;
-        if (!response.ok) {
+        let map: TokenMap;
+        try {
+          map = await fetchDexieTokenMap(fetchImpl);
+        } catch (error) {
           this.stats.failures += 1;
           this.lastFailureAt = this.now();
-          throw new Error(`Spacescan token list answered ${response.status}`);
-        }
-        const map = normaliseTokenList(JSON.parse(await response.text()));
-        if (Object.keys(map).length === 0) {
-          this.stats.failures += 1;
-          this.lastFailureAt = this.now();
-          throw new Error("Spacescan token list was empty");
+          throw error;
         }
         this.tokens = map;
         this.fetchedAt = this.now();

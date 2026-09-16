@@ -15,11 +15,14 @@ import { AssetIcon } from "./AssetBadge";
 export function CatRef({
   assetId,
   amountText,
+  iconUrl,
   size = 16,
   showId = false,
   className,
 }: {
   assetId: string;
+  /** Icon the caller already knows (e.g. from the Sage wallet); registry/Dexie otherwise. */
+  iconUrl?: string | null;
   /** Already formatted amount (with sign if wanted) shown before the ticker. */
   amountText?: string;
   size?: number;
@@ -33,7 +36,7 @@ export function CatRef({
   const title = token ? `${token.name} (${token.symbol}) · 0x${id}` : `Unknown CAT · 0x${id}`;
   return (
     <Link href={routes.cat(id)} title={title} className={cn("inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap hover:underline", className)}>
-      <AssetIcon kind="cat" assetId={id} size={size} />
+      <AssetIcon kind="cat" assetId={id} iconUrl={iconUrl} size={size} />
       <span className="tabular">
         {amountText ? `${amountText} ` : ""}
         <span className="font-medium">{label}</span>

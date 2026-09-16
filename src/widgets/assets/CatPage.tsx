@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
+import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useDetailId } from "@/shared/hooks/useDetailId";
 import { useCallback, useMemo } from "react";
 import { useMempoolSummary } from "@/shared/api/hooks";
@@ -49,7 +50,7 @@ export function CatPage() {
       <Card>
         <CardHeader title="CAT token" action={<KindBadge kind="cat" />} />
         <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <AssetImage urls={token?.iconUrl ? [token.iconUrl] : []} alt={token?.name ?? "Token icon"} className="h-20 w-20 shrink-0" rounded="rounded-full" />
+          <AssetImage urls={[token?.iconUrl ?? dexieIconUrl(assetId)]} alt={token?.name ?? "Token icon"} className="h-20 w-20 shrink-0" rounded="rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <h1 className="text-2xl font-semibold">
               {tokens.isLoading ? "Loading token…" : tokenLabel(token, assetId)}
@@ -59,7 +60,7 @@ export function CatPage() {
                 {token.description.length > 400 ? `${token.description.slice(0, 400)}…` : token.description}
               </p>
             ) : null}
-            {!tokens.isLoading && !token ? <p className="text-sm text-fg-faint">Not in the Spacescan token list; shown by asset id only.</p> : null}
+            {!tokens.isLoading && !token ? <p className="text-sm text-fg-faint">Not on Dexie's asset list; shown by asset id only.</p> : null}
             <dl className="text-sm">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Asset id</dt>
               <dd className="mono flex items-center gap-1 break-all">

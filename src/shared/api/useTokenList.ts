@@ -7,7 +7,7 @@ import { loadTokenList, type TokenInfo, type TokenMap } from "./tokenList";
 
 export const TOKEN_QUERY_KEY = ["assets", "tokens"] as const;
 
-/** Hosted registry first (one upstream fetch per server), Spacescan directly as the fallback. */
+/** Hosted registry first (one upstream fetch per server), Dexie's pages directly as the fallback. */
 export async function fetchTokenMap(fetchImpl: typeof fetch = fetch): Promise<TokenMap> {
   try {
     const response = await fetchImpl(`${apiOrigin()}/api/assets/tokens`, { headers: { accept: "application/json" } });

@@ -1,10 +1,11 @@
 "use client";
 
 import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
+import { useState } from "react";
+import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
-import { AssetImage } from "./AssetImage";
 import { KindBadge } from "./Badge";
 
 /** Original XCH mark: a green disc with a leaf. */
@@ -24,13 +25,22 @@ export function XchIcon({ size = 18, className }: { size?: number; className?: s
   );
 }
 
-/** Icon for an asset kind; CAT icons come from the Spacescan token list when known. */
-export function AssetIcon({ kind, assetId, size = 18, className }: { kind: TxKindHint; assetId?: string; size?: number; className?: string }) {
+/**
+ * Icon for an asset kind. CAT icons: an explicit `iconUrl` (what the Sage wallet already
+ * resolved), else the registry's, else Dexie's deterministic per-id icon; a two-letter badge
+ * when the image does not exist.
+ */
+export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
+  const [failed, setFailed] = useState<string | null>(null);
   if (kind === "xch") return <XchIcon size={size} className={className} />;
   if (kind === "cat") {
-    if (token?.iconUrl) {
-      return <AssetImage urls={[token.iconUrl]} alt={token.name} className={cn("shrink-0", className)} rounded="rounded-full" style={{ width: size, height: size }} />;
+    const src = iconUrl ?? token?.iconUrl ?? (assetId ? dexieIconUrl(assetId) : null);
+    if (src && failed !== src) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={token?.name ?? "CAT"} loading="lazy" decoding="async" onError={() => setFailed(src)} className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)} style={{ width: size, height: size }} />
+      );
     }
     return (
       <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_25%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
@@ -56,7 +66,7 @@ export function AssetIcon({ kind, assetId, size = 18, className }: { kind: TxKin
   );
 }
 
-/** Kind badge with the asset icon in front and the CAT ticker when Spacescan knows it. */
+/** Kind badge with the asset icon in front and the CAT ticker when the registry knows it. */
 export function AssetBadge({ kind, assetId, className }: { kind: TxKindHint; assetId?: string; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   return (

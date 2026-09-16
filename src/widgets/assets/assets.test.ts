@@ -1,14 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { normaliseMintGardenNft } from "./nftMetadata";
-import { normaliseTokenList, readTokenCache, TOKEN_LIST_CACHE_KEY, TOKEN_LIST_TTL_MS, tokenLabel, writeTokenCache } from "@/shared/api/tokenList";
+import { fetchDexieTokenMap, normaliseTokenList, readTokenCache, TOKEN_LIST_CACHE_KEY, TOKEN_LIST_TTL_MS, tokenLabel, writeTokenCache } from "@/shared/api/tokenList";
 
 describe("tokenList", () => {
   const raw = {
-    status: "success",
-    cats: [
-      { asset_id: `0x${"AB".repeat(32)}`, name: " Spacebucks ", symbol: "sbx", preview_url: "https://assets.spacescan.io/cat/x.png", website: "https://spacebucks.io" },
-      { asset_id: "short", name: "bad" },
-      { asset_id: "cd".repeat(32), name: "", symbol: "", preview_url: "http://insecure/x.png" },
+    success: true,
+    count: 3,
+    page: 1,
+    page_size: 100,
+    assets: [
+      { id: `0x${"AB".repeat(32)}`, name: " Spacebucks ", code: "sbx", denom: 1000, website: "https://spacebucks.io" },
+      { id: "short", name: "bad" },
+      { id: "cd".repeat(32), name: "", code: "" },
     ],
   };
   test("normalises and filters", () => {
@@ -18,15 +21,30 @@ describe("tokenList", () => {
       assetId: "ab".repeat(32),
       name: "Spacebucks",
       symbol: "SBX",
-      iconUrl: "https://assets.spacescan.io/cat/x.png",
+      iconUrl: `https://icons.dexie.space/${"ab".repeat(32)}.webp`,
       website: "https://spacebucks.io",
       description: null,
     });
     expect(map["cd".repeat(32)]!.name).toBe("Unknown token");
-    expect(map["cd".repeat(32)]!.iconUrl).toBeNull();
+    expect(map["cd".repeat(32)]!.symbol).toBe("CAT");
     expect(normaliseTokenList(null)).toEqual({});
     expect(tokenLabel(map["ab".repeat(32)], "x")).toBe("Spacebucks (SBX)");
     expect(tokenLabel(undefined, "cd".repeat(32))).toBe("CAT cdcdcdcd…");
+  });
+  test("walks every Dexie page and merges", async () => {
+    const urls: string[] = [];
+    const page = (n: number, ids: string[]) => ({ success: true, count: 250, page: n, page_size: 100, assets: ids.map((id) => ({ id, code: `T${n}`, name: `Token ${n}` })) });
+    const fetchImpl = async (url: string) => {
+      urls.push(url);
+      const n = Number(new URL(url).searchParams.get("page"));
+      const ids = n === 3 ? ["ef".repeat(32)] : Array.from({ length: 100 }, (_, i) => (n * 1000 + i).toString(16).padStart(64, "0"));
+      return { ok: true, status: 200, text: async () => JSON.stringify(page(n, ids)) };
+    };
+    const map = await fetchDexieTokenMap(fetchImpl);
+    expect(urls).toHaveLength(3);
+    expect(Object.keys(map)).toHaveLength(201);
+    expect(map["ef".repeat(32)]!.symbol).toBe("T3");
+    await expect(fetchDexieTokenMap(async () => ({ ok: false, status: 429, text: async () => "" }))).rejects.toThrow("429");
   });
   test("cache honours the ttl", () => {
     const data = new Map<string, string>();

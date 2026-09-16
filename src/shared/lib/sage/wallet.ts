@@ -18,6 +18,8 @@ export interface WalletCoinRef {
   assetName: string | null;
   ticker: string | null;
   precision: number;
+  /** Icon Sage resolved for the asset, if any. */
+  iconUrl: string | null;
 }
 
 export interface WalletTx {
@@ -77,6 +79,10 @@ function coinRef(raw: unknown): WalletCoinRef {
     assetName: str(asset.name),
     ticker: str(asset.ticker),
     precision: num(asset.precision) ?? 12,
+    iconUrl: (() => {
+      const u = str(asset.icon_url);
+      return u && /^https:\/\//.test(u) ? u : null;
+    })(),
   };
 }
 
@@ -243,6 +249,7 @@ export interface WalletAsset {
   name: string | null;
   ticker: string | null;
   precision: number;
+  iconUrl: string | null;
   /** Number of loaded transactions touching the asset. */
   txCount: number;
 }
@@ -258,15 +265,16 @@ function kindOfRef(ref: WalletCoinRef): WalletAsset["kind"] {
 /** Distinct assets seen in the loaded history (XCH first, then by activity), pure and testable. */
 export function deriveAssets(txs: WalletTx[]): WalletAsset[] {
   const map = new Map<string, WalletAsset>();
-  map.set("xch", { kind: "xch", assetId: null, name: "Chia", ticker: "XCH", precision: 12, txCount: 0 });
+  map.set("xch", { kind: "xch", assetId: null, name: "Chia", ticker: "XCH", precision: 12, iconUrl: null, txCount: 0 });
   txs.forEach((tx) => {
     const seen = new Set<string>();
     [...tx.spent, ...tx.created].forEach((ref) => {
       const kind = kindOfRef(ref);
       const key = kind === "xch" ? "xch" : `${kind}:${ref.assetId ?? "?"}`;
-      const existing = map.get(key) ?? { kind, assetId: kind === "xch" ? null : ref.assetId, name: ref.assetName, ticker: ref.ticker, precision: ref.precision, txCount: 0 };
+      const existing = map.get(key) ?? { kind, assetId: kind === "xch" ? null : ref.assetId, name: ref.assetName, ticker: ref.ticker, precision: ref.precision, iconUrl: ref.iconUrl, txCount: 0 };
       if (!existing.name && ref.assetName) existing.name = ref.assetName;
       if (!existing.ticker && ref.ticker) existing.ticker = ref.ticker;
+      if (!existing.iconUrl && ref.iconUrl) existing.iconUrl = ref.iconUrl;
       if (!seen.has(key)) {
         existing.txCount += 1;
         seen.add(key);

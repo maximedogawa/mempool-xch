@@ -52,7 +52,7 @@ function WalletAmount({ refItem, sign }: { refItem: WalletCoinRef; sign: "+" | "
   const kind = kindOf(refItem);
   const cls = sign === "+" ? "block text-primary" : "block text-danger";
   if (kind === "cat" && refItem.assetId) {
-    return <CatRef assetId={refItem.assetId} amountText={`${sign}${catUnits(refItem)}`} size={14} className={cls} />;
+    return <CatRef assetId={refItem.assetId} iconUrl={refItem.iconUrl} amountText={`${sign}${catUnits(refItem)}`} size={14} className={cls} />;
   }
   const text = kind === "xch" ? formatAmount(refItem.amount) : kind === "nft" || kind === "did" ? `1 ${kind.toUpperCase()}` : `${catUnits(refItem)} ${refItem.ticker ?? "CAT"}`;
   return (
@@ -73,7 +73,7 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   return (
     <li className="flex items-center gap-3 py-2.5 text-sm">
       <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full", received.length && !sent.length ? "bg-primary-soft" : sent.length && !received.length ? "bg-danger-soft" : "bg-surface-2")}>
-        {primary ? <AssetIcon kind={kindOf(primary)} assetId={primary.assetId ?? undefined} size={22} /> : null}
+        {primary ? <AssetIcon kind={kindOf(primary)} assetId={primary.assetId ?? undefined} iconUrl={primary.iconUrl} size={22} /> : null}
       </span>
       <div className="flex min-w-0 flex-col">
         <span className="truncate font-medium">
@@ -190,7 +190,7 @@ function AssetTile({ asset: a, balance: b }: { asset: WalletAsset; balance: Wall
     b === undefined ? "…" : b === null ? "—" : a.kind === "xch" ? formatAmount(b.confirmed) : a.kind === "cat" ? `${formatCat(b.confirmed)} ${ticker ?? "CAT"}` : `${formatNumber(b.coins)} owned`;
   const body = (
     <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
-      <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} size={34} />
+      <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} iconUrl={a.iconUrl} size={34} />
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold">{name}</span>
         <span className="text-[11px] uppercase tracking-wide text-fg-faint">

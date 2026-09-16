@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { deriveAssets, mergePages, type WalletCoinRef, type WalletTx } from "./wallet";
 
-const ref = (over: Partial<WalletCoinRef>): WalletCoinRef => ({ coinId: "c", amount: 1n, address: "xch1a", assetKind: "xch", assetId: null, assetName: null, ticker: null, precision: 12, ...over });
+const ref = (over: Partial<WalletCoinRef>): WalletCoinRef => ({ coinId: "c", amount: 1n, address: "xch1a", assetKind: "xch", assetId: null, assetName: null, ticker: null, precision: 12, iconUrl: null, ...over });
 const tx = (spent: WalletCoinRef[], created: WalletCoinRef[]): WalletTx => ({ id: null, height: 1, timestamp: 1, fee: null, spent, created, pending: false });
 
 describe("wallet history helpers", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { TokenRegistry } from "./tokenList";
 
-const upstream = JSON.stringify({ cats: [{ asset_id: `0x${"ab".repeat(32)}`, name: "Spacebucks", symbol: "sbx", preview_url: "https://assets.spacescan.io/x.png" }] });
+const upstream = JSON.stringify({ success: true, count: 1, page: 1, page_size: 100, assets: [{ id: "ab".repeat(32), code: "sbx", name: "Spacebucks", denom: 1000 }] });
 
 function deps(responses: { ok: boolean; status: number; body?: string }[]) {
   let now = 1_000_000;

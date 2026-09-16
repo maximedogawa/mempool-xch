@@ -51,7 +51,7 @@ export const KIND_COLOR: Record<TxKindHint, string> = {
 /**
  * "Goggles" for the next projected block, after mempool.space's block composition view: every
  * spend bundle that will make it into the next transaction block as a cell sized by CLVM cost,
- * coloured by fee band or by asset kind, with the asset's icon (Spacescan CAT icon, NFT
+ * coloured by fee band or by asset kind, with the asset's icon (Dexie CAT icon, NFT
  * thumbnail, XCH/DID/offer/pool glyphs) and its amount in its own unit on cells large enough.
  */
 export function NextBlockGoggles() {
