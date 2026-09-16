@@ -50,7 +50,8 @@
         "environment.theme.css_vars",
         "environment.theme.listen_changed",
         "storage.persistent_webview",
-        "app.request_network_whitelist_grant"
+        "app.request_network_whitelist_grant",
+        "wallet.get_asset_balance"
       ],
       "optional": [
         "wallet.get_sync_status",
