@@ -20,7 +20,7 @@ function item(id: string, fee: bigint, cost: number, firstSeen = 0): CompactMemp
     removals: [],
     additionCount: 0,
     removalCount: 0,
-    value: "0",
+    assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 },
     firstSeen,
     kind: "xch",
     assetIds: [],

@@ -58,39 +58,27 @@ function extractLauncherIds(reveal: string): string[] {
   return [...ids];
 }
 
+/** Kind and asset id of one coin spend, from its puzzle reveal and coin puzzle hash. */
+export function classifyCoinSpend(spend: CoinSpend): { kind: TxKindHint; assetId?: string } {
+  const reveal = spend.puzzleReveal.toLowerCase().replace(/^0x/, "");
+  if (spend.coin.puzzleHash === MOD_HASHES.SETTLEMENT_PAYMENTS) return { kind: "offer" };
+  const launcher = extractLauncherIds(reveal)[0];
+  if (reveal.includes(MOD_HASHES.NFT_STATE_LAYER) || reveal.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER)) return { kind: "nft", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.DID_INNERPUZ)) return { kind: "did", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.CAT2)) return { kind: "cat", assetId: extractCatAssetIds(reveal)[0] };
+  if (reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1)) return { kind: "singleton", assetId: launcher };
+  return { kind: "xch" };
+}
+
+const KIND_PRIORITY: TxKindHint[] = ["offer", "nft", "did", "cat", "singleton", "xch", "unknown"];
+
+/** Bundle-level kind (most specific kind of any spend) and every asset id seen. */
 export function classifyCoinSpends(coinSpends: CoinSpend[]): Classification {
-  const reveals = coinSpends.map((cs) => cs.puzzleReveal.toLowerCase().replace(/^0x/, ""));
-  const joined = reveals.join("|");
-  const puzzleHashes = new Set(coinSpends.map((cs) => cs.coin.puzzleHash));
-
-  const isOffer = puzzleHashes.has(MOD_HASHES.SETTLEMENT_PAYMENTS);
-  const isNft =
-    joined.includes(MOD_HASHES.NFT_STATE_LAYER) || joined.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER);
-  const isDid = joined.includes(MOD_HASHES.DID_INNERPUZ);
-  const isCat = joined.includes(MOD_HASHES.CAT2);
-  const isSingleton = joined.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1);
-
-  const assetIds = isCat
-    ? reveals.flatMap(extractCatAssetIds)
-    : isNft || isDid || isSingleton
-      ? reveals.flatMap(extractLauncherIds)
-      : [];
-
-  const kind: TxKindHint = isOffer
-    ? "offer"
-    : isNft
-      ? "nft"
-      : isDid
-        ? "did"
-        : isCat
-          ? "cat"
-          : isSingleton
-            ? "singleton"
-            : coinSpends.length > 0
-              ? "xch"
-              : "unknown";
-
-  return { kind, assetIds: [...new Set(assetIds)] };
+  if (coinSpends.length === 0) return { kind: "unknown", assetIds: [] };
+  const per = coinSpends.map(classifyCoinSpend);
+  const kind = KIND_PRIORITY.find((k) => per.some((p) => p.kind === k)) ?? "unknown";
+  const assetIds = [...new Set(per.map((p) => p.assetId).filter((a): a is string => !!a))];
+  return { kind, assetIds };
 }
 
 export function classifyMempoolItem(item: MempoolItem): Classification {

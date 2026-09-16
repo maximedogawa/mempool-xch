@@ -8,13 +8,14 @@ import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { feePerCost, formatAmount, formatCat, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { hexToUtf8IfText } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime, formatEta } from "@/shared/lib/format/time";
+import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
 import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
+import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useTransaction } from "./useTransaction";
@@ -251,7 +252,7 @@ export function TransactionPage({ id }: { id: string | null }) {
           />
         </div>
         <p className="text-xs text-fg-faint">
-          {item.spendBundle.coinSpends.length} coin spend{item.spendBundle.coinSpends.length === 1 ? "" : "s"} · {item.removals.length} removals → {item.additions.length} additions
+          {item.spendBundle.coinSpends.length} coin spend{item.spendBundle.coinSpends.length === 1 ? "" : "s"} · {item.removals.length} removals → {item.additions.length} additions · spends <AssetAmount assets={bundleAssets(item)} kind={view.kind} full />
           {view.assetIds.length > 0 ? (
             <>
               {" "}

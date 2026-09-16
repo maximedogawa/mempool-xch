@@ -22,7 +22,7 @@ export function mockSummary() {
     removals: item.removals.map((c) => ({ ph: c.puzzle_hash.slice(2), amount: String(c.amount), parent: c.parent_coin_info.slice(2) })),
     additionCount: item.additions.length,
     removalCount: item.removals.length,
-    value: String(item.removals.reduce((s, c) => s + c.amount, 0)),
+    assets: { xch: String(item.removals.reduce((s, c) => s + c.amount, 0)), cats: i === 1 ? [{ assetId: "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5", amount: "1234" }] : [], nfts: 0, dids: 0, singletons: 0 },
     firstSeen: NOW - (i + 1) * 30_000,
     kind: i === 1 ? "cat" : "xch",
     assetIds: [],

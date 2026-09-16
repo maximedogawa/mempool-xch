@@ -1,4 +1,5 @@
 export { Amount } from "./Amount";
+export { AssetAmount } from "./AssetAmount";
 export { AssetBadge, AssetIcon, XchIcon } from "./AssetBadge";
 export { AssetImage } from "./AssetImage";
 export { CapacityBar } from "./CapacityBar";

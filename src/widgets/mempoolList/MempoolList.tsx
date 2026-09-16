@@ -7,7 +7,7 @@ import { formatAmount, formatCost, formatFeeRate, formatNumber, formatPercent } 
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
-import { AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 import { sortMempoolItems, type MempoolSortKey, type SortDirection } from "./sort";
 
 const PAGE = 100;
@@ -93,7 +93,7 @@ export function MempoolList() {
                     <Td>
                       <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
                     </Td>
-                    <Td className="tabular hidden text-right text-fg-muted lg:table-cell">{formatAmount(BigInt(item.value))}</Td>
+                    <Td className="hidden text-right text-fg-muted lg:table-cell"><AssetAmount assets={item.assets} kind={item.kind} /></Td>
                     <Td className="tabular text-right">{BigInt(item.fee) === 0n ? <span className="text-fg-faint">0</span> : formatFeeRate(item.feeRate)}</Td>
                     <Td className="tabular hidden text-right sm:table-cell">{formatAmount(BigInt(item.fee))}</Td>
                     <Td className="tabular hidden text-right md:table-cell">{formatCost(item.cost)}</Td>
