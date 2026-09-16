@@ -67,26 +67,33 @@ function summarise(
 }
 
 /**
- * Greedy first-fit in fee-rate order: an item that does not fit the current block opens the
- * next one (items larger than a block are impossible on chain and are skipped).
+ * Packs the way chia's Mempool.create_block_generator does: walk items in fee-per-cost order
+ * (ties by arrival), take every item that still fits the block and skip the ones that do not;
+ * skipped items are the first candidates for the following block. Items larger than a block
+ * are impossible on chain and are dropped. (The node additionally compresses the generator, so
+ * a real block's cost is at or below the sum of its items' costs.)
  */
 export function packProjectedBlocks(
   items: CompactMempoolItem[],
   options: PackingOptions
 ): ProjectedBlock[] {
-  const sorted = sortByFeeRate(items).filter((i) => i.cost <= options.blockMaxCost);
+  let remaining = sortByFeeRate(items).filter((i) => i.cost <= options.blockMaxCost);
   const buckets: CompactMempoolItem[][] = [];
-  const used: number[] = [];
-  sorted.forEach((item) => {
-    const last = buckets.length - 1;
-    if (last >= 0 && (used[last] ?? 0) + item.cost <= options.blockMaxCost) {
-      buckets[last]!.push(item);
-      used[last] = (used[last] ?? 0) + item.cost;
-    } else {
-      buckets.push([item]);
-      used.push(item.cost);
-    }
-  });
+  while (remaining.length > 0) {
+    const block: CompactMempoolItem[] = [];
+    const skipped: CompactMempoolItem[] = [];
+    let used = 0;
+    remaining.forEach((item) => {
+      if (used + item.cost <= options.blockMaxCost) {
+        block.push(item);
+        used += item.cost;
+      } else {
+        skipped.push(item);
+      }
+    });
+    buckets.push(block);
+    remaining = skipped;
+  }
   const maxBlocks = options.maxBlocks ?? 8;
   const visible = buckets.slice(0, maxBlocks);
   const overflow = buckets.slice(maxBlocks).flat();
