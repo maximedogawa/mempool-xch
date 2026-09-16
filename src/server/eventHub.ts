@@ -38,7 +38,11 @@ export interface SequencedEvent {
 
 export interface HubStatus {
   network: NetworkId;
+  /** Channel currently carrying events (webhook while deliveries flow, else the socket state). */
   channel: HubChannel;
+  /** State of the WebSocket regardless of webhooks. */
+  socket: HubChannel;
+  lastWebhookAt: number | null;
   connectedAt: number | null;
   lastEventAt: number | null;
   reconnects: number;
@@ -136,6 +140,8 @@ export function parseCoinsetFrame(raw: string): HubEvent[] {
 }
 
 export const RESYNC_MS = 5 * 60_000;
+/** A webhook delivery keeps the "webhook" channel reported for this long. */
+export const WEBHOOK_FRESH_MS = 60_000;
 const BLOCK_STATS_KEEP = 120;
 
 export class CoinsetHub {
@@ -151,6 +157,7 @@ export class CoinsetHub {
   private connectedAt: number | null = null;
   private lastEventAt: number | null = null;
   private lastPeak: number | null = null;
+  private lastWebhookAt: number | null = null;
   private reconnects = 0;
   readonly counters: Record<string, number> = {};
   readonly blockStats = new Map<number, BlockStats>();
@@ -170,12 +177,22 @@ export class CoinsetHub {
     (this.deps.clearTimeoutImpl ?? ((i: ReturnType<typeof setTimeout>) => clearTimeout(i)))(id);
   }
 
+  /** Webhook deliveries count as a live channel while they keep arriving. */
+  get webhookFresh(): boolean {
+    return this.lastWebhookAt !== null && this.now() - this.lastWebhookAt < WEBHOOK_FRESH_MS;
+  }
+
   get connected(): boolean {
-    return this.channel === "websocket" || this.channel === "webhook";
+    return this.channel === "websocket" || this.webhookFresh;
+  }
+
+  /** Reported channel: webhook while deliveries flow (the socket stays as backup), else the socket state. */
+  get activeChannel(): HubChannel {
+    return this.webhookFresh ? "webhook" : this.channel;
   }
 
   status(): HubStatus {
-    return { network: this.network, channel: this.channel, connectedAt: this.connectedAt, lastEventAt: this.lastEventAt, reconnects: this.reconnects, counters: { ...this.counters }, seq: this.seq };
+    return { network: this.network, channel: this.activeChannel, socket: this.channel, lastWebhookAt: this.lastWebhookAt, connectedAt: this.connectedAt, lastEventAt: this.lastEventAt, reconnects: this.reconnects, counters: { ...this.counters }, seq: this.seq };
   }
 
   on(listener: (e: SequencedEvent) => void): () => void {
@@ -203,6 +220,7 @@ export class CoinsetHub {
         this.blockStats.delete(oldest);
       }
     }
+    if (source === "webhook") this.lastWebhookAt = this.now();
     if (event.type !== "status") {
       this.lastEventAt = this.now();
       this.counters[event.type] = (this.counters[event.type] ?? 0) + 1;

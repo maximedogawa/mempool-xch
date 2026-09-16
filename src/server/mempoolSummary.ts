@@ -292,7 +292,8 @@ export function getSyncer(network: NetworkId): MempoolSyncer {
   if (!isCoinsetUrl(network, rpcUrl)) {
     throw new Error(`Summary API only proxies Coinset hosts; refusing ${rpcUrl}`);
   }
-  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000 });
+  const key = process.env.COINSET_API_KEY?.trim();
+  const client = createRpcClient({ rpcUrl, indexedUrl: null, timeoutMs: 15_000, headers: key ? { authorization: `Bearer ${key}` } : {} });
   const syncer = new MempoolSyncer(network, { client, backgroundLoop: true });
   registry.set(network, syncer);
   // One Coinset subscription per network drives the syncer (decision-006).
