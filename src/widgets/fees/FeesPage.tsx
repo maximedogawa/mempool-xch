@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatAmount, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { ChartCard, type ChartSpec } from "@/widgets/charts/ChartCard";
 import { ChartControls, type ChartControlsState } from "@/widgets/charts/ChartControls";
 import { useBlocksChartSeries } from "@/widgets/charts/useChartSeries";
@@ -29,11 +30,13 @@ export function FeesPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">Fees</h1>
-        <p className="text-sm text-fg-muted">
-          What the node estimates for a {formatCost(FEES_PAGE_REFERENCE_COST)}-cost transfer, the mempool&apos;s current rate distribution, and what common
-          spend shapes cost at the going rate. Read on request from Coinset, nothing stored on our server (decision-012).
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Fees</h1>
+          <Tooltip
+            text={`What the node estimates for a ${formatCost(FEES_PAGE_REFERENCE_COST)}-cost transfer, the mempool's current rate distribution, and what common spend shapes cost at the going rate. Read on request from Coinset, nothing stored on our server (decision-012).`}
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <Card>

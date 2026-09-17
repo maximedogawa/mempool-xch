@@ -5,6 +5,7 @@ import { formatNumber } from "@/shared/lib/chia/amounts";
 import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader, EmptyState, Skeleton, StatTile } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { formatXchDecimal } from "./format";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents, useTopCollections } from "./useNftSection";
@@ -21,12 +22,19 @@ export function NftHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">NFTs</h1>
-        <p className="text-sm text-fg-muted">
-          Collections, activity and mints from MintGarden (mainnet only) and open offers from Dexie — read on request, nothing stored on our server
-          (decision-012). Figures below are the top 6 collections by 30-day volume, not a platform-wide total: neither provider publishes one.
-        </p>
+      <header
+        className="flex flex-col gap-2 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6"
+        style={{ backgroundImage: "radial-gradient(900px 260px at 20% -10%, rgba(214,140,245,0.14), transparent 70%), radial-gradient(700px 240px at 90% 10%, rgba(94,206,123,0.12), transparent 70%)" }}
+      >
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold tracking-tight">
+            NFT<span className="text-kind-nft">s</span>
+          </h1>
+          <Tooltip
+            text="Collections, activity and mints from MintGarden (mainnet only) and open offers from Dexie — read on request, nothing stored on our server (decision-012). Figures below are the top 6 collections by 30-day volume, not a platform-wide total: neither provider publishes one."
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -44,16 +52,30 @@ export function NftHomePage() {
           ) : collections.isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {Array.from({ length: 6 }, (_, i) => (
-                <Skeleton key={i} className="aspect-square w-full" />
+                <Skeleton key={i} className="aspect-square w-full rounded-xl" />
               ))}
             </div>
           ) : collections.data && collections.data.collections.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {collections.data.collections.map((c) => (
-                <a key={c.id} href={`https://mintgarden.io/collections/${c.id}`} target="_blank" rel="noreferrer" className="group flex flex-col gap-1.5">
-                  <AssetImage urls={c.thumbnailUrl ? [c.thumbnailUrl] : []} alt={c.name ?? "collection"} className="aspect-square w-full" />
-                  <span className="truncate text-xs font-medium group-hover:text-accent">{c.name ?? "Untitled"}</span>
-                  <span className="tabular text-[11px] text-fg-faint">{c.floorPriceXch !== null ? `${formatXchDecimal(c.floorPriceXch)} floor` : "no floor"}</span>
+                <a
+                  key={c.id}
+                  href={`https://mintgarden.io/collections/${c.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative isolate flex aspect-square flex-col justify-end overflow-hidden rounded-xl shadow-card ring-1 ring-border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-primary/50"
+                >
+                  <AssetImage
+                    urls={c.thumbnailUrl ? [c.thumbnailUrl] : []}
+                    alt={c.name ?? "collection"}
+                    rounded=""
+                    className="absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+                  <div className="relative z-10 flex flex-col gap-0.5 p-2.5">
+                    <span className="truncate text-sm font-semibold text-white">{c.name ?? "Untitled"}</span>
+                    <span className="tabular text-[11px] font-medium text-white/75">{c.floorPriceXch !== null ? `${formatXchDecimal(c.floorPriceXch)} floor` : "no floor"}</span>
+                  </div>
                 </a>
               ))}
             </div>

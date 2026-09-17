@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { API_GROUPS, RPC_BASE, RPC_BASE_TESTNET, WS_URL, type ApiEndpoint } from "@/shared/config/apiReference";
 import { Badge, Card, CardBody, CardHeader, CopyButton } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { routes } from "@/shared/lib/routes";
 
 function curl(endpoint: ApiEndpoint): string {
@@ -37,12 +38,13 @@ export function ApiPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">API reference</h1>
-        <p className="text-sm text-fg-muted">
-          mempoolxch.space has no server API of its own: every page you see reads a chain endpoint directly from your browser, the same way this app does
-          (decision-012). There is nothing to proxy, cache or rate-limit here — this page documents the calls the app itself makes, so you can make them
-          too, against Coinset&apos;s public endpoint or your own node.
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">API reference</h1>
+          <Tooltip
+            text="mempoolxch.space has no server API of its own: every page you see reads a chain endpoint directly from your browser, the same way this app does (decision-012). This page documents the calls the app itself makes, so you can make them too, against Coinset's public endpoint or your own node."
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <Card>

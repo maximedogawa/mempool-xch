@@ -6,6 +6,7 @@ import { cn } from "@/shared/lib/cn";
 import type { CollectionInterval } from "@/shared/lib/nft/mintgarden";
 import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { formatXchDecimal } from "./format";
 import { useCollectionsList } from "./useNftSection";
 
@@ -25,8 +26,10 @@ export function NftCollectionsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">NFT collections</h1>
-        <p className="text-sm text-fg-muted">Sorted by trade volume in the window, from MintGarden. Floor price is MintGarden&apos;s own lowest active listing.</p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">NFT collections</h1>
+          <Tooltip text="Sorted by trade volume in the window, from MintGarden. Floor price is MintGarden's own lowest active listing." placement="bottom" />
+        </div>
       </header>
 
       <Card>

@@ -5,6 +5,7 @@ import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { POOL_SHARE_WINDOW, usePoolShare } from "./usePoolShare";
 
 export function PoolsPage() {
@@ -14,12 +15,13 @@ export function PoolsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">Pools</h1>
-        <p className="text-sm text-fg-muted">
-          Share of the last {formatNumber(POOL_SHARE_WINDOW)} blocks by pool payout puzzle hash, grouped client-side from Coinset&apos;s{" "}
-          <span className="mono">get_block_records</span> — nothing is stored on our server (decision-012). Names come from a maintained registry keyed by
-          verified payout addresses; a group with no matching entry is shown by its payout address instead of a guessed name.
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Pools</h1>
+          <Tooltip
+            text={`Share of the last ${formatNumber(POOL_SHARE_WINDOW)} blocks by pool payout puzzle hash, grouped client-side from Coinset's get_block_records — nothing is stored on our server (decision-012). Names come from a maintained registry keyed by verified payout addresses; a group with no matching entry is shown by its payout address instead of a guessed name.`}
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <Card>

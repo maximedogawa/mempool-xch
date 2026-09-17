@@ -9,6 +9,7 @@ import { routes } from "@/shared/lib/routes";
 import type { PeerConnection } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, EmptyState, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 
 const CONNECTION_TYPE: Record<number, string> = { 0: "Full node", 1: "Harvester", 2: "Farmer", 3: "Timelord", 4: "Introducer", 5: "Wallet" };
 
@@ -30,11 +31,13 @@ export function MapPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">Network</h1>
-        <p className="text-sm text-fg-muted">
-          Peers your configured node is connected to right now, read directly from your browser (decision-012: no server involved, no visitor data
-          collected).
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Network</h1>
+          <Tooltip
+            text="Peers your configured node is connected to right now, read directly from your browser (decision-012: no server involved, no visitor data collected)."
+            placement="bottom"
+          />
+        </div>
       </header>
 
       {endpoints.isCoinset ? (

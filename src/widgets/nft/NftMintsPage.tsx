@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents } from "./useNftSection";
 
@@ -11,8 +12,10 @@ export function NftMintsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">New mints</h1>
-        <p className="text-sm text-fg-muted">NFTs freshly minted across every collection MintGarden indexes, newest first.</p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">New mints</h1>
+          <Tooltip text="NFTs freshly minted across every collection MintGarden indexes, newest first." placement="bottom" />
+        </div>
       </header>
 
       <Card>

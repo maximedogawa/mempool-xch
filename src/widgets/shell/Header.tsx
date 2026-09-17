@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Settings, Wallet, X } from "lucide-react";
+import { ChevronDown, Menu, Settings, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -8,62 +8,120 @@ import { SearchBox } from "@/features/search/SearchBox";
 import { cn } from "@/shared/lib/cn";
 import { normalisePath, routes } from "@/shared/lib/routes";
 import { useSage } from "@/shared/providers/SageProvider";
+import { Popover } from "@/shared/ui";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
 import { NetworkSwitch } from "./NetworkSwitch";
 import { SagePriceChip } from "@/widgets/wallet/SagePanels";
 
-const NAV = [
-  { href: routes.home(), label: "Dashboard", match: (p: string) => p === "/" },
-  { href: routes.blocks(), label: "Blocks", match: (p: string) => p.startsWith("/blocks") || p.startsWith("/block") },
-  { href: routes.pools(), label: "Pools", match: (p: string) => p.startsWith("/pools") },
-  { href: routes.tokens(), label: "Tokens", match: (p: string) => p.startsWith("/tokens") || p.startsWith("/cat") },
-  { href: routes.nftHome(), label: "NFTs", match: (p: string) => p.startsWith("/nfts") || p.startsWith("/nft") },
-  { href: routes.mempool(), label: "Mempool", match: (p: string) => p.startsWith("/mempool") },
-  { href: routes.charts(), label: "Charts", match: (p: string) => p.startsWith("/charts") },
-  { href: routes.fees(), label: "Fees", match: (p: string) => p.startsWith("/fees") },
-  { href: routes.docs(), label: "Help", match: (p: string) => p.startsWith("/docs") },
+interface NavItem {
+  href: string;
+  label: string;
+  match: (p: string) => boolean;
+}
+
+const PRIMARY: NavItem[] = [
+  { href: routes.home(), label: "Dashboard", match: (p) => p === "/" },
+  { href: routes.blocks(), label: "Blocks", match: (p) => p.startsWith("/blocks") || p.startsWith("/block") },
+  { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
+  { href: routes.nftHome(), label: "NFTs", match: (p) => p.startsWith("/nfts") || p.startsWith("/nft") },
 ];
+
+const MORE: NavItem[] = [
+  { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
+  { href: routes.tokens(), label: "Tokens", match: (p) => p.startsWith("/tokens") || p.startsWith("/cat") },
+  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
+  { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
+  { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
+];
+
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative rounded-sm px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
+        active && "text-fg"
+      )}
+    >
+      {item.label === "My wallet" ? <Wallet size={14} className="mr-1 inline" aria-hidden="true" /> : null}
+      {item.label}
+      <span
+        aria-hidden="true"
+        className={cn("absolute inset-x-2 -bottom-[9px] h-0.5 rounded-full bg-primary transition-opacity", active ? "opacity-100" : "opacity-0")}
+      />
+    </Link>
+  );
+}
 
 export function Header() {
   const pathname = normalisePath(usePathname() ?? "/");
   const [open, setOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const { inSage } = useSage();
-  const nav = inSage ? [...NAV, { href: routes.wallet(), label: "My wallet", match: (p: string) => p.startsWith("/wallet") }] : NAV;
+  const wallet: NavItem = { href: routes.wallet(), label: "My wallet", match: (p) => p.startsWith("/wallet") };
+  const primary = inSage ? [...PRIMARY, wallet] : PRIMARY;
+  const moreActive = MORE.some((item) => item.match(pathname));
+  const allMobile = [...primary, ...MORE, { href: routes.settings(), label: "Settings", match: (p: string) => p.startsWith("/settings") }];
+
   return (
     <header className="relative sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-3 px-3 sm:gap-4 sm:px-4">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <Link href={routes.home()} aria-label="mempoolxch.space home" className="shrink-0">
           <Logo />
         </Link>
-        <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
-          {nav.map((item) => {
-            const active = item.match(pathname);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
+        <nav aria-label="Primary" className={cn("hidden shrink-0 items-center gap-0.5 transition-[opacity,width] duration-150 lg:flex", searchFocused && "lg:hidden")}>
+          {primary.map((item) => (
+            <NavLink key={item.href} item={item} active={item.match(pathname)} />
+          ))}
+          <Popover
+            label="More pages"
+            trigger={({ open: moreOpen, toggle }) => (
+              <button
+                type="button"
+                onClick={toggle}
+                aria-expanded={moreOpen}
+                aria-haspopup="true"
                 className={cn(
-                  "relative rounded-sm px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
-                  active && "text-fg"
+                  "relative inline-flex items-center gap-1 rounded-sm px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
+                  (moreActive || moreOpen) && "text-fg"
                 )}
               >
-                {item.label === "My wallet" ? <Wallet size={14} className="mr-1 inline" aria-hidden="true" /> : null}
-                {item.label}
+                More
+                <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform", moreOpen && "rotate-180")} />
                 <span
                   aria-hidden="true"
-                  className={cn("absolute inset-x-2 -bottom-[9px] h-0.5 rounded-full bg-primary transition-opacity", active ? "opacity-100" : "opacity-0")}
+                  className={cn("absolute inset-x-2 -bottom-[9px] h-0.5 rounded-full bg-primary transition-opacity", moreActive && "opacity-100")}
                 />
-              </Link>
-            );
-          })}
+              </button>
+            )}
+          >
+            {MORE.map((item) => {
+              const active = item.match(pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  role="menuitem"
+                  aria-current={active ? "page" : undefined}
+                  className={cn("block rounded-sm px-3 py-2 text-sm font-medium text-fg-muted hover:bg-surface-2 hover:text-fg", active && "bg-surface-2 text-fg")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </Popover>
         </nav>
-        <div className="hidden flex-1 md:block">
-          <SearchBox className="mx-auto max-w-2xl" size="lg" />
+        <div className="min-w-0 flex-1">
+          <SearchBox
+            size="lg"
+            onFocusChange={setSearchFocused}
+            className={cn("transition-[max-width] duration-200 ease-out", searchFocused ? "max-w-none" : "max-w-none lg:max-w-[260px]")}
+          />
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <SagePriceChip />
           <NetworkSwitch className="hidden sm:inline-flex" />
           <ConnectionIndicator compact />
@@ -71,6 +129,7 @@ export function Header() {
           <Link
             href={routes.settings()}
             aria-label="Settings"
+            title="Settings"
             className="hidden h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
           >
             <Settings size={18} aria-hidden="true" />
@@ -78,6 +137,7 @@ export function Header() {
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
+            title={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-sm text-fg-muted hover:bg-surface-2 lg:hidden"
@@ -86,13 +146,10 @@ export function Header() {
           </button>
         </div>
       </div>
-      <div className="border-t border-border/60 px-3 py-2.5 sm:px-4 md:hidden">
-        <SearchBox size="lg" />
-      </div>
       {open ? (
         <nav aria-label="Mobile" className="border-t border-border bg-bg-elevated px-4 py-3 lg:hidden">
           <ul className="flex flex-col gap-1">
-            {[...nav, { href: routes.settings(), label: "Settings", match: (p: string) => p.startsWith("/settings") }].map((item) => (
+            {allMobile.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

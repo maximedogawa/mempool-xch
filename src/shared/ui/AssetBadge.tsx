@@ -8,32 +8,16 @@ import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import { KindBadge } from "./Badge";
 
-/** Original XCH mark: a green disc with a leaf. */
-export function XchIcon({ size = 18, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={cn("shrink-0", className)}>
-      <circle cx="12" cy="12" r="11" fill="var(--primary-strong)" />
-      <circle cx="12" cy="12" r="11" fill="url(#xchShine)" opacity="0.35" />
-      <path d="M7.2 14.6c1.9-4.4 5.6-6.4 10-6.1-1.1 4.6-4.4 7.4-9.1 7-0.3 0-0.6-0.1-0.9-0.1 0.9-1.9 2.6-3.3 4.6-4.1-2.1 0.4-3.6 1.4-4.6 3.3z" fill="#f2fff5" />
-      <defs>
-        <radialGradient id="xchShine" cx="0.3" cy="0.25" r="0.8">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-    </svg>
-  );
-}
-
 /**
- * Icon for an asset kind. CAT icons: an explicit `iconUrl` (what the Sage wallet already
- * resolved), else the registry's, else Dexie's deterministic per-id icon; a two-letter badge
- * when the image does not exist.
+ * Icon for an asset kind. No icon for XCH: the native asset does not need a badge to be
+ * recognised. CAT icons: an explicit `iconUrl` (what the Sage wallet already resolved), else the
+ * registry's, else Dexie's deterministic per-id icon; a two-letter badge when the image does not
+ * exist.
  */
 export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  if (kind === "xch") return <XchIcon size={size} className={className} />;
+  if (kind === "xch") return null;
   if (kind === "cat") {
     // Candidates in order: what the wallet resolved, the registry, Dexie's per-id icon. A blocked
     // or missing image (Sage CSP, 404) moves on to the next one before the letter badge.

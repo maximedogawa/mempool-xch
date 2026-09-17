@@ -15,10 +15,12 @@ const KIND_TONE: Record<NftEventKind, "primary" | "info" | "xch" | "danger"> = {
 export function NftEventRow({ event }: { event: NftEvent }) {
   const nftId = launcherIdToNftId(event.nftId);
   return (
-    <li className="flex items-center gap-3 py-2.5 text-sm">
-      <AssetImage urls={event.thumbnailUrl ? [event.thumbnailUrl] : []} alt="" className="h-10 w-10 shrink-0" rounded="rounded-sm" />
+    <li className="group flex items-center gap-3 py-2.5 text-sm">
+      <Link href={routes.nft(nftId)} className="shrink-0 overflow-hidden rounded-lg ring-1 ring-border transition-all group-hover:ring-primary/50">
+        <AssetImage urls={event.thumbnailUrl ? [event.thumbnailUrl] : []} alt="" className="h-11 w-11 transition-transform duration-200 group-hover:scale-105" rounded="" />
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <Link href={routes.nft(nftId)} className="truncate font-medium text-fg hover:text-accent">
+        <Link href={routes.nft(nftId)} className="truncate font-medium text-fg group-hover:text-accent">
           {event.nftName ?? nftId}
         </Link>
         <span className="truncate text-xs text-fg-faint">

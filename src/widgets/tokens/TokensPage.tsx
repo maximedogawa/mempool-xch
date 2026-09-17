@@ -11,6 +11,7 @@ import type { TokenInfo } from "@/shared/api/tokenList";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
 import { Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { RECENT_SAMPLE, useTokenActivity } from "./useTokenActivity";
 import { SCAN_LIMIT, useTokenScan } from "./useTokenScan";
 
@@ -156,12 +157,13 @@ export function TokensPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">Tokens</h1>
-        <p className="text-sm text-fg-muted">
-          Every CAT the Dexie registry knows a name for, {formatNumber(allTokens.length)} in total. Activity figures come from Coinset&apos;s{" "}
-          <span className="mono">get_transactions_by_cat_asset_id</span> per asset on request — first seen is exact, spends and volume are a sample of the
-          most recent {RECENT_SAMPLE} transfers (marked with a + when there are more), nothing kept on our server (decision-012).
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Tokens</h1>
+          <Tooltip
+            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(allTokens.length)} in total. Activity figures come from Coinset's get_transactions_by_cat_asset_id per asset on request — first seen is exact, spends and volume are a sample of the most recent ${RECENT_SAMPLE} transfers (marked with a + when there are more), nothing kept on our server (decision-012).`}
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <Card>

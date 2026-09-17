@@ -5,6 +5,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { formatAmount, formatCost, formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { formatBytes } from "@/shared/lib/charts/format";
 import { formatDuration } from "@/shared/lib/format/time";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { ChartControls, type ChartControlsState } from "./ChartControls";
 import { ChartCard, type ChartSpec } from "./ChartCard";
 import { useBlocksChartSeries, useMempoolChartSeries, useNetworkChartSeries } from "./useChartSeries";
@@ -46,11 +47,13 @@ export function ChartsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">Charts</h1>
-        <p className="text-sm text-fg-muted">
-          Series built on request from {endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server (decision-012); a
-          series a provider cannot answer is shown greyed with a note instead of guessed at.
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Charts</h1>
+          <Tooltip
+            text={`Series built on request from ${endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server (decision-012); a series a provider cannot answer is shown greyed with a note instead of guessed at.`}
+            placement="bottom"
+          />
+        </div>
       </header>
 
       <ChartControls value={controls} onChange={setControls} />

@@ -18,10 +18,11 @@ test.describe("pools", () => {
     await expect(page.getByText(/50\.0% of blocks/)).toBeVisible();
   });
 
-  test("navigates from the top nav", async ({ page, isMobile }) => {
+  test("navigates from the top nav's More menu", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop nav only; mobile nav is covered by keyboard.spec.ts's touch-target test");
     await page.goto("/");
-    await page.getByRole("link", { name: "Pools", exact: true }).click();
+    await page.getByRole("button", { name: "More" }).click();
+    await page.getByRole("menuitem", { name: "Pools" }).click();
     await expect(page).toHaveURL(/\/pools/);
     await expect(page.getByRole("heading", { level: 1, name: "Pools" })).toBeVisible();
   });

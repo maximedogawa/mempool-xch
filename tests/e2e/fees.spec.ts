@@ -19,11 +19,11 @@ test.describe("fees", () => {
       await expect(page.getByText(label)).toBeVisible();
     }
 
-    const distribution = page.getByRole("heading", { name: "Rate distribution" }).locator("..").locator("..");
+    const distribution = page.getByRole("region", { name: "Rate distribution" });
     const bracketLabels = distribution.locator("tbody td:first-child");
     await expect(bracketLabels).toHaveText(["0", "0-1", "1-3", "3-5", "5-10", "10-25", "25-50", "50+"]);
 
-    const costs = page.getByRole("heading", { name: "What a transfer costs" }).locator("..").locator("..");
+    const costs = page.getByRole("region", { name: "What a transfer costs" });
     for (const label of ["Plain transfer", "Transfer with 3 inputs", "Send a CAT", "Transfer an NFT", "Accept an offer"]) {
       await expect(costs.getByText(label)).toBeVisible();
     }

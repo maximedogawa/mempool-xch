@@ -29,15 +29,15 @@ test.describe("NFT section", () => {
   test("activity page filters by kind", async ({ page }) => {
     await page.goto("/nfts/activity");
     await expect(page.getByRole("heading", { level: 1, name: "NFT activity" })).toBeVisible();
-    await expect(page.getByText("Sale").first()).toBeVisible();
+    await expect(page.getByText("Sale", { exact: true }).first()).toBeVisible();
     await page.getByRole("radio", { name: "Mints" }).click();
-    await expect(page.getByText("Mint").first()).toBeVisible();
+    await expect(page.getByText("Mint", { exact: true }).first()).toBeVisible();
   });
 
   test("mints page lists only mints", async ({ page }) => {
     await page.goto("/nfts/mints");
     await expect(page.getByRole("heading", { level: 1, name: "New mints" })).toBeVisible();
-    await expect(page.getByText("Mint").first()).toBeVisible();
+    await expect(page.getByText("Mint", { exact: true }).first()).toBeVisible();
   });
 
   test("item page shows open offers with a copy action and a Dexie link", async ({ page }) => {

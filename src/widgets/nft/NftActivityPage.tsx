@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/shared/lib/cn";
 import type { NftEventKind } from "@/shared/lib/nft/mintgarden";
 import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton } from "@/shared/ui";
+import { Tooltip } from "@/shared/ui/Tooltip";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents } from "./useNftSection";
 
@@ -23,8 +24,10 @@ export function NftActivityPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">NFT activity</h1>
-        <p className="text-sm text-fg-muted">Mints, transfers, sales and burns across every collection MintGarden indexes, newest first.</p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">NFT activity</h1>
+          <Tooltip text="Mints, transfers, sales and burns across every collection MintGarden indexes, newest first." placement="bottom" />
+        </div>
       </header>
 
       <Card>
