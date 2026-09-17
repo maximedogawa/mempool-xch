@@ -70,7 +70,9 @@ describe("normaliseMintGardenNft", () => {
       },
       owner_address: { id: "9fbd", encoded_id: "xch1..." },
       creator_address: { id: "0xAB" },
-      royalty_percentage: 15,
+      // MintGarden's royalty_percentage is CHIP-0007 TRADE_PRICE_PERCENTAGE basis points already
+      // (300 = 3%), not a percent needing scaling — see nftMetadata.test.ts for the regression.
+      royalty_percentage: 300,
     });
     expect(meta.name).toBe("ChiaLover #1");
     expect(meta.collectionName).toBe("ChiaLover");
@@ -82,7 +84,7 @@ describe("normaliseMintGardenNft", () => {
     ]);
     expect(meta.ownerP2).toBe("9fbd");
     expect(meta.creatorP2).toBe("ab");
-    expect(meta.royaltyBasisPoints).toBe(1500);
+    expect(meta.royaltyBasisPoints).toBe(300);
     expect(normaliseMintGardenNft(null).name).toBeNull();
   });
 });
