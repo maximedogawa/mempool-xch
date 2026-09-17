@@ -6,6 +6,7 @@ import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
+import { isHttpsUrl, isTrustedImageUrl } from "@/shared/lib/trustedImage";
 import { KindBadge } from "./Badge";
 
 /**
@@ -20,8 +21,16 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
   if (kind === "xch") return null;
   if (kind === "cat") {
     // Candidates in order: what the wallet resolved, the registry, Dexie's per-id icon. A blocked
-    // or missing image (Sage CSP, 404) moves on to the next one before the letter badge.
-    const candidates = [iconUrl, token?.iconUrl, assetId ? dexieIconUrl(assetId) : null].filter((u): u is string => !!u);
+    // or missing image (Sage CSP, 404) moves on to the next one before the letter badge. The
+    // wallet-resolved icon only needs https (it comes through the Sage bridge, not a remote
+    // page's own content, src/shared/lib/sage/wallet.ts applies the same check at its source);
+    // the registry and Dexie candidates are also host-restricted since they're not always
+    // constructed in-app (TASK-051).
+    const candidates = [
+      iconUrl && isHttpsUrl(iconUrl) ? iconUrl : null,
+      token?.iconUrl && isTrustedImageUrl(token.iconUrl) ? token.iconUrl : null,
+      assetId ? dexieIconUrl(assetId) : null,
+    ].filter((u): u is string => !!u);
     const src = candidates.find((u) => !failed.has(u)) ?? null;
     if (src) {
       return (
