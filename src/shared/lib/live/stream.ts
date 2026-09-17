@@ -9,18 +9,10 @@ export type LiveEvent =
   | { type: "peak"; height: number; tx: boolean }
   | { type: "transaction"; ids: string[]; status: "pending" | "confirmed" | "removed"; height: number | null }
   | { type: "status"; status: LiveStatus }
-  | { type: "mempool"; size: number }
-  /** Server hub: bundles entered / left the mempool (counts only). */
-  | { type: "mempool_delta"; added: number; removed: number }
-  /** Server hub: a block with statistics landed. */
-  | { type: "block"; height: number; tx: boolean }
-  /** Server hub could not replay what was missed: refetch everything. */
-  | { type: "resync" }
-  /** The hosted chain cache is ready for a new peak (records; later asset totals). */
-  | { type: "chain"; height: number; assets: boolean };
+  | { type: "mempool"; size: number };
 
 /** Transport the stream ended up using. */
-export type LiveTransport = "sse" | "websocket" | "polling";
+export type LiveTransport = "websocket" | "polling";
 
 export interface PollSample {
   peakHeight: number;
@@ -29,8 +21,6 @@ export interface PollSample {
 }
 
 export interface LiveStreamOptions {
-  /** Server-sent events endpoint of the hosted app; preferred over the direct WebSocket. */
-  sseUrl?: string | null;
   /** Null → polling only. */
   wsUrl: string | null;
   poll: () => Promise<PollSample>;
@@ -39,7 +29,6 @@ export interface LiveStreamOptions {
   /** Fall back to polling after this many consecutive WebSocket failures. */
   maxWsFailures?: number;
   WebSocketImpl?: typeof WebSocket;
-  EventSourceImpl?: typeof EventSource;
   setTimeoutImpl?: (fn: () => void, ms: number) => TimerId;
   clearTimeoutImpl?: (id: TimerId) => void;
 }
@@ -52,48 +41,6 @@ export interface LiveStream {
   readonly status: LiveStatus;
   readonly transport: LiveTransport;
 }
-
-/** Map one server-sent event (name + JSON payload) to a live event, or null when irrelevant. */
-export function parseServerEvent(name: string, raw: string): LiveEvent | null {
-  let data: Record<string, unknown>;
-  try {
-    data = JSON.parse(raw) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-  switch (name) {
-    case "peak": {
-      const height = Number(data.height);
-      return Number.isFinite(height) ? { type: "peak", height, tx: Boolean(data.tx) } : null;
-    }
-    case "transaction": {
-      const ids = Array.isArray(data.ids) ? data.ids.map((id) => String(id)) : [];
-      const status = data.status === "confirmed" || data.status === "removed" ? data.status : "pending";
-      return { type: "transaction", ids, status, height: typeof data.height === "number" ? data.height : null };
-    }
-    case "live":
-      return typeof data.txCount === "number" ? { type: "mempool", size: data.txCount } : null;
-    case "mempool_delta":
-      return { type: "mempool_delta", added: typeof data.added === "number" ? data.added : Array.isArray(data.added) ? data.added.length : 0, removed: typeof data.removed === "number" ? data.removed : Array.isArray(data.removed) ? data.removed.length : 0 };
-    case "block": {
-      const stats = (data.stats ?? {}) as Record<string, unknown>;
-      const height = Number(stats.height);
-      return Number.isFinite(height) ? { type: "block", height, tx: Boolean(stats.isTransactionBlock) } : null;
-    }
-    case "resync":
-      return { type: "resync" };
-    case "chain": {
-      const height = Number(data.height);
-      return Number.isFinite(height) ? { type: "chain", height, assets: Boolean(data.assets) } : null;
-    }
-    default:
-      return null;
-  }
-}
-
-const SERVER_EVENT_NAMES = ["peak", "transaction", "live", "mempool_delta", "block", "resync", "chain"] as const;
-/** After an SSE drop the browser reconnects by itself; only show "connecting" if that takes long. */
-const SSE_GRACE_MS = 10_000;
 
 interface CoinsetEnvelope {
   message?: { type?: string; data?: Record<string, unknown> };
@@ -137,13 +84,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
   const pollInterval = options.pollIntervalMs ?? 5_000;
   const maxWsFailures = options.maxWsFailures ?? 3;
   const WS = options.WebSocketImpl ?? (typeof WebSocket !== "undefined" ? WebSocket : undefined);
-  const ES = options.EventSourceImpl ?? (typeof EventSource !== "undefined" ? EventSource : undefined);
 
   let status: LiveStatus = "offline";
   let transport: LiveTransport = "polling";
-  let source: EventSource | null = null;
-  let sseFailures = 0;
-  let sseGraceTimer: TimerId | null = null;
   let stopped = true;
   let socket: WebSocket | null = null;
   let wsFailures = 0;
@@ -161,80 +104,8 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
   const clearTimers = () => {
     if (reconnectTimer !== null) clearT(reconnectTimer);
     if (pollTimer !== null) clearT(pollTimer);
-    if (sseGraceTimer !== null) clearT(sseGraceTimer);
     reconnectTimer = null;
     pollTimer = null;
-    sseGraceTimer = null;
-  };
-
-  const closeSource = () => {
-    const es = source;
-    source = null;
-    if (es) {
-      es.onopen = null;
-      es.onerror = null;
-      es.close();
-    }
-  };
-
-  /** Server-sent events from the hosted app: the browser reconnects by itself with Last-Event-ID. */
-  const connectSse = () => {
-    if (stopped || !options.sseUrl || !ES) return;
-    transport = "sse";
-    setStatus("connecting");
-    let es: EventSource;
-    try {
-      es = new ES(options.sseUrl);
-    } catch {
-      onSseFailure();
-      return;
-    }
-    source = es;
-    es.onopen = () => {
-      sseFailures = 0;
-      if (sseGraceTimer !== null) clearT(sseGraceTimer);
-      sseGraceTimer = null;
-      setStatus("live");
-    };
-    es.onerror = () => {
-      if (source !== es) return;
-      if (es.readyState === 2) {
-        // CLOSED: the browser gave up (fatal response); fall back to the direct channels.
-        source = null;
-        onSseFailure();
-        return;
-      }
-      // CONNECTING: automatic reconnect in progress; show it only if it drags on.
-      if (sseGraceTimer === null) {
-        sseGraceTimer = setT(() => {
-          sseGraceTimer = null;
-          if (source === es && status === "live") setStatus("connecting");
-        }, SSE_GRACE_MS);
-      }
-    };
-    SERVER_EVENT_NAMES.forEach((name) => {
-      es.addEventListener(name, (event) => {
-        const parsed = parseServerEvent(name, String((event as MessageEvent).data));
-        if (parsed) options.onEvent(parsed);
-      });
-    });
-  };
-
-  const onSseFailure = () => {
-    if (stopped) return;
-    sseFailures += 1;
-    closeSource();
-    if (sseFailures >= maxWsFailures) {
-      // The hosted stream is gone for good this session: use the direct WebSocket or polling.
-      if (options.wsUrl && WS) connect();
-      else {
-        transport = "polling";
-        setStatus("polling");
-      }
-      return;
-    }
-    setStatus("connecting");
-    reconnectTimer = setT(connectSse, backoffDelay(sseFailures));
   };
 
   const schedulePoll = (delay: number) => {
@@ -248,9 +119,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     try {
       const sample = await options.poll();
       pollFailures = 0;
-      // Only the fallback poll owns the status; with a stream (socket or SSE) open or opening,
-      // a poll that finishes later must not overwrite "live" with "polling".
-      if (socket === null && source === null) setStatus("polling");
+      // Only the fallback poll owns the status; with a socket open or opening, a poll that
+      // finishes later must not overwrite "live" with "polling".
+      if (socket === null) setStatus("polling");
       if (lastSample === null || sample.peakHeight !== lastSample.peakHeight) {
         options.onEvent({ type: "peak", height: sample.peakHeight, tx: sample.peakIsTx });
       }
@@ -260,7 +131,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       lastSample = sample;
     } catch {
       pollFailures += 1;
-      if (pollFailures >= 2 && socket === null && source === null) setStatus("offline");
+      if (pollFailures >= 2 && socket === null) setStatus("offline");
     }
     schedulePoll(pollInterval);
   };
@@ -321,13 +192,11 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       stopped = false;
       lastSample = null;
       wsFailures = 0;
-      sseFailures = 0;
       pollFailures = 0;
       // Polling always runs: it is the fallback and it also feeds the peak/mempool sample
-      // when the stream is silent. The stream, when available, adds immediate events.
+      // when the socket is silent. The socket, when available, adds immediate events.
       void runPoll();
-      if (options.sseUrl && ES) connectSse();
-      else if (options.wsUrl && WS) connect();
+      if (options.wsUrl && WS) connect();
       else {
         transport = "polling";
         setStatus("polling");
@@ -336,7 +205,6 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     stop() {
       stopped = true;
       clearTimers();
-      closeSource();
       const ws = socket;
       socket = null;
       if (ws) {

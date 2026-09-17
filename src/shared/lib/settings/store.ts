@@ -37,23 +37,7 @@ export interface ResolvedEndpoints {
   indexedUrl: string | null;
   /** Null when the endpoint is not Coinset (WebSocket unavailable → polling). */
   wsUrl: string | null;
-  /** Summary API on the hosted origin; null when the endpoint is custom (browser fallback). */
-  summaryUrl: string | null;
-  /** Chain cache (state, recent blocks, fee) on the hosted origin; null for custom endpoints. */
-  chainUrl: string | null;
-  /**
-   * Server-sent events on the hosted origin. Null for custom endpoints and in the static Sage
-   * snapshot, which keeps the direct Coinset WebSocket as its live channel (decision-006).
-   */
-  eventsUrl: string | null;
   isCoinset: boolean;
-}
-
-const SAGE_SNAPSHOT = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
-
-/** Origin of the hosted app for the Sage snapshot; same-origin ("") for the hosted build. */
-export function apiOrigin(): string {
-  return (process.env.NEXT_PUBLIC_API_ORIGIN ?? "").replace(/\/$/, "");
 }
 
 export function resolveEndpoints(settings: Settings, network: NetworkId = settings.network): ResolvedEndpoints {
@@ -64,10 +48,6 @@ export function resolveEndpoints(settings: Settings, network: NetworkId = settin
     rpcUrl: rpcUrl.replace(/\/$/, ""),
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
-    summaryUrl: isCoinset ? `${apiOrigin()}/api/${network}/mempool` : null,
-    // 64 records cover the widest recent-block strip (20 tx blocks) at ~40 KB per response.
-    chainUrl: isCoinset ? `${apiOrigin()}/api/${network}/chain?blocks=64` : null,
-    eventsUrl: isCoinset && !SAGE_SNAPSHOT ? `${apiOrigin()}/api/${network}/events` : null,
     isCoinset,
   };
 }

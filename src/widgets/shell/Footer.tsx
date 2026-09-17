@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useServerStatus } from "@/shared/api/hooks";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { routes } from "@/shared/lib/routes";
 import { useConsent } from "@/shared/providers/ConsentProvider";
@@ -14,9 +13,8 @@ export function Footer() {
   const { endpoints, networkConfig } = useSettings();
   const { inSage } = useSage();
   const { status, transport } = useLive();
-  const server = useServerStatus();
   const { openSettings } = useConsent();
-  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset });
   const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
   const sha = process.env.NEXT_PUBLIC_COMMIT_SHA ?? "";
   return (
