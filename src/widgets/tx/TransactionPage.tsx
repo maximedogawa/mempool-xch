@@ -7,18 +7,21 @@ import { useBlockchainState, useProjectedBlocks } from "@/shared/api/hooks";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { feePerCost, formatAmount, formatCat, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { hexToUtf8IfText } from "@/shared/lib/chia/hex";
-import { formatAge, formatDateTime, formatEta } from "@/shared/lib/format/time";
+import { formatAge, formatDateTime, formatDuration, formatEta } from "@/shared/lib/format/time";
 import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
+import { lookupPool } from "@/shared/lib/pools/registry";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
 import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
+import { useBlock } from "@/widgets/block/useBlock";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useTransaction } from "./useTransaction";
+import { costVerdict, waitedSeconds } from "./verdict";
 
 function RawJson({ label, value }: { label: string; value: unknown }) {
   const [open, setOpen] = useState(false);
@@ -194,11 +197,14 @@ function SemanticSummary({ summary }: { summary: TxSummary }) {
 }
 
 export function TransactionPage({ id }: { id: string | null }) {
-  const { endpoints } = useSettings();
+  const { endpoints, networkConfig } = useSettings();
   const tx = useTransaction(id);
   const state = useBlockchainState();
   const projected = useProjectedBlocks(8);
   const position = useMemo(() => (id ? findProjectedPosition(projected.blocks, id) : null), [projected.blocks, id]);
+  // Called unconditionally (rules of hooks): the confirming block, once known, for "farmed by".
+  const confirmedHeight = tx.data && tx.data.status !== "pending" && tx.data.status !== "not_found" ? tx.data.summary.confirmedHeight : null;
+  const confirmedBlock = useBlock(confirmedHeight !== null ? String(confirmedHeight) : "");
 
   if (!id) {
     return <EmptyState title="No transaction id" description="Open a transaction from the dashboard or paste an id into the search box." />;
@@ -288,10 +294,17 @@ export function TransactionPage({ id }: { id: string | null }) {
   const confirmations = summary.confirmedHeight !== null && peak !== null ? Math.max(0, peak - summary.confirmedHeight + 1) : null;
   const flow = flowFromEvents(summary.events);
   const rate = feePerCost(summary.feeMojos, summary.cost);
+  const blockMaxCost = state.data?.blockMaxCost ?? 11_000_000_000;
+  const verdict = costVerdict(summary.feeMojos, summary.cost, blockMaxCost);
+  const endMs = summary.confirmedAtMs ?? summary.removedAtMs;
+  const waited = waitedSeconds(summary.firstSeenMs, endMs);
+  const record = confirmedBlock.data?.record;
+  const poolEntry = record ? lookupPool(record.poolPuzzleHash) : null;
+  const soloFarmer = record ? record.poolPuzzleHash === record.farmerPuzzleHash : false;
   return (
     <div className="flex flex-col gap-4">
       <Heading id={id} status={view.status} kind={<SummaryKindBadge kind={summary.kind} />} />
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         <StatTile
           label={view.status === "removed" ? "Dropped" : "Block"}
           value={
@@ -313,8 +326,47 @@ export function TransactionPage({ id }: { id: string | null }) {
         />
         <StatTile label="Fee" value={formatAmount(summary.feeMojos)} sub={summary.cost > 0 ? `${formatFeeRate(rate)} mojo / cost` : undefined} />
         <StatTile label="Cost" value={summary.cost > 0 ? formatCost(summary.cost) : "n/a"} sub={summary.source === "inferred" ? "inferred from chain (no cost recorded)" : `${formatNumber(summary.cost)} CLVM cost`} />
+        <StatTile label="Verdict" value={verdict.label} sub={verdict.detail} tone={summary.feeMojos === 0n ? "default" : "primary"} />
       </div>
-      {summary.firstSeenMs ? <p className="text-xs text-fg-faint">First seen in the mempool {formatAge(summary.firstSeenMs)} ({formatDateTime(summary.firstSeenMs)}).</p> : null}
+      {summary.confirmedHeight !== null ? (
+        <div className="text-xs text-fg-faint" data-testid="farmed-by">
+          Farmed by{" "}
+          {record ? (
+            poolEntry ? (
+              <a href={poolEntry.url} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
+                {poolEntry.name}
+              </a>
+            ) : soloFarmer ? (
+              <span className="text-fg-muted">an unidentified solo farmer</span>
+            ) : (
+              <>
+                an unidentified pool at{" "}
+                <Hash value={puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix)} href={routes.address(puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix))} head={8} tail={5} />
+              </>
+            )
+          ) : confirmedBlock.isLoading ? (
+            "…"
+          ) : (
+            "unknown"
+          )}
+          {" · "}
+          <Link href={routes.block(summary.confirmedHeight)} className="text-accent hover:underline">
+            block details
+          </Link>
+        </div>
+      ) : null}
+      {summary.firstSeenMs ? (
+        <p className="text-xs text-fg-faint">
+          First seen in the mempool {formatAge(summary.firstSeenMs)} ({formatDateTime(summary.firstSeenMs)}).
+          {waited !== null ? (
+            <>
+              {" "}
+              Waited {formatDuration(waited)} before {view.status === "removed" ? "being removed" : "confirming"} — based on a first-seen sample, not a
+              consensus fact.
+            </>
+          ) : null}
+        </p>
+      ) : null}
       <SemanticSummary summary={summary} />
       <Card>
         <CardHeader title="Coins" />
