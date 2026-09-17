@@ -58,6 +58,10 @@ export interface BlockRecord {
   rewardClaimsIncorporated: Coin[] | null;
   overflow: boolean;
   signagePointIndex: number;
+  /** Blocks left before the reward chain's challenge can be infused (0 to 16). */
+  deficit: number;
+  /** True when this block carries a sub-epoch summary. */
+  subEpochSummaryIncluded: boolean;
   isTransactionBlock: boolean;
 }
 

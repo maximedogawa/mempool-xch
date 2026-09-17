@@ -18,6 +18,8 @@ const record = (height: number): BlockRecord => ({
   rewardClaimsIncorporated: null,
   overflow: false,
   signagePointIndex: 0,
+  deficit: 0,
+  subEpochSummaryIncluded: false,
   isTransactionBlock: height % 3 === 0,
 });
 

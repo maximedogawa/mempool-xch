@@ -111,6 +111,8 @@ export function normaliseBlockRecord(raw: unknown): BlockRecord {
       : null,
     overflow: Boolean(r.overflow),
     signagePointIndex: num(r.signage_point_index),
+    deficit: num(r.deficit),
+    subEpochSummaryIncluded: r.sub_epoch_summary_included !== null && r.sub_epoch_summary_included !== undefined,
     isTransactionBlock: timestamp !== null,
   };
 }
@@ -120,7 +122,11 @@ export function normaliseFullBlock(raw: unknown): FullBlockSummary {
   const ftb = r.foliage_transaction_block ? asRaw(r.foliage_transaction_block) : null;
   const info = r.transactions_info ? asRaw(r.transactions_info) : null;
   const rewardChain = asRaw(r.reward_chain_block);
+  // Coinset leaves transactions_generator out of get_block, so a non-zero generator root (or
+  // any cost) is the reliable sign that the block carries spends.
   const generator = str(r.transactions_generator);
+  const generatorRoot = info ? str(info.generator_root).replace(/^0x/, "") : "";
+  const hasGenerator = generator.length > 2 || /[1-9a-f]/i.test(generatorRoot) || (info ? num(info.cost) > 0 : false);
   return {
     headerHash: hex(r.header_hash),
     height: num(rewardChain.height),
@@ -129,7 +135,7 @@ export function normaliseFullBlock(raw: unknown): FullBlockSummary {
     cost: info ? num(info.cost) : 0,
     fees: info ? big(info.fees) : 0n,
     rewardClaimsIncorporated: info ? arr(info.reward_claims_incorporated).map(normaliseCoin) : [],
-    hasGenerator: generator.length > 2,
+    hasGenerator,
     prevTransactionBlockHash: ftb ? hex(ftb.prev_transaction_block_hash) : null,
   };
 }

@@ -4,6 +4,7 @@ import blockRecords from "@/test-utils/fixtures/block_records.json";
 import blockTransactions from "@/test-utils/fixtures/block_transactions.json";
 import feeEstimate from "@/test-utils/fixtures/fee_estimate.json";
 import fullBlock from "@/test-utils/fixtures/full_block.json";
+import fullBlockTx from "@/test-utils/fixtures/full_block_tx.json";
 import mempoolItems from "@/test-utils/fixtures/mempool_items.json";
 import xchBalance from "@/test-utils/fixtures/xch_balance.json";
 import catBalances from "@/test-utils/fixtures/cat_balances.json";
@@ -66,6 +67,10 @@ describe("normalisers with recorded Coinset fixtures", () => {
     expect(b.timestamp).toBe(1789478866);
     expect(b.cost).toBe(0);
     expect(b.hasGenerator).toBe(false);
+    // Coinset omits transactions_generator; the generator root still shows the block has spends.
+    const tx = normaliseFullBlock(fullBlockTx.block);
+    expect(tx.cost).toBe(35419356);
+    expect(tx.hasGenerator).toBe(true);
   });
   test("mempool items", () => {
     const items = Object.values(mempoolItems.mempool_items).map(normaliseMempoolItem);

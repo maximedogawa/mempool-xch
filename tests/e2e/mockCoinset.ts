@@ -1,5 +1,6 @@
 import type { Page, Route } from "@playwright/test";
 import blockRecords from "../../src/test-utils/fixtures/block_records.json";
+import { coinName } from "../../src/shared/lib/chia/coin";
 import blockTransactions from "../../src/test-utils/fixtures/block_transactions.json";
 import blockchainState from "../../src/test-utils/fixtures/blockchain_state.json";
 import feeEstimate from "../../src/test-utils/fixtures/fee_estimate.json";
@@ -84,6 +85,35 @@ const json = (route: Route, body: unknown, status = 200) =>
 
 export const TX_ID = blockTransactions.transactions[0]!.id;
 export const TX_BLOCK_HEIGHT = 9295514;
+export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef";
+
+const hash = (n: number) => n.toString(16).padStart(64, "0");
+
+function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { coinbase?: boolean; spent?: boolean } = {}) {
+  const coin = { parent_coin_info: `0x${parent}`, puzzle_hash: `0x${puzzleHash}`, amount: Number(amount) };
+  const name = coinName({ parentCoinInfo: parent, puzzleHash, amount });
+  const record = { coin, coinbase: opts.coinbase ?? false, confirmed_block_index: TX_BLOCK_HEIGHT, spent: opts.spent ?? false, spent_block_index: opts.spent ? TX_BLOCK_HEIGHT : 0, timestamp: 1_789_000_000 };
+  return { name, record };
+}
+
+/**
+ * Additions and removals of the transaction block with exact parent links: one spend creating
+ * twelve coins (collapsed after ten), one creating a coin that is spent again in the same block,
+ * and one reward coin.
+ */
+export function blockCoinFlow() {
+  const big = coinRecord(hash(0xa1), hash(0xb1), 5_000_000_000_000n, { spent: true });
+  const small = coinRecord(hash(0xa2), hash(0xb2), 300_000_000n, { spent: true });
+  const children = Array.from({ length: 12 }, (_, i) => coinRecord(big.name, hash(0xc0 + i), BigInt(400_000_000_000 - i)));
+  const ephemeral = coinRecord(small.name, hash(0xd1), 299_000_000n, { spent: true });
+  const grandchild = coinRecord(ephemeral.name, hash(0xd2), 299_000_000n);
+  const reward = coinRecord(hash(0xe1), P2, 875_000_000_000n, { coinbase: true });
+  return {
+    additions: [...children, ephemeral, grandchild, reward].map((c) => c.record),
+    removals: [big, small, ephemeral].map((c) => c.record),
+    success: true,
+  };
+}
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
 
 /** Route handler answering full-node RPC (and Coinset indexed) methods from the fixtures. */
@@ -138,13 +168,14 @@ export async function answerNodeMethod(route: Route) {
           (block.foliage_transaction_block as Record<string, unknown>).timestamp = rec.timestamp;
           (block.transactions_info as Record<string, unknown>).fees = rec.fees;
           (block.transactions_info as Record<string, unknown>).cost = rec.fees ? 80587336 : 0;
+          if (rec.fees) (block.transactions_info as Record<string, unknown>).generator_root = `0x${"74".repeat(32)}`;
         }
         return json(route, { block, success: true });
       }
       case "get_block_spends":
         return json(route, { block_spends: [], success: true });
       case "get_additions_and_removals":
-        return json(route, { additions: [], removals: [], success: true });
+        return json(route, String(body.header_hash).replace(/^0x/, "") === TX_BLOCK_HASH ? blockCoinFlow() : { additions: [], removals: [], success: true });
       case "get_block_transactions":
         return json(route, Number(body.height) === TX_BLOCK_HEIGHT ? blockTransactions : { transactions: [], success: true });
       case "get_transaction": {
