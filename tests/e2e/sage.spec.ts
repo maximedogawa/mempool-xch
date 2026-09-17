@@ -24,8 +24,8 @@ test.describe("Sage wallet on the dashboard", () => {
     await expect(page.getByRole("link", { name: /^Your spend bundle/ }).first()).toBeVisible();
     await expect(page.getByLabel(/Projected block 1: .*1 of yours/).first()).toBeVisible();
     // The chime toggle must not throw in a browser without audio.
-    await page.getByRole("button", { name: /chime/i }).click();
-    await page.getByRole("button", { name: /chime/i }).click();
+    await panel.getByRole("button", { name: /chime/i }).click();
+    await panel.getByRole("button", { name: /chime/i }).click();
     expect(errors).toEqual([]);
   });
 

@@ -174,6 +174,35 @@ export function blockCoinFlow() {
 }
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
 
+/** A real pending mempool item's id (mempool_items.json's first entry), reused for the watchlist. */
+export const WATCHED_PENDING_TX_ID = "124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd";
+
+function watchedPendingTx() {
+  return {
+    schema_version: 1,
+    id: WATCHED_PENDING_TX_ID,
+    source: "mempool",
+    status: "pending",
+    cost: 1_000_000,
+    fee_mojos: "0",
+    first_seen_ms: NOW,
+    confirmed_height: null,
+    confirmed_header_hash: null,
+    confirmed_at_ms: null,
+    last_updated_ms: NOW,
+    events: [
+      {
+        type: "Transfer",
+        fee_mojos: "0",
+        participants: [{ p2: `0x${P2}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "500000000", cats: [], nfts: [] } }],
+        inputs: [],
+        outputs: [],
+        memos: [],
+      },
+    ],
+  };
+}
+
 /** Route handler answering full-node RPC (and Coinset indexed) methods from the fixtures. */
 export async function answerNodeMethod(route: Route) {
     const url = new URL(route.request().url());
@@ -261,8 +290,13 @@ export async function answerNodeMethod(route: Route) {
         return json(route, { p2: `0x${P2}`, confirmed_balance: "2", locked_balance: "0", pending_balance: "0", pending_locked_balance: "0", success: true });
       case "get_transactions_by_p2":
         return json(route, blockTransactions);
-      case "get_pending_transactions_by_p2":
+      case "get_pending_transactions_by_p2": {
+        const p2 = String(body.p2 ?? "").replace(/^0x/, "").toLowerCase();
+        // A real pending mempool item's id, so the watchlist's queue position lines up with the
+        // compact mempool summary (mockSummary) rather than showing "not seen in the mempool yet".
+        if (p2 === P2) return json(route, { transactions: [watchedPendingTx()], success: true });
         return json(route, { transactions: [], success: true });
+      }
       case "get_transactions_by_cat_asset_id": {
         const assetId = String(body.asset_id ?? "").replace(/^0x/, "").toLowerCase();
         const all = syntheticCatActivity(assetId);

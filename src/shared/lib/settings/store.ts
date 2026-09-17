@@ -15,6 +15,8 @@ export interface Settings {
   recentBlocks: number;
   /** Soft chime when one of the connected wallet's transactions lands in a block. */
   sounds: boolean;
+  /** Opt-in browser notifications for the watchlist (TASK-071). Off until the visitor turns it on. */
+  notifications: boolean;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   recentBlocks: 8,
   sounds: true,
+  notifications: false,
 };
 
 export interface ResolvedEndpoints {
@@ -64,7 +67,8 @@ function sanitise(raw: unknown): Settings {
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
   const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
   const sounds = r.sounds !== false;
-  return { network, endpoints, theme, recentBlocks, sounds };
+  const notifications = r.notifications === true;
+  return { network, endpoints, theme, recentBlocks, sounds, notifications };
 }
 
 type Listener = () => void;

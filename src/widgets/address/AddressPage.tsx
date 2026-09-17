@@ -16,6 +16,7 @@ import { TxSummaryList } from "@/widgets/assets/TxSummaryList";
 import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
 import { SageAddressPanel } from "@/widgets/wallet/SagePanels";
+import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
 function Unavailable({ what }: { what: string }) {
@@ -65,6 +66,7 @@ export function AddressPage() {
             <span className="flex items-center gap-2">
               <Badge tone={endpoints.network === "mainnet" ? "primary" : "warning"}>{networkConfig.label}</Badge>
               {isDid ? <Badge tone="did">did:chia</Badge> : null}
+              {!isDid ? <WatchButton kind="address" id={ph} label={addressText} /> : null}
             </span>
           }
         />

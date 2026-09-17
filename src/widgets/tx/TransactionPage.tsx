@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { useBlockchainState, useProjectedBlocks } from "@/shared/api/hooks";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { feePerCost, formatAmount, formatCat, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
-import { hexToUtf8IfText } from "@/shared/lib/chia/hex";
+import { hexToUtf8IfText, shortId } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime, formatDuration, formatEta } from "@/shared/lib/format/time";
 import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
@@ -18,6 +18,7 @@ import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/t
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
 import { useBlock } from "@/widgets/block/useBlock";
+import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useTransaction } from "./useTransaction";
@@ -383,10 +384,13 @@ export function TransactionPage({ id }: { id: string | null }) {
 function Heading({ id, status, kind }: { id: string; status: "pending" | "confirmed" | "removed" | "unknown"; kind?: React.ReactNode }) {
   return (
     <header className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">Transaction</h1>
-        <StatusBadge status={status} />
-        {kind}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-semibold">Transaction</h1>
+          <StatusBadge status={status} />
+          {kind}
+        </div>
+        <WatchButton kind="tx" id={id} label={shortId(id)} />
       </div>
       <Hash value={id} full copy className="text-sm text-fg-muted" />
     </header>
