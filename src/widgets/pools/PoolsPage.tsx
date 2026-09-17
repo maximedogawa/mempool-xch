@@ -9,7 +9,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { groupLabel, poolColor, PoolShareBar } from "./PoolShareBar";
-import { POOL_SHARE_WINDOW, usePoolShare } from "./usePoolShare";
+import { usePoolShare } from "./usePoolShare";
 
 /** Rows shown before "Show all": the long tail is hundreds of one-block solo farmers. */
 const COLLAPSED_ROWS = 25;
@@ -42,15 +42,7 @@ export function PoolsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-lg font-semibold">Pools</h1>
-        <p className="max-w-3xl text-sm text-fg-muted">
-          Who won the last {formatNumber(POOL_SHARE_WINDOW)} blocks, roughly one day. A Chia pool never signs a block: every farmer
-          wins blocks with their own plots and their own payout address, and the pool only combines their strength. Under the
-          official pool protocol the pool&apos;s 7/8 of the reward lands on the farmer&apos;s PlotNFT address first and the pool
-          claims it from there, so addresses are grouped by where their rewards are claimed to.
-        </p>
-      </header>
+      <h1 className="text-lg font-semibold">Pools</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile

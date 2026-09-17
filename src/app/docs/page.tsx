@@ -24,12 +24,7 @@ function Q({ q, children, id }: { q: string; children: React.ReactNode; id?: str
 export default function DocsPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <div>
-        <h1 className="text-xl font-semibold">Help</h1>
-        <p className="mt-1 text-sm text-fg-muted">What the screens mean and how to get the most out of them. Deeper technical notes are in the{" "}
-          <a href={WIKI} target="_blank" rel="noreferrer" className="text-accent hover:underline">wiki</a>.
-        </p>
-      </div>
+      <h1 className="text-xl font-semibold">Help</h1>
 
       <Card id="why">
         <CardHeader title="Why mempoolxch.space" />
