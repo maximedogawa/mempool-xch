@@ -2,26 +2,13 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { apiOrigin } from "@/shared/lib/settings/store";
 import { loadTokenList, type TokenInfo, type TokenMap } from "./tokenList";
 
 export const TOKEN_QUERY_KEY = ["assets", "tokens"] as const;
 
-/** Hosted registry first (one upstream fetch per server), Dexie's pages directly as the fallback. */
-export async function fetchTokenMap(fetchImpl: typeof fetch = fetch): Promise<TokenMap> {
-  try {
-    const response = await fetchImpl(`${apiOrigin()}/api/assets/tokens`, { headers: { accept: "application/json" } });
-    if (response.ok) {
-      const body = (await response.json()) as { tokens?: TokenMap };
-      if (body.tokens && Object.keys(body.tokens).length > 0) return body.tokens;
-    }
-  } catch {
-    // No hosted API (static snapshot, dev without the route) → fall back below.
-  }
-  return loadTokenList(fetchImpl);
-}
+export const fetchTokenMap = loadTokenList;
 
-/** The CAT token registry, loaded once per session and shared by every component. */
+/** The CAT token registry, loaded once per session (Dexie) and shared by every component. */
 export function useTokenList() {
   return useQuery<TokenMap>({
     queryKey: TOKEN_QUERY_KEY,

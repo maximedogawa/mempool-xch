@@ -43,12 +43,11 @@ describe("settings store", () => {
 });
 
 describe("resolveEndpoints", () => {
-  test("Coinset unlocks indexed API, WebSocket and summary", () => {
+  test("Coinset unlocks the indexed API and WebSocket", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
     expect(r.isCoinset).toBe(true);
     expect(r.indexedUrl).toBe("https://api.coinset.org");
     expect(r.wsUrl).toBe("wss://api.coinset.org/ws");
-    expect(r.summaryUrl).toBe("/api/mainnet/mempool");
   });
   test("custom endpoint switches Coinset-only features off", () => {
     const r = resolveEndpoints({
@@ -59,7 +58,6 @@ describe("resolveEndpoints", () => {
     expect(r.rpcUrl).toBe("http://localhost:8555");
     expect(r.indexedUrl).toBeNull();
     expect(r.wsUrl).toBeNull();
-    expect(r.summaryUrl).toBeNull();
     expect(resolveEndpoints(DEFAULT_SETTINGS, "testnet11").wsUrl).toBe("wss://testnet11.api.coinset.org/ws");
   });
 });

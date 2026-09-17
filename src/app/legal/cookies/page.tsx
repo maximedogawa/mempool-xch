@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LEGAL, SITE_NAME } from "@/shared/config/legal";
+import { SITE_NAME } from "@/shared/config/legal";
 import { routes } from "@/shared/lib/routes";
-import { Fill, LegalPage, List, Section } from "@/widgets/legal/LegalPage";
+import { LegalPage, List, Section } from "@/widgets/legal/LegalPage";
 import { CookieSettingsButton } from "@/widgets/legal/CookieSettingsButton";
 
 export const metadata: Metadata = { title: "Cookie policy" };
@@ -86,7 +86,7 @@ export default function CookiesPage() {
           <Link href={routes.legalPrivacy()} className="text-accent hover:underline">
             privacy policy
           </Link>
-          . Questions: <Fill value={LEGAL.contactEmail} label="contact email" />.
+          . x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with your IP address and the time of your visit.
         </p>
       </Section>
     </LegalPage>
