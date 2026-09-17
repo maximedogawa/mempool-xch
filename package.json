@@ -4,7 +4,10 @@
   "private": true,
   "license": "MIT",
   "homepage": "https://mempoolxch.space",
-  "repository": { "type": "git", "url": "https://github.com/maximedogawa/mempool-xch.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maximedogawa/mempool-xch.git"
+  },
   "description": "A mempool.space-style explorer for the Chia (XCH) network",
   "engines": {
     "node": ">=20.19.0 || >=22.12.0"
@@ -41,6 +44,7 @@
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@tanstack/react-query-devtools": "^5.103.1",
     "@types/node": "^22.19.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
