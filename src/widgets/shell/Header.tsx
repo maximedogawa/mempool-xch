@@ -30,37 +30,45 @@ export function Header() {
   return (
     <header className="relative sticky top-0 z-40 border-b border-border bg-bg-elevated/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />
-      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-2 px-3 sm:gap-3 sm:px-4">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-3 px-3 sm:gap-4 sm:px-4">
         <Link href={routes.home()} aria-label="mempoolxch.space home" className="shrink-0">
           <Logo />
         </Link>
-        <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={item.match(pathname) ? "page" : undefined}
-              className={cn(
-                "rounded-sm px-3 py-1.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
-                item.match(pathname) && "bg-surface-2 text-fg"
-              )}
-            >
-              {item.label === "My wallet" ? <Wallet size={14} className="mr-1 inline" aria-hidden="true" /> : null}
-              {item.label}
-            </Link>
-          ))}
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
+          {nav.map((item) => {
+            const active = item.match(pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative rounded-sm px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
+                  active && "text-fg"
+                )}
+              >
+                {item.label === "My wallet" ? <Wallet size={14} className="mr-1 inline" aria-hidden="true" /> : null}
+                {item.label}
+                <span
+                  aria-hidden="true"
+                  className={cn("absolute inset-x-2 -bottom-[9px] h-0.5 rounded-full bg-primary transition-opacity", active ? "opacity-100" : "opacity-0")}
+                />
+              </Link>
+            );
+          })}
         </nav>
         <div className="hidden flex-1 md:block">
-          <SearchBox className="mx-auto max-w-xl" />
+          <SearchBox className="mx-auto max-w-2xl" size="lg" />
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
           <SagePriceChip />
           <NetworkSwitch className="hidden sm:inline-flex" />
-          <ConnectionIndicator />
+          <ConnectionIndicator compact />
+          <span aria-hidden="true" className="hidden h-6 w-px bg-border sm:block" />
           <Link
             href={routes.settings()}
             aria-label="Settings"
-            className="hidden h-8 w-8 items-center justify-center rounded-sm text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
+            className="hidden h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
           >
             <Settings size={18} aria-hidden="true" />
           </Link>
@@ -75,8 +83,8 @@ export function Header() {
           </button>
         </div>
       </div>
-      <div className="border-t border-border/60 px-4 py-2 md:hidden">
-        <SearchBox />
+      <div className="border-t border-border/60 px-3 py-2.5 sm:px-4 md:hidden">
+        <SearchBox size="lg" />
       </div>
       {open ? (
         <nav aria-label="Mobile" className="border-t border-border bg-bg-elevated px-4 py-3 lg:hidden">

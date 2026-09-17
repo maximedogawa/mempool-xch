@@ -90,7 +90,11 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
         Search transactions, blocks, addresses, coins and assets
       </label>
       <div className="relative">
-        <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint" />
+        <Search
+          size={size === "lg" ? 20 : 16}
+          aria-hidden="true"
+          className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-fg-muted", size === "lg" ? "left-4" : "left-3")}
+        />
         <input
           ref={inputRef}
           id="global-search"
@@ -114,25 +118,30 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "global-search-error" : undefined}
           className={cn(
-            "w-full rounded-sm border border-border bg-bg pl-9 pr-16 text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none",
-            size === "lg" ? "h-12 text-base" : "h-10 text-sm"
+            "w-full rounded-md border bg-surface text-fg shadow-sm transition-colors placeholder:text-fg-faint focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none",
+            size === "lg" ? "h-12 border-border-strong pl-11 pr-20 text-base" : "h-10 border-border pl-9 pr-16 text-sm"
           )}
         />
-        <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+        <div className={cn("absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center", size === "lg" ? "gap-1.5" : "gap-1")}>
           {value ? (
             <button type="button" onClick={clear} aria-label="Clear search" className="rounded-sm p-1 text-fg-faint hover:text-fg">
-              <X size={14} aria-hidden="true" />
+              <X size={size === "lg" ? 16 : 14} aria-hidden="true" />
             </button>
           ) : (
-            <kbd className="hidden rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-fg-faint sm:inline">/</kbd>
+            <kbd className={cn("hidden rounded-sm border border-border-strong bg-surface-2 text-fg-muted sm:inline", size === "lg" ? "px-2 py-1 text-xs" : "px-1.5 py-0.5 text-[10px]")}>
+              /
+            </kbd>
           )}
           <button
             type="submit"
             disabled={busy}
             aria-label="Search"
-            className="rounded-sm bg-primary px-2 py-1 text-xs font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60"
+            className={cn(
+              "rounded-sm bg-primary font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60",
+              size === "lg" ? "px-3 py-1.5 text-sm" : "px-2 py-1 text-xs"
+            )}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : "Go"}
+            {busy ? <Loader2 size={size === "lg" ? 16 : 14} className="animate-spin" aria-hidden="true" /> : "Go"}
           </button>
         </div>
       </div>

@@ -56,7 +56,7 @@
   --radius: 10px;
   --radius-sm: 6px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --header-h: 64px;
+  --header-h: 72px;
 }
 
 :root[data-theme="light"] {
