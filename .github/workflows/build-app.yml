@@ -1,11 +1,14 @@
 name: Build App (Docker)
 
-# Builds and pushes the app image to ghcr.io. Deploying is a one-time `once deploy` on the
-# server (deployment/README.md); ONCE then auto-updates from the registry.
+# Builds (and, outside pull requests, pushes) the app image to ghcr.io. Pull requests only
+# build the image, to catch Dockerfile/build breakage before merge, without publishing.
+# Deploying is a one-time `once deploy` on the server (deployment/README.md); ONCE then
+# auto-updates from the registry.
 
 on:
   release:
     types: [published]
+  pull_request:
   workflow_dispatch:
     inputs:
       tag:
@@ -28,7 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
+      - if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -45,11 +49,11 @@ jobs:
           COMMIT_SHA="${{ github.sha }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "commit_sha=${COMMIT_SHA:0:7}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ./deployment/Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

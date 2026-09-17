@@ -1,6 +1,8 @@
 # mempoolxch.space - Docker image for ONCE (https://github.com/basecamp/once).
 # Build stage: bun installs and builds the standalone Next.js server plus the Sage snapshot.
-FROM oven/bun:1.3-alpine AS builder
+# Pinned >=1.4: 1.3.14 segfaults at the end of `next build` (napi threadsafe-function
+# use-after-free in next-swc's Turbopack binding, fixed upstream in 1.4.0 - oven-sh/bun#36866).
+FROM oven/bun:1.4-alpine AS builder
 
 WORKDIR /app
 
