@@ -1,5 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { mockCoinset, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinset";
+
+function row(page: Page, label: string) {
+  return page.locator("dl > div").filter({ has: page.locator("dt", { hasText: new RegExp(`^${label}$`) }) });
+}
 
 test.describe("block pages", () => {
   test.beforeEach(async ({ page }) => {
@@ -17,6 +21,31 @@ test.describe("block pages", () => {
     await page.goto("/block/9295513");
     await expect(page.getByRole("heading", { name: /Block 9,295,513/ })).toBeVisible();
     await expect(page.getByText(/no spends|carries no transactions|non-transaction/i).first()).toBeVisible();
+    await expect(row(page, "Signage point")).toContainText("36 of 64");
+    await expect(row(page, "Deficit")).toContainText("1");
+    await expect(row(page, "Sub-epoch summary")).toContainText("No");
+    await expect(row(page, "Previous transaction block")).toContainText("9,295,512");
+    await expect(row(page, "Block reward")).toContainText("1 XCH");
+    await expect(page.getByTestId("farmed-by")).toContainText("Unidentified pool or solo farmer");
+  });
+
+  test("transaction block shows parity properties, contents and the coin flow", async ({ page }) => {
+    await page.goto(`/block/${TX_BLOCK_HEIGHT}`);
+    await expect(row(page, "Signage point")).toContainText("40 of 64");
+    await expect(row(page, "Deficit")).toContainText("0");
+    await expect(page.getByTestId("farmed-by")).toContainText("pool and farmer rewards go to the same address");
+    await expect(row(page, "Farmer reward address")).toContainText("xch1");
+    await expect(page.getByTestId("block-contents")).toHaveText("3 spends · 15 new coins");
+    await expect(row(page, "Generator")).toContainText("one block generator");
+
+    const flow = page.getByRole("list", { name: "Spent coins and the coins they created" });
+    await expect(flow.getByRole("listitem").filter({ has: page.getByRole("list", { name: "12 coins created" }) })).toBeVisible();
+    const twelve = page.getByRole("list", { name: "12 coins created" });
+    await expect(twelve.getByRole("listitem")).toHaveCount(10);
+    await page.getByRole("button", { name: "Show 2 more" }).click();
+    await expect(twelve.getByRole("listitem")).toHaveCount(12);
+    await expect(page.getByText("spent in this block").first()).toBeVisible();
+    await expect(page.getByRole("region", { name: "Reward coins" })).toContainText("0.875");
   });
 
   test("blocks list paginates and filters", async ({ page }) => {
