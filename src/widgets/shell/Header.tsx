@@ -22,16 +22,16 @@ interface NavItem {
 
 const PRIMARY: NavItem[] = [
   { href: routes.home(), label: "Dashboard", match: (p) => p === "/" },
-  { href: routes.blocks(), label: "Blocks", match: (p) => p.startsWith("/blocks") || p.startsWith("/block") },
-  { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
+  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
   { href: routes.nftHome(), label: "NFTs", match: (p) => p.startsWith("/nfts") || p.startsWith("/nft") },
+  { href: routes.tokens(), label: "Tokens", match: (p) => p.startsWith("/tokens") || p.startsWith("/cat") },
+  { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
+  { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
 ];
 
 const MORE: NavItem[] = [
-  { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
-  { href: routes.tokens(), label: "Tokens", match: (p) => p.startsWith("/tokens") || p.startsWith("/cat") },
-  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
-  { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
+  { href: routes.blocks(), label: "Blocks", match: (p) => p.startsWith("/blocks") || p.startsWith("/block") },
+  { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
   { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
 ];
 

@@ -65,7 +65,7 @@ export function PoolsPage() {
                                 {row.entry.name}
                               </a>
                             ) : (
-                              <span className="text-fg-faint">Unidentified pool or solo farmer</span>
+                              <span className="text-fg-faint">Unidentified</span>
                             )}
                           </Td>
                           <Td>

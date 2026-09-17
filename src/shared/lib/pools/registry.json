@@ -23,6 +23,42 @@
       "url": "https://foxypool.io/",
       "source": "https://farmer-chia.foxypool.io/pool_info (target_puzzle_hash, read 2026-09-17)",
       "puzzleHashes": ["048785a90e6475263c5d3cdf8ce290499ddf1006a3fae2b314997ee93ba55cc1"]
+    },
+    {
+      "name": "findchia",
+      "url": "https://findchia.com/",
+      "source": "https://pool.findchia.com/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["ed6be661ca2dc45debecf7a5774702f3a18109feffcda2c8fe0e226de9511659"]
+    },
+    {
+      "name": "Chia Farm Land",
+      "url": "https://chiafarm.land/",
+      "source": "https://pool.chiafarm.land/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["d7a6d742c2fb23fceb405996b852638dd2094d0cc8d33ab05c9fcf6893b3f7e3"]
+    },
+    {
+      "name": "Czech Farm",
+      "url": "https://czech.farm/",
+      "source": "https://chia.czech.farm/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["9dfea1e1f5abfcc9d1c11ddf7dc3634d5a9e2d8afa13f1b98ec9503c38276de1"]
+    },
+    {
+      "name": "PoolEnergy",
+      "url": "https://pool.energy/",
+      "source": "https://chia.pool.energy/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["249fc5a20c273dcbf9f98ca9979d0f35f7f5640970d404ee29331e4875c9f908"]
+    },
+    {
+      "name": "Leaf Pool",
+      "url": "https://leafpool.io/",
+      "source": "https://chia-eu.leafpool.io/pool_info (target_puzzle_hash, shared across all 4 regional endpoints, read 2026-09-17)",
+      "puzzleHashes": ["ee2c813c1cc54ff560ccf1225d6e33b400368b7b37e8891029e63abb4b427878"]
+    },
+    {
+      "name": "FrenchFarmers Pool",
+      "url": "https://ffarmers.eu/",
+      "source": "https://pool-xch.ffarmers.eu/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["77c4f46b5557d9be7482ad46781d13b0e3b4641775f463b4347883726eda1024"]
     }
   ]
 }
