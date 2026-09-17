@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockCoinset, P2, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinset";
 
-const ROUTES = ["/", "/blocks", "/mempool", "/settings", "/docs", "/wallet", `/block/${TX_BLOCK_HEIGHT}`, `/tx/${TX_ID}`, `/address/${P2}`];
+const ROUTES = ["/", "/blocks", "/mempool", "/settings", "/docs", "/wallet", `/block/${TX_BLOCK_HEIGHT}`, `/tx/${TX_ID}`, `/address/${P2}`, "/legal/terms", "/legal/notice", "/legal/privacy", "/legal/cookies"];
 
 test.describe("accessibility", () => {
   test.beforeEach(async ({ page }) => {
