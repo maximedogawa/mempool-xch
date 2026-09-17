@@ -2,7 +2,7 @@
 
 import { Loader2, Radar, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useBlockchainState, useServerStatus } from "@/shared/api/hooks";
+import { useBlockchainState } from "@/shared/api/hooks";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
@@ -22,7 +22,6 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
   const { status, transport, lastEventAt, peakHeight } = useLive();
   const { endpoints } = useSettings();
   const state = useBlockchainState();
-  const server = useServerStatus();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const [, tick] = useState(0);
   useEffect(() => {
@@ -30,7 +29,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     return () => clearInterval(id);
   }, []);
   const age = lastEventAt ? formatAge(lastEventAt) : "no data yet";
-  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset });
   const hint = status === "connecting" ? `Connecting: ${channel.name}…` : `${channel.name}: ${channel.detail} Last update ${age}.`;
   const styles = {
     live: "border-primary/40 bg-primary-soft text-primary",

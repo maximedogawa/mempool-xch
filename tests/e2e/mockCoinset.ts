@@ -7,13 +7,10 @@ import fullBlock from "../../src/test-utils/fixtures/full_block.json";
 import mempoolItems from "../../src/test-utils/fixtures/mempool_items.json";
 import xchBalance from "../../src/test-utils/fixtures/xch_balance.json";
 import catBalances from "../../src/test-utils/fixtures/cat_balances.json";
-import { CHIA } from "../../src/shared/config/networks";
-import { stringifyJsonTagged } from "../../src/shared/lib/rpc/json";
-import { normaliseBlockchainState, normaliseBlockRecord, normaliseFeeEstimate } from "../../src/shared/lib/rpc/normalise";
 
 const NOW = Date.now();
 
-/** Compact summary the way /api/mainnet/mempool would answer, built from the recorded items. */
+/** The compact mempool summary the app assembles client-side from the recorded fixtures. */
 export function mockSummary() {
   const items = Object.values(mempoolItems.mempool_items).map((item, i) => ({
     id: item.spend_bundle_name.replace(/^0x/, ""),
@@ -50,33 +47,6 @@ export function mockSummary() {
     },
     items,
   };
-}
-
-/** The hosted chain cache the way /api/mainnet/chain would answer, from the recorded fixtures. */
-export function mockChain() {
-  // The server window always includes the peak; the recorded records stop one below it.
-  const blocks = [...blockRecords.block_records, blockchainState.blockchain_state.peak].map(normaliseBlockRecord).sort((a, b) => b.height - a.height);
-  return {
-    network: "mainnet",
-    generatedAt: NOW,
-    channel: "websocket",
-    state: normaliseBlockchainState(blockchainState.blockchain_state),
-    blocks,
-    stats: [],
-    assets: {},
-    fee: { cost: CHIA.REFERENCE_SPEND_COST, estimate: normaliseFeeEstimate(feeEstimate) },
-  };
-}
-
-/** A short server-sent events body: status, one peak, then the browser waits 60 s to reconnect. */
-export function mockEventsBody() {
-  const peak = blockchainState.blockchain_state.peak;
-  return [
-    "retry: 60000\n\n",
-    `event: status\ndata: ${JSON.stringify({ channel: "websocket", seq: 1 })}\n\n`,
-    `id: 1\nevent: peak\ndata: ${JSON.stringify({ height: peak.height, tx: true, at: NOW })}\n\n`,
-    `id: 2\nevent: live\ndata: ${JSON.stringify({ txCount: 3, totalCost: 1, totalFee: "0", avgFeeRate: 0, backlogBlocks: 0, at: NOW })}\n\n`,
-  ].join("");
 }
 
 const json = (route: Route, body: unknown, status = 200) =>
@@ -183,7 +153,6 @@ export async function answerNodeMethod(route: Route) {
     }
 }
 
-/** Intercepts every Coinset call and the hosted APIs; anything unknown answers not found. */
 /** Record a "Reject all" decision so the consent panel does not cover controls under test. */
 export async function seedConsent(page: Page) {
   await page.addInitScript(() => {
@@ -191,13 +160,9 @@ export async function seedConsent(page: Page) {
   });
 }
 
+/** Intercepts every Coinset call; anything unknown answers not found. */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
-  await page.route("**/api/mainnet/mempool", (route) => json(route, mockSummary()));
-  await page.route("**/api/testnet11/mempool", (route) => json(route, { ...mockSummary(), network: "testnet11" }));
-  await page.route("**/api/mainnet/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged(mockChain()) }));
-  await page.route("**/api/testnet11/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged({ ...mockChain(), network: "testnet11" }) }));
-  await page.route("**/api/*/events**", (route) => route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*", "cache-control": "no-cache" }, body: mockEventsBody() }));
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
@@ -205,7 +170,7 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
 
 export const CUSTOM_NODE_URL = "https://node.example.test:8556";
 
-/** A custom full-node RPC (no Coinset, no hosted APIs): the app must poll and fetch the mempool itself. */
+/** A custom full-node RPC (not Coinset): the app must poll and fetch the mempool itself. */
 export async function mockCustomNode(page: Page) {
   await seedConsent(page);
   await page.addInitScript((rpcUrl) => {
@@ -215,6 +180,6 @@ export async function mockCustomNode(page: Page) {
     );
   }, CUSTOM_NODE_URL);
   await page.route(/https:\/\/node\.example\.test:8556\/.*/, answerNodeMethod);
-  // Anything that still goes to Coinset or the hosted APIs is a bug: answer 599 so the test can see it.
+  // Anything that still goes to Coinset is a bug: answer 599 so the test can see it.
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => route.fulfill({ status: 599, body: "must not be called with a custom node" }));
 }
