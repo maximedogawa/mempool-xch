@@ -1,12 +1,15 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
 import { useState } from "react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
+import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
-import { isHttpsUrl, isTrustedImageUrl } from "@/shared/lib/trustedImage";
+import { fetchNftImageUrls, mintGardenThumbnailUrl } from "@/shared/lib/nft/mintgarden";
+import { catIconCandidates, nftIconCandidates } from "./assetIconCandidates";
 import { KindBadge } from "./Badge";
 
 /**
@@ -18,19 +21,27 @@ import { KindBadge } from "./Badge";
 export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
+  // NFT thumbnails (TASK-054): assetId is the 32-byte launcher id (same field CAT asset ids use,
+  // src/shared/lib/sage/wallet.ts and src/widgets/goggles/NextBlockGoggles.tsx both pass it this
+  // way). The direct thumbnail redirect is the primary candidate (no fetch); the full record's
+  // own image is fetched as a fallback only once that 404s, not on every render.
+  const nftId = kind === "nft" && assetId ? launcherIdToNftId(assetId) : null;
+  const primaryNftThumbnail = nftId ? mintGardenThumbnailUrl(nftId) : null;
+  const [nftThumbnailFailed, setNftThumbnailFailed] = useState(false);
+  const nftFallback = useQuery({
+    queryKey: ["nft-icon-fallback", nftId],
+    queryFn: () => fetchNftImageUrls(nftId!),
+    enabled: nftThumbnailFailed && !!nftId,
+    staleTime: 5 * 60_000,
+  });
   if (kind === "xch") return null;
   if (kind === "cat") {
-    // Candidates in order: what the wallet resolved, the registry, Dexie's per-id icon. A blocked
-    // or missing image (Sage CSP, 404) moves on to the next one before the letter badge. The
-    // wallet-resolved icon only needs https (it comes through the Sage bridge, not a remote
-    // page's own content, src/shared/lib/sage/wallet.ts applies the same check at its source);
-    // the registry and Dexie candidates are also host-restricted since they're not always
-    // constructed in-app (TASK-051).
-    const candidates = [
-      iconUrl && isHttpsUrl(iconUrl) ? iconUrl : null,
-      token?.iconUrl && isTrustedImageUrl(token.iconUrl) ? token.iconUrl : null,
-      assetId ? dexieIconUrl(assetId) : null,
-    ].filter((u): u is string => !!u);
+    // A blocked or missing image (Sage CSP, 404) moves on to the next candidate before the letter badge.
+    const candidates = catIconCandidates({
+      walletIconUrl: iconUrl,
+      registryIconUrl: token?.iconUrl,
+      dexieIconUrl: assetId ? dexieIconUrl(assetId) : null,
+    });
     const src = candidates.find((u) => !failed.has(u)) ?? null;
     if (src) {
       return (
@@ -43,6 +54,27 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
         {token?.symbol?.slice(0, 2) ?? "C"}
       </span>
     );
+  }
+  if (kind === "nft" && nftId) {
+    const candidates = nftIconCandidates({ thumbnailUrl: primaryNftThumbnail, fallbackImageUrls: nftFallback.data ?? [] });
+    const src = candidates.find((u) => !failed.has(u)) ?? null;
+    if (src) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="NFT"
+          loading="lazy"
+          decoding="async"
+          onError={() => {
+            setFailed((prev) => new Set(prev).add(src));
+            if (src === primaryNftThumbnail) setNftThumbnailFailed(true);
+          }}
+          className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)}
+          style={{ width: size, height: size }}
+        />
+      );
+    }
   }
   const Icon = kind === "nft" ? ImageIcon : kind === "did" ? Fingerprint : kind === "offer" ? ArrowLeftRight : kind === "pool" ? Pickaxe : kind === "singleton" ? Hexagon : HelpCircle;
   const tone =

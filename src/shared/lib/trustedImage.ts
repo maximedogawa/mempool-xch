@@ -6,7 +6,14 @@
  * a tracking/fingerprinting vector, and a mixed-content/MITM one over plain http. Only load images
  * from hosts the app already depends on for this data.
  */
-const TRUSTED_IMAGE_HOSTS = new Set(["icons.dexie.space", "assets.mainnet.mintgarden.io", "ipfs.mintgarden.io"]);
+const TRUSTED_IMAGE_HOSTS = new Set([
+  "icons.dexie.space",
+  "assets.mainnet.mintgarden.io",
+  "ipfs.mintgarden.io",
+  // MintGarden's own API — /nfts/{id}/thumbnail 307-redirects to assets.mainnet.mintgarden.io,
+  // but the initial request (what <img src> actually points at) is this host.
+  "api.mintgarden.io",
+]);
 
 /** https + a trusted host. Use for any URL sourced from Dexie or MintGarden data (icons, NFT/collection thumbnails). */
 export function isTrustedImageUrl(url: string): boolean {

@@ -169,6 +169,24 @@ function normaliseOffer(raw: unknown): NftOffer {
   };
 }
 
+/** Direct thumbnail URL (TASK-054): verified 2026-09-16 to 307-redirect straight to assets.mainnet.mintgarden.io, one request, no JSON parsing needed. `nftId` is the nft1… bech32 id. */
+export function mintGardenThumbnailUrl(nftId: string): string {
+  return `${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}/thumbnail`;
+}
+
+/** Fallback when the thumbnail redirect 404s (NFT not indexed by MintGarden): the full record's own image candidates. */
+export async function fetchNftImageUrls(nftId: string, fetchImpl: FetchLike = fetch): Promise<string[]> {
+  try {
+    const response = await fetchImpl(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
+    if (!response.ok) return [];
+    const body = obj(await response.json());
+    const data = obj(body.data);
+    return [str(data.thumbnail_uri), str(data.preview_uri)].filter((u): u is string => !!u);
+  } catch {
+    return [];
+  }
+}
+
 /** Open (status 0 = active) sell offers for `nftId`, cheapest first — Dexie is the offer index (decision-012 approved provider). */
 export async function fetchNftOffers(nftId: string, fetchImpl: FetchLike = fetch): Promise<NftOffer[]> {
   try {

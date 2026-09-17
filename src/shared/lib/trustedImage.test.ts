@@ -6,6 +6,7 @@ describe("isTrustedImageUrl", () => {
     ["https://icons.dexie.space/abcdef.webp", true],
     ["https://assets.mainnet.mintgarden.io/thumbnails/abc.webp", true],
     ["https://ipfs.mintgarden.io/ipfs/bafy.../image.png", true],
+    ["https://api.mintgarden.io/nfts/nft1abc.../thumbnail", true],
   ])("accepts a trusted host: %s", (url, expected) => {
     expect(isTrustedImageUrl(url)).toBe(expected);
   });
