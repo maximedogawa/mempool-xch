@@ -11,7 +11,7 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
-import { lookupPool } from "@/shared/lib/pools/registry";
+import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -21,6 +21,7 @@ const PAGE = 25;
 
 export function BlocksList() {
   const { client, endpoints } = useSettings();
+  const lookupPool = usePoolLookup();
   const state = useBlockchainState();
   const { peakHeight } = useLive();
   const peak = peakHeight ?? state.data?.peak.height ?? null;

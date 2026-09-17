@@ -5,7 +5,7 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { shortId } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
-import { lookupPool } from "@/shared/lib/pools/registry";
+import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import type { RecentBlocksResult } from "@/shared/api/hooks";
@@ -40,6 +40,7 @@ function gapBetween(all: BlockRecord[], newer: BlockRecord, older: BlockRecord):
 
 export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBlocksResult | undefined; loading: boolean; blockMaxCost: number }) {
   const now = useNow();
+  const lookupPool = usePoolLookup();
   const [seen, setSeen] = useState<Set<number>>(() => new Set());
   const newest = data?.txBlocks[0]?.height;
   useEffect(() => {

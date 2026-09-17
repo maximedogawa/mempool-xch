@@ -1,60 +1,55 @@
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
-import type { PoolSummary } from "@/shared/lib/pools/share";
+import { shortId } from "@/shared/lib/chia/hex";
+import type { PoolGroup, PoolShare } from "@/shared/lib/pools/share";
 
-/** Cycled by index across named pools; reuses existing theme tokens rather than adding new ones. */
-export const POOL_PALETTE = [
+/** Cycled by rank across the largest groups; reuses existing theme tokens rather than adding new ones. */
+const POOL_PALETTE = [
   "var(--fee-1)",
   "var(--fee-3)",
   "var(--accent)",
   "var(--fee-4)",
-  "var(--primary-strong)",
-  "var(--fee-2)",
   "var(--fee-5)",
+  "var(--fee-2)",
   "var(--fee-0)",
+  "var(--primary-strong)",
 ] as const;
 
-export function poolColor(index: number): string {
-  return POOL_PALETTE[index % POOL_PALETTE.length]!;
+const OTHER_COLOR = "var(--border-strong)";
+
+/** The colour of the group at `rank` in the share bar; everything past the palette is "other". */
+export function poolColor(rank: number): string {
+  return POOL_PALETTE[rank] ?? OTHER_COLOR;
 }
 
-/** Decorative horizontal share bar: one segment per named pool plus one for the unidentified total. */
-export function PoolShareBar({ summary }: { summary: PoolSummary }) {
-  if (summary.totalBlocks === 0) return null;
+export function groupLabel(group: PoolGroup): string {
+  if (group.entry) return group.entry.name;
+  if (group.kind === "claim") return group.selfPooled ? "Self-pooling farmer" : "Unnamed pool";
+  return "Unknown";
+}
+
+/** Decorative horizontal share bar: one segment per leading group plus one for everything else. */
+export function PoolShareBar({ share }: { share: PoolShare }) {
+  if (share.totalBlocks === 0) return null;
+  const leading = share.groups.slice(0, POOL_PALETTE.length);
+  const otherShare = Math.max(0, 1 - leading.reduce((sum, g) => sum + g.share, 0));
   const segments = [
-    ...summary.named.map((row, i) => ({
-      key: row.entry.name,
-      label: row.entry.name,
-      share: row.share,
-      color: poolColor(i),
+    ...leading.map((group, rank) => ({
+      key: group.key,
+      label: group.entry ? group.entry.name : `${groupLabel(group)} ${shortId(group.claimTarget ?? group.payouts[0]!.payoutHash, 6, 4)}`,
+      share: group.share,
+      color: poolColor(rank),
     })),
-    ...(summary.unidentified
-      ? [
-          {
-            key: "unidentified",
-            label: "Unidentified",
-            share: summary.unidentified.share,
-            color: "var(--border-strong)",
-          },
-        ]
-      : []),
+    ...(share.groups.length > leading.length ? [{ key: "other", label: "everyone else", share: otherShare, color: OTHER_COLOR }] : []),
   ];
   const summaryText = segments.map((s) => `${formatPercent(s.share, 1)} ${s.label}`).join(", ");
 
   return (
     <div
       role="img"
-      aria-label={`Share of the last ${formatNumber(summary.totalBlocks)} blocks by pool: ${summaryText}`}
-      className="flex h-2.5 w-full overflow-hidden rounded-full bg-surface-2"
+      aria-label={`Share of the last ${formatNumber(share.totalBlocks)} blocks: ${summaryText}`}
+      className="flex h-3 w-full gap-px overflow-hidden rounded-full bg-surface-2"
     >
-      {segments.map((s) =>
-        s.share > 0 ? (
-          <div
-            key={s.key}
-            style={{ width: `${s.share * 100}%`, background: s.color }}
-            className="h-full first:rounded-l-full last:rounded-r-full"
-          />
-        ) : null
-      )}
+      {segments.map((s) => (s.share > 0 ? <div key={s.key} title={`${s.label} · ${formatPercent(s.share, 1)}`} style={{ width: `${s.share * 100}%`, background: s.color }} className="h-full" /> : null))}
     </div>
   );
 }

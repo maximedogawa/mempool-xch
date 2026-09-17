@@ -10,7 +10,7 @@ import { hexToUtf8IfText, shortId } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime, formatDuration, formatEta } from "@/shared/lib/format/time";
 import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
-import { lookupPool } from "@/shared/lib/pools/registry";
+import { useBlockPool } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
@@ -206,6 +206,7 @@ export function TransactionPage({ id }: { id: string | null }) {
   // Called unconditionally (rules of hooks): the confirming block, once known, for "farmed by".
   const confirmedHeight = tx.data && tx.data.status !== "pending" && tx.data.status !== "not_found" ? tx.data.summary.confirmedHeight : null;
   const confirmedBlock = useBlock(confirmedHeight !== null ? String(confirmedHeight) : "");
+  const farmedBy = useBlockPool(confirmedBlock.data?.record);
 
   if (!id) {
     return <EmptyState title="No transaction id" description="Open a transaction from the dashboard or paste an id into the search box." />;
@@ -300,8 +301,8 @@ export function TransactionPage({ id }: { id: string | null }) {
   const endMs = summary.confirmedAtMs ?? summary.removedAtMs;
   const waited = waitedSeconds(summary.firstSeenMs, endMs);
   const record = confirmedBlock.data?.record;
-  const poolEntry = record ? lookupPool(record.poolPuzzleHash) : null;
-  const soloFarmer = record ? record.poolPuzzleHash === record.farmerPuzzleHash : false;
+  const poolEntry = farmedBy.entry;
+  const soloFarmer = farmedBy.bothShares || (farmedBy.claim?.selfPooled ?? false);
   return (
     <div className="flex flex-col gap-4">
       <Heading id={id} status={view.status} kind={<SummaryKindBadge kind={summary.kind} />} />

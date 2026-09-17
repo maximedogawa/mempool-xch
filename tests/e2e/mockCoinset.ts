@@ -6,6 +6,8 @@ import blockchainState from "../../src/test-utils/fixtures/blockchain_state.json
 import feeEstimate from "../../src/test-utils/fixtures/fee_estimate.json";
 import fullBlock from "../../src/test-utils/fixtures/full_block.json";
 import mempoolItems from "../../src/test-utils/fixtures/mempool_items.json";
+import poolClaimSelfTx from "../../src/test-utils/fixtures/pool_claim_self_tx.json";
+import poolClaimTx from "../../src/test-utils/fixtures/pool_claim_tx.json";
 import xchBalance from "../../src/test-utils/fixtures/xch_balance.json";
 import catBalances from "../../src/test-utils/fixtures/cat_balances.json";
 
@@ -59,12 +61,28 @@ export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694
 
 const hash = (n: number) => n.toString(16).padStart(64, "0");
 
-/** Registry-known fixed payout hash (H9.com) so the pools page has one identified row to assert on. */
+/** Registry-known fixed payout hash (H9.com): named without any claim lookup. */
 export const NAMED_POOL_PUZZLE_HASH = "4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba";
-const UNKNOWN_POOL_PUZZLE_HASHES = [hash(0xf001), hash(0xf002)];
+/** Two PlotNFT farmers (farmer reward elsewhere) whose mocked claims both go to Spacefarmers.io's target. */
+export const PLOT_NFT_PUZZLE_HASHES = [hash(0xa001), hash(0xa002)];
+/** A solo farmer paying both shares to one address: never looked up, stays "Unknown". */
+const UNKNOWN_POOL_PUZZLE_HASH = hash(0xf001);
+const FARMER_PUZZLE_HASH = hash(0xfa00);
+
+/** The payout address in pool_claim_tx.json and in pool_claim_self_tx.json (fixture block 9295513's). */
+const CLAIM_FIXTURE_PAYOUT = "cabeeede115c96d3bd78f05c46f2d0cb0cfefdaa364f419d69436ad7b7b84bba";
+const SELF_POOLED_PAYOUT = "ab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc";
+
+/** The latest transaction of a payout address, when the mock knows it as a PlotNFT (src/shared/lib/pools/claims.ts). */
+function poolClaimFor(p2: string) {
+  if (p2 === SELF_POOLED_PAYOUT) return poolClaimSelfTx.transaction;
+  if (!PLOT_NFT_PUZZLE_HASHES.includes(p2)) return null;
+  return JSON.parse(JSON.stringify(poolClaimTx.transaction).replaceAll(CLAIM_FIXTURE_PAYOUT, p2)) as unknown;
+}
 
 /** A block record shaped like Coinset's raw response, farmed by `poolPuzzleHash` at `height`. */
 function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
+  const plotNft = PLOT_NFT_PUZZLE_HASHES.includes(poolPuzzleHash);
   return {
     height,
     header_hash: `0x${height.toString(16).padStart(64, "0")}`,
@@ -73,7 +91,7 @@ function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
     total_iters: 1,
     timestamp: null,
     fees: null,
-    farmer_puzzle_hash: `0x${poolPuzzleHash}`,
+    farmer_puzzle_hash: `0x${plotNft ? FARMER_PUZZLE_HASH : poolPuzzleHash}`,
     pool_puzzle_hash: `0x${poolPuzzleHash}`,
     prev_transaction_block_hash: null,
     prev_transaction_block_height: height - 1,
@@ -87,11 +105,12 @@ function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
 
 /**
  * Synthesizes a window of block records for a height range the small fixture doesn't cover
- * (the pools page reads a 4,608-block window far behind the fixture's dozen recent blocks): half
- * the rotation goes to the registry-known H9.com hash, the rest split across two unnamed hashes.
+ * (the pools page reads a 4,608-block window far behind the fixture's dozen recent blocks): a
+ * quarter to H9.com's fixed address, a quarter each to two PlotNFT farmers of one pool, and a
+ * quarter to an unknown both-shares address.
  */
 function syntheticPoolWindow(start: number, end: number) {
-  const pools = [NAMED_POOL_PUZZLE_HASH, NAMED_POOL_PUZZLE_HASH, ...UNKNOWN_POOL_PUZZLE_HASHES];
+  const pools = [NAMED_POOL_PUZZLE_HASH, ...PLOT_NFT_PUZZLE_HASHES, UNKNOWN_POOL_PUZZLE_HASH];
   const out = [];
   for (let h = start; h < end; h += 1) out.push(syntheticBlockRecord(h, pools[h % pools.length]!));
   return out;
@@ -288,8 +307,10 @@ export async function answerNodeMethod(route: Route) {
         return json(route, catBalances);
       case "get_nft_balance_by_p2":
         return json(route, { p2: `0x${P2}`, confirmed_balance: "2", locked_balance: "0", pending_balance: "0", pending_locked_balance: "0", success: true });
-      case "get_transactions_by_p2":
-        return json(route, blockTransactions);
+      case "get_transactions_by_p2": {
+        const claim = poolClaimFor(String(body.p2 ?? "").replace(/^0x/, "").toLowerCase());
+        return json(route, claim ? { transactions: [claim], success: true } : blockTransactions);
+      }
       case "get_pending_transactions_by_p2": {
         const p2 = String(body.p2 ?? "").replace(/^0x/, "").toLowerCase();
         // A real pending mempool item's id, so the watchlist's queue position lines up with the

@@ -1,0 +1,95 @@
+{
+    "transaction": {
+        "schema_version": 1,
+        "id": "4e7d6f2eb8bf213dd3353cf83d44913356ac1ae29b152ce885abeee46cbc7851",
+        "source": "mempool",
+        "status": "confirmed",
+        "cost": 38276343,
+        "fee_mojos": "0",
+        "first_seen_ms": 1779480906561,
+        "confirmed_height": 8762966,
+        "confirmed_header_hash": "3324bc2a8780a1fb01cdb2ad4185f983ec7b12cf8456cc6ae6583ae4d666b77d",
+        "confirmed_at_ms": 1779480944000,
+        "last_updated_ms": 1779480975511,
+        "events": [
+            {
+                "type": "Pool",
+                "fee_mojos": "0",
+                "launcher_id": "0x76f04d5f7365598e827b10e2324d38c2bf25c6bd2cdac4cd87b4986c17599d1e",
+                "owner_p2": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad",
+                "owner_confidence": "grouped",
+                "action": {
+                    "action": "claim_pool_rewards",
+                    "pool_puzzle_hash": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad",
+                    "amount_mojos": "875000000000",
+                    "claims": [
+                        {
+                            "singleton_coin_id": "0xd10880134ef11763bbbbda00a39dd6ca8b9ddee49a589fa8d87e2285455ca138",
+                            "amount_mojos": "875000000000",
+                            "reward_outputs": [
+                                {
+                                    "coin_id": "0xf1a16e76a27584a7850a087ea6e1d46e2a69679fa1dcdc53c26e1ef5fba966ec",
+                                    "puzzle_hash": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad",
+                                    "amount": "875000000000",
+                                    "coin_type": {
+                                        "outer_puzzle_type": "XCH",
+                                        "custody_puzzle_type": "Unknown",
+                                        "custody_p2": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "inputs": [
+                    {
+                        "coin_id": "0x77f220dbaa2827c1b2fc6beebfb88a4b782f996fc29422aeaaccba1f575f85b5",
+                        "puzzle_hash": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc",
+                        "amount": "875000000000",
+                        "coin_type": {
+                            "outer_puzzle_type": "XCH",
+                            "custody_puzzle_type": "P2SingletonOrDelayedPuzhash",
+                            "custody_p2": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc"
+                        }
+                    },
+                    {
+                        "coin_id": "0xd10880134ef11763bbbbda00a39dd6ca8b9ddee49a589fa8d87e2285455ca138",
+                        "puzzle_hash": "0x8365a14d3d4a76da93df4d2e4e4d01ada02fc8f337778de3425bb28cdec86cbc",
+                        "amount": "1",
+                        "coin_type": {
+                            "outer_puzzle_type": "Singleton",
+                            "custody_puzzle_type": "PoolWaitingRoom",
+                            "custody_p2": "0x506fb7aac141d072e311bbc0e65126814c70a1440ebc49fa5dddc38a5123095a",
+                            "asset_id": "0x76f04d5f7365598e827b10e2324d38c2bf25c6bd2cdac4cd87b4986c17599d1e"
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "coin_id": "0x056dab9ba40c4c1baa2535522a6dcc304fc1e04d5ea30f6424f8446bfcf25615",
+                        "puzzle_hash": "0x8365a14d3d4a76da93df4d2e4e4d01ada02fc8f337778de3425bb28cdec86cbc",
+                        "amount": "1",
+                        "coin_type": {
+                            "outer_puzzle_type": "Singleton",
+                            "custody_puzzle_type": "Unknown",
+                            "custody_p2": "0x8365a14d3d4a76da93df4d2e4e4d01ada02fc8f337778de3425bb28cdec86cbc",
+                            "asset_id": "0x76f04d5f7365598e827b10e2324d38c2bf25c6bd2cdac4cd87b4986c17599d1e"
+                        }
+                    },
+                    {
+                        "coin_id": "0xf1a16e76a27584a7850a087ea6e1d46e2a69679fa1dcdc53c26e1ef5fba966ec",
+                        "puzzle_hash": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad",
+                        "amount": "875000000000",
+                        "coin_type": {
+                            "outer_puzzle_type": "XCH",
+                            "custody_puzzle_type": "Unknown",
+                            "custody_p2": "0x718848ccc0fd9c47d8100bbf19e2ba24793559f0b68616d631901b21fb895dad"
+                        }
+                    }
+                ],
+                "memos": []
+            }
+        ]
+    },
+    "success": true
+}

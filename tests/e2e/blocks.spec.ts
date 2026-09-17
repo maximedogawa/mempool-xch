@@ -26,7 +26,8 @@ test.describe("block pages", () => {
     await expect(row(page, "Sub-epoch summary")).toContainText("No");
     await expect(row(page, "Previous transaction block")).toContainText("9,295,512");
     await expect(row(page, "Block reward")).toContainText("1 XCH");
-    await expect(page.getByTestId("farmed-by")).toContainText("Unidentified pool or solo farmer");
+    // This block's payout address is a real self-pooling PlotNFT; the mock serves its recorded claim.
+    await expect(page.getByTestId("farmed-by")).toContainText("Self-pooling farmer (PlotNFT), rewards claimed to xch1");
   });
 
   test("transaction block shows parity properties, contents and the coin flow", async ({ page }) => {
