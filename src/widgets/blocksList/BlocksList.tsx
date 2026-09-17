@@ -11,6 +11,7 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
+import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -20,6 +21,7 @@ const PAGE = 25;
 
 export function BlocksList() {
   const { client, endpoints } = useSettings();
+  const lookupPool = usePoolLookup();
   const state = useBlockchainState();
   const { peakHeight } = useLive();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
@@ -82,12 +84,14 @@ export function BlocksList() {
                 <Th className="hidden text-right md:table-cell">Reward claims</Th>
                 <Th className="text-right">Fees</Th>
                 <Th className="hidden text-right md:table-cell">XCH moved</Th>
-                <Th className="hidden lg:table-cell">Farmer</Th>
+                <Th className="hidden lg:table-cell">Pool</Th>
                 <Th className="hidden xl:table-cell">Header hash</Th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((b) => (
+              {rows.map((b) => {
+                const pool = lookupPool(b.poolPuzzleHash);
+                return (
                 <Tr key={b.height}>
                   <Td>
                     <Link href={routes.block(b.height)} className="tabular font-semibold text-accent hover:underline">
@@ -103,14 +107,15 @@ export function BlocksList() {
                   <Td className="tabular hidden text-right text-fg-muted md:table-cell">{b.isTransactionBlock ? (b.rewardClaimsIncorporated?.length ?? 0) : "—"}</Td>
                   <Td className="tabular text-right">{b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : <span className="text-fg-faint">—</span>}</Td>
                   <Td className="tabular hidden text-right text-fg-muted md:table-cell">{b.isTransactionBlock ? (movedByHeight.get(b.height) ?? <span className="text-fg-faint">…</span>) : <span className="text-fg-faint">—</span>}</Td>
-                  <Td className="mono hidden text-xs text-fg-faint lg:table-cell" title={b.farmerPuzzleHash}>
-                    {shortId(b.farmerPuzzleHash, 8, 4)}
+                  <Td className={cn("hidden text-xs lg:table-cell", pool ? "text-fg-muted" : "mono text-fg-faint")} title={pool ? `${pool.name} · payout ${b.poolPuzzleHash}` : b.poolPuzzleHash}>
+                    {pool ? pool.name : shortId(b.poolPuzzleHash, 8, 4)}
                   </Td>
                   <Td className="mono hidden text-xs text-fg-faint xl:table-cell" title={b.headerHash}>
                     {shortId(b.headerHash, 10, 6)}
                   </Td>
                 </Tr>
-              ))}
+                );
+              })}
             </tbody>
           </Table>
         )}

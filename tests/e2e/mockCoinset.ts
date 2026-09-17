@@ -6,15 +6,14 @@ import blockchainState from "../../src/test-utils/fixtures/blockchain_state.json
 import feeEstimate from "../../src/test-utils/fixtures/fee_estimate.json";
 import fullBlock from "../../src/test-utils/fixtures/full_block.json";
 import mempoolItems from "../../src/test-utils/fixtures/mempool_items.json";
+import poolClaimSelfTx from "../../src/test-utils/fixtures/pool_claim_self_tx.json";
+import poolClaimTx from "../../src/test-utils/fixtures/pool_claim_tx.json";
 import xchBalance from "../../src/test-utils/fixtures/xch_balance.json";
 import catBalances from "../../src/test-utils/fixtures/cat_balances.json";
-import { CHIA } from "../../src/shared/config/networks";
-import { stringifyJsonTagged } from "../../src/shared/lib/rpc/json";
-import { normaliseBlockchainState, normaliseBlockRecord, normaliseFeeEstimate } from "../../src/shared/lib/rpc/normalise";
 
 const NOW = Date.now();
 
-/** Compact summary the way /api/mainnet/mempool would answer, built from the recorded items. */
+/** The compact mempool summary the app assembles client-side from the recorded fixtures. */
 export function mockSummary() {
   const items = Object.values(mempoolItems.mempool_items).map((item, i) => ({
     id: item.spend_bundle_name.replace(/^0x/, ""),
@@ -53,33 +52,6 @@ export function mockSummary() {
   };
 }
 
-/** The hosted chain cache the way /api/mainnet/chain would answer, from the recorded fixtures. */
-export function mockChain() {
-  // The server window always includes the peak; the recorded records stop one below it.
-  const blocks = [...blockRecords.block_records, blockchainState.blockchain_state.peak].map(normaliseBlockRecord).sort((a, b) => b.height - a.height);
-  return {
-    network: "mainnet",
-    generatedAt: NOW,
-    channel: "websocket",
-    state: normaliseBlockchainState(blockchainState.blockchain_state),
-    blocks,
-    stats: [],
-    assets: {},
-    fee: { cost: CHIA.REFERENCE_SPEND_COST, estimate: normaliseFeeEstimate(feeEstimate) },
-  };
-}
-
-/** A short server-sent events body: status, one peak, then the browser waits 60 s to reconnect. */
-export function mockEventsBody() {
-  const peak = blockchainState.blockchain_state.peak;
-  return [
-    "retry: 60000\n\n",
-    `event: status\ndata: ${JSON.stringify({ channel: "websocket", seq: 1 })}\n\n`,
-    `id: 1\nevent: peak\ndata: ${JSON.stringify({ height: peak.height, tx: true, at: NOW })}\n\n`,
-    `id: 2\nevent: live\ndata: ${JSON.stringify({ txCount: 3, totalCost: 1, totalFee: "0", avgFeeRate: 0, backlogBlocks: 0, at: NOW })}\n\n`,
-  ].join("");
-}
-
 const json = (route: Route, body: unknown, status = 200) =>
   route.fulfill({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
 
@@ -88,6 +60,111 @@ export const TX_BLOCK_HEIGHT = 9295514;
 export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef";
 
 const hash = (n: number) => n.toString(16).padStart(64, "0");
+
+/** Registry-known fixed payout hash (H9.com): named without any claim lookup. */
+export const NAMED_POOL_PUZZLE_HASH = "4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba";
+/** Two PlotNFT farmers (farmer reward elsewhere) whose mocked claims both go to Spacefarmers.io's target. */
+export const PLOT_NFT_PUZZLE_HASHES = [hash(0xa001), hash(0xa002)];
+/** A solo farmer paying both shares to one address: never looked up, stays "Unknown". */
+const UNKNOWN_POOL_PUZZLE_HASH = hash(0xf001);
+const FARMER_PUZZLE_HASH = hash(0xfa00);
+
+/** The payout address in pool_claim_tx.json and in pool_claim_self_tx.json (fixture block 9295513's). */
+const CLAIM_FIXTURE_PAYOUT = "cabeeede115c96d3bd78f05c46f2d0cb0cfefdaa364f419d69436ad7b7b84bba";
+const SELF_POOLED_PAYOUT = "ab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc";
+
+/** The latest transaction of a payout address, when the mock knows it as a PlotNFT (src/shared/lib/pools/claims.ts). */
+function poolClaimFor(p2: string) {
+  if (p2 === SELF_POOLED_PAYOUT) return poolClaimSelfTx.transaction;
+  if (!PLOT_NFT_PUZZLE_HASHES.includes(p2)) return null;
+  return JSON.parse(JSON.stringify(poolClaimTx.transaction).replaceAll(CLAIM_FIXTURE_PAYOUT, p2)) as unknown;
+}
+
+/** A block record shaped like Coinset's raw response, farmed by `poolPuzzleHash` at `height`. */
+function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
+  const plotNft = PLOT_NFT_PUZZLE_HASHES.includes(poolPuzzleHash);
+  return {
+    height,
+    header_hash: `0x${height.toString(16).padStart(64, "0")}`,
+    prev_hash: `0x${(height - 1).toString(16).padStart(64, "0")}`,
+    weight: 1,
+    total_iters: 1,
+    timestamp: null,
+    fees: null,
+    farmer_puzzle_hash: `0x${plotNft ? FARMER_PUZZLE_HASH : poolPuzzleHash}`,
+    pool_puzzle_hash: `0x${poolPuzzleHash}`,
+    prev_transaction_block_hash: null,
+    prev_transaction_block_height: height - 1,
+    reward_claims_incorporated: null,
+    overflow: false,
+    signage_point_index: 0,
+    deficit: 0,
+    sub_epoch_summary_included: null,
+  };
+}
+
+/**
+ * Synthesizes a window of block records for a height range the small fixture doesn't cover
+ * (the pools page reads a 4,608-block window far behind the fixture's dozen recent blocks): a
+ * quarter to H9.com's fixed address, a quarter each to two PlotNFT farmers of one pool, and a
+ * quarter to an unknown both-shares address.
+ */
+function syntheticPoolWindow(start: number, end: number) {
+  const pools = [NAMED_POOL_PUZZLE_HASH, ...PLOT_NFT_PUZZLE_HASHES, UNKNOWN_POOL_PUZZLE_HASH];
+  const out = [];
+  for (let h = start; h < end; h += 1) out.push(syntheticBlockRecord(h, pools[h % pools.length]!));
+  return out;
+}
+
+/** Dexie CAT registry entries for TASK-067's tokens page: a busy token, a quiet one and a silent one. */
+export const TOKEN_ACTIVE = hash(0x1111);
+export const TOKEN_QUIET = hash(0x2222);
+export const TOKEN_SILENT = hash(0x3333);
+
+const DEXIE_ASSETS = [
+  { id: `0x${TOKEN_ACTIVE}`, code: "MAT", name: "Most Active Token" },
+  { id: `0x${TOKEN_QUIET}`, code: "QT", name: "Quiet Token" },
+  { id: `0x${TOKEN_SILENT}`, code: "SIL", name: "Silent Token" },
+  { id: `0x${hash(0xa001)}`, code: "ALP", name: "Alpha Coin" },
+  { id: `0x${hash(0xa002)}`, code: "ZET", name: "Zeta Coin" },
+];
+
+const TOKEN_ACTIVITY_SEED: Record<string, { count: number; amountEach: bigint }> = {
+  [TOKEN_ACTIVE]: { count: 15, amountEach: 1_000_000n },
+  [TOKEN_QUIET]: { count: 1, amountEach: 100n },
+};
+
+function syntheticCatTx(index: number, confirmedAtMs: number, assetId: string, amount: bigint) {
+  return {
+    id: hash(0x9000 + index),
+    source: "mempool",
+    status: "confirmed",
+    cost: 1_000_000,
+    fee_mojos: "0",
+    first_seen_ms: confirmedAtMs,
+    confirmed_height: TX_BLOCK_HEIGHT,
+    confirmed_header_hash: TX_BLOCK_HASH,
+    confirmed_at_ms: confirmedAtMs,
+    last_updated_ms: confirmedAtMs,
+    events: [
+      {
+        type: "Transfer",
+        fee_mojos: "0",
+        participants: [{ p2: `0x${hash(1)}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "0", cats: [{ asset_id: `0x${assetId}`, amount: String(amount) }], nfts: [] } }],
+        inputs: [],
+        outputs: [],
+        memos: [],
+      },
+    ],
+  };
+}
+
+/** Deterministic recent-first activity for a mocked token; empty for anything not seeded. */
+function syntheticCatActivity(assetId: string) {
+  const seed = TOKEN_ACTIVITY_SEED[assetId];
+  if (!seed) return [];
+  return Array.from({ length: seed.count }, (_, i) => syntheticCatTx(i, NOW - i * 3_600_000, assetId, seed.amountEach));
+}
 
 function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { coinbase?: boolean; spent?: boolean } = {}) {
   const coin = { parent_coin_info: `0x${parent}`, puzzle_hash: `0x${puzzleHash}`, amount: Number(amount) };
@@ -115,6 +192,35 @@ export function blockCoinFlow() {
   };
 }
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
+
+/** A real pending mempool item's id (mempool_items.json's first entry), reused for the watchlist. */
+export const WATCHED_PENDING_TX_ID = "124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd";
+
+function watchedPendingTx() {
+  return {
+    schema_version: 1,
+    id: WATCHED_PENDING_TX_ID,
+    source: "mempool",
+    status: "pending",
+    cost: 1_000_000,
+    fee_mojos: "0",
+    first_seen_ms: NOW,
+    confirmed_height: null,
+    confirmed_header_hash: null,
+    confirmed_at_ms: null,
+    last_updated_ms: NOW,
+    events: [
+      {
+        type: "Transfer",
+        fee_mojos: "0",
+        participants: [{ p2: `0x${P2}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "500000000", cats: [], nfts: [] } }],
+        inputs: [],
+        outputs: [],
+        memos: [],
+      },
+    ],
+  };
+}
 
 /** Route handler answering full-node RPC (and Coinset indexed) methods from the fixtures. */
 export async function answerNodeMethod(route: Route) {
@@ -146,8 +252,14 @@ export async function answerNodeMethod(route: Route) {
       case "get_block_records": {
         const start = Number(body.start ?? 0);
         const end = Number(body.end ?? 0);
-        return json(route, { block_records: records.filter((r) => r.height >= start && r.height < end), success: true });
+        const real = records.filter((r) => r.height >= start && r.height < end);
+        if (real.length > 0) return json(route, { block_records: real, success: true });
+        // A wide, fixture-uncovered range is the pools page's chunked scan over its 4,608-block window.
+        if (end - start >= 500) return json(route, { block_records: syntheticPoolWindow(start, end), success: true });
+        return json(route, { block_records: [], success: true });
       }
+      case "get_network_space":
+        return json(route, { space: 2_500_000_000_000_000_000, success: true });
       case "get_block_record_by_height": {
         const rec = records.find((r) => r.height === Number(body.height));
         return json(route, rec ? { block_record: rec, success: true } : { success: false, error: "Block height not found" });
@@ -195,11 +307,24 @@ export async function answerNodeMethod(route: Route) {
         return json(route, catBalances);
       case "get_nft_balance_by_p2":
         return json(route, { p2: `0x${P2}`, confirmed_balance: "2", locked_balance: "0", pending_balance: "0", pending_locked_balance: "0", success: true });
-      case "get_transactions_by_p2":
-        return json(route, blockTransactions);
-      case "get_pending_transactions_by_p2":
+      case "get_transactions_by_p2": {
+        const claim = poolClaimFor(String(body.p2 ?? "").replace(/^0x/, "").toLowerCase());
+        return json(route, claim ? { transactions: [claim], success: true } : blockTransactions);
+      }
+      case "get_pending_transactions_by_p2": {
+        const p2 = String(body.p2 ?? "").replace(/^0x/, "").toLowerCase();
+        // A real pending mempool item's id, so the watchlist's queue position lines up with the
+        // compact mempool summary (mockSummary) rather than showing "not seen in the mempool yet".
+        if (p2 === P2) return json(route, { transactions: [watchedPendingTx()], success: true });
         return json(route, { transactions: [], success: true });
-      case "get_transactions_by_cat_asset_id":
+      }
+      case "get_transactions_by_cat_asset_id": {
+        const assetId = String(body.asset_id ?? "").replace(/^0x/, "").toLowerCase();
+        const all = syntheticCatActivity(assetId);
+        const ordered = body.order === "asc" ? [...all].reverse() : all;
+        const limit = Number(body.limit ?? 50);
+        return json(route, { transactions: ordered.slice(0, limit), truncated: ordered.length > limit, next_cursor: ordered.length > limit ? "more" : null, success: true });
+      }
       case "get_transactions_by_nft_id":
       case "get_transactions_by_coin_name":
         return json(route, { transactions: [], success: true });
@@ -209,12 +334,24 @@ export async function answerNodeMethod(route: Route) {
         return json(route, { launcher_id: body.launcher_id, singleton_type: null, coin_record: null, success: true });
       case "get_latest_nft_coin_by_nft_id":
         return json(route, { nft_coin_record: null, success: true });
+      case "get_connections":
+        // Coinset's public gateway does not expose this (confirmed live: 404); only the mocked
+        // custom node answers it, matching real behaviour.
+        return url.host === "node.example.test:8556"
+          ? json(route, {
+              connections: [
+                { node_id: `0x${hash(1)}`, peer_host: "203.0.113.10", peer_port: 8444, type: 0, bytes_read: 204800, bytes_written: 51200, peak_height: 9300000, creation_time: 1_757_000_000 },
+                { node_id: `0x${hash(2)}`, peer_host: "203.0.113.20", peer_port: 8444, type: 0, bytes_read: 1024, bytes_written: 2048, peak_height: 9299998, creation_time: 1_757_001_000 },
+                { node_id: `0x${hash(3)}`, peer_host: "198.51.100.5", peer_port: 8447, type: 5, bytes_read: 500, bytes_written: 500, peak_height: null, creation_time: 1_757_002_000 },
+              ],
+              success: true,
+            })
+          : json(route, { success: false, error: "unknown method" }, 404);
       default:
         return json(route, { success: false, error: `unmocked method ${method}` }, 404);
     }
 }
 
-/** Intercepts every Coinset call and the hosted APIs; anything unknown answers not found. */
 /** Record a "Reject all" decision so the consent panel does not cover controls under test. */
 export async function seedConsent(page: Page) {
   await page.addInitScript(() => {
@@ -222,21 +359,23 @@ export async function seedConsent(page: Page) {
   });
 }
 
+/** Intercepts every Coinset call; anything unknown answers not found. */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
-  await page.route("**/api/mainnet/mempool", (route) => json(route, mockSummary()));
-  await page.route("**/api/testnet11/mempool", (route) => json(route, { ...mockSummary(), network: "testnet11" }));
-  await page.route("**/api/mainnet/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged(mockChain()) }));
-  await page.route("**/api/testnet11/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged({ ...mockChain(), network: "testnet11" }) }));
-  await page.route("**/api/*/events**", (route) => route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*", "cache-control": "no-cache" }, body: mockEventsBody() }));
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
 }
 
+/** Intercepts the Dexie CAT registry with a small fixed set (TASK-067's tokens page). */
+export async function mockDexie(page: Page) {
+  await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) => json(route, { success: true, count: DEXIE_ASSETS.length, page: 1, page_size: 100, assets: DEXIE_ASSETS }));
+  await page.route(/https:\/\/icons\.dexie\.space\/.*/, (route) => route.fulfill({ status: 404, body: "" }));
+}
+
 export const CUSTOM_NODE_URL = "https://node.example.test:8556";
 
-/** A custom full-node RPC (no Coinset, no hosted APIs): the app must poll and fetch the mempool itself. */
+/** A custom full-node RPC (not Coinset): the app must poll and fetch the mempool itself. */
 export async function mockCustomNode(page: Page) {
   await seedConsent(page);
   await page.addInitScript((rpcUrl) => {
@@ -246,6 +385,6 @@ export async function mockCustomNode(page: Page) {
     );
   }, CUSTOM_NODE_URL);
   await page.route(/https:\/\/node\.example\.test:8556\/.*/, answerNodeMethod);
-  // Anything that still goes to Coinset or the hosted APIs is a bug: answer 599 so the test can see it.
+  // Anything that still goes to Coinset is a bug: answer 599 so the test can see it.
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => route.fulfill({ status: 599, body: "must not be called with a custom node" }));
 }

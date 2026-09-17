@@ -9,8 +9,12 @@ import { join, resolve } from "node:path";
  * sage-manifest.json are served; everything else falls through to the normal app. The
  * snapshot's `_next/static/<hash>/…` files never clash with the hosted build's because every
  * build has its own hash.
+ *
+ * The turbopackIgnore comments keep Next's output file tracing away from these reads: it cannot
+ * resolve a runtime path, so it would copy the whole repository into .next/standalone (and the
+ * Docker image). The snapshot is not traced output anyway; the Dockerfile copies it in.
  */
-const SNAPSHOT_DIR = resolve(process.cwd(), process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot");
+const SNAPSHOT_DIR = resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot");
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -29,7 +33,7 @@ let servable: ReadonlySet<string> | undefined;
 function servablePaths(): ReadonlySet<string> {
   if (servable) return servable;
   try {
-    const manifest = JSON.parse(readFileSync(join(SNAPSHOT_DIR, "sage-manifest.json"), "utf8")) as { files?: { path: string }[] };
+    const manifest = JSON.parse(readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, "sage-manifest.json"), "utf8")) as { files?: { path: string }[] };
     const paths = new Set<string>(["sage-manifest.json", ...(manifest.files ?? []).map((f) => f.path)]);
     servable = paths;
     return paths;
@@ -42,7 +46,7 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname.replace(/^\/+/, "");
   if (path === "" || !servablePaths().has(path)) return NextResponse.next();
   try {
-    const body = readFileSync(join(SNAPSHOT_DIR, path));
+    const body = readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, path));
     const dot = path.lastIndexOf(".");
     const type = dot === -1 ? "application/octet-stream" : (MIME[path.slice(dot)] ?? "application/octet-stream");
     return new NextResponse(body, {

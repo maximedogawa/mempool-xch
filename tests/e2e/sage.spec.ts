@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { fakePendingTx, installFakeSage } from "./fakeSage";
+import { fakeNftPendingTx, fakePendingTx, installFakeSage } from "./fakeSage";
 import { mockCoinset, mockSummary } from "./mockCoinset";
+
+// A tiny valid webp (1x1, opaque black), enough for the browser to decode and fire onLoad.
+const TINY_WEBP = Buffer.from("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=", "base64");
 
 /**
  * Sage in-app integration with a fake host (TASK-042): the dashboard shows the wallet's pending
@@ -24,8 +27,8 @@ test.describe("Sage wallet on the dashboard", () => {
     await expect(page.getByRole("link", { name: /^Your spend bundle/ }).first()).toBeVisible();
     await expect(page.getByLabel(/Projected block 1: .*1 of yours/).first()).toBeVisible();
     // The chime toggle must not throw in a browser without audio.
-    await page.getByRole("button", { name: /chime/i }).click();
-    await page.getByRole("button", { name: /chime/i }).click();
+    await panel.getByRole("button", { name: /chime/i }).click();
+    await panel.getByRole("button", { name: /chime/i }).click();
     expect(errors).toEqual([]);
   });
 
@@ -42,5 +45,20 @@ test.describe("Sage wallet on the dashboard", () => {
     await expect(panel.getByText(/^Confirmed/)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByText("Your transactions in flight", { exact: true })).toBeVisible({ timeout: 20_000 });
     await expect(panel.getByText("−0.25 XCH")).toBeVisible();
+  });
+
+  test("an owned NFT shows its real MintGarden thumbnail, not the generic picture icon (TASK-054)", async ({ page }) => {
+    await page.route(/^https:\/\/api\.mintgarden\.io\/nfts\/.*\/thumbnail$/, (route) =>
+      route.fulfill({ status: 200, contentType: "image/webp", body: TINY_WEBP })
+    );
+    const id = mockSummary().items[0]!.id;
+    await mockCoinset(page);
+    await installFakeSage(page, [fakeNftPendingTx(id)]);
+    await page.goto("/");
+    const panel = page.getByRole("heading", { name: /Your transactions in flight/ }).locator("xpath=ancestor::*[contains(@class,'card-lift')][1]");
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    const thumbnail = panel.locator('img[src^="https://api.mintgarden.io/nfts/"][src$="/thumbnail"]');
+    await expect(thumbnail).toBeVisible();
+    await expect(panel.getByRole("img", { name: "NFT" })).toHaveJSProperty("complete", true);
   });
 });

@@ -2,16 +2,17 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import type { NetworkId } from "@/shared/config/networks";
 import { CHIA } from "@/shared/config/networks";
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import { packProjectedBlocks, type ProjectedBlock } from "@/shared/lib/mempool/packing";
+import { createMempoolItemSync, type MempoolItemSync } from "@/shared/lib/mempool/sync";
 import type { MempoolSummary } from "@/shared/lib/mempool/types";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
-import { RpcError } from "@/shared/lib/rpc/errors";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
+import type { RpcClient } from "@/shared/lib/rpc/client";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { fetchChainSnapshot, isChainFallbackError as isFallbackError } from "./chain";
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
@@ -19,68 +20,38 @@ export function useBlockchainState() {
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
     enabled: hydrated,
-    queryFn: async ({ signal }) => {
-      if (endpoints.chainUrl) {
-        try {
-          return (await fetchChainSnapshot(endpoints.chainUrl, signal)).state;
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      return client.getBlockchainState(signal);
-    },
+    queryFn: ({ signal }) => client.getBlockchainState(signal),
     // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
     refetchInterval: 60_000,
   });
 }
 
-/** First-seen times for the browser fallback survive across refetches within the session. */
-const browserFirstSeen = new Map<string, number>();
-
-async function fetchSummaryFromServer(url: string, signal: AbortSignal): Promise<MempoolSummary> {
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new RpcError("http", "summary", `Summary API answered ${response.status}`, { status: response.status });
-  const text = await response.text();
-  try {
-    return JSON.parse(text) as MempoolSummary;
-  } catch (error) {
-    throw new RpcError("malformed", "summary", "Malformed summary", { detail: error });
+/**
+ * One incremental sync per network, persisting for the tab's lifetime: get_all_mempool_items
+ * carries full puzzle reveals and can be tens of MB, so this fetches the id list and only the
+ * items not already known instead (src/shared/lib/mempool/sync.ts).
+ */
+const mempoolSyncs = new Map<NetworkId, MempoolItemSync>();
+function getMempoolSync(network: NetworkId, client: RpcClient): MempoolItemSync {
+  let sync = mempoolSyncs.get(network);
+  if (!sync) {
+    sync = createMempoolItemSync({ getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s), getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s) });
+    mempoolSyncs.set(network, sync);
   }
+  return sync;
 }
 
-/**
- * Compact mempool: from the hosted summary API when the endpoint is Coinset, otherwise
- * assembled in the browser from get_all_mempool_items (heavy, but only for custom nodes).
- */
+/** Compact mempool, synced incrementally in the browser (see getMempoolSync above). */
 export function useMempoolSummary() {
   const { client, endpoints, hydrated } = useSettings();
-  const { status } = useLive();
-  const source = endpoints.summaryUrl ?? "browser";
-  // With a live WebSocket, transaction and peak events already invalidate the summary, so the
-  // interval is only a safety net; while polling it carries the updates itself.
-  const interval = endpoints.summaryUrl ? (status === "live" ? 12_000 : 4_000) : 20_000;
   return useQuery({
-    queryKey: queryKeys.mempoolSummary(endpoints.network, source),
+    queryKey: queryKeys.mempoolSummary(endpoints.network, "browser"),
     enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
-      if (endpoints.summaryUrl) {
-        try {
-          return await fetchSummaryFromServer(endpoints.summaryUrl, signal);
-        } catch (error) {
-          // The static Sage snapshot or a dev server without the API falls back to the browser.
-          if (!(error instanceof RpcError && (error.kind === "http" || error.kind === "network"))) throw error;
-        }
-      }
-      const [state, items] = await Promise.all([client.getBlockchainState(signal), client.getAllMempoolItems(signal)]);
+      const [state, entries] = await Promise.all([client.getBlockchainState(signal), getMempoolSync(endpoints.network, client).sync(signal)]);
       const now = Date.now();
-      const live = new Set(items.map((i) => i.name));
-      [...browserFirstSeen.keys()].filter((id) => !live.has(id)).forEach((id) => browserFirstSeen.delete(id));
-      const compact = items.map((item) => {
-        const seen = browserFirstSeen.get(item.name) ?? now;
-        browserFirstSeen.set(item.name, seen);
-        return compactMempoolItem(item, seen);
-      });
-      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost), see server/mempoolSummary.ts
+      const compact = entries.map(({ item, firstSeen }) => compactMempoolItem(item, firstSeen));
+      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost).
       const minFeeRate = state.mempoolMinFees.cost_5000000 ?? 0;
       return {
         network: endpoints.network,
@@ -102,15 +73,9 @@ export function useMempoolSummary() {
         items: compact,
       };
     },
-    // While the server is still filling its view (fewer items than the node reports), poll
-    // faster so the first visitor after a restart sees projected blocks within seconds; but
-    // only for the first refetches, a busy mempool can stay "filling" for minutes and each
-    // summary is tens of KB.
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9 && query.state.dataUpdateCount < 12) return 3_000;
-      return interval;
-    },
+    // Peak/transaction events from LiveProvider already invalidate this on activity; the
+    // interval is a safety net only.
+    refetchInterval: 20_000,
     placeholderData: keepPreviousData,
   });
 }
@@ -149,18 +114,7 @@ export function useRecentBlocks(count: number) {
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
-      let records: BlockRecord[] | null = null;
-      if (endpoints.chainUrl) {
-        try {
-          // The peak event reaches the tab before the server has the new record; the window is
-          // refetched when the server sends its `chain` event, so a lagging snapshot is used as is.
-          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-          records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      if (!records) records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
+      const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
       const all = [...records].sort((a, b) => b.height - a.height);
       const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
       const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
@@ -176,43 +130,10 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
     enabled: hydrated,
-    queryFn: async ({ signal }) => {
-      if (endpoints.chainUrl) {
-        try {
-          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-          if (snapshot.fee && snapshot.fee.cost === cost) return snapshot.fee.estimate;
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      return client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal);
-    },
+    queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
     refetchInterval: 45_000,
     placeholderData: keepPreviousData,
   });
 }
 
 export { parseJsonSafe };
-
-export interface ServerStatus {
-  hub: { channel: "websocket" | "polling" | "connecting"; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
-  mempool: { items: number; generatedAt: number };
-  now: number;
-}
-
-/** The hosted server's own Coinset channel (/api/<network>/status); null when not hosted. */
-export function useServerStatus() {
-  const { endpoints, hydrated } = useSettings();
-  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain(\?.*)?$/, "/status") : null;
-  return useQuery({
-    queryKey: ["server", endpoints.network, "status"],
-    enabled: hydrated && url !== null,
-    refetchInterval: 60_000,
-    retry: false,
-    queryFn: async ({ signal }): Promise<ServerStatus | null> => {
-      const response = await fetch(url!, { signal });
-      if (!response.ok) return null;
-      return (await response.json()) as ServerStatus;
-    },
-  });
-}

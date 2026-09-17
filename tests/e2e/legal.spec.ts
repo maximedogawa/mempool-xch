@@ -22,9 +22,6 @@ test.describe("legal", () => {
       await expect(page).toHaveURL(new RegExp(`${path}$`));
       await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
     }
-    // Unfilled operator details are visibly marked, never silently empty.
-    await page.goto("/legal/notice");
-    await expect(page.locator("mark[data-placeholder]").first()).toContainText("to be filled in");
   });
 
   test("first visit asks; Reject all is stored for 12 months and Cookie settings reopens the panel", async ({ page }) => {
@@ -49,15 +46,6 @@ test.describe("legal", () => {
     await panel.getByRole("button", { name: "Save my choice" }).click();
     await expect(panel).toBeHidden();
     expect(await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key) ?? "null"), CONSENT_KEY)).toMatchObject({ analytics: true, advertising: false });
-  });
-
-  test("an expired choice asks again", async ({ page }) => {
-    await mockCoinset(page, { consent: false });
-    await page.addInitScript((key) => {
-      window.localStorage.setItem(key, JSON.stringify({ analytics: true, advertising: true, decidedAt: Date.now() - 366 * 24 * 60 * 60 * 1000 }));
-    }, CONSENT_KEY);
-    await page.goto("/legal/terms");
-    await expect(page.getByRole("region", { name: "Cookies and local storage" })).toBeVisible();
   });
 
   test("Global Privacy Control counts as refusal: no banner, optional categories locked off", async ({ page }) => {

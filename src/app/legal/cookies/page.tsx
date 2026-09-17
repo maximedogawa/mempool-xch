@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LEGAL, SITE_NAME } from "@/shared/config/legal";
+import { SITE_NAME } from "@/shared/config/legal";
 import { routes } from "@/shared/lib/routes";
-import { Fill, LegalPage, List, Section } from "@/widgets/legal/LegalPage";
+import { LegalPage, List, Section } from "@/widgets/legal/LegalPage";
 import { CookieSettingsButton } from "@/widgets/legal/CookieSettingsButton";
 
 export const metadata: Metadata = { title: "Cookie policy" };
 
 const NECESSARY = [
-  { key: "mempool-xch:settings:v1", purpose: "Network, node address, theme, number of recent blocks, sounds", lifetime: "Until you reset or clear it" },
+  { key: "mempool-xch:settings:v1", purpose: "Network, node address, theme, number of recent blocks, sounds, whether browser notifications are on", lifetime: "Until you reset or clear it" },
   { key: "mempool-xch:tokens:v2", purpose: "Cached list of CAT names and icons, so it is not downloaded on every visit", lifetime: "Refreshed after 24 hours" },
   { key: "mempool-xch:history:v1:<network>", purpose: "Mempool graph of the last two hours, drawn while the page is open", lifetime: "Entries older than two hours are dropped" },
+  { key: "mempool-xch:watchlist:v1", purpose: "Addresses and transaction ids you chose to watch", lifetime: "Until you remove them or clear it" },
   { key: "mempool-xch:sage-refused:v1", purpose: "Sage permissions you declined, so you are not asked again (Sage app only)", lifetime: "Until you clear it" },
   { key: "mempool-xch:consent:v1", purpose: "Your choice in Cookie settings", lifetime: "12 months" },
 ];
@@ -86,7 +87,7 @@ export default function CookiesPage() {
           <Link href={routes.legalPrivacy()} className="text-accent hover:underline">
             privacy policy
           </Link>
-          . Questions: <Fill value={LEGAL.contactEmail} label="contact email" />.
+          . x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with your IP address and the time of your visit.
         </p>
       </Section>
     </LegalPage>

@@ -12,7 +12,6 @@ import type { ThemePreference } from "@/shared/lib/settings/store";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { useServerStatus } from "@/shared/api/hooks";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
@@ -24,12 +23,10 @@ type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; he
 function ChannelLine() {
   const { endpoints } = useSettings();
   const { status, transport } = useLive();
-  const server = useServerStatus();
-  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, eventsUrl: endpoints.eventsUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset, serverChannel: server.data?.hub?.channel ?? null });
+  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset });
   return (
     <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
-      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail}
-      {endpoints.chainUrl ? " Chain state, recent blocks, fees and the mempool summary come from this site's server cache; detail pages and search call the endpoint directly." : " Everything is read from the endpoint directly."}
+      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail} Everything is read from the endpoint directly.
     </p>
   );
 }
@@ -180,8 +177,8 @@ export function SettingsForm() {
             </p>
           ) : null}
           <p className="text-sm text-fg-muted">
-            By default mempoolxch.space reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed.
-            You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history, the WebSocket stream and the server-side mempool summary) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.
+            By default mempoolxch.space reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed, straight from your browser.
+            You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history and the WebSocket stream) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.
           </p>
           {NETWORK_IDS.map((id) => (
             <EndpointRow key={id} network={id} />

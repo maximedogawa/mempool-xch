@@ -16,6 +16,7 @@ import {
   normaliseFeeEstimate,
   normaliseFullBlock,
   normaliseMempoolItem,
+  normalisePeerConnection,
   normaliseSingletonInfo,
   normaliseTxList,
   normaliseTxSummary,
@@ -31,6 +32,7 @@ import type {
   FeeEstimate,
   FullBlockSummary,
   MempoolItem,
+  PeerConnection,
   SingletonInfo,
   TxList,
   TxSummary,
@@ -170,6 +172,12 @@ export function createRpcClient(options: RpcClientOptions) {
       return (Array.isArray(r.block_records) ? r.block_records : []).map(normaliseBlockRecord);
     },
 
+    /** Estimated netspace between two blocks, from the node's own difficulty-based calculation. */
+    async getNetworkSpace(olderHeaderHash: string, newerHeaderHash: string, signal?: AbortSignal): Promise<bigint> {
+      const r = await rpc("get_network_space", { older_block_header_hash: withHexPrefix(olderHeaderHash), newer_block_header_hash: withHexPrefix(newerHeaderHash) }, signal);
+      return BigInt(String(r.space ?? 0));
+    },
+
     async getBlockRecordByHeight(height: number, signal?: AbortSignal): Promise<BlockRecord> {
       const r = await rpc("get_block_record_by_height", { height }, signal);
       return normaliseBlockRecord(notFoundIfMissing(r.block_record, "get_block_record_by_height", "Block"));
@@ -263,6 +271,12 @@ export function createRpcClient(options: RpcClientOptions) {
     async pushTx(spendBundle: Raw, signal?: AbortSignal): Promise<string> {
       const r = await rpc("push_tx", { spend_bundle: spendBundle }, signal);
       return String(r.status ?? "UNKNOWN");
+    },
+
+    /** Connected peers (TASK-065); Coinset's public gateway disables this, custom nodes answer it. */
+    async getConnections(signal?: AbortSignal): Promise<PeerConnection[]> {
+      const r = await rpc("get_connections", {}, signal);
+      return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
     },
 
     /* ---- Coinset indexed API (null when not Coinset) ---- */

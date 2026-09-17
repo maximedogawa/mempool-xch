@@ -13,7 +13,7 @@ import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton } from "@/shared/ui";
 import { blockReward } from "@/shared/lib/blocks/reward";
-import { lookupPool } from "@/shared/lib/pools/registry";
+import { useBlockPool } from "@/shared/lib/pools/usePoolLookup";
 import { BlockCoinFlow } from "./BlockCoinFlow";
 import { BlockCoins } from "./BlockCoins";
 import { BlockTransactions } from "./BlockTransactions";
@@ -38,6 +38,7 @@ export function BlockDetails({ id }: { id: string }) {
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const blockMaxCost = state.data?.blockMaxCost ?? 11_000_000_000;
   const record = query.data?.record;
+  const farmedBy = useBlockPool(record);
   const block = query.data?.block;
   const isTx = record?.isTransactionBlock ?? false;
   const coins = useBlockCoins(record?.headerHash ?? null, isTx);
@@ -67,8 +68,8 @@ export function BlockDetails({ id }: { id: string }) {
   const farmer = puzzleHashToAddress(record.farmerPuzzleHash, networkConfig.addressPrefix);
   const pool = puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix);
   const nextDisabled = peak !== null && record.height >= peak;
-  const poolEntry = lookupPool(record.poolPuzzleHash);
-  const soloFarmer = record.poolPuzzleHash === record.farmerPuzzleHash;
+  const poolEntry = farmedBy.entry;
+  const claimTarget = farmedBy.claim?.target ? puzzleHashToAddress(farmedBy.claim.target, networkConfig.addressPrefix) : null;
   const reward = blockReward(record.height);
 
   return (
@@ -146,10 +147,15 @@ export function BlockDetails({ id }: { id: string }) {
                     <a href={poolEntry.url} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
                       {poolEntry.name}
                     </a>
-                  ) : soloFarmer ? (
+                  ) : claimTarget ? (
+                    <span className="text-fg-muted">
+                      {farmedBy.claim?.selfPooled ? "Self-pooling farmer (PlotNFT)" : "Unnamed pool"}, rewards claimed to{" "}
+                      <Hash value={claimTarget} href={routes.address(claimTarget)} head={8} tail={6} />
+                    </span>
+                  ) : farmedBy.bothShares ? (
                     <span className="text-fg-muted">Unidentified; pool and farmer rewards go to the same address</span>
                   ) : (
-                    <span className="text-fg-muted">Unidentified pool or solo farmer</span>
+                    <span className="text-fg-muted">Unidentified; the pool reward has not been claimed yet</span>
                   )}
                 </span>
                 <span className="text-xs text-fg-faint">

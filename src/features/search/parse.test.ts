@@ -27,6 +27,9 @@ describe("parseSearchInput", () => {
     expect(parseSearchInput(ph.toUpperCase())).toEqual({ kind: "hex32", hex: ph });
     expect(parseSearchInput("abcd").kind).toBe("invalid");
     expect(parseSearchInput("").kind).toBe("invalid");
-    expect(parseSearchInput("hello world").kind).toBe("invalid");
+  });
+  test("free text that matches no known shape is a name search, not an error", () => {
+    expect(parseSearchInput("hello world")).toEqual({ kind: "text", value: "hello world" });
+    expect(parseSearchInput("Chia Friends")).toEqual({ kind: "text", value: "Chia Friends" });
   });
 });

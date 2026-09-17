@@ -6,17 +6,42 @@
  */
 import type { NetworkId } from "@/shared/config/networks";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
+import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import { routes } from "@/shared/lib/routes";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS } from "@/shared/config/networks";
 import type { SearchTarget } from "./parse";
 
 export interface SearchMatch {
-  kind: "tx" | "coin" | "block" | "cat" | "address" | "nft" | "did";
+  kind: "tx" | "coin" | "block" | "cat" | "address" | "nft" | "did" | "collection";
   label: string;
   href: string;
   /** CAT asset id (no 0x) so the result row can show the token icon and ticker. */
   assetId?: string;
+  /** NFT/collection thumbnail (TASK-055), host-restricted by AssetImage itself when rendered. */
+  thumbnailUrl?: string | null;
+}
+
+const SEARCH_RESULT_LIMIT = 5;
+
+/** Free-text name search via MintGarden (TASK-055): NFTs and collections only, capped for a usable dropdown. */
+export async function resolveText(value: string): Promise<SearchMatch[]> {
+  const { nfts, collections } = await searchMintGarden(value);
+  return [
+    ...nfts.slice(0, SEARCH_RESULT_LIMIT).map((n) => ({
+      kind: "nft" as const,
+      label: n.name ?? "NFT",
+      href: routes.nft(n.nftId),
+      thumbnailUrl: n.thumbnailUrl,
+    })),
+    // No in-app collection detail page yet; link out to MintGarden's own, same as the collections list page does.
+    ...collections.slice(0, SEARCH_RESULT_LIMIT).map((c) => ({
+      kind: "collection" as const,
+      label: c.name ?? "Collection",
+      href: mintGardenCollectionUrl(c.id),
+      thumbnailUrl: c.thumbnailUrl,
+    })),
+  ];
 }
 
 async function probe<T>(fn: () => Promise<T>): Promise<T | null> {

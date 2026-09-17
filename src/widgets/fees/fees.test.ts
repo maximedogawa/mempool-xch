@@ -7,7 +7,6 @@ import blockchainState from "@/test-utils/fixtures/blockchain_state.json";
 import { CHIA } from "@/shared/config/networks";
 import { feePerCost } from "@/shared/lib/chia/amounts";
 import { normaliseBlockchainState, normaliseFeeEstimate, normaliseFullBlock, normaliseTxSummary } from "@/shared/lib/rpc/normalise";
-import { stateSummary } from "@/server/mempoolSummary";
 
 /**
  * Fee and cost semantics, cross-checked against chia-blockchain (full_node_rpc_api.py,
@@ -37,7 +36,8 @@ describe("fee figures", () => {
 
   test("mempool_min_fees.cost_5000000 is used as a rate (mojos per cost)", () => {
     const state = normaliseBlockchainState({ ...blockchainState.blockchain_state, mempool_min_fees: { cost_5000000: 7.5 } });
-    expect(stateSummary(state).minFeeRate).toBe(7.5);
+    // Same read useMempoolSummary() does (src/shared/api/hooks.ts) when assembling the summary client-side.
+    expect(state.mempoolMinFees.cost_5000000 ?? 0).toBe(7.5);
   });
 
   test("fee per cost of a confirmed transaction matches Coinset fee_mojos / cost", () => {
