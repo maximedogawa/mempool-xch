@@ -27,16 +27,20 @@ export function useBlockchainState() {
 }
 
 /**
- * One incremental sync per network, persisting for the tab's lifetime: get_all_mempool_items
- * carries full puzzle reveals and can be tens of MB, so this fetches the id list and only the
- * items not already known instead (src/shared/lib/mempool/sync.ts).
+ * One incremental sync per network *and* endpoint, persisting for the tab's lifetime:
+ * get_all_mempool_items carries full puzzle reveals and can be tens of MB, so this fetches the
+ * id list and only the items not already known instead (src/shared/lib/mempool/sync.ts). Keyed
+ * on the client's rpcUrl too, not just the network id, so switching to a custom node (while
+ * staying on the same network) starts a fresh sync against the new endpoint instead of reusing
+ * one still bound to the old one.
  */
-const mempoolSyncs = new Map<NetworkId, MempoolItemSync>();
+const mempoolSyncs = new Map<string, MempoolItemSync>();
 function getMempoolSync(network: NetworkId, client: RpcClient): MempoolItemSync {
-  let sync = mempoolSyncs.get(network);
+  const key = `${network}:${client.rpcUrl}`;
+  let sync = mempoolSyncs.get(key);
   if (!sync) {
     sync = createMempoolItemSync({ getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s), getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s) });
-    mempoolSyncs.set(network, sync);
+    mempoolSyncs.set(key, sync);
   }
   return sync;
 }

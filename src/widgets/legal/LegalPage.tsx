@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { LEGAL_UPDATED } from "@/shared/config/legal";
 import { routes } from "@/shared/lib/routes";
 
-const PAGES = [
+/** The four legal pages, in nav order; shared with the footer so the two lists never drift. */
+export const PAGES = [
   { href: routes.legalTerms(), label: "Terms of use" },
   { href: routes.legalNotice(), label: "Legal notice" },
   { href: routes.legalPrivacy(), label: "Privacy policy" },

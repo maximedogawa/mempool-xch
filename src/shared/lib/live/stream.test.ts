@@ -113,6 +113,31 @@ describe("createLiveStream", () => {
     expect(timers.pending()).toEqual([]);
   });
 
+  test("a poll still in flight when stop() runs does not resurrect status or fire stale events", async () => {
+    const timers = fakeTimers();
+    const events: LiveEvent[] = [];
+    let resolvePoll: (v: { peakHeight: number; peakIsTx: boolean; mempoolSize: number }) => void = () => {};
+    const stream = createLiveStream({
+      wsUrl: null,
+      poll: () => new Promise((r) => (resolvePoll = r)),
+      onEvent: (e) => events.push(e),
+      pollIntervalMs: 1000,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    await Promise.resolve();
+    expect(stream.status).toBe("polling");
+    stream.stop();
+    expect(stream.status).toBe("offline");
+    events.length = 0;
+    resolvePoll({ peakHeight: 99, peakIsTx: true, mempoolSize: 5 });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(stream.status).toBe("offline");
+    expect(events).toEqual([]);
+  });
+
   test("websocket goes live, forwards events, reconnects with backoff and falls back to polling", async () => {
     FakeSocket.instances = [];
     const timers = fakeTimers();

@@ -8,6 +8,7 @@ import { useLive } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { PAGES as LEGAL_PAGES } from "@/widgets/legal/LegalPage";
 
 export function Footer() {
   const { endpoints, networkConfig } = useSettings();
@@ -56,18 +57,11 @@ export function Footer() {
           Chia Network Inc.
         </p>
         <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Link href={routes.legalTerms()} className="hover:text-fg">
-            Terms of use
-          </Link>
-          <Link href={routes.legalNotice()} className="hover:text-fg">
-            Legal notice
-          </Link>
-          <Link href={routes.legalPrivacy()} className="hover:text-fg">
-            Privacy policy
-          </Link>
-          <Link href={routes.legalCookies()} className="hover:text-fg">
-            Cookie policy
-          </Link>
+          {LEGAL_PAGES.map((page) => (
+            <Link key={page.href} href={page.href} className="hover:text-fg">
+              {page.label}
+            </Link>
+          ))}
           <button type="button" onClick={openSettings} className="cursor-pointer border-0 bg-transparent p-0 text-fg-faint hover:text-fg">
             Cookie settings
           </button>

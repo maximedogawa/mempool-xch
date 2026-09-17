@@ -118,6 +118,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     if (stopped) return;
     try {
       const sample = await options.poll();
+      // stop() may have run while the poll was in flight; a stale result must not resurrect
+      // status or events on a torn-down stream (or, worse, on the next network's fresh one).
+      if (stopped) return;
       pollFailures = 0;
       // Only the fallback poll owns the status; with a socket open or opening, a poll that
       // finishes later must not overwrite "live" with "polling".
@@ -130,6 +133,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       }
       lastSample = sample;
     } catch {
+      if (stopped) return;
       pollFailures += 1;
       if (pollFailures >= 2 && socket === null) setStatus("offline");
     }

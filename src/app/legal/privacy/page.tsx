@@ -41,7 +41,7 @@ export default function PrivacyPage() {
             security incident.
           </li>
           <li>
-            Hosting: Heztner, acting as processor under Art. 28 GDPR.
+            Hosting: Hetzner, acting as processor under Art. 28 GDPR.
           </li>
         </List>
         <p>
