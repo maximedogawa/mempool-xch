@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
+import { mintGardenCollectionUrl } from "@/shared/lib/nft/mintgarden";
 import type { CollectionInterval } from "@/shared/lib/nft/mintgarden";
 import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
@@ -94,7 +95,7 @@ export function NftCollectionsPage() {
                   {collections.map((c) => (
                     <Tr key={c.id}>
                       <Td>
-                        <a href={`https://mintgarden.io/collections/${c.id}`} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 hover:text-accent">
+                        <a href={mintGardenCollectionUrl(c.id)} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 hover:text-accent">
                           <AssetImage urls={c.thumbnailUrl ? [c.thumbnailUrl] : []} alt="" className="h-8 w-8 shrink-0" rounded="rounded-sm" />
                           <span className="truncate font-medium">{c.name ?? "Untitled"}</span>
                         </a>

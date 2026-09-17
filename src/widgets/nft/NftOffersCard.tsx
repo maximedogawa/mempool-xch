@@ -2,6 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 import { formatAge } from "@/shared/lib/format/time";
+import { dexieOfferUrl } from "@/shared/lib/nft/mintgarden";
 import { Card, CardBody, CardHeader, CopyButton, Skeleton } from "@/shared/ui";
 import { formatXchDecimal } from "./format";
 import { useNftOffers } from "./useNftSection";
@@ -36,7 +37,7 @@ export function NftOffersCard({ nftId, enabled }: { nftId: string; enabled: bool
                 </span>
                 <span className="flex items-center gap-2">
                   <CopyButton value={o.offerFile} label="Copy offer file" />
-                  <a href={`https://dexie.space/offers/${o.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+                  <a href={dexieOfferUrl(o.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
                     View on Dexie <ExternalLink size={11} aria-hidden="true" />
                   </a>
                 </span>

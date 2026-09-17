@@ -6,7 +6,7 @@
  */
 import type { NetworkId } from "@/shared/config/networks";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
-import { searchMintGarden } from "@/shared/lib/nft/mintgarden";
+import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import { routes } from "@/shared/lib/routes";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS } from "@/shared/config/networks";
@@ -38,7 +38,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
     ...collections.slice(0, SEARCH_RESULT_LIMIT).map((c) => ({
       kind: "collection" as const,
       label: c.name ?? "Collection",
-      href: `https://mintgarden.io/collections/${c.id}`,
+      href: mintGardenCollectionUrl(c.id),
       thumbnailUrl: c.thumbnailUrl,
     })),
   ];

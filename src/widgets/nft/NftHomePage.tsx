@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { formatNumber } from "@/shared/lib/chia/amounts";
+import { mintGardenCollectionUrl } from "@/shared/lib/nft/mintgarden";
 import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader, EmptyState, Skeleton, StatTile } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
@@ -60,7 +61,7 @@ export function NftHomePage() {
               {collections.data.collections.map((c) => (
                 <a
                   key={c.id}
-                  href={`https://mintgarden.io/collections/${c.id}`}
+                  href={mintGardenCollectionUrl(c.id)}
                   target="_blank"
                   rel="noreferrer"
                   className="group relative isolate flex aspect-square flex-col justify-end overflow-hidden rounded-xl shadow-card ring-1 ring-border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-primary/50"

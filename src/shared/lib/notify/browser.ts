@@ -8,10 +8,6 @@ export function notificationsSupported(): boolean {
   return typeof window !== "undefined" && "Notification" in window;
 }
 
-export function notificationPermission(): NotificationPermission | "unsupported" {
-  return notificationsSupported() ? Notification.permission : "unsupported";
-}
-
 export async function requestNotificationPermission(): Promise<NotificationPermission | "unsupported"> {
   if (!notificationsSupported()) return "unsupported";
   try {

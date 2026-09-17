@@ -169,6 +169,15 @@ function normaliseOffer(raw: unknown): NftOffer {
   };
 }
 
+/** Outbound links. Ids come from the APIs' responses, so they are encoded rather than trusted as a path. */
+export function mintGardenCollectionUrl(collectionId: string): string {
+  return `https://mintgarden.io/collections/${encodeURIComponent(collectionId)}`;
+}
+
+export function dexieOfferUrl(offerId: string): string {
+  return `https://dexie.space/offers/${encodeURIComponent(offerId)}`;
+}
+
 /** Direct thumbnail URL (TASK-054): verified 2026-09-16 to 307-redirect straight to assets.mainnet.mintgarden.io, one request, no JSON parsing needed. `nftId` is the nft1… bech32 id. */
 export function mintGardenThumbnailUrl(nftId: string): string {
   return `${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}/thumbnail`;

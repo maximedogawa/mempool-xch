@@ -45,16 +45,6 @@ export function Section({ title, id, children }: { title: string; id?: string; c
   );
 }
 
-/** A value from src/shared/config/legal.ts, or a visible marker while the owner has not filled it in. */
-export function Fill({ value, label }: { value: string | null; label: string }) {
-  if (value) return <>{value}</>;
-  return (
-    <mark data-placeholder={label} className="rounded-sm bg-warning px-1 text-bg">
-      [to be filled in: {label}]
-    </mark>
-  );
-}
-
 export function List({ children }: { children: ReactNode }) {
   return <ul className="list-disc space-y-1 pl-5">{children}</ul>;
 }
