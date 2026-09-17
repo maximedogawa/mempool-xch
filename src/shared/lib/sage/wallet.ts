@@ -206,7 +206,7 @@ export async function requestEndpointWhitelist(url: string, networkId: string): 
   }
 }
 
-/* ---- Paged history (TASK-032) ---- */
+/* ---- Paged history ---- */
 
 export interface WalletTxPage {
   items: WalletTx[];

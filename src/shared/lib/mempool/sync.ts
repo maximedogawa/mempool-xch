@@ -1,9 +1,8 @@
 /**
- * Incremental mempool sync (decision-012): `get_all_mempool_items` carries full puzzle reveals
+ * Incremental mempool sync: `get_all_mempool_items` carries full puzzle reveals
  * and can be tens of MB on a busy mempool, so instead of re-fetching it on every tick, fetch the
  * id list (cheap) and only the items not already known, keeping a running map. One instance per
- * network persists for the tab's lifetime; this mirrors what the server-side syncer used to do
- * (removed in decision-012), just running in the browser instead.
+ * network persists for the tab's lifetime.
  */
 import { createLimiter } from "@/shared/lib/limit";
 import type { MempoolItem } from "@/shared/lib/rpc/types";

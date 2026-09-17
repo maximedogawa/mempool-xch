@@ -17,6 +17,19 @@ export function fakePendingTx(id: string, amountMojos = 1_500_000_000_000) {
   };
 }
 
+export const FAKE_NFT_LAUNCHER_ID = "bb".repeat(32);
+
+/** Same shape as fakePendingTx, but the spent coin is an NFT (real thumbnail, not the generic picture icon). */
+export function fakeNftPendingTx(id: string) {
+  return {
+    transaction_id: id,
+    submitted_at: Math.floor(Date.now() / 1000) - 20,
+    fee: 5_000_000,
+    spent: [{ coin_id: "cc".repeat(32), amount: 1, address: FAKE_ADDRESS, asset: { kind: "nft", asset_id: FAKE_NFT_LAUNCHER_ID, name: "Test NFT", ticker: null, precision: 1, icon_url: null } }],
+    created: [],
+  };
+}
+
 export async function installFakeSage(page: Page, pending: unknown[], granted: string[] = ["wallet.get_sync_status", "wallet.get_pending_transactions", "wallet.get_transactions", "wallet.get_coins", "wallet.get_xch_usd_price"]) {
   await page.addInitScript(
     ({ pending, granted, address }) => {

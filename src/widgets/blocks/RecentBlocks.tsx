@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
+import { cn } from "@/shared/lib/cn";
 import { shortId } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
+import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import type { RecentBlocksResult } from "@/shared/api/hooks";
@@ -38,6 +40,7 @@ function gapBetween(all: BlockRecord[], newer: BlockRecord, older: BlockRecord):
 
 export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBlocksResult | undefined; loading: boolean; blockMaxCost: number }) {
   const now = useNow();
+  const lookupPool = usePoolLookup();
   const [seen, setSeen] = useState<Set<number>>(() => new Set());
   const newest = data?.txBlocks[0]?.height;
   useEffect(() => {
@@ -66,7 +69,8 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
         const fees = block.fees ?? 0n;
         const ageMs = (block.timestamp ?? 0) * 1000;
         const fill = Math.min(1, 0.15 + Number(fees > 0n ? 0.35 : 0.1) + (block.rewardClaimsIncorporated?.length ?? 0) * 0.02);
-        const label = `Block ${formatNumber(block.height)}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, farmer ${shortId(block.farmerPuzzleHash)}`;
+        const pool = lookupPool(block.poolPuzzleHash);
+        const label = `Block ${formatNumber(block.height)}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, ${pool ? `farmed by ${pool.name}` : `farmer ${shortId(block.farmerPuzzleHash)}`}`;
         return (
           <li key={block.height} className="flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
@@ -87,9 +91,12 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
                 </span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
               </BlockCube>
-              <span className="mono inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted" title={`Farmer ${block.farmerPuzzleHash}`}>
+              <span
+                className={cn("inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted", !pool && "mono")}
+                title={pool ? `${pool.name} · farmer ${block.farmerPuzzleHash}` : `Farmer ${block.farmerPuzzleHash}`}
+              >
                 <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: farmerColor(block.farmerPuzzleHash) }} />
-                {shortId(block.farmerPuzzleHash, 5, 4)}
+                {pool ? pool.name : shortId(block.farmerPuzzleHash, 5, 4)}
               </span>
             </div>
             {gap > 0 ? (

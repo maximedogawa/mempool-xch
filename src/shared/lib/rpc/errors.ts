@@ -1,4 +1,4 @@
-/** Errors distinguish network failures, non-success RPC responses and malformed JSON (TASK-002). */
+/** Errors distinguish network failures, non-success RPC responses and malformed JSON. */
 export type RpcErrorKind = "network" | "http" | "rpc" | "malformed" | "not_found" | "aborted";
 
 export class RpcError extends Error {

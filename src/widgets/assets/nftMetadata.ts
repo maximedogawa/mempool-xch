@@ -49,7 +49,7 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     imageUrls: [...new Set(images)],
     ownerP2: hex(owner.id),
     creatorP2: hex(creator.id),
-    royaltyBasisPoints: typeof royalty === "number" ? Math.round(royalty * 100) : null,
+    royaltyBasisPoints: typeof royalty === "number" ? Math.round(royalty) : null,
     metadataUris: arr(data.metadata_uris),
     dataUris: arr(data.data_uris),
   };

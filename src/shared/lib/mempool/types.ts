@@ -1,7 +1,7 @@
 /**
  * Compact mempool view shared by the summary API (server) and the browser fallback. It is what
  * the dashboard, the projected blocks and the mempool table consume: no puzzle reveals, amounts
- * as decimal strings so the JSON stays exact (TASK-025).
+ * as decimal strings so the JSON stays exact.
  */
 export type TxKindHint = "xch" | "cat" | "nft" | "did" | "offer" | "pool" | "singleton" | "unknown";
 

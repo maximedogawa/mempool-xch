@@ -15,6 +15,7 @@ import { Badge, Card, CardBody, CardHeader, CopyButton, EmptyState, Hash, KindBa
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { CoinsetNotice } from "./CatPage";
 import { fetchNftMetadata } from "./nftMetadata";
+import { NftOffersCard } from "@/widgets/nft/NftOffersCard";
 import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
 
@@ -119,25 +120,25 @@ export function NftPage() {
                   )}
                 </dd>
               </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2">
-                <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Current coin</dt>
-                  <dd>{typeof coin.puzzle_hash === "string" && typeof coin.parent_coin_info === "string" ? <Hash value={stripHexPrefix(String(coin.parent_coin_info))} head={8} tail={6} /> : <span className="text-fg-faint">—</span>}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Last moved</dt>
-                  <dd className="tabular">{confirmedAt ? `${formatAge(confirmedAt)} · ${formatDateTime(confirmedAt)}` : "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Royalty</dt>
-                  <dd className="tabular">{royaltyBps !== null && royaltyBps !== undefined ? `${(royaltyBps / 100).toFixed(2)}%` : "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Standard</dt>
-                  <dd>
-                    <Badge tone="nft">{typeof latestRecord?.nft_standard === "string" ? latestRecord.nft_standard : "NFT1"}</Badge>
-                  </dd>
-                </div>
+            </dl>
+            <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              <div>
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Current coin</dt>
+                <dd>{typeof coin.puzzle_hash === "string" && typeof coin.parent_coin_info === "string" ? <Hash value={stripHexPrefix(String(coin.parent_coin_info))} head={8} tail={6} /> : <span className="text-fg-faint">—</span>}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Last moved</dt>
+                <dd className="tabular">{confirmedAt ? `${formatAge(confirmedAt)} · ${formatDateTime(confirmedAt)}` : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Royalty</dt>
+                <dd className="tabular">{royaltyBps !== null && royaltyBps !== undefined ? `${(royaltyBps / 100).toFixed(2)}%` : "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Standard</dt>
+                <dd>
+                  <Badge tone="nft">{typeof latestRecord?.nft_standard === "string" ? latestRecord.nft_standard : "NFT1"}</Badge>
+                </dd>
               </div>
             </dl>
             {network === "mainnet" ? (
@@ -148,6 +149,8 @@ export function NftPage() {
           </div>
         </CardBody>
       </Card>
+
+      <NftOffersCard nftId={ids.nftId} enabled={network === "mainnet"} />
 
       <Card>
         <CardHeader title="Transfer history" />

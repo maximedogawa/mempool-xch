@@ -1,5 +1,5 @@
 /**
- * What moved in a block, per asset (TASK-030).
+ * What moved in a block, per asset.
  *
  * With Coinset summaries: for every event, each participant's positive net inflow per asset
  * (received − sent, floored at 0) is summed. That is the amount that actually changed hands:

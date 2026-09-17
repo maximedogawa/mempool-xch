@@ -1,5 +1,5 @@
 /**
- * Search input recognition (TASK-011). Anything a Chia user might paste is classified by shape;
+ * Search input recognition. Anything a Chia user might paste is classified by shape;
  * 32-byte hex is ambiguous (tx id, coin id, header hash, CAT asset id, puzzle hash, launcher id)
  * and is resolved by probing in `resolve.ts`.
  */
@@ -12,6 +12,8 @@ export type SearchTarget =
   | { kind: "nft"; nftId: string; launcherId: string }
   | { kind: "did"; didId: string; launcherId: string }
   | { kind: "hex32"; hex: string }
+  /** Free text matching no known id shape: a name to try against MintGarden. */
+  | { kind: "text"; value: string }
   | { kind: "invalid"; reason: string };
 
 export function parseSearchInput(raw: string): SearchTarget {
@@ -42,8 +44,5 @@ export function parseSearchInput(raw: string): SearchTarget {
   if (isHex(input)) {
     return { kind: "invalid", reason: "Hex ids must be 32 bytes (64 hex characters)." };
   }
-  return {
-    kind: "invalid",
-    reason: "Not recognised. Try a block height, a tx id, a coin id, an xch/txch address, an nft1 id or a CAT asset id.",
-  };
+  return { kind: "text", value: input };
 }

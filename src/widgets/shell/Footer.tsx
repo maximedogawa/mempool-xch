@@ -38,6 +38,12 @@ export function Footer() {
           <Link href={routes.docs()} className="hover:text-fg">
             Help
           </Link>
+          <Link href={routes.api()} className="hover:text-fg">
+            API
+          </Link>
+          <Link href={routes.map()} className="hover:text-fg">
+            Network
+          </Link>
           <Link href={routes.settings()} className="hover:text-fg">
             Settings
           </Link>

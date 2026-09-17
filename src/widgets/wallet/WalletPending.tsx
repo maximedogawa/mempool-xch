@@ -126,7 +126,7 @@ function PendingRow({ tx, walletAddress, status, confirmed }: { tx: WalletTx; wa
 }
 
 /**
- * Dashboard panel for the connected Sage wallet (TASK-042): every pending transaction with its
+ * Dashboard panel for the connected Sage wallet: every pending transaction with its
  * place in the mempool (projected block, position, ETA, fee band), and a soft coin chime when
  * one lands in a block. Renders nothing outside Sage.
  */

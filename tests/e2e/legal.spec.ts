@@ -4,7 +4,7 @@ import { mockCoinset } from "./mockCoinset";
 
 const CONSENT_KEY = "mempool-xch:consent:v1";
 
-/** Legal pages, footer disclaimer and the consent panel (TASK-056). */
+/** Legal pages, footer disclaimer and the consent panel. */
 test.describe("legal", () => {
   test("footer carries the disclaimer and links every legal page", async ({ page }) => {
     await mockCoinset(page);

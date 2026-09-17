@@ -1,5 +1,5 @@
 /**
- * Human wording for the live channel a tab is on (TASK-036): the pill tooltip, the footer and
+ * Human wording for the live channel a tab is on: the pill tooltip, the footer and
  * the settings page all use the same description so the user sees the same words everywhere.
  */
 import type { LiveStatus, LiveTransport } from "./stream";

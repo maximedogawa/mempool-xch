@@ -7,9 +7,10 @@ import Link from "next/link";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
+import { AssetImage } from "@/shared/ui/AssetImage";
 import { useCatLabel } from "@/shared/ui/CatRef";
 import { parseSearchInput } from "./parse";
-import { directRoute, resolveHex32, type SearchMatch } from "./resolve";
+import { directRoute, resolveHex32, resolveText, type SearchMatch } from "./resolve";
 
 function CandidateLabel({ match }: { match: SearchMatch }) {
   const ticker = useCatLabel(match.assetId);
@@ -21,10 +22,29 @@ function CandidateLabel({ match }: { match: SearchMatch }) {
       </span>
     );
   }
+  if (match.kind === "nft" || match.kind === "collection") {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium">
+        <AssetImage urls={match.thumbnailUrl ? [match.thumbnailUrl] : []} alt="" className="h-4 w-4 shrink-0" rounded="rounded-sm" />
+        {match.label}
+      </span>
+    );
+  }
   return <span className="font-medium">{match.label}</span>;
 }
 
-export function SearchBox({ className, autoFocus = false, size = "md" }: { className?: string; autoFocus?: boolean; size?: "md" | "lg" }) {
+export function SearchBox({
+  className,
+  autoFocus = false,
+  size = "md",
+  onFocusChange,
+}: {
+  className?: string;
+  autoFocus?: boolean;
+  size?: "md" | "lg";
+  /** Fires when the box gains or truly loses focus (a click on the clear button or a candidate does not count as losing it). */
+  onFocusChange?: (focused: boolean) => void;
+}) {
   const router = useRouter();
   const { client, endpoints } = useSettings();
   const [value, setValue] = useState("");
@@ -32,6 +52,7 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
   const [busy, setBusy] = useState(false);
   const [candidates, setCandidates] = useState<SearchMatch[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // "/" focuses the search box from anywhere, Escape clears it.
   useEffect(() => {
@@ -81,16 +102,41 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
       } finally {
         setBusy(false);
       }
+    } else if (target.kind === "text") {
+      setBusy(true);
+      try {
+        const matches = await resolveText(target.value);
+        if (matches.length === 0) {
+          setError(`No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id or a CAT asset id.`);
+        } else {
+          setCandidates(matches);
+        }
+      } finally {
+        setBusy(false);
+      }
     }
   };
 
+  const handleBlur = () => {
+    if (!onFocusChange) return;
+    // A click on the clear button or a candidate link moves focus within the form and should
+    // not count as leaving the search box; only collapse once focus truly left it.
+    window.setTimeout(() => {
+      if (!formRef.current?.contains(document.activeElement)) onFocusChange(false);
+    }, 0);
+  };
+
   return (
-    <form role="search" onSubmit={submit} className={cn("relative w-full", className)}>
+    <form ref={formRef} role="search" onSubmit={submit} className={cn("relative w-full", className)}>
       <label htmlFor="global-search" className="sr-only">
         Search transactions, blocks, addresses, coins and assets
       </label>
       <div className="relative">
-        <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint" />
+        <Search
+          size={size === "lg" ? 18 : 16}
+          aria-hidden="true"
+          className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-fg-muted", size === "lg" ? "left-4" : "left-3")}
+        />
         <input
           ref={inputRef}
           id="global-search"
@@ -110,29 +156,42 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
               (e.target as HTMLInputElement).blur();
             }
           }}
-          placeholder="Search tx id, block, address, coin, CAT or NFT…"
+          onFocus={() => onFocusChange?.(true)}
+          onBlur={handleBlur}
+          placeholder={size === "lg" ? "Search tx, block, address, coin, CAT or NFT…" : "Search tx id, block, address, coin, CAT or NFT…"}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "global-search-error" : undefined}
           className={cn(
-            "w-full rounded-sm border border-border bg-bg pl-9 pr-16 text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none",
-            size === "lg" ? "h-12 text-base" : "h-10 text-sm"
+            "w-full border bg-surface text-fg shadow-sm transition-colors placeholder:text-fg-faint focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none",
+            size === "lg" ? "h-11 rounded-full border-border-strong pl-11 pr-20 text-[15px]" : "h-10 rounded-md border-border pl-9 pr-16 text-sm"
           )}
         />
-        <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+        <div className={cn("absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center", size === "lg" ? "gap-1" : "gap-1")}>
           {value ? (
-            <button type="button" onClick={clear} aria-label="Clear search" className="rounded-sm p-1 text-fg-faint hover:text-fg">
-              <X size={14} aria-hidden="true" />
+            <button type="button" onClick={clear} aria-label="Clear search" className="rounded-full p-1.5 text-fg-faint hover:bg-surface-2 hover:text-fg">
+              <X size={size === "lg" ? 16 : 14} aria-hidden="true" />
             </button>
           ) : (
-            <kbd className="hidden rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-fg-faint sm:inline">/</kbd>
+            <kbd className={cn("hidden rounded-full border border-border-strong bg-surface-2 text-fg-muted sm:inline", size === "lg" ? "px-2.5 py-1 text-xs" : "px-1.5 py-0.5 text-[10px]")}>
+              /
+            </kbd>
           )}
           <button
             type="submit"
             disabled={busy}
             aria-label="Search"
-            className="rounded-sm bg-primary px-2 py-1 text-xs font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60"
+            className={cn(
+              "flex items-center justify-center rounded-full bg-primary font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60",
+              size === "lg" ? "h-8 w-8" : "px-2 py-1 text-xs"
+            )}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : "Go"}
+            {busy ? (
+              <Loader2 size={size === "lg" ? 16 : 14} className="animate-spin" aria-hidden="true" />
+            ) : size === "lg" ? (
+              <Search size={15} aria-hidden="true" />
+            ) : (
+              "Go"
+            )}
           </button>
         </div>
       </div>
@@ -146,17 +205,31 @@ export function SearchBox({ className, autoFocus = false, size = "md" }: { class
           <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-fg-faint">
             {candidates.length > 1 ? "Several matches, pick one" : "Best guess"}
           </p>
-          {candidates.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              onClick={clear}
-              className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
-            >
-              <CandidateLabel match={c} />
-              <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
-            </Link>
-          ))}
+          {candidates.map((c) =>
+            c.kind === "collection" ? (
+              <a
+                key={c.href}
+                href={c.href}
+                target="_blank"
+                rel="noreferrer"
+                onClick={clear}
+                className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <CandidateLabel match={c} />
+                <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
+              </a>
+            ) : (
+              <Link
+                key={c.href}
+                href={c.href}
+                onClick={clear}
+                className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <CandidateLabel match={c} />
+                <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
+              </Link>
+            )
+          )}
         </div>
       ) : null}
     </form>

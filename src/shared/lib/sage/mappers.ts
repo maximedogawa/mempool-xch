@@ -1,5 +1,5 @@
 /**
- * Pure helpers for the Sage wallet runtime (TASK-019): host detection and the mapping of Sage's
+ * Pure helpers for the Sage wallet runtime: host detection and the mapping of Sage's
  * network, theme and sync status onto the app's own settings. No transport here, so everything
  * is unit-testable without a fake window.__SAGE__.
  */

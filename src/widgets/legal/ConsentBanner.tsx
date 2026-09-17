@@ -14,7 +14,7 @@ const CATEGORIES: { id: "necessary" | ConsentCategory; label: string; detail: st
 ];
 
 /**
- * Consent panel (TASK-056): opens on the first visit and from "Cookie settings" in the footer.
+ * Consent panel: opens on the first visit and from "Cookie settings" in the footer.
  * Non-modal on purpose, so the explorer stays usable while it is open.
  */
 export function ConsentBanner() {

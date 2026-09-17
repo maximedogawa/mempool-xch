@@ -58,6 +58,10 @@ export interface BlockRecord {
   rewardClaimsIncorporated: Coin[] | null;
   overflow: boolean;
   signagePointIndex: number;
+  /** Blocks left before the reward chain's challenge can be infused (0 to 16). */
+  deficit: number;
+  /** True when this block carries a sub-epoch summary. */
+  subEpochSummaryIncluded: boolean;
   isTransactionBlock: boolean;
 }
 
@@ -209,4 +213,17 @@ export interface SingletonInfo {
   launcherId: string;
   singletonType: string | null;
   coinRecord: Record<string, unknown> | null;
+}
+
+/** One entry from a full node's get_connections: Coinset's public gateway disables it. */
+export interface PeerConnection {
+  nodeId: string;
+  peerHost: string;
+  peerPort: number;
+  /** Chia's connection type: 0 full node, 1 harvester, 2 farmer, 3 timelord, 4 introducer, 5 wallet. */
+  type: number;
+  bytesRead: number;
+  bytesWritten: number;
+  peakHeight: number | null;
+  creationTimeS: number | null;
 }

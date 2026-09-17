@@ -10,7 +10,6 @@ const PAGES = [
   { href: routes.legalCookies(), label: "Cookie policy" },
 ];
 
-/** Shared frame for the four legal pages (TASK-056). */
 export function LegalPage({ title, current, intro, children }: { title: string; current: string; intro?: ReactNode; children: ReactNode }) {
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -42,16 +41,6 @@ export function Section({ title, id, children }: { title: string; id?: string; c
       <h2 className="text-base font-semibold text-fg">{title}</h2>
       {children}
     </section>
-  );
-}
-
-/** A value from src/shared/config/legal.ts, or a visible marker while the owner has not filled it in. */
-export function Fill({ value, label }: { value: string | null; label: string }) {
-  if (value) return <>{value}</>;
-  return (
-    <mark data-placeholder={label} className="rounded-sm bg-warning px-1 text-bg">
-      [to be filled in: {label}]
-    </mark>
   );
 }
 

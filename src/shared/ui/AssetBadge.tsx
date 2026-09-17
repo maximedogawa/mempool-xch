@@ -1,43 +1,47 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
 import { useState } from "react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
+import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
+import { fetchNftImageUrls, mintGardenThumbnailUrl } from "@/shared/lib/nft/mintgarden";
+import { catIconCandidates, nftIconCandidates } from "./assetIconCandidates";
 import { KindBadge } from "./Badge";
 
-/** Original XCH mark: a green disc with a leaf. */
-export function XchIcon({ size = 18, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={cn("shrink-0", className)}>
-      <circle cx="12" cy="12" r="11" fill="var(--primary-strong)" />
-      <circle cx="12" cy="12" r="11" fill="url(#xchShine)" opacity="0.35" />
-      <path d="M7.2 14.6c1.9-4.4 5.6-6.4 10-6.1-1.1 4.6-4.4 7.4-9.1 7-0.3 0-0.6-0.1-0.9-0.1 0.9-1.9 2.6-3.3 4.6-4.1-2.1 0.4-3.6 1.4-4.6 3.3z" fill="#f2fff5" />
-      <defs>
-        <radialGradient id="xchShine" cx="0.3" cy="0.25" r="0.8">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-    </svg>
-  );
-}
-
 /**
- * Icon for an asset kind. CAT icons: an explicit `iconUrl` (what the Sage wallet already
- * resolved), else the registry's, else Dexie's deterministic per-id icon; a two-letter badge
- * when the image does not exist.
+ * Icon for an asset kind. No icon for XCH: the native asset does not need a badge to be
+ * recognised. CAT icons: an explicit `iconUrl` (what the Sage wallet already resolved), else the
+ * registry's, else Dexie's deterministic per-id icon; a two-letter badge when the image does not
+ * exist.
  */
 export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  if (kind === "xch") return <XchIcon size={size} className={className} />;
+  // NFT thumbnails: assetId is the 32-byte launcher id (same field CAT asset ids use,
+  // src/shared/lib/sage/wallet.ts and src/widgets/goggles/NextBlockGoggles.tsx both pass it this
+  // way). The direct thumbnail redirect is the primary candidate (no fetch); the full record's
+  // own image is fetched as a fallback only once that 404s, not on every render.
+  const nftId = kind === "nft" && assetId ? launcherIdToNftId(assetId) : null;
+  const primaryNftThumbnail = nftId ? mintGardenThumbnailUrl(nftId) : null;
+  const [nftThumbnailFailed, setNftThumbnailFailed] = useState(false);
+  const nftFallback = useQuery({
+    queryKey: ["nft-icon-fallback", nftId],
+    queryFn: () => fetchNftImageUrls(nftId!),
+    enabled: nftThumbnailFailed && !!nftId,
+    staleTime: 5 * 60_000,
+  });
+  if (kind === "xch") return null;
   if (kind === "cat") {
-    // Candidates in order: what the wallet resolved, the registry, Dexie's per-id icon. A blocked
-    // or missing image (Sage CSP, 404) moves on to the next one before the letter badge.
-    const candidates = [iconUrl, token?.iconUrl, assetId ? dexieIconUrl(assetId) : null].filter((u): u is string => !!u);
+    // A blocked or missing image (Sage CSP, 404) moves on to the next candidate before the letter badge.
+    const candidates = catIconCandidates({
+      walletIconUrl: iconUrl,
+      registryIconUrl: token?.iconUrl,
+      dexieIconUrl: assetId ? dexieIconUrl(assetId) : null,
+    });
     const src = candidates.find((u) => !failed.has(u)) ?? null;
     if (src) {
       return (
@@ -46,10 +50,31 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
       );
     }
     return (
-      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_25%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
+      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
         {token?.symbol?.slice(0, 2) ?? "C"}
       </span>
     );
+  }
+  if (kind === "nft" && nftId) {
+    const candidates = nftIconCandidates({ thumbnailUrl: primaryNftThumbnail, fallbackImageUrls: nftFallback.data ?? [] });
+    const src = candidates.find((u) => !failed.has(u)) ?? null;
+    if (src) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="NFT"
+          loading="lazy"
+          decoding="async"
+          onError={() => {
+            setFailed((prev) => new Set(prev).add(src));
+            if (src === primaryNftThumbnail) setNftThumbnailFailed(true);
+          }}
+          className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)}
+          style={{ width: size, height: size }}
+        />
+      );
+    }
   }
   const Icon = kind === "nft" ? ImageIcon : kind === "did" ? Fingerprint : kind === "offer" ? ArrowLeftRight : kind === "pool" ? Pickaxe : kind === "singleton" ? Hexagon : HelpCircle;
   const tone =

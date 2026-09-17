@@ -1,0 +1,88 @@
+{
+  "pools": [
+    {
+      "name": "NoSSD",
+      "url": "https://nossd.com/",
+      "source": "NoSSD runs its own protocol, not the official pool protocol: every block it wins pays both shares to one fixed address (pool_puzzle_hash equals farmer_puzzle_hash). NoSSD does not publish a pool_info endpoint. Cross-referenced via nossd.com/blocks: block 9305425 there (header_hash 0x1bde131ffbac39c4d17f7e0bc2d165faf6f2ece57d39136b3afed28c0301dcda) matches Coinset's get_block_record_by_height for that header_hash, whose pool_puzzle_hash is this entry (read 2026-09-17).",
+      "claimTargets": [],
+      "payoutAddresses": ["9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"]
+    },
+    {
+      "name": "Spacefarmers.io",
+      "url": "https://spacefarmers.io/",
+      "source": "Claim target: https://xch.spacefarmers.io/pool_info (target_puzzle_hash, read 2026-09-17). The payout address is a separate fixed address Spacefarmers.io also operates for both shares (pool_puzzle_hash equals farmer_puzzle_hash on every sampled block), cross-referenced against xchmempool.com's pool table, which labels it \"Spacefarmers.io both shares\" (read 2026-09-17).",
+      "claimTargets": ["61751cc01a73d5e64a07d6e37b451eed9f157f04da53e3c7d06f355928ba2113"],
+      "payoutAddresses": ["405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4"]
+    },
+    {
+      "name": "H9.com",
+      "url": "https://h9.com/",
+      "source": "Claim target: https://chiapp.hpool.com/pool_info and https://chiapp-asia.hpool.in/pool_info (name \"The H9 chia protocol pool\", target_puzzle_hash, read 2026-09-17). The payout address is H9's fixed both-shares address (pool_puzzle_hash equals farmer_puzzle_hash on every sampled block); H9's dashboard requires an account, so it is cross-referenced against xchmempool.com's pool table and miningpoolstats.stream/chia instead (read 2026-09-17).",
+      "claimTargets": ["e3b9adc4eb09d18d83bd56482aee566820f5afdce595b3ed095eb36c5cef9301"],
+      "payoutAddresses": ["4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba"]
+    },
+    {
+      "name": "XCHPool.org",
+      "url": "https://xchpool.org/",
+      "source": "https://pool.xchpool.org/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "foxypool.io",
+      "url": "https://foxypool.io/",
+      "source": "https://farmer-chia.foxypool.io/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["048785a90e6475263c5d3cdf8ce290499ddf1006a3fae2b314997ee93ba55cc1"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "sweetchia.com",
+      "url": "https://sweetchia.com/",
+      "source": "https://pool.sweetchia.com/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["0b986e68f6e9c80cb02b70029cb92e65da3fcdffc067941b00863b56deb2774a"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "leafpool.io",
+      "url": "https://leafpool.io/",
+      "source": "https://chia-eu.leafpool.io/pool_info (target_puzzle_hash, shared across the regional endpoints, read 2026-09-17)",
+      "claimTargets": ["ee2c813c1cc54ff560ccf1225d6e33b400368b7b37e8891029e63abb4b427878"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "findchia.com",
+      "url": "https://findchia.com/",
+      "source": "https://pool.findchia.com/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["ed6be661ca2dc45debecf7a5774702f3a18109feffcda2c8fe0e226de9511659"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "FrenchFarmers Pool",
+      "url": "https://ffarmers.eu/",
+      "source": "https://pool-xch.ffarmers.eu/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["77c4f46b5557d9be7482ad46781d13b0e3b4641775f463b4347883726eda1024"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "Chia Farm Land",
+      "url": "https://chiafarm.land/",
+      "source": "https://pool.chiafarm.land/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["d7a6d742c2fb23fceb405996b852638dd2094d0cc8d33ab05c9fcf6893b3f7e3"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "Czech Farm",
+      "url": "https://czech.farm/",
+      "source": "https://chia.czech.farm/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["9dfea1e1f5abfcc9d1c11ddf7dc3634d5a9e2d8afa13f1b98ec9503c38276de1"],
+      "payoutAddresses": []
+    },
+    {
+      "name": "PoolEnergy",
+      "url": "https://pool.energy/",
+      "source": "https://chia.pool.energy/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "claimTargets": ["249fc5a20c273dcbf9f98ca9979d0f35f7f5640970d404ee29331e4875c9f908"],
+      "payoutAddresses": []
+    }
+  ]
+}

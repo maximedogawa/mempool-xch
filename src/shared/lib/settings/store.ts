@@ -1,5 +1,5 @@
 /**
- * User settings (TASK-021): active network, RPC endpoint per network, theme. Persisted in
+ * User settings: active network, RPC endpoint per network, theme. Persisted in
  * localStorage; a tiny external store so React reads it with useSyncExternalStore and the
  * non-React data layer can read it too.
  */
@@ -15,6 +15,8 @@ export interface Settings {
   recentBlocks: number;
   /** Soft chime when one of the connected wallet's transactions lands in a block. */
   sounds: boolean;
+  /** Opt-in browser notifications for the watchlist. Off until the visitor turns it on. */
+  notifications: boolean;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   recentBlocks: 8,
   sounds: true,
+  notifications: false,
 };
 
 export interface ResolvedEndpoints {
@@ -64,7 +67,8 @@ function sanitise(raw: unknown): Settings {
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
   const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
   const sounds = r.sounds !== false;
-  return { network, endpoints, theme, recentBlocks, sounds };
+  const notifications = r.notifications === true;
+  return { network, endpoints, theme, recentBlocks, sounds, notifications };
 }
 
 type Listener = () => void;
@@ -106,7 +110,7 @@ export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem"
       try {
         storage?.removeItem(STORAGE_KEY);
       } catch {
-        // ignore
+        // Storage unavailable: the defaults still apply for this tab.
       }
       emit();
     },

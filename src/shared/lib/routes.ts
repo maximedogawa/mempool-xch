@@ -1,5 +1,5 @@
 /**
- * Route helpers (decision-004). The hosted server rewrites pretty URLs (`/tx/<id>`) onto
+ * Route helpers. The hosted server rewrites pretty URLs (`/tx/<id>`) onto
  * query-param pages (`/tx?id=<id>`); the static Sage export has no rewrites, so links there use
  * the query form directly. Every link in the app goes through these helpers.
  */
@@ -31,11 +31,21 @@ export const routes = {
   coin: (id: string) => detail("coin", id),
   cat: (assetId: string) => detail("cat", assetId),
   nft: (nftId: string) => detail("nft", nftId),
+  nftHome: () => page("nfts"),
+  nftCollections: () => page("nfts/collections"),
+  nftActivity: () => page("nfts/activity"),
+  nftMints: () => page("nfts/mints"),
   blocks: () => page("blocks"),
   mempool: () => page("mempool"),
+  charts: () => page("charts"),
+  fees: () => page("fees"),
+  pools: () => page("pools"),
+  tokens: () => page("tokens"),
   settings: () => page("settings"),
   wallet: () => page("wallet"),
   docs: () => page("docs"),
+  api: () => page("api"),
+  map: () => page("map"),
   legalTerms: () => page("legal/terms"),
   legalNotice: () => page("legal/notice"),
   legalPrivacy: () => page("legal/privacy"),

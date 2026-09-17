@@ -17,7 +17,7 @@ export interface SageContextValue {
 const SageContext = createContext<SageContextValue>({ inSage: false, sageTheme: null, walletAddress: null });
 
 /**
- * Follows the Sage host (TASK-019): network from environment.getNetwork (picker becomes
+ * Follows the Sage host: network from environment.getNetwork (picker becomes
  * read-only), theme from environment.theme with live changes, my-wallet address on demand.
  * In an ordinary browser this renders children unchanged.
  */

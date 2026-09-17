@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { execSync } from "node:child_process";
+import { buildHostedAppCsp } from "./scripts/sage/csp";
 import packageJson from "./package.json";
 
 function getCommitSha(): string {
@@ -12,7 +13,7 @@ function getCommitSha(): string {
 }
 
 /**
- * Two outputs from one code base (decision-004):
+ * Two outputs from one code base:
  *  - default: `output: "standalone"` server for the Docker image (rewrites give pretty URLs);
  *  - SAGE_BUILD=1: `output: "export"` static snapshot for the Sage wallet (no server, no rewrites,
  *    every page is a real file and detail pages take their id from the query string).
@@ -54,6 +55,18 @@ const nextConfig: NextConfig = {
         async headers() {
           if (process.env.NODE_ENV !== "production") return [];
           return [
+            {
+              source: "/:path*",
+              headers: [
+                { key: "Content-Security-Policy", value: buildHostedAppCsp() },
+                { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+                { key: "X-Content-Type-Options", value: "nosniff" },
+                {
+                  key: "Permissions-Policy",
+                  value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=(), interest-cohort=()",
+                },
+              ],
+            },
             {
               source: "/:all*(svg|jpg|png|webp|avif|ico|woff|woff2)",
               headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],

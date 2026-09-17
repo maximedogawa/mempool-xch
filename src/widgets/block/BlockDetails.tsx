@@ -12,6 +12,9 @@ import { isNotFound } from "@/shared/lib/rpc/errors";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton } from "@/shared/ui";
+import { blockReward } from "@/shared/lib/blocks/reward";
+import { useBlockPool } from "@/shared/lib/pools/usePoolLookup";
+import { BlockCoinFlow } from "./BlockCoinFlow";
 import { BlockCoins } from "./BlockCoins";
 import { BlockTransactions } from "./BlockTransactions";
 import { AssetsMoved } from "./AssetsMoved";
@@ -35,6 +38,7 @@ export function BlockDetails({ id }: { id: string }) {
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const blockMaxCost = state.data?.blockMaxCost ?? 11_000_000_000;
   const record = query.data?.record;
+  const farmedBy = useBlockPool(record);
   const block = query.data?.block;
   const isTx = record?.isTransactionBlock ?? false;
   const coins = useBlockCoins(record?.headerHash ?? null, isTx);
@@ -64,6 +68,9 @@ export function BlockDetails({ id }: { id: string }) {
   const farmer = puzzleHashToAddress(record.farmerPuzzleHash, networkConfig.addressPrefix);
   const pool = puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix);
   const nextDisabled = peak !== null && record.height >= peak;
+  const poolEntry = farmedBy.entry;
+  const claimTarget = farmedBy.claim?.target ? puzzleHashToAddress(farmedBy.claim.target, networkConfig.addressPrefix) : null;
+  const reward = blockReward(record.height);
 
   return (
     <div className="flex flex-col gap-5">
@@ -117,14 +124,53 @@ export function BlockDetails({ id }: { id: string }) {
             <Row label="Total iterations">
               <span className="tabular">{record.totalIters.toLocaleString("en-US")}</span>
             </Row>
+            <Row label="Signage point">
+              <span className="tabular">{record.signagePointIndex} of 64</span>
+              {record.overflow ? <span className="text-fg-faint"> (overflow block, infused in the next sub-slot)</span> : null}
+            </Row>
+            <Row label="Deficit">
+              <span className="tabular">{record.deficit}</span>
+            </Row>
+            <Row label="Sub-epoch summary">{record.subEpochSummaryIncluded ? "Yes" : "No"}</Row>
             <Row label="Previous block">
               <Hash value={record.prevHash} href={routes.block(record.prevHash)} />
             </Row>
-            <Row label="Farmer">
+            <Row label="Previous transaction block">
+              <Link href={routes.block(record.prevTransactionBlockHeight)} className="tabular text-accent hover:underline">
+                {formatNumber(record.prevTransactionBlockHeight)}
+              </Link>
+            </Row>
+            <Row label="Farmed by">
+              <div className="flex flex-col gap-1">
+                <span data-testid="farmed-by">
+                  {poolEntry ? (
+                    <a href={poolEntry.url} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
+                      {poolEntry.name}
+                    </a>
+                  ) : claimTarget ? (
+                    <span className="text-fg-muted">
+                      {farmedBy.claim?.selfPooled ? "Self-pooling farmer (PlotNFT)" : "Unnamed pool"}, rewards claimed to{" "}
+                      <Hash value={claimTarget} href={routes.address(claimTarget)} head={8} tail={6} />
+                    </span>
+                  ) : farmedBy.bothShares ? (
+                    <span className="text-fg-muted">Unidentified; pool and farmer rewards go to the same address</span>
+                  ) : (
+                    <span className="text-fg-muted">Unidentified; the pool reward has not been claimed yet</span>
+                  )}
+                </span>
+                <span className="text-xs text-fg-faint">
+                  Pool payout address <Hash value={pool} href={routes.address(pool)} head={12} tail={8} copy />
+                </span>
+              </div>
+            </Row>
+            <Row label="Farmer reward address">
               <Hash value={farmer} href={routes.address(farmer)} head={12} tail={8} copy />
             </Row>
-            <Row label="Pool">
-              <Hash value={pool} href={routes.address(pool)} head={12} tail={8} copy />
+            <Row label="Block reward">
+              <span className="tabular">{formatAmount(reward.total)}</span>{" "}
+              <span className="text-fg-faint">
+                ({formatAmount(reward.pool)} to the pool, {formatAmount(reward.farmer)} to the farmer{isTx ? " plus the fees" : ""}; paid out in a later transaction block)
+              </span>
             </Row>
             {isTx ? (
               <>
@@ -137,6 +183,17 @@ export function BlockDetails({ id }: { id: string }) {
                       <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, fill * 100)}%` }} />
                     </div>
                   </div>
+                </Row>
+                <Row label="Contents">
+                  {coins.data ? (
+                    <span className="tabular" data-testid="block-contents">
+                      {formatNumber(coins.data.removals.length)} spends · {formatNumber(coins.data.additions.length)} new coins
+                    </span>
+                  ) : coins.isLoading ? (
+                    <Skeleton className="h-5 w-40" />
+                  ) : (
+                    <span className="text-fg-faint">Unavailable</span>
+                  )}
                 </Row>
                 <Row label="Total fees">
                   <span className="tabular">{formatAmount(block.fees)}</span>
@@ -160,7 +217,17 @@ export function BlockDetails({ id }: { id: string }) {
                   )}
                 </Row>
                 <Row label="Generator" className="border-b-0">
-                  {block.hasGenerator ? "Present (spend bundles included)" : <span className="text-fg-faint">Empty (rewards only)</span>}
+                  {block.hasGenerator ? (
+                    <div className="flex flex-col gap-1">
+                      <span>Present</span>
+                      <span className="break-normal text-xs text-fg-faint">
+                        The farmer merges every included spend bundle into one block generator with one aggregated signature, so the block itself no longer
+                        shows where one transaction ends and the next begins. The transactions below are reconstructed from the spends.
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-fg-faint">Empty (rewards only)</span>
+                  )}
                 </Row>
               </>
             ) : (
@@ -193,6 +260,7 @@ export function BlockDetails({ id }: { id: string }) {
       {isTx ? (
         <>
           <BlockTransactions height={record.height} headerHash={record.headerHash} blockCost={block.cost} blockMaxCost={blockMaxCost} isTransactionBlock={isTx} />
+          <BlockCoinFlow data={coins.data} loading={coins.isLoading} />
           <BlockCoins data={coins.data} loading={coins.isLoading} />
         </>
       ) : null}

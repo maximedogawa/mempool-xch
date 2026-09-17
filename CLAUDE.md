@@ -22,7 +22,9 @@ Data comes from the public Coinset full-node RPC and indexed API (no own node re
 settings page for a custom or local node. It also packages as a Sage wallet in-app app. Read
 `../mempool-xch-backlog/Concept.md` (and `Memo.md`, the original German voice memo) first, then
 the decisions under `../mempool-xch-backlog/.backlog/decisions/` (decision-004 describes the
-runtime: Next.js, server-side mempool summary API, Docker image deployed via ONCE, Sage export).
+runtime: Next.js, Docker image deployed via ONCE, Sage export; decision-012 supersedes its
+server-side data layer: the browser talks to Coinset, Dexie and MintGarden directly, cached
+with TanStack Query and localStorage only).
 
 ## Stack and conventions
 
@@ -33,8 +35,8 @@ runtime: Next.js, server-side mempool summary API, Docker image deployed via ONC
   Pretty URLs (`/tx/<id>`) are rewrites onto the query-param pages; always build links with
   the `href` helpers in `src/shared/lib/routes.ts`, never hard-code either form.
 - Layers: `src/app` (routes), `src/widgets` (dashboard and page sections), `src/features`
-  (search, settings), `src/shared` (config, lib, ui primitives, providers), `src/server`
-  (mempool summary service used by the API route).
+  (search, settings), `src/shared` (config, lib, ui primitives, providers). There is no
+  server-side data layer (decision-012); `src/proxy.ts` only serves the Sage snapshot.
 - Amounts are `bigint` mojos end to end; format only at the edge with `src/shared/lib/chia`.
 - Unit tests live next to the code as `*.test.ts` and must not touch the network (the bun test
   preload throws on `fetch`). Recorded Coinset fixtures live in `src/test-utils/fixtures`.

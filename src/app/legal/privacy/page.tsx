@@ -41,44 +41,49 @@ export default function PrivacyPage() {
             security incident.
           </li>
           <li>
-            Hosting: Heztner, acting as processor under Art. 28 GDPR.
+            Hosting: Hetzner, acting as processor under Art. 28 GDPR.
           </li>
         </List>
         <p>
-          The server also fetches chain and asset data from Coinset and Dexie for all visitors together. Those requests come from the server and carry no
-          data about you.
+          The server does not fetch chain or asset data on your behalf: it only serves the application itself (HTML, scripts, styles). Every lookup you
+          make is a request from your own browser to Coinset, Dexie, MintGarden or your own node, described in the next sections.
         </p>
       </Section>
 
       <Section title="3. Storage in your browser" id="local-storage">
         <p>
-          The site keeps a few entries in your browser&apos;s local storage: your settings (network, node address, theme, sounds), a cache of the asset list,
-          a short mempool history drawn while the page is open, which Sage permissions you declined, and your cookie choice. They stay on your device and
-          are not sent to the operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time
-          in your browser settings. Details are in the{" "}
+          The site keeps a few entries in your browser&apos;s local storage: your settings (network, node address, theme, sounds, whether you turned on
+          browser notifications), a cache of the asset list, a short mempool history drawn while the page is open, your watchlist of addresses and
+          transaction ids if you add any, which Sage permissions you declined, and your cookie choice. They stay on your device and are not sent to the
+          operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time in your browser
+          settings. Details are in the{" "}
           <Link href={routes.legalCookies()} className="text-accent hover:underline">
             cookie policy
           </Link>
           .
         </p>
+        <p>
+          If you turn on browser notifications for your watchlist, that permission is granted to this site by your browser and can be withdrawn there at
+          any time; the operator never sees whether you turned it on.
+        </p>
       </Section>
 
       <Section title="4. Services your browser contacts directly" id="third-parties">
         <p>
-          To show some content, your browser loads it straight from other services. Like any web server, they receive your IP address, browser
-          identification and the address of the item requested:
+          Every page reads chain and asset data straight from other services, from your own browser, not through this site&apos;s server. Like any web
+          server, they receive your IP address, browser identification and the address of the item requested:
         </p>
         <List>
-          <li>Dexie (icons.dexie.space): icons of CAT tokens.</li>
+          <li>Dexie (api.dexie.space, icons.dexie.space): the CAT token list, names, tickers and icons.</li>
           <li>MintGarden (api.mintgarden.io, assets.mainnet.mintgarden.io, ipfs.mintgarden.io): NFT metadata and images.</li>
           <li>
             Hosts named in an NFT&apos;s own on-chain metadata, when MintGarden has no copy. Which hosts these are is decided by the NFT&apos;s creator.
           </li>
           <li>
-            Coinset (api.coinset.org): chain data for the transactions, blocks, addresses, coins and assets you open, and all chain data in the Sage app or
-            when the site&apos;s live connection is unavailable.
+            Coinset (api.coinset.org): all chain data — the mempool, blocks, transactions, addresses, coins and assets you view, and the live updates —
+            unless you enter a different node below.
           </li>
-          <li>A full node you enter in Settings: all chain data then comes from there.</li>
+          <li>A full node you enter in Settings: all chain data then comes from there instead of Coinset.</li>
         </List>
         <p>
           Legal basis: Art. 6(1)(f) GDPR; the legitimate interest is showing the blockchain content you request. Some of these providers may process data
