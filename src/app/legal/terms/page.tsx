@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LEGAL, SITE_NAME } from "@/shared/config/legal";
+import { SITE_NAME } from "@/shared/config/legal";
 import { routes } from "@/shared/lib/routes";
-import { Fill, LegalPage, List, Section } from "@/widgets/legal/LegalPage";
+import { LegalPage, List, Section } from "@/widgets/legal/LegalPage";
 
 export const metadata: Metadata = { title: "Terms of use" };
 
