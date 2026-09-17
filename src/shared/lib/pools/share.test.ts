@@ -61,21 +61,21 @@ describe("groupPoolShare", () => {
   });
 });
 
-// XCHpool's registered payout hash (src/shared/lib/pools/registry.json), used so lookupPool resolves.
-const XCHPOOL_HASH = "0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2";
+// NoSSD's registered fixed payout hash (src/shared/lib/pools/registry.json), used so lookupPool resolves.
+const NOSSD_HASH = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
 
 describe("summarizePoolShare", () => {
   test("collapses every unidentified address into a single bucket", () => {
-    const records = [block(XCHPOOL_HASH, 1), block(POOL_A, 2), block(POOL_B, 3), block(POOL_C, 4)];
+    const records = [block(NOSSD_HASH, 1), block(POOL_A, 2), block(POOL_B, 3), block(POOL_C, 4)];
     const summary = summarizePoolShare(groupPoolShare(records));
     expect(summary.named).toHaveLength(1);
-    expect(summary.named[0]!.entry.name).toBe("XCHpool");
+    expect(summary.named[0]!.entry.name).toBe("NoSSD");
     expect(summary.named[0]!.blocks).toBe(1);
     expect(summary.unidentified).toEqual({ addressCount: 3, blocks: 3, share: 0.75 });
   });
 
   test("no unidentified bucket when every block resolves to the registry", () => {
-    const summary = summarizePoolShare(groupPoolShare([block(XCHPOOL_HASH, 1)]));
+    const summary = summarizePoolShare(groupPoolShare([block(NOSSD_HASH, 1)]));
     expect(summary.unidentified).toBeNull();
   });
 

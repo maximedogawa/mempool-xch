@@ -59,8 +59,8 @@ export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694
 
 const hash = (n: number) => n.toString(16).padStart(64, "0");
 
-/** Registry-known payout hash (XCHpool) so the pools page has one identified row to assert on. */
-export const XCHPOOL_PUZZLE_HASH = "0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2";
+/** Registry-known fixed payout hash (H9.com) so the pools page has one identified row to assert on. */
+export const NAMED_POOL_PUZZLE_HASH = "4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba";
 const UNKNOWN_POOL_PUZZLE_HASHES = [hash(0xf001), hash(0xf002)];
 
 /** A block record shaped like Coinset's raw response, farmed by `poolPuzzleHash` at `height`. */
@@ -88,10 +88,10 @@ function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
 /**
  * Synthesizes a window of block records for a height range the small fixture doesn't cover
  * (the pools page reads a 4,608-block window far behind the fixture's dozen recent blocks): half
- * the rotation goes to the registry-known XCHpool hash, the rest split across two unnamed hashes.
+ * the rotation goes to the registry-known H9.com hash, the rest split across two unnamed hashes.
  */
 function syntheticPoolWindow(start: number, end: number) {
-  const pools = [XCHPOOL_PUZZLE_HASH, XCHPOOL_PUZZLE_HASH, ...UNKNOWN_POOL_PUZZLE_HASHES];
+  const pools = [NAMED_POOL_PUZZLE_HASH, NAMED_POOL_PUZZLE_HASH, ...UNKNOWN_POOL_PUZZLE_HASHES];
   const out = [];
   for (let h = start; h < end; h += 1) out.push(syntheticBlockRecord(h, pools[h % pools.length]!));
   return out;

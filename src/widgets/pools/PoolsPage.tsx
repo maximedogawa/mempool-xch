@@ -17,6 +17,16 @@ export function PoolsPage() {
   const summary = query.data ? summarizePoolShare(query.data.share) : null;
   const [showAllUnidentified, setShowAllUnidentified] = useState(false);
   const unidentifiedRows = query.data ? query.data.share.rows.filter((r) => r.entry === null) : [];
+  const [search, setSearch] = useState("");
+  const needle = search.trim().toLowerCase();
+  const visibleNamed = summary
+    ? summary.named.filter((row) => row.entry.name.toLowerCase().includes(needle))
+    : [];
+  const showUnidentified =
+    summary?.unidentified && (needle === "" || "unidentified".includes(needle));
+  const colorByName = new Map(
+    summary ? summary.named.map((row, i) => [row.entry.name, poolColor(i)] as const) : []
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,7 +34,7 @@ export function PoolsPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Pools</h1>
           <Tooltip
-            text={`Share of the last ${formatNumber(POOL_SHARE_WINDOW)} blocks by pool payout puzzle hash, grouped client-side from Coinset's get_block_records — nothing is stored on our server (decision-012). Names come from a maintained registry keyed by verified payout addresses; every payout address with no registry match is combined into one "Unidentified" total below.`}
+            text={`Share of the last ${formatNumber(POOL_SHARE_WINDOW)} blocks by pool payout puzzle hash, grouped client-side from Coinset's get_block_records — nothing is stored on our server (decision-012). Names come from a maintained registry of fixed-address pools (pool_puzzle_hash never changes block to block) — that's self-pooling, or a pool that also runs one. Most real pool capacity uses the standard PlotNFT protocol instead, where every farmer has their own unique payout address; those blocks fall into "Unidentified" below since naming them means resolving each farmer's singleton on-chain, which this page doesn't do yet.`}
             placement="bottom"
           />
         </div>
@@ -35,10 +45,20 @@ export function PoolsPage() {
           title="Share by pool"
           action={
             query.data ? (
-              <span className="tabular text-xs text-fg-faint">
-                heights {formatNumber(query.data.windowStart)} –{" "}
-                {formatNumber(query.data.windowEnd)}
-              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search pool name"
+                  aria-label="Search pool name"
+                  className="h-8 w-40 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-56"
+                />
+                <span className="tabular text-xs text-fg-faint">
+                  heights {formatNumber(query.data.windowStart)} –{" "}
+                  {formatNumber(query.data.windowEnd)}
+                </span>
+              </div>
             ) : null
           }
         />
@@ -60,115 +80,119 @@ export function PoolsPage() {
             <>
               <PoolShareBar summary={summary} />
               <div role="region" aria-label="Share by pool">
-                <ul className="flex flex-col divide-y divide-border/60">
-                  {summary.named.map((row, i) => {
-                    const address = puzzleHashToAddress(
-                      row.poolPuzzleHashes[0]!,
-                      networkConfig.addressPrefix
-                    );
-                    return (
-                      <li
-                        key={row.entry.name}
-                        className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ background: poolColor(i) }}
-                        />
-                        <span className="flex min-w-[140px] items-center gap-1.5 font-medium text-fg">
-                          <a
-                            href={row.entry.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hover:text-accent hover:underline"
-                          >
-                            {row.entry.name}
-                          </a>
-                          <Tooltip
-                            text={`Verified via ${row.entry.source}. ${row.poolPuzzleHashes.length > 1 ? `${row.poolPuzzleHashes.length} payout addresses seen in this window.` : "Payout address confirmed against the pool's own pool_info endpoint."}`}
-                          />
-                        </span>
-                        <Hash
-                          value={address}
-                          href={routes.address(address)}
-                          head={8}
-                          tail={4}
-                          copy
-                          className="text-xs text-fg-faint"
-                        />
-                        <span className="tabular ml-auto text-sm text-fg-muted">
-                          {formatNumber(row.blocks)} blocks
-                        </span>
-                        <span className="tabular w-14 text-right text-sm font-medium text-fg">
-                          {formatPercent(row.share, 1)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                  {summary.unidentified ? (
-                    <li className="flex flex-col gap-2 py-2.5">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span
-                          aria-hidden="true"
-                          className="h-2.5 w-2.5 shrink-0 rounded-full bg-border-strong"
-                        />
-                        <span className="flex min-w-[140px] items-center gap-1.5 font-medium text-fg-faint">
-                          Unidentified
-                          <Tooltip
-                            text={`${formatNumber(summary.unidentified.addressCount)} distinct payout addresses in this window with no registry match — each is either an unregistered pool or a solo farmer paying out to their own address. Grouped together since most represent one or a handful of blocks each.`}
-                          />
-                        </span>
-                        <span className="tabular ml-auto text-sm text-fg-muted">
-                          {formatNumber(summary.unidentified.blocks)} blocks
-                        </span>
-                        <span className="tabular w-14 text-right text-sm font-medium text-fg">
-                          {formatPercent(summary.unidentified.share, 1)}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setShowAllUnidentified((v) => !v)}
-                          aria-expanded={showAllUnidentified}
+                {visibleNamed.length === 0 && !showUnidentified ? (
+                  <p className="py-6 text-center text-sm text-fg-faint">
+                    No pool matches &quot;{search}&quot;.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-border/60">
+                    {visibleNamed.map((row) => {
+                      const address = puzzleHashToAddress(
+                        row.poolPuzzleHashes[0]!,
+                        networkConfig.addressPrefix
+                      );
+                      return (
+                        <li
+                          key={row.entry.name}
+                          className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5"
                         >
-                          {showAllUnidentified ? "Hide" : "Show"} all{" "}
-                          {formatNumber(summary.unidentified.addressCount)} addresses
-                        </Button>
-                      </div>
-                      {showAllUnidentified ? (
-                        <ul className="flex max-h-80 flex-col divide-y divide-border/40 overflow-y-auto rounded-sm border border-border bg-bg pl-[26px]">
-                          {unidentifiedRows.map((row) => {
-                            const address = puzzleHashToAddress(
-                              row.poolPuzzleHash,
-                              networkConfig.addressPrefix
-                            );
-                            return (
-                              <li
-                                key={row.poolPuzzleHash}
-                                className="flex items-center gap-3 px-2.5 py-1.5"
-                              >
-                                <Hash
-                                  value={address}
-                                  href={routes.address(address)}
-                                  head={10}
-                                  tail={6}
-                                  copy
-                                  className="text-xs text-fg-faint"
-                                />
-                                <span className="tabular ml-auto text-xs text-fg-muted">
-                                  {formatNumber(row.blocks)} blocks
-                                </span>
-                                <span className="tabular w-12 text-right text-xs text-fg">
-                                  {formatPercent(row.share, 1)}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      ) : null}
-                    </li>
-                  ) : null}
-                </ul>
+                          <span
+                            aria-hidden="true"
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ background: colorByName.get(row.entry.name) }}
+                          />
+                          <span className="flex min-w-[140px] items-center gap-1.5 font-medium text-fg">
+                            <a
+                              href={row.entry.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:text-accent hover:underline"
+                            >
+                              {row.entry.name}
+                            </a>
+                            <Tooltip text={row.entry.source} />
+                          </span>
+                          <Hash
+                            value={address}
+                            href={routes.address(address)}
+                            head={8}
+                            tail={4}
+                            copy
+                            className="text-xs text-fg-faint"
+                          />
+                          <span className="tabular ml-auto text-sm text-fg-muted">
+                            {formatNumber(row.blocks)} blocks
+                          </span>
+                          <span className="tabular w-14 text-right text-sm font-medium text-fg">
+                            {formatPercent(row.share, 1)}
+                          </span>
+                        </li>
+                      );
+                    })}
+                    {showUnidentified && summary.unidentified ? (
+                      <li className="flex flex-col gap-2 py-2.5">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span
+                            aria-hidden="true"
+                            className="h-2.5 w-2.5 shrink-0 rounded-full bg-border-strong"
+                          />
+                          <span className="flex min-w-[140px] items-center gap-1.5 font-medium text-fg-faint">
+                            Unidentified
+                            <Tooltip
+                              text={`${formatNumber(summary.unidentified.addressCount)} distinct payout addresses in this window with no registry match. Most are farmers using the standard PlotNFT pooling protocol (chia plotnft join) — each has a unique on-chain payout address, so naming their pool means resolving that farmer's singleton on-chain, which this page doesn't do. The rest are true solo farmers or unregistered fixed-address pools. Grouped together since most represent one or a handful of blocks each.`}
+                            />
+                          </span>
+                          <span className="tabular ml-auto text-sm text-fg-muted">
+                            {formatNumber(summary.unidentified.blocks)} blocks
+                          </span>
+                          <span className="tabular w-14 text-right text-sm font-medium text-fg">
+                            {formatPercent(summary.unidentified.share, 1)}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowAllUnidentified((v) => !v)}
+                            aria-expanded={showAllUnidentified}
+                          >
+                            {showAllUnidentified ? "Hide" : "Show"} all{" "}
+                            {formatNumber(summary.unidentified.addressCount)} addresses
+                          </Button>
+                        </div>
+                        {showAllUnidentified ? (
+                          <ul className="flex max-h-80 flex-col divide-y divide-border/40 overflow-y-auto rounded-sm border border-border bg-bg pl-[26px]">
+                            {unidentifiedRows.map((row) => {
+                              const address = puzzleHashToAddress(
+                                row.poolPuzzleHash,
+                                networkConfig.addressPrefix
+                              );
+                              return (
+                                <li
+                                  key={row.poolPuzzleHash}
+                                  className="flex items-center gap-3 px-2.5 py-1.5"
+                                >
+                                  <Hash
+                                    value={address}
+                                    href={routes.address(address)}
+                                    head={10}
+                                    tail={6}
+                                    copy
+                                    className="text-xs text-fg-faint"
+                                  />
+                                  <span className="tabular ml-auto text-xs text-fg-muted">
+                                    {formatNumber(row.blocks)} blocks
+                                  </span>
+                                  <span className="tabular w-12 text-right text-xs text-fg">
+                                    {formatPercent(row.share, 1)}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : null}
+                      </li>
+                    ) : null}
+                  </ul>
+                )}
               </div>
             </>
           )}
@@ -176,11 +200,14 @@ export function PoolsPage() {
       </Card>
       <p className="text-xs text-fg-faint">
         A block&apos;s pool payout address is exact (it is part of the block record); the name
-        attached to it is only as complete as the registry. Missing a pool you know the payout
-        address for? Add a sourced entry to{" "}
+        attached to it is only as complete as the registry, and the registry can only name a
+        <em>fixed</em> address — one where pool_puzzle_hash equals farmer_puzzle_hash across
+        multiple blocks (self-pooling, or a pool that also runs one). A pool&apos;s{" "}
+        <span className="mono">pool_info</span> endpoint is <em>not</em> a payout address for a
+        standard PlotNFT pool: each farmer there has their own unique on-chain address. Know a
+        fixed address confirmed this way? Add a sourced entry to{" "}
         <span className="mono">src/shared/lib/pools/registry.json</span> (see the wiki&apos;s
-        contribution note) with a link to where the address was confirmed, such as the pool&apos;s
-        own <span className="mono">pool_info</span> endpoint.
+        contribution note).
       </p>
     </div>
   );
