@@ -108,7 +108,7 @@ export class ChainCache {
     } else if (event.type === "reorg") {
       [...this.records.keys()].filter((h) => h >= event.newHeight - event.depth).forEach((h) => this.records.delete(h));
       void this.refreshState().then(() => this.refreshRecords(event.newHeight, true));
-    } else if (event.type === "status" && (event.channel === "websocket" || event.channel === "webhook")) {
+    } else if (event.type === "status" && event.channel === "websocket") {
       // Back from a gap: make sure nothing was missed.
       void this.refreshAll();
     }

@@ -18,6 +18,8 @@ const record = (height: number): BlockRecord => ({
   rewardClaimsIncorporated: null,
   overflow: false,
   signagePointIndex: 0,
+  deficit: 0,
+  subEpochSummaryIncluded: false,
   isTransactionBlock: height % 3 === 0,
 });
 
@@ -48,7 +50,7 @@ function setup(peak: number) {
         return { targetTimes: [60], estimates: [1n], currentFeeRate: 0, feeRateLastBlock: 0, feesLastBlock: 0n, lastBlockCost: 0, lastTxBlockHeight: current, peakHeight: current, mempoolCost: 0, mempoolMaxCost: 1, mempoolFees: 0n, numSpends: 0, nodeTimeUtc: 0, synced: true } satisfies FeeEstimate;
       },
     },
-    hub: { emit: (event) => emitted.push(event), on: (l) => (listeners.add(l), () => listeners.delete(l)), status: () => ({ network: "mainnet", channel: "websocket", socket: "websocket", lastWebhookAt: null, connectedAt: 1, lastEventAt: 1, reconnects: 0, counters: {}, seq: 1 }), blockStats },
+    hub: { emit: (event) => emitted.push(event), on: (l) => (listeners.add(l), () => listeners.delete(l)), status: () => ({ network: "mainnet", channel: "websocket", connectedAt: 1, lastEventAt: 1, reconnects: 0, counters: {}, seq: 1 }), blockStats },
     now: () => now,
     timers: false,
   });

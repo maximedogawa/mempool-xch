@@ -19,16 +19,10 @@ export function serverRpcUrl(network: NetworkId): string {
   return process.env[`MEMPOOL_RPC_URL_${network.toUpperCase()}`] ?? NETWORKS[network].rpcUrl;
 }
 
-/** Headers for server-side Coinset calls: the API key as a bearer token when configured. */
-export function serverRpcHeaders(env: Record<string, string | undefined> = process.env): Record<string, string> {
-  const key = env.COINSET_API_KEY?.trim();
-  return key ? { authorization: `Bearer ${key}` } : {};
-}
-
-/** Options every server-side RPC client shares (URL override, key, timeout). */
+/** Options every server-side RPC client shares (URL override and timeout). */
 export function serverClientOptions(network: NetworkId): RpcClientOptions {
   const rpcUrl = serverRpcUrl(network);
-  return { rpcUrl, indexedUrl: isCoinsetUrl(network, rpcUrl) ? NETWORKS[network].indexedUrl : null, timeoutMs: 15_000, headers: serverRpcHeaders(), fetchImpl: meteredFetch() };
+  return { rpcUrl, indexedUrl: isCoinsetUrl(network, rpcUrl) ? NETWORKS[network].indexedUrl : null, timeoutMs: 15_000, fetchImpl: meteredFetch() };
 }
 
 export function getChain(network: NetworkId): ChainCache {

@@ -32,14 +32,17 @@ export function XchIcon({ size = 18, className }: { size?: number; className?: s
  */
 export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [failed, setFailed] = useState<Set<string>>(() => new Set());
   if (kind === "xch") return <XchIcon size={size} className={className} />;
   if (kind === "cat") {
-    const src = iconUrl ?? token?.iconUrl ?? (assetId ? dexieIconUrl(assetId) : null);
-    if (src && failed !== src) {
+    // Candidates in order: what the wallet resolved, the registry, Dexie's per-id icon. A blocked
+    // or missing image (Sage CSP, 404) moves on to the next one before the letter badge.
+    const candidates = [iconUrl, token?.iconUrl, assetId ? dexieIconUrl(assetId) : null].filter((u): u is string => !!u);
+    const src = candidates.find((u) => !failed.has(u)) ?? null;
+    if (src) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={token?.name ?? "CAT"} loading="lazy" decoding="async" onError={() => setFailed(src)} className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)} style={{ width: size, height: size }} />
+        <img src={src} alt={token?.name ?? "CAT"} loading="lazy" decoding="async" onError={() => setFailed((prev) => new Set(prev).add(src))} className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)} style={{ width: size, height: size }} />
       );
     }
     return (
