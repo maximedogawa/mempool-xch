@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
-import { groupPoolShare } from "./share";
+import { groupPoolShare, summarizePoolShare } from "./share";
 
 function block(poolPuzzleHash: string, height: number): BlockRecord {
   return {
@@ -58,5 +58,31 @@ describe("groupPoolShare", () => {
     const identified = result.rows.filter((r) => r.entry !== null).reduce((s, r) => s + r.blocks, 0);
     expect(result.identifiedBlocks).toBe(identified);
     expect(result.identifiedShare).toBe(result.totalBlocks > 0 ? identified / result.totalBlocks : 0);
+  });
+});
+
+// XCHpool's registered payout hash (src/shared/lib/pools/registry.json), used so lookupPool resolves.
+const XCHPOOL_HASH = "0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2";
+
+describe("summarizePoolShare", () => {
+  test("collapses every unidentified address into a single bucket", () => {
+    const records = [block(XCHPOOL_HASH, 1), block(POOL_A, 2), block(POOL_B, 3), block(POOL_C, 4)];
+    const summary = summarizePoolShare(groupPoolShare(records));
+    expect(summary.named).toHaveLength(1);
+    expect(summary.named[0]!.entry.name).toBe("XCHpool");
+    expect(summary.named[0]!.blocks).toBe(1);
+    expect(summary.unidentified).toEqual({ addressCount: 3, blocks: 3, share: 0.75 });
+  });
+
+  test("no unidentified bucket when every block resolves to the registry", () => {
+    const summary = summarizePoolShare(groupPoolShare([block(XCHPOOL_HASH, 1)]));
+    expect(summary.unidentified).toBeNull();
+  });
+
+  test("empty window has no named pools and no unidentified bucket", () => {
+    const summary = summarizePoolShare(groupPoolShare([]));
+    expect(summary.named).toEqual([]);
+    expect(summary.unidentified).toBeNull();
+    expect(summary.totalBlocks).toBe(0);
   });
 });

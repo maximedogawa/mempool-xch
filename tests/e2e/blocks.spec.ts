@@ -33,7 +33,8 @@ test.describe("block pages", () => {
     await page.goto(`/block/${TX_BLOCK_HEIGHT}`);
     await expect(row(page, "Signage point")).toContainText("40 of 64");
     await expect(row(page, "Deficit")).toContainText("0");
-    await expect(page.getByTestId("farmed-by")).toContainText("pool and farmer rewards go to the same address");
+    // This fixture's pool_puzzle_hash is a recorded real address, since verified as NoSSD's (src/shared/lib/pools/registry.json).
+    await expect(page.getByTestId("farmed-by")).toContainText("NoSSD");
     await expect(row(page, "Farmer reward address")).toContainText("xch1");
     await expect(page.getByTestId("block-contents")).toHaveText("3 spends · 15 new coins");
     await expect(row(page, "Generator")).toContainText("one block generator");

@@ -14,7 +14,8 @@ test.describe("detail pages", () => {
     await expect(page.getByText(/Inputs/i).first()).toBeVisible();
     await expect(page.getByText("7.50 mojo/cost")).toBeVisible();
     const farmedBy = page.getByTestId("farmed-by");
-    await expect(farmedBy).toContainText("unidentified solo farmer");
+    // This fixture's pool_puzzle_hash is a recorded real address, since verified as NoSSD's (src/shared/lib/pools/registry.json).
+    await expect(farmedBy).toContainText("NoSSD");
     await expect(farmedBy.getByRole("link", { name: "block details" })).toBeVisible();
     await expect(page.getByText(/Waited .* before confirming/)).toBeVisible();
   });

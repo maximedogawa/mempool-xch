@@ -59,6 +59,12 @@
       "url": "https://ffarmers.eu/",
       "source": "https://pool-xch.ffarmers.eu/pool_info (target_puzzle_hash, read 2026-09-17)",
       "puzzleHashes": ["77c4f46b5557d9be7482ad46781d13b0e3b4641775f463b4347883726eda1024"]
+    },
+    {
+      "name": "NoSSD",
+      "url": "https://nossd.com/",
+      "source": "NoSSD does not publish a pool_info endpoint (custom HDD-mining client, not the standard pooling protocol). Cross-referenced via nossd.com/blocks: block 9305425 there (header_hash 0x1bde131ffbac39c4d17f7e0bc2d165faf6f2ece57d39136b3afed28c0301dcda) matches Coinset's get_block_record_by_height for that header_hash, whose pool_puzzle_hash is this entry (read 2026-09-17).",
+      "puzzleHashes": ["9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"]
     }
   ]
 }

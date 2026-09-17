@@ -6,20 +6,26 @@ test.describe("pools", () => {
     await mockCoinset(page);
   });
 
-  test("groups blocks by pool payout hash, names the registry-known pool and shows the rest by address", async ({ page }) => {
+  test("groups blocks by pool payout hash, names the registry-known pool and shows the rest by address", async ({
+    page,
+  }) => {
     await page.goto("/pools");
     await expect(page.getByRole("heading", { level: 1, name: "Pools" })).toBeVisible();
 
     const table = page.getByRole("region", { name: "Share by pool" });
-    await expect(table.getByText("XCHpool")).toBeVisible();
+    await expect(table.getByRole("link", { name: "XCHpool" })).toBeVisible();
     await expect(table.getByText("Unidentified").first()).toBeVisible();
 
     // Half the synthetic window (two of the four rotating hashes) goes to the registry-known pool.
-    await expect(page.getByText(/50\.0% of blocks/)).toBeVisible();
+    const xchpoolRow = table.locator("li").filter({ hasText: "XCHpool" });
+    await expect(xchpoolRow.getByText("50.0%")).toBeVisible();
   });
 
   test("navigates from the top nav", async ({ page, isMobile }) => {
-    test.skip(isMobile, "desktop nav only; mobile nav is covered by keyboard.spec.ts's touch-target test");
+    test.skip(
+      isMobile,
+      "desktop nav only; mobile nav is covered by keyboard.spec.ts's touch-target test"
+    );
     await page.goto("/");
     await page.getByRole("link", { name: "Pools", exact: true }).click();
     await expect(page).toHaveURL(/\/pools/);
