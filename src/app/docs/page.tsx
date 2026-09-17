@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
 
 export const metadata: Metadata = { title: "Help" };
@@ -163,6 +165,7 @@ export default function DocsPage() {
         <CardHeader title="More" />
         <CardBody className="text-sm text-fg-muted">
           <ul className="list-disc space-y-1 pl-5">
+            <li><Link href={routes.api()} className="text-accent hover:underline">API reference: every Coinset call this app makes, with examples</Link></li>
             <li><a href={`${WIKI}/guides/install.md`} target="_blank" rel="noreferrer" className="text-accent hover:underline">Install and use</a></li>
             <li><a href={`${WIKI}/guides/custom-node.md`} target="_blank" rel="noreferrer" className="text-accent hover:underline">Custom or local node, with nginx too</a></li>
             <li><a href={`${WIKI}/architecture/overview.md`} target="_blank" rel="noreferrer" className="text-accent hover:underline">How it works under the hood</a></li>
