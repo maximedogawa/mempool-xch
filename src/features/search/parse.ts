@@ -12,6 +12,8 @@ export type SearchTarget =
   | { kind: "nft"; nftId: string; launcherId: string }
   | { kind: "did"; didId: string; launcherId: string }
   | { kind: "hex32"; hex: string }
+  /** Free text matching no known id shape (TASK-055): a name to try against MintGarden. */
+  | { kind: "text"; value: string }
   | { kind: "invalid"; reason: string };
 
 export function parseSearchInput(raw: string): SearchTarget {
@@ -42,8 +44,5 @@ export function parseSearchInput(raw: string): SearchTarget {
   if (isHex(input)) {
     return { kind: "invalid", reason: "Hex ids must be 32 bytes (64 hex characters)." };
   }
-  return {
-    kind: "invalid",
-    reason: "Not recognised. Try a block height, a tx id, a coin id, an xch/txch address, an nft1 id or a CAT asset id.",
-  };
+  return { kind: "text", value: input };
 }

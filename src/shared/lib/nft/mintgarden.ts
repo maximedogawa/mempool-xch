@@ -199,3 +199,53 @@ export async function fetchNftOffers(nftId: string, fetchImpl: FetchLike = fetch
     return [];
   }
 }
+
+export interface NftSearchResult {
+  nftId: string;
+  name: string | null;
+  thumbnailUrl: string | null;
+}
+
+export interface CollectionSearchResult {
+  id: string;
+  name: string | null;
+  thumbnailUrl: string | null;
+}
+
+export interface NftSearchResults {
+  nfts: NftSearchResult[];
+  collections: CollectionSearchResult[];
+}
+
+const EMPTY_SEARCH: NftSearchResults = { nfts: [], collections: [] };
+
+/**
+ * Free-text search (TASK-055), verified 2026-09-17 against a live query: /search?query= returns
+ * nfts, collections, profiles, addresses and xchandle matches for one query; only nfts and
+ * collections are in scope here. A failed or rate-limited request degrades to no results, same
+ * as every other function in this file, so the search box falls back to its "not recognised"
+ * state rather than showing an error for what is an additive, best-effort lookup.
+ */
+export async function searchMintGarden(query: string, fetchImpl: FetchLike = fetch): Promise<NftSearchResults> {
+  const trimmed = query.trim();
+  if (!trimmed) return EMPTY_SEARCH;
+  try {
+    const response = await fetchImpl(`${MINTGARDEN_API}/search?query=${encodeURIComponent(trimmed)}`);
+    if (!response.ok) return EMPTY_SEARCH;
+    const body = obj(await response.json());
+    const nfts = Array.isArray(body.nfts) ? body.nfts : [];
+    const collections = Array.isArray(body.collections) ? body.collections : [];
+    return {
+      nfts: nfts
+        .map(obj)
+        .map((n) => ({ nftId: str(n.encoded_id) ?? "", name: str(n.name), thumbnailUrl: str(n.thumbnail_uri) }))
+        .filter((n) => n.nftId),
+      collections: collections
+        .map(obj)
+        .map((c) => ({ id: str(c.id) ?? "", name: str(c.name), thumbnailUrl: str(c.thumbnail_uri) }))
+        .filter((c) => c.id),
+    };
+  } catch {
+    return EMPTY_SEARCH;
+  }
+}

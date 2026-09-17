@@ -7,9 +7,10 @@ import Link from "next/link";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
+import { AssetImage } from "@/shared/ui/AssetImage";
 import { useCatLabel } from "@/shared/ui/CatRef";
 import { parseSearchInput } from "./parse";
-import { directRoute, resolveHex32, type SearchMatch } from "./resolve";
+import { directRoute, resolveHex32, resolveText, type SearchMatch } from "./resolve";
 
 function CandidateLabel({ match }: { match: SearchMatch }) {
   const ticker = useCatLabel(match.assetId);
@@ -18,6 +19,14 @@ function CandidateLabel({ match }: { match: SearchMatch }) {
       <span className="inline-flex items-center gap-1.5 font-medium">
         <AssetIcon kind="cat" assetId={match.assetId} size={16} />
         {ticker}
+      </span>
+    );
+  }
+  if (match.kind === "nft" || match.kind === "collection") {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium">
+        <AssetImage urls={match.thumbnailUrl ? [match.thumbnailUrl] : []} alt="" className="h-4 w-4 shrink-0" rounded="rounded-sm" />
+        {match.label}
       </span>
     );
   }
@@ -87,6 +96,18 @@ export function SearchBox({
         if (matches.length === 1) {
           router.push(matches[0]!.href);
           clear();
+        } else {
+          setCandidates(matches);
+        }
+      } finally {
+        setBusy(false);
+      }
+    } else if (target.kind === "text") {
+      setBusy(true);
+      try {
+        const matches = await resolveText(target.value);
+        if (matches.length === 0) {
+          setError(`No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id or a CAT asset id.`);
         } else {
           setCandidates(matches);
         }
@@ -184,17 +205,31 @@ export function SearchBox({
           <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-fg-faint">
             {candidates.length > 1 ? "Several matches, pick one" : "Best guess"}
           </p>
-          {candidates.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              onClick={clear}
-              className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
-            >
-              <CandidateLabel match={c} />
-              <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
-            </Link>
-          ))}
+          {candidates.map((c) =>
+            c.kind === "collection" ? (
+              <a
+                key={c.href}
+                href={c.href}
+                target="_blank"
+                rel="noreferrer"
+                onClick={clear}
+                className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <CandidateLabel match={c} />
+                <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
+              </a>
+            ) : (
+              <Link
+                key={c.href}
+                href={c.href}
+                onClick={clear}
+                className="block rounded-sm px-2 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <CandidateLabel match={c} />
+                <span className="mono ml-2 text-xs text-fg-faint">{c.href}</span>
+              </Link>
+            )
+          )}
         </div>
       ) : null}
     </form>

@@ -32,6 +32,23 @@ function event(nftId: string, type: number, blockHeight: number, xchPrice: numbe
 
 const EVENTS = [event(NFT_LAUNCHER_ID, 0, 9300001), event(NFT_LAUNCHER_ID, 2, 9300002, 3.5), event(NFT_LAUNCHER_ID, 1, 9300003)];
 
+/** TASK-055: only a query containing "friend" (case-insensitive) returns matches, so a test can also exercise the no-matches path. */
+export async function mockMintGardenSearch(page: Page) {
+  await page.route(/https:\/\/api\.mintgarden\.io\/search\?.*/, (route) => {
+    const url = new URL(route.request().url());
+    const query = (url.searchParams.get("query") ?? "").toLowerCase();
+    const hit = query.includes("friend");
+    return json(route, {
+      xchandle_resolution: null,
+      xchandles: [],
+      nfts: hit ? [{ encoded_id: NFT_ID, name: "Test Friend #1", thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/nft.webp" }] : [],
+      collections: hit ? [{ id: COLLECTION_ID, name: "Test Friends", thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/collection.webp" }] : [],
+      profiles: [],
+      addresses: [],
+    });
+  });
+}
+
 export async function mockMintGarden(page: Page) {
   await page.route(/https:\/\/api\.mintgarden\.io\/collections(\?.*)?$/, (route) => json(route, { items: [COLLECTION], next: null }));
   await page.route(/https:\/\/api\.mintgarden\.io\/events.*/, (route) => {

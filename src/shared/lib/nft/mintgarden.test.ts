@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { fetchCollections, fetchNftEvents, fetchNftOffers, type MinimalResponse } from "./mintgarden";
+import { fetchCollections, fetchNftEvents, fetchNftOffers, mintGardenThumbnailUrl, searchMintGarden, type MinimalResponse } from "./mintgarden";
 
 function okResponse(body: unknown): Promise<MinimalResponse> {
   return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
@@ -60,5 +60,43 @@ describe("fetchNftOffers", () => {
   test("a failed fetch degrades to an empty list", async () => {
     const result = await fetchNftOffers("nft1x", () => Promise.reject(new Error("network")));
     expect(result).toEqual([]);
+  });
+});
+
+describe("searchMintGarden", () => {
+  test("maps nft and collection matches, dropping entries with no id", async () => {
+    const result = await searchMintGarden("Chia Friends", () =>
+      okResponse({
+        nfts: [
+          { encoded_id: "nft1abc", name: "Friend #1", thumbnail_uri: "https://assets.mainnet.mintgarden.io/x.webp" },
+          { encoded_id: null, name: "No id" },
+        ],
+        collections: [{ id: "col1abc", name: "Chia Friends", thumbnail_uri: "https://assets.mainnet.mintgarden.io/y.webp" }],
+        profiles: [{ id: "should be ignored" }],
+      })
+    );
+    expect(result.nfts).toEqual([{ nftId: "nft1abc", name: "Friend #1", thumbnailUrl: "https://assets.mainnet.mintgarden.io/x.webp" }]);
+    expect(result.collections).toEqual([{ id: "col1abc", name: "Chia Friends", thumbnailUrl: "https://assets.mainnet.mintgarden.io/y.webp" }]);
+  });
+
+  test("empty query short-circuits without fetching", async () => {
+    let called = false;
+    const result = await searchMintGarden("   ", () => {
+      called = true;
+      return okResponse({});
+    });
+    expect(called).toBe(false);
+    expect(result).toEqual({ nfts: [], collections: [] });
+  });
+
+  test("a failed or rate-limited fetch degrades to no results, not an error", async () => {
+    const result = await searchMintGarden("test", () => Promise.reject(new Error("network")));
+    expect(result).toEqual({ nfts: [], collections: [] });
+  });
+});
+
+describe("mintGardenThumbnailUrl", () => {
+  test("builds the direct thumbnail redirect URL", () => {
+    expect(mintGardenThumbnailUrl("nft1abc")).toBe("https://api.mintgarden.io/nfts/nft1abc/thumbnail");
   });
 });
