@@ -45,6 +45,7 @@ export const routes = {
   wallet: () => page("wallet"),
   docs: () => page("docs"),
   api: () => page("api"),
+  map: () => page("map"),
   legalTerms: () => page("legal/terms"),
   legalNotice: () => page("legal/notice"),
   legalPrivacy: () => page("legal/privacy"),

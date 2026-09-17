@@ -214,3 +214,16 @@ export interface SingletonInfo {
   singletonType: string | null;
   coinRecord: Record<string, unknown> | null;
 }
+
+/** One entry from a full node's get_connections (TASK-065): Coinset's public gateway disables it. */
+export interface PeerConnection {
+  nodeId: string;
+  peerHost: string;
+  peerPort: number;
+  /** Chia's connection type: 0 full node, 1 harvester, 2 farmer, 3 timelord, 4 introducer, 5 wallet. */
+  type: number;
+  bytesRead: number;
+  bytesWritten: number;
+  peakHeight: number | null;
+  creationTimeS: number | null;
+}

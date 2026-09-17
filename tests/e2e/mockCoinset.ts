@@ -313,6 +313,19 @@ export async function answerNodeMethod(route: Route) {
         return json(route, { launcher_id: body.launcher_id, singleton_type: null, coin_record: null, success: true });
       case "get_latest_nft_coin_by_nft_id":
         return json(route, { nft_coin_record: null, success: true });
+      case "get_connections":
+        // Coinset's public gateway does not expose this (confirmed live: 404); only the mocked
+        // custom node answers it, matching real behaviour.
+        return url.host === "node.example.test:8556"
+          ? json(route, {
+              connections: [
+                { node_id: `0x${hash(1)}`, peer_host: "203.0.113.10", peer_port: 8444, type: 0, bytes_read: 204800, bytes_written: 51200, peak_height: 9300000, creation_time: 1_757_000_000 },
+                { node_id: `0x${hash(2)}`, peer_host: "203.0.113.20", peer_port: 8444, type: 0, bytes_read: 1024, bytes_written: 2048, peak_height: 9299998, creation_time: 1_757_001_000 },
+                { node_id: `0x${hash(3)}`, peer_host: "198.51.100.5", peer_port: 8447, type: 5, bytes_read: 500, bytes_written: 500, peak_height: null, creation_time: 1_757_002_000 },
+              ],
+              success: true,
+            })
+          : json(route, { success: false, error: "unknown method" }, 404);
       default:
         return json(route, { success: false, error: `unmocked method ${method}` }, 404);
     }

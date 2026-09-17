@@ -14,6 +14,7 @@ import type {
   FullBlockSummary,
   MempoolItem,
   ParticipantFlow,
+  PeerConnection,
   RawCoinRef,
   SingletonInfo,
   TxList,
@@ -323,5 +324,19 @@ export function normaliseSingletonInfo(raw: unknown): SingletonInfo {
     launcherId: hex(r.launcher_id),
     singletonType: r.singleton_type ? str(r.singleton_type) : null,
     coinRecord: r.coin_record ? asRaw(r.coin_record) : null,
+  };
+}
+
+export function normalisePeerConnection(raw: unknown): PeerConnection {
+  const r = asRaw(raw);
+  return {
+    nodeId: hex(r.node_id),
+    peerHost: str(r.peer_host),
+    peerPort: num(r.peer_port),
+    type: num(r.type),
+    bytesRead: num(r.bytes_read),
+    bytesWritten: num(r.bytes_written),
+    peakHeight: nullableNum(r.peak_height),
+    creationTimeS: nullableNum(r.creation_time),
   };
 }

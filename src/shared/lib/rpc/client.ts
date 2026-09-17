@@ -16,6 +16,7 @@ import {
   normaliseFeeEstimate,
   normaliseFullBlock,
   normaliseMempoolItem,
+  normalisePeerConnection,
   normaliseSingletonInfo,
   normaliseTxList,
   normaliseTxSummary,
@@ -31,6 +32,7 @@ import type {
   FeeEstimate,
   FullBlockSummary,
   MempoolItem,
+  PeerConnection,
   SingletonInfo,
   TxList,
   TxSummary,
@@ -269,6 +271,12 @@ export function createRpcClient(options: RpcClientOptions) {
     async pushTx(spendBundle: Raw, signal?: AbortSignal): Promise<string> {
       const r = await rpc("push_tx", { spend_bundle: spendBundle }, signal);
       return String(r.status ?? "UNKNOWN");
+    },
+
+    /** Connected peers (TASK-065); Coinset's public gateway disables this, custom nodes answer it. */
+    async getConnections(signal?: AbortSignal): Promise<PeerConnection[]> {
+      const r = await rpc("get_connections", {}, signal);
+      return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
     },
 
     /* ---- Coinset indexed API (null when not Coinset) ---- */
