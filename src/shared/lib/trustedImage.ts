@@ -6,7 +6,8 @@
  * a tracking/fingerprinting vector, and a mixed-content/MITM one over plain http. Only load images
  * from hosts the app already depends on for this data.
  */
-const TRUSTED_IMAGE_HOSTS = new Set([
+/** Also used to build the hosted app's CSP img-src (next.config.ts, TASK-050) — one source of truth. */
+export const TRUSTED_IMAGE_HOSTS = new Set([
   "icons.dexie.space",
   "assets.mainnet.mintgarden.io",
   "ipfs.mintgarden.io",

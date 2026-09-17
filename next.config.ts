@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { execSync } from "node:child_process";
+import { buildHostedAppCsp } from "./scripts/sage/csp";
 import packageJson from "./package.json";
 
 function getCommitSha(): string {
@@ -54,6 +55,21 @@ const nextConfig: NextConfig = {
         async headers() {
           if (process.env.NODE_ENV !== "production") return [];
           return [
+            {
+              // Every route (TASK-050): CSP, Referrer-Policy, X-Content-Type-Options, Permissions-Policy.
+              // The Sage snapshot already sends an equivalent CSP (scripts/sage/csp.ts) via its own
+              // server; this is the same family of policy for the standard hosted build.
+              source: "/:path*",
+              headers: [
+                { key: "Content-Security-Policy", value: buildHostedAppCsp() },
+                { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+                { key: "X-Content-Type-Options", value: "nosniff" },
+                {
+                  key: "Permissions-Policy",
+                  value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=(), interest-cohort=()",
+                },
+              ],
+            },
             {
               source: "/:all*(svg|jpg|png|webp|avif|ico|woff|woff2)",
               headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
