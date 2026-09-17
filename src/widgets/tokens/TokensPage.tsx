@@ -160,7 +160,7 @@ export function TokensPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Tokens</h1>
           <Tooltip
-            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(allTokens.length)} in total. Activity figures come from Coinset's get_transactions_by_cat_asset_id per asset on request — first seen is exact, spends and volume are a sample of the most recent ${RECENT_SAMPLE} transfers (marked with a + when there are more), nothing kept on our server (decision-012).`}
+            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(allTokens.length)} in total. Activity figures come from Coinset's get_transactions_by_cat_asset_id per asset on request — first seen is exact, spends and volume are a sample of the most recent ${RECENT_SAMPLE} transfers (marked with a + when there are more), nothing kept on our server.`}
             placement="bottom"
           />
         </div>

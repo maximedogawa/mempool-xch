@@ -116,7 +116,7 @@ function syntheticPoolWindow(start: number, end: number) {
   return out;
 }
 
-/** Dexie CAT registry entries for TASK-067's tokens page: a busy token, a quiet one and a silent one. */
+/** Dexie CAT registry entries for the tokens page: a busy token, a quiet one and a silent one. */
 export const TOKEN_ACTIVE = hash(0x1111);
 export const TOKEN_QUIET = hash(0x2222);
 export const TOKEN_SILENT = hash(0x3333);
@@ -367,7 +367,7 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
 }
 
-/** Intercepts the Dexie CAT registry with a small fixed set (TASK-067's tokens page). */
+/** Intercepts the Dexie CAT registry with a small fixed set (the tokens page). */
 export async function mockDexie(page: Page) {
   await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) => json(route, { success: true, count: DEXIE_ASSETS.length, page: 1, page_size: 100, assets: DEXIE_ASSETS }));
   await page.route(/https:\/\/icons\.dexie\.space\/.*/, (route) => route.fulfill({ status: 404, body: "" }));

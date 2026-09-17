@@ -4,7 +4,7 @@ import { buildAppCsp, buildHostedAppCsp } from "../../../scripts/sage/csp";
 
 const sources = (csp: string, name: string) => (csp.split("; ").find((d) => d.startsWith(`${name} `)) ?? "").split(" ").slice(1);
 
-describe("hosted app CSP (TASK-050)", () => {
+describe("hosted app CSP", () => {
   const csp = buildHostedAppCsp();
 
   test("connects to any https/wss node and a localhost proxy, but to nothing else over plain http", () => {

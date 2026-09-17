@@ -12,7 +12,7 @@ export const RECENT_SAMPLE = 10;
 const rowLimit = createLimiter(6);
 
 /**
- * Bounded per-token activity (TASK-067): one exact ascending, limit-1 lookup for the first
+ * Bounded per-token activity: one exact ascending, limit-1 lookup for the first
  * transaction Coinset has, and a capped recent page for last-seen, a sampled spend count and a
  * sampled (not all-time) volume moved. No full-history pagination, so this is safe to fetch for
  * every row on a visible table page.

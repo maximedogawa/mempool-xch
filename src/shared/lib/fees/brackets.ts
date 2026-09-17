@@ -1,5 +1,5 @@
 /**
- * Fee-rate brackets for the /fees page distribution (TASK-059), parity with xchmempool.com's
+ * Fee-rate brackets for the /fees page distribution, parity with xchmempool.com's
  * table: 0 kept separate from the rest (Chia fees are usually 0 while the mempool has room),
  * then 0-1, 1-3, 3-5, 5-10, 10-25, 25-50, 50+ mojo/cost. Distinct from FEE_BANDS
  * (src/shared/lib/mempool/feeBands.ts), which are a different, coarser set used for the

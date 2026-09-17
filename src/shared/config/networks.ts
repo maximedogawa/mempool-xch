@@ -1,4 +1,4 @@
-/** Networks the app knows about. Endpoints can be overridden per network in settings (TASK-021). */
+/** Networks the app knows about. Endpoints can be overridden per network in settings. */
 export type NetworkId = "mainnet" | "testnet11";
 
 export interface NetworkConfig {

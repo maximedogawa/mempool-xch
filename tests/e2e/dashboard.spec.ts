@@ -47,7 +47,7 @@ test.describe("dashboard", () => {
     await expect(page).toHaveURL(new RegExp(`/tx/${TX_ID}`));
   });
 
-  test("free text with no known shape finds NFT and collection matches by name (TASK-055)", async ({ page }) => {
+  test("free text with no known shape finds NFT and collection matches by name", async ({ page }) => {
     await mockMintGardenSearch(page);
     await page.goto("/");
     const search = page.getByRole("searchbox").first();
@@ -61,7 +61,7 @@ test.describe("dashboard", () => {
     await expect(collectionLink).toHaveAttribute("target", "_blank");
   });
 
-  test("free text search with no MintGarden matches degrades to a not-recognised message, not an error (TASK-055 AC4)", async ({ page }) => {
+  test("free text search with no MintGarden matches degrades to a not-recognised message, not an error", async ({ page }) => {
     await mockMintGardenSearch(page);
     await page.goto("/");
     const search = page.getByRole("searchbox").first();

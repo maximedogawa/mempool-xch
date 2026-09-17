@@ -1,4 +1,4 @@
-/** Smoothing control for chart series (TASK-058): a centred moving average over neighbouring points. */
+/** Smoothing control for chart series: a centred moving average over neighbouring points. */
 export type SmoothingId = "raw" | "smooth" | "very-smooth";
 
 export const SMOOTHING_LEVELS: readonly { id: SmoothingId; label: string; window: number }[] = [

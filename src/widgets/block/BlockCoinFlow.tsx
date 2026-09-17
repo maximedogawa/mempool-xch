@@ -60,7 +60,7 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
   );
 }
 
-/** Created coins linked to the spent coins they came from (TASK-061). */
+/** Created coins linked to the spent coins they came from. */
 export function BlockCoinFlow({ data, loading }: { data: { additions: CoinRecord[]; removals: CoinRecord[] } | undefined; loading: boolean }) {
   const flow = useMemo(() => (data ? buildCoinFlow(data.additions, data.removals) : null), [data]);
   const [limit, setLimit] = useState(GROUPS_PAGE);

@@ -1,7 +1,7 @@
 import type { TxSummary } from "@/shared/lib/rpc/types";
 
 /**
- * Which pool a payout address belongs to (TASK-060). Under the official pool protocol a block's
+ * Which pool a payout address belongs to. Under the official pool protocol a block's
  * pool_puzzle_hash is the farmer's own PlotNFT address (p2_singleton), so it says nothing about
  * the pool. The pool appears when the reward is claimed: the PlotNFT singleton is spent together
  * with the reward coin and pays it to the pool's target puzzle hash (or, for a self-pooling

@@ -1,5 +1,5 @@
 /**
- * Consent for non-essential storage and scripts (TASK-056). Strictly necessary storage is
+ * Consent for non-essential storage and scripts. Strictly necessary storage is
  * always on; analytics and advertising need an explicit yes. The choice lives in localStorage
  * (it also works inside the Sage snapshot and never reaches a server), expires after 12 months,
  * and a Do Not Track or Global Privacy Control signal counts as refusal of both.
@@ -13,7 +13,6 @@ export const CONSENT_CATEGORIES: readonly ConsentCategory[] = ["analytics", "adv
 
 export const CONSENT_KEY = "mempool-xch:consent:v1";
 
-/** 12 months. */
 export const CONSENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;
 
 export interface ConsentRecord {

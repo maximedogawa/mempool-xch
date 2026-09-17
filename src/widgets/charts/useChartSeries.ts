@@ -16,7 +16,7 @@ const windowsLimit = createLimiter(4);
 
 /**
  * One block-record window per sample point across the range (bounded call count regardless of
- * span, decision-012: no server-side history to lean on instead). Shared by the Blocks and
+ * span: there is no server-side history to lean on instead). Shared by the Blocks and
  * Network sections so they do not each fetch the same records separately.
  */
 export function useChartBlockWindows(range: RangeId) {

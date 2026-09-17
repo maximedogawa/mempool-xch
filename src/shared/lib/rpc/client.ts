@@ -1,6 +1,6 @@
 /**
  * Typed Chia full-node RPC client plus the Coinset indexed API, one instance per configured
- * endpoint (TASK-002). Every call is a POST with a JSON body; responses are parsed with the
+ * endpoint. Every call is a POST with a JSON body; responses are parsed with the
  * precision-safe parser and normalised to the domain models in ./types.
  */
 import { withHexPrefix } from "@/shared/lib/chia/hex";
@@ -273,7 +273,7 @@ export function createRpcClient(options: RpcClientOptions) {
       return String(r.status ?? "UNKNOWN");
     },
 
-    /** Connected peers (TASK-065); Coinset's public gateway disables this, custom nodes answer it. */
+    /** Connected peers; Coinset's public gateway disables this, custom nodes answer it. */
     async getConnections(signal?: AbortSignal): Promise<PeerConnection[]> {
       const r = await rpc("get_connections", {}, signal);
       return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);

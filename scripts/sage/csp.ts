@@ -42,7 +42,7 @@ export function buildAppCspForManifest(manifest: SageManifest, networkId = "main
 }
 
 /**
- * CSP for the standard hosted build (TASK-050), not the Sage snapshot. Two deliberate departures
+ * CSP for the standard hosted build, not the Sage snapshot. Two deliberate departures
  * from Sage's stricter policy, both required by things the static Sage export doesn't have to
  * deal with:
  *
@@ -52,7 +52,7 @@ export function buildAppCspForManifest(manifest: SageManifest, networkId = "main
  *    per-request header can never predict; a strict whitelist would break that already-shipped
  *    feature. Plain http is only allowed for localhost, where Settings tells own-node users to
  *    run their CORS reverse proxy. img-src stays exactly as strict as Sage's either way (reuses trustedImage.ts's
- *    TRUSTED_IMAGE_HOSTS, the same allowlist TASK-051 enforces client-side).
+ *    TRUSTED_IMAGE_HOSTS, the same allowlist the components enforce client-side).
  * 2. script-src gains 'unsafe-inline'. Next's standalone SSR output (this build) injects inline
  *    bootstrap/hydration scripts on every response; the static Sage export doesn't need this
  *    (scripts/sage/externalize-inline-scripts.ts strips them at build time, a one-time

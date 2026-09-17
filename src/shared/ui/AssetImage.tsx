@@ -9,7 +9,7 @@ import { isTrustedImageUrl } from "@/shared/lib/trustedImage";
  * Lazy image with a placeholder while loading and a fallback when every candidate fails.
  * Plain <img> on purpose: next/image needs a server and host allow-list, neither of which the
  * Sage snapshot has. Candidates from an untrusted host or plain http are dropped before render
- * (TASK-051): these URLs come from Dexie/MintGarden data, including NFT metadata an NFT's
+ *: these URLs come from Dexie/MintGarden data, including NFT metadata an NFT's
  * creator fully controls.
  */
 export function AssetImage({ urls, alt, className, rounded = "rounded-card", style }: { urls: string[]; alt: string; className?: string; rounded?: string; style?: CSSProperties }) {

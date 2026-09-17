@@ -19,7 +19,7 @@ export function fakePendingTx(id: string, amountMojos = 1_500_000_000_000) {
 
 export const FAKE_NFT_LAUNCHER_ID = "bb".repeat(32);
 
-/** Same shape as fakePendingTx, but the spent coin is an NFT (TASK-054: real thumbnail, not the generic picture icon). */
+/** Same shape as fakePendingTx, but the spent coin is an NFT (real thumbnail, not the generic picture icon). */
 export function fakeNftPendingTx(id: string) {
   return {
     transaction_id: id,

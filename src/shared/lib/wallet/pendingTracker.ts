@@ -1,5 +1,5 @@
 /**
- * Pure helpers behind the dashboard's "your transactions in flight" panel (TASK-042): where a
+ * Pure helpers behind the dashboard's "your transactions in flight" panel: where a
  * wallet transaction stands relative to the mempool summary and the projected blocks, and
  * which ids just left the wallet's pending list (candidates for "confirmed").
  */
@@ -73,7 +73,6 @@ export function trackPending(state: TrackedState, pendingIds: string[], now: num
   return { state: { seen }, left };
 }
 
-/** Human line for a status. */
 export function pendingLine(s: PendingStatus): string {
   switch (s.phase) {
     case "broadcast":

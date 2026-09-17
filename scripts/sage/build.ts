@@ -8,7 +8,7 @@
  *   4. `sage-app finalize-manifest`;
  *   5. verify (scripts/sage/verify-snapshot.ts).
  *
- * The snapshot has no server of its own (decision-012): every network call in the manifest
+ * The snapshot has no server of its own: every network call in the manifest
  * whitelist (Coinset, Dexie, MintGarden) is made straight from the browser.
  */
 import { existsSync, readFileSync, readdirSync, rmSync, unlinkSync } from "node:fs";

@@ -33,7 +33,7 @@ export function FeesPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Fees</h1>
           <Tooltip
-            text={`What the node estimates for a ${formatCost(FEES_PAGE_REFERENCE_COST)}-cost transfer, the mempool's current rate distribution, and what common spend shapes cost at the going rate. Read on request from Coinset, nothing stored on our server (decision-012).`}
+            text={`What the node estimates for a ${formatCost(FEES_PAGE_REFERENCE_COST)}-cost transfer, the mempool's current rate distribution, and what common spend shapes cost at the going rate. Read on request from Coinset, nothing stored on our server.`}
             placement="bottom"
           />
         </div>
@@ -140,7 +140,7 @@ export function FeesPage() {
             {
               title: "Median fee rate",
               definition: "The middle fee rate among transactions in a block, over time.",
-              technical: "Not sampled at chart scale: needs each block's per-transaction costs (an indexed fetch per block), too heavy to sample across a range without a server-side cache (decision-012).",
+              technical: "Not sampled at chart scale: needs each block's per-transaction costs (an indexed fetch per block), too heavy to sample across a range without a server-side cache.",
               formatValue: (v) => formatFeeRate(v),
               formatTime,
             } satisfies ChartSpec

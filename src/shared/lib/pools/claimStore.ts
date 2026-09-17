@@ -2,9 +2,9 @@ import type { NetworkId } from "@/shared/config/networks";
 import type { PoolClaim } from "./claims";
 
 /**
- * Browser-local cache of resolved pool claims (TASK-060): payout puzzle hash to claim target.
+ * Browser-local cache of resolved pool claims: payout puzzle hash to claim target.
  * A farmer's PlotNFT rarely changes pool, so the pools page only has to look up addresses it has
- * not seen before; nothing is stored on a server (decision-012). Same external-store shape as
+ * not seen before; nothing is stored on a server. Same external-store shape as
  * src/shared/lib/watchlist/store.ts so React reads it with useSyncExternalStore.
  */
 export interface StoredClaim extends PoolClaim {

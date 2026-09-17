@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { CUSTOM_NODE_URL, mockCustomNode } from "./mockCoinset";
 
 /**
- * Custom full-node RPC parity (TASK-036): with an own node configured the dashboard still shows
+ * Custom full-node RPC parity: with an own node configured the dashboard still shows
  * state, recent blocks, projected blocks (mempool fetched in the browser) and fee cards, polls
  * instead of streaming, and never touches Coinset or the hosted APIs.
  */

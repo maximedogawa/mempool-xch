@@ -1,5 +1,5 @@
 /**
- * NFT section data (TASK-066): MintGarden's public API for collections and activity, verified
+ * NFT section data: MintGarden's public API for collections and activity, verified
  * 2026-09-17 against https://api.mintgarden.io/openapi.json (47 documented endpoints, CORS open).
  * Everything here is best effort and mainnet only, same as nftMetadata.ts; a failed fetch returns
  * an empty result rather than throwing, so a page degrades instead of breaking.
@@ -178,7 +178,7 @@ export function dexieOfferUrl(offerId: string): string {
   return `https://dexie.space/offers/${encodeURIComponent(offerId)}`;
 }
 
-/** Direct thumbnail URL (TASK-054): verified 2026-09-16 to 307-redirect straight to assets.mainnet.mintgarden.io, one request, no JSON parsing needed. `nftId` is the nft1… bech32 id. */
+/** Direct thumbnail URL: verified 2026-09-16 to 307-redirect straight to assets.mainnet.mintgarden.io, one request, no JSON parsing needed. `nftId` is the nft1… bech32 id. */
 export function mintGardenThumbnailUrl(nftId: string): string {
   return `${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}/thumbnail`;
 }
@@ -196,7 +196,7 @@ export async function fetchNftImageUrls(nftId: string, fetchImpl: FetchLike = fe
   }
 }
 
-/** Open (status 0 = active) sell offers for `nftId`, cheapest first — Dexie is the offer index (decision-012 approved provider). */
+/** Open (status 0 = active) sell offers for `nftId`, cheapest first — Dexie is the offer index. */
 export async function fetchNftOffers(nftId: string, fetchImpl: FetchLike = fetch): Promise<NftOffer[]> {
   try {
     const response = await fetchImpl(`${DEXIE_API}/offers?offered=${encodeURIComponent(nftId)}&status=0&page_size=20`);
@@ -229,7 +229,7 @@ export interface NftSearchResults {
 const EMPTY_SEARCH: NftSearchResults = { nfts: [], collections: [] };
 
 /**
- * Free-text search (TASK-055), verified 2026-09-17 against a live query: /search?query= returns
+ * Free-text search, verified 2026-09-17 against a live query: /search?query= returns
  * nfts, collections, profiles, addresses and xchandle matches for one query; only nfts and
  * collections are in scope here. A failed or rate-limited request degrades to no results, same
  * as every other function in this file, so the search box falls back to its "not recognised"

@@ -21,7 +21,7 @@ import { KindBadge } from "./Badge";
 export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
-  // NFT thumbnails (TASK-054): assetId is the 32-byte launcher id (same field CAT asset ids use,
+  // NFT thumbnails: assetId is the 32-byte launcher id (same field CAT asset ids use,
   // src/shared/lib/sage/wallet.ts and src/widgets/goggles/NextBlockGoggles.tsx both pass it this
   // way). The direct thumbnail redirect is the primary candidate (no fetch); the full record's
   // own image is fetched as a fallback only once that 404s, not on every render.

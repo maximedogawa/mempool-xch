@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * mempoolxch.space design tokens (decision-003): mempool.space's dark navy base with the accent
+ * mempoolxch.space design tokens: mempool.space's dark navy base with the accent
  * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
  * Every colour used by components is a token here so Sage's theme can remap them later.
  */

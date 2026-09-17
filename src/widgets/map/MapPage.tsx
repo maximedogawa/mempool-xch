@@ -34,7 +34,7 @@ export function MapPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Network</h1>
           <Tooltip
-            text="Peers your configured node is connected to right now, read directly from your browser (decision-012: no server involved, no visitor data collected)."
+            text="Peers your configured node is connected to right now, read directly from your browser (no server involved, no visitor data collected)."
             placement="bottom"
           />
         </div>
@@ -58,8 +58,8 @@ export function MapPage() {
               <a href="https://github.com/maximedogawa/nodexch" target="_blank" rel="noreferrer" className="text-accent hover:underline">
                 nodexch
               </a>
-              . A map with estimated peer locations would need a geo-IP database this app does not bundle (server-side lookups are exactly what
-              decision-012 avoids); this page only shows what your own node reports.
+              . A map with estimated peer locations would need a geo-IP database this app does not bundle (and the app does no
+              server-side lookups); this page only shows what your own node reports.
             </>
           }
         />

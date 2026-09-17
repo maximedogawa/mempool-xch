@@ -1,5 +1,5 @@
 /**
- * Search input recognition (TASK-011). Anything a Chia user might paste is classified by shape;
+ * Search input recognition. Anything a Chia user might paste is classified by shape;
  * 32-byte hex is ambiguous (tx id, coin id, header hash, CAT asset id, puzzle hash, launcher id)
  * and is resolved by probing in `resolve.ts`.
  */
@@ -12,7 +12,7 @@ export type SearchTarget =
   | { kind: "nft"; nftId: string; launcherId: string }
   | { kind: "did"; didId: string; launcherId: string }
   | { kind: "hex32"; hex: string }
-  /** Free text matching no known id shape (TASK-055): a name to try against MintGarden. */
+  /** Free text matching no known id shape: a name to try against MintGarden. */
   | { kind: "text"; value: string }
   | { kind: "invalid"; reason: string };
 

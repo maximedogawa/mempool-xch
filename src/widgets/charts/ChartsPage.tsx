@@ -50,7 +50,7 @@ export function ChartsPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Charts</h1>
           <Tooltip
-            text={`Series built on request from ${endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server (decision-012); a series a provider cannot answer is shown greyed with a note instead of guessed at.`}
+            text={`Series built on request from ${endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server; a series a provider cannot answer is shown greyed with a note instead of guessed at.`}
             placement="bottom"
           />
         </div>
@@ -111,7 +111,7 @@ export function ChartsPage() {
           spec={spec(
             "Cost per transaction block",
             "Average CLVM cost used in a transaction block.",
-            "Not sampled at chart scale: exact cost needs a full get_block fetch per block, too heavy to sample across a range without a server-side cache (decision-012). See a block's own page for its exact cost.",
+            "Not sampled at chart scale: exact cost needs a full get_block fetch per block, too heavy to sample across a range without a server-side cache. See a block's own page for its exact cost.",
             formatCost
           )}
           points={null}

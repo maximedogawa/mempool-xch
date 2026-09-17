@@ -13,7 +13,7 @@ function getCommitSha(): string {
 }
 
 /**
- * Two outputs from one code base (decision-004):
+ * Two outputs from one code base:
  *  - default: `output: "standalone"` server for the Docker image (rewrites give pretty URLs);
  *  - SAGE_BUILD=1: `output: "export"` static snapshot for the Sage wallet (no server, no rewrites,
  *    every page is a real file and detail pages take their id from the query string).
@@ -56,9 +56,6 @@ const nextConfig: NextConfig = {
           if (process.env.NODE_ENV !== "production") return [];
           return [
             {
-              // Every route (TASK-050): CSP, Referrer-Policy, X-Content-Type-Options, Permissions-Policy.
-              // The Sage snapshot already sends an equivalent CSP (scripts/sage/csp.ts) via its own
-              // server; this is the same family of policy for the standard hosted build.
               source: "/:path*",
               headers: [
                 { key: "Content-Security-Policy", value: buildHostedAppCsp() },

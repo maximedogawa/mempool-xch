@@ -2,11 +2,11 @@
  * Asset images (CAT icons, NFT thumbnails) come from URLs embedded in third-party data — Dexie's
  * token registry, MintGarden's NFT/collection metadata, and NFT metadata_json itself, which an
  * NFT's creator fully controls. Loading an unrecognised host automatically lets attacker-chosen
- * metadata make a visitor's browser fetch an arbitrary URL just by viewing an asset (TASK-051):
+ * metadata make a visitor's browser fetch an arbitrary URL just by viewing an asset:
  * a tracking/fingerprinting vector, and a mixed-content/MITM one over plain http. Only load images
  * from hosts the app already depends on for this data.
  */
-/** Also used to build the hosted app's CSP img-src (next.config.ts, TASK-050) — one source of truth. */
+/** Also used to build the hosted app's CSP img-src (next.config.ts) — one source of truth. */
 export const TRUSTED_IMAGE_HOSTS = new Set([
   "icons.dexie.space",
   "assets.mainnet.mintgarden.io",
