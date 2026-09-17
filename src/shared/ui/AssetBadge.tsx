@@ -46,7 +46,7 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
       );
     }
     return (
-      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_25%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
+      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
         {token?.symbol?.slice(0, 2) ?? "C"}
       </span>
     );

@@ -36,6 +36,7 @@ export const routes = {
   charts: () => page("charts"),
   fees: () => page("fees"),
   pools: () => page("pools"),
+  tokens: () => page("tokens"),
   settings: () => page("settings"),
   wallet: () => page("wallet"),
   docs: () => page("docs"),

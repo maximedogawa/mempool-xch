@@ -97,6 +97,56 @@ function syntheticPoolWindow(start: number, end: number) {
   return out;
 }
 
+/** Dexie CAT registry entries for TASK-067's tokens page: a busy token, a quiet one and a silent one. */
+export const TOKEN_ACTIVE = hash(0x1111);
+export const TOKEN_QUIET = hash(0x2222);
+export const TOKEN_SILENT = hash(0x3333);
+
+const DEXIE_ASSETS = [
+  { id: `0x${TOKEN_ACTIVE}`, code: "MAT", name: "Most Active Token" },
+  { id: `0x${TOKEN_QUIET}`, code: "QT", name: "Quiet Token" },
+  { id: `0x${TOKEN_SILENT}`, code: "SIL", name: "Silent Token" },
+  { id: `0x${hash(0xa001)}`, code: "ALP", name: "Alpha Coin" },
+  { id: `0x${hash(0xa002)}`, code: "ZET", name: "Zeta Coin" },
+];
+
+const TOKEN_ACTIVITY_SEED: Record<string, { count: number; amountEach: bigint }> = {
+  [TOKEN_ACTIVE]: { count: 15, amountEach: 1_000_000n },
+  [TOKEN_QUIET]: { count: 1, amountEach: 100n },
+};
+
+function syntheticCatTx(index: number, confirmedAtMs: number, assetId: string, amount: bigint) {
+  return {
+    id: hash(0x9000 + index),
+    source: "mempool",
+    status: "confirmed",
+    cost: 1_000_000,
+    fee_mojos: "0",
+    first_seen_ms: confirmedAtMs,
+    confirmed_height: TX_BLOCK_HEIGHT,
+    confirmed_header_hash: TX_BLOCK_HASH,
+    confirmed_at_ms: confirmedAtMs,
+    last_updated_ms: confirmedAtMs,
+    events: [
+      {
+        type: "Transfer",
+        fee_mojos: "0",
+        participants: [{ p2: `0x${hash(1)}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "0", cats: [{ asset_id: `0x${assetId}`, amount: String(amount) }], nfts: [] } }],
+        inputs: [],
+        outputs: [],
+        memos: [],
+      },
+    ],
+  };
+}
+
+/** Deterministic recent-first activity for a mocked token; empty for anything not seeded. */
+function syntheticCatActivity(assetId: string) {
+  const seed = TOKEN_ACTIVITY_SEED[assetId];
+  if (!seed) return [];
+  return Array.from({ length: seed.count }, (_, i) => syntheticCatTx(i, NOW - i * 3_600_000, assetId, seed.amountEach));
+}
+
 function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { coinbase?: boolean; spent?: boolean } = {}) {
   const coin = { parent_coin_info: `0x${parent}`, puzzle_hash: `0x${puzzleHash}`, amount: Number(amount) };
   const name = coinName({ parentCoinInfo: parent, puzzleHash, amount });
@@ -213,7 +263,13 @@ export async function answerNodeMethod(route: Route) {
         return json(route, blockTransactions);
       case "get_pending_transactions_by_p2":
         return json(route, { transactions: [], success: true });
-      case "get_transactions_by_cat_asset_id":
+      case "get_transactions_by_cat_asset_id": {
+        const assetId = String(body.asset_id ?? "").replace(/^0x/, "").toLowerCase();
+        const all = syntheticCatActivity(assetId);
+        const ordered = body.order === "asc" ? [...all].reverse() : all;
+        const limit = Number(body.limit ?? 50);
+        return json(route, { transactions: ordered.slice(0, limit), truncated: ordered.length > limit, next_cursor: ordered.length > limit ? "more" : null, success: true });
+      }
       case "get_transactions_by_nft_id":
       case "get_transactions_by_coin_name":
         return json(route, { transactions: [], success: true });
@@ -241,6 +297,12 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+}
+
+/** Intercepts the Dexie CAT registry with a small fixed set (TASK-067's tokens page). */
+export async function mockDexie(page: Page) {
+  await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) => json(route, { success: true, count: DEXIE_ASSETS.length, page: 1, page_size: 100, assets: DEXIE_ASSETS }));
+  await page.route(/https:\/\/icons\.dexie\.space\/.*/, (route) => route.fulfill({ status: 404, body: "" }));
 }
 
 export const CUSTOM_NODE_URL = "https://node.example.test:8556";
