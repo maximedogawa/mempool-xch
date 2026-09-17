@@ -1,5 +1,5 @@
 /**
- * User settings (TASK-021): active network, RPC endpoint per network, theme. Persisted in
+ * User settings: active network, RPC endpoint per network, theme. Persisted in
  * localStorage; a tiny external store so React reads it with useSyncExternalStore and the
  * non-React data layer can read it too.
  */
@@ -15,7 +15,7 @@ export interface Settings {
   recentBlocks: number;
   /** Soft chime when one of the connected wallet's transactions lands in a block. */
   sounds: boolean;
-  /** Opt-in browser notifications for the watchlist (TASK-071). Off until the visitor turns it on. */
+  /** Opt-in browser notifications for the watchlist. Off until the visitor turns it on. */
   notifications: boolean;
 }
 
@@ -110,7 +110,7 @@ export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem"
       try {
         storage?.removeItem(STORAGE_KEY);
       } catch {
-        // ignore
+        // Storage unavailable: the defaults still apply for this tab.
       }
       emit();
     },

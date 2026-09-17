@@ -1,4 +1,4 @@
-/** Byte-scale formatting for netspace (TASK-058): base-1024 units up to exbibytes. */
+/** Byte-scale formatting for netspace: base-1024 units up to exbibytes. */
 const UNITS = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB"] as const;
 
 export function formatBytes(bytes: number): string {

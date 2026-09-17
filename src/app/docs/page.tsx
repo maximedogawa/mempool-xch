@@ -152,7 +152,7 @@ export default function DocsPage() {
           </Q>
           <Q q="Where do live updates come from?" id="channels">
             The connection pill (hover it), the footer and Settings name the channel your tab is on. There is no server in between: this site only
-            hosts the app itself, and every tab talks to the chain endpoint directly (decision-012).
+            hosts the app itself, and every tab talks to the chain endpoint directly.
             <ul className="mt-1 list-disc pl-5">
               <li><strong className="text-fg">Coinset socket</strong>: your tab streams peak height and transaction events from Coinset&apos;s WebSocket directly. The normal mode on mempoolxch.space and inside the Sage in-app snapshot.</li>
               <li><strong className="text-fg">Polling</strong>: no stream is available, so the tab asks the endpoint every few seconds. Always the case with a custom node, and the fallback if the socket cannot connect.</li>

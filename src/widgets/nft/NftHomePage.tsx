@@ -32,7 +32,7 @@ export function NftHomePage() {
             NFT<span className="text-kind-nft">s</span>
           </h1>
           <Tooltip
-            text="Collections, activity and mints from MintGarden (mainnet only) and open offers from Dexie — read on request, nothing stored on our server (decision-012). Figures below are the top 6 collections by 30-day volume, not a platform-wide total: neither provider publishes one."
+            text="Collections, activity and mints from MintGarden (mainnet only) and open offers from Dexie — read on request, nothing stored on our server. Figures below are the top 6 collections by 30-day volume, not a platform-wide total: neither provider publishes one."
             placement="bottom"
           />
         </div>

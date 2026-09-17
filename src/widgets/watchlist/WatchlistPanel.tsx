@@ -14,7 +14,7 @@ import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
 
 /**
- * Follow addresses and transactions without a Sage wallet (TASK-071): pending status with queue
+ * Follow addresses and transactions without a Sage wallet: pending status with queue
  * position, a confirmation chime and opt-in browser notifications. Everything lives in
  * localStorage (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
  */

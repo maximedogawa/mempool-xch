@@ -1,4 +1,4 @@
-/** Chart range presets (TASK-058), shared by every chart on /charts. */
+/** Chart range presets, shared by every chart on /charts. */
 export type RangeId = "6h" | "24h" | "7d" | "30d" | "1y" | "all";
 
 export interface RangeDef {
@@ -34,7 +34,7 @@ export const DEFAULT_SAMPLE_SIZE = 120;
  * `sampleSize` heights wide — never the whole span. A short range (6h at windows=6) still tiles
  * it fully since span/windows is already <= sampleSize; a long one ("1y", "All") samples sparse
  * points instead of covering millions of blocks, so total data fetched is bounded by
- * `windows * sampleSize` regardless of how long the range is (decision-012: no server-side
+ * `windows * sampleSize` regardless of how long the range is (no server-side
  * history to sample from instead).
  */
 export function heightWindows(peakHeight: number, oldestHeight: number, windows: number, sampleSize = DEFAULT_SAMPLE_SIZE): { start: number; end: number }[] {

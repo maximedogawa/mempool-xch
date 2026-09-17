@@ -1,5 +1,5 @@
 /**
- * Live update stream (TASK-003): Coinset WebSocket (peak + transaction events) with automatic
+ * Live update stream: Coinset WebSocket (peak + transaction events) with automatic
  * reconnect and a polling fallback on get_blockchain_state for endpoints without a stream.
  * Emits one normalised event type so the UI does not care where updates come from.
  */
@@ -11,7 +11,6 @@ export type LiveEvent =
   | { type: "status"; status: LiveStatus }
   | { type: "mempool"; size: number };
 
-/** Transport the stream ended up using. */
 export type LiveTransport = "websocket" | "polling";
 
 export interface PollSample {

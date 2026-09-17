@@ -10,7 +10,6 @@ const PAGES = [
   { href: routes.legalCookies(), label: "Cookie policy" },
 ];
 
-/** Shared frame for the four legal pages (TASK-056). */
 export function LegalPage({ title, current, intro, children }: { title: string; current: string; intro?: ReactNode; children: ReactNode }) {
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6">

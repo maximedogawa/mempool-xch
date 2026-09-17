@@ -1,5 +1,5 @@
 /**
- * Route helpers (decision-004). The hosted server rewrites pretty URLs (`/tx/<id>`) onto
+ * Route helpers. The hosted server rewrites pretty URLs (`/tx/<id>`) onto
  * query-param pages (`/tx?id=<id>`); the static Sage export has no rewrites, so links there use
  * the query form directly. Every link in the app goes through these helpers.
  */

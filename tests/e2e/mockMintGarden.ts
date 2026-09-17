@@ -32,7 +32,7 @@ function event(nftId: string, type: number, blockHeight: number, xchPrice: numbe
 
 const EVENTS = [event(NFT_LAUNCHER_ID, 0, 9300001), event(NFT_LAUNCHER_ID, 2, 9300002, 3.5), event(NFT_LAUNCHER_ID, 1, 9300003)];
 
-/** TASK-055: only a query containing "friend" (case-insensitive) returns matches, so a test can also exercise the no-matches path. */
+/** Only a query containing "friend" (case-insensitive) returns matches, so a test can also exercise the no-matches path. */
 export async function mockMintGardenSearch(page: Page) {
   await page.route(/https:\/\/api\.mintgarden\.io\/search\?.*/, (route) => {
     const url = new URL(route.request().url());

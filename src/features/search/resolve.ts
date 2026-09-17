@@ -18,13 +18,13 @@ export interface SearchMatch {
   href: string;
   /** CAT asset id (no 0x) so the result row can show the token icon and ticker. */
   assetId?: string;
-  /** NFT/collection thumbnail (TASK-055), host-restricted by AssetImage itself when rendered. */
+  /** NFT/collection thumbnail, host-restricted by AssetImage itself when rendered. */
   thumbnailUrl?: string | null;
 }
 
 const SEARCH_RESULT_LIMIT = 5;
 
-/** Free-text name search via MintGarden (TASK-055): NFTs and collections only, capped for a usable dropdown. */
+/** Free-text name search via MintGarden: NFTs and collections only, capped for a usable dropdown. */
 export async function resolveText(value: string): Promise<SearchMatch[]> {
   const { nfts, collections } = await searchMintGarden(value);
   return [

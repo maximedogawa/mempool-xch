@@ -18,7 +18,7 @@ export interface TokenScanState {
 }
 
 /**
- * Bounded background scan over a capped list of asset ids (TASK-067's "most active" / "volume" /
+ * Bounded background scan over a capped list of asset ids (the "most active" / "volume" /
  * "recently active" / "newest" sorts): each token gets the same two cheap calls as
  * useTokenActivity's single-row fetch, run with a small concurrency limit so a client-side sort
  * across hundreds of known CATs never turns into an unbounded fan-out.

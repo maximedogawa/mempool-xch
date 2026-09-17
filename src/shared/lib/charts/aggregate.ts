@@ -1,5 +1,5 @@
 /**
- * Pure aggregation of a window of block records into one chart data point (TASK-058). Windowing
+ * Pure aggregation of a window of block records into one chart data point. Windowing
  * (which heights go in which window) and fetching live in the chart hooks; this file only turns
  * a records array into numbers, so it can be unit-tested against fixture-shaped records.
  */

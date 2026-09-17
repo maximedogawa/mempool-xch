@@ -1,5 +1,5 @@
 /**
- * Rolling mempool history sampled in the browser (TASK-009): Coinset has no history endpoint,
+ * Rolling mempool history sampled in the browser: Coinset has no history endpoint,
  * so each summary refresh contributes one sample (cost per fee band, item count, fees). The
  * window survives reloads via localStorage, bounded in size and age.
  */

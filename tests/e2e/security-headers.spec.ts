@@ -3,7 +3,7 @@ import { mockCoinset } from "./mockCoinset";
 import { mockMintGarden, mockDexieOffers } from "./mockMintGarden";
 
 /**
- * Production security headers (TASK-050). Only meaningful against a production build
+ * Production security headers. Only meaningful against a production build
  * (next.config.ts's headers() returns [] outside NODE_ENV=production), which is what
  * BASE_URL points e2e at in CI/this repo's verification flow, not `bun dev`.
  */

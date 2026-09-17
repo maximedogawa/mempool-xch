@@ -1,7 +1,7 @@
 import registry from "./registry.json";
 
 /**
- * Pool names (TASK-060/061). Only entries with a verifiable source belong in registry.json, so an
+ * Pool names. Only entries with a verifiable source belong in registry.json, so an
  * unknown address stays unnamed rather than being guessed.
  *
  * A Chia pool never signs a block; the farmer does. Under the official pool protocol each farmer

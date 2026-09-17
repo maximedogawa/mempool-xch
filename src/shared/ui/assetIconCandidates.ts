@@ -1,7 +1,7 @@
 import { isHttpsUrl, isTrustedImageUrl } from "@/shared/lib/trustedImage";
 
 /**
- * Candidate icon URLs in try-then-fallback order, filtered by trust (TASK-051). Pulled out of
+ * Candidate icon URLs in try-then-fallback order, filtered by trust. Pulled out of
  * AssetIcon (src/shared/ui/AssetBadge.tsx) so the ordering can be unit tested without rendering.
  */
 

@@ -215,7 +215,7 @@ export interface SingletonInfo {
   coinRecord: Record<string, unknown> | null;
 }
 
-/** One entry from a full node's get_connections (TASK-065): Coinset's public gateway disables it. */
+/** One entry from a full node's get_connections: Coinset's public gateway disables it. */
 export interface PeerConnection {
   nodeId: string;
   peerHost: string;

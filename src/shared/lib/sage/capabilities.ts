@@ -1,5 +1,5 @@
 /**
- * Capability manager for the Sage bridge (TASK-038). Sage shows a permission dialog every time
+ * Capability manager for the Sage bridge. Sage shows a permission dialog every time
  * an app requests a capability, so the app must ask at most once, remember refusals, never call
  * a bridge method whose capability is not granted, and follow grant changes from the host.
  * Transport-free: the client is injected, so the logic is unit-testable.
@@ -38,7 +38,7 @@ export class CapabilityManager {
       const raw = storage?.getItem(REFUSED_KEY);
       if (raw) JSON.parse(raw).forEach((c: string) => this.refused.add(c));
     } catch {
-      // ignore
+      // Storage unavailable or corrupt: start with no remembered refusals.
     }
   }
 
@@ -68,7 +68,7 @@ export class CapabilityManager {
             }
           }) ?? null;
         } catch {
-          // Optional.
+          // Hosts without change events: the set read above stays as it is.
         }
         this.emit();
       })();
@@ -138,7 +138,7 @@ export class CapabilityManager {
     try {
       this.storage?.setItem(REFUSED_KEY, JSON.stringify([...this.refused]));
     } catch {
-      // ignore
+      // Storage unavailable: refusals are remembered for this session only.
     }
   }
 

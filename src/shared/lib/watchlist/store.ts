@@ -1,5 +1,5 @@
 /**
- * Watchlist of addresses and transaction ids (TASK-071). Local only, never sent anywhere: a tiny
+ * Watchlist of addresses and transaction ids. Local only, never sent anywhere: a tiny
  * external store so React reads it with useSyncExternalStore. Follows the same shape as
  * src/shared/lib/settings/store.ts (cached snapshot, not a fresh array per get(), so
  * useSyncExternalStore does not loop).

@@ -6,7 +6,7 @@ import { mockCoinset, mockSummary } from "./mockCoinset";
 const TINY_WEBP = Buffer.from("UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=", "base64");
 
 /**
- * Sage in-app integration with a fake host (TASK-042): the dashboard shows the wallet's pending
+ * Sage in-app integration with a fake host: the dashboard shows the wallet's pending
  * transactions with their place in the queue, marks them in the feed, the treemap and the
  * projected cubes, and turns a row into "Confirmed" when the wallet drops it.
  */
@@ -47,7 +47,7 @@ test.describe("Sage wallet on the dashboard", () => {
     await expect(panel.getByText("−0.25 XCH")).toBeVisible();
   });
 
-  test("an owned NFT shows its real MintGarden thumbnail, not the generic picture icon (TASK-054)", async ({ page }) => {
+  test("an owned NFT shows its real MintGarden thumbnail, not the generic picture icon", async ({ page }) => {
     await page.route(/^https:\/\/api\.mintgarden\.io\/nfts\/.*\/thumbnail$/, (route) =>
       route.fulfill({ status: 200, contentType: "image/webp", body: TINY_WEBP })
     );

@@ -5,7 +5,7 @@ import type { WatchKind } from "@/shared/lib/watchlist/store";
 import { Button } from "@/shared/ui";
 import { useWatchlist } from "./useWatchlist";
 
-/** Add/remove the current address or transaction from the local watchlist (TASK-071). */
+/** Add/remove the current address or transaction from the local watchlist. */
 export function WatchButton({ kind, id, label }: { kind: WatchKind; id: string; label: string }) {
   const { has, add, remove } = useWatchlist();
   const watching = has(kind, id);

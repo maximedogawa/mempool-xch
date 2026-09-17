@@ -1,5 +1,5 @@
 /**
- * Thin wrapper around the browser Notification API (TASK-071's watchlist). Opt-in only: nothing
+ * Thin wrapper around the browser Notification API (used by the watchlist). Opt-in only: nothing
  * here requests permission on its own, and every call is a no-op where Notification does not
  * exist (SSR, unsupported browsers, the Sage in-app webview).
  */

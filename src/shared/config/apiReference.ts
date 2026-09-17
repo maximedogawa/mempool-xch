@@ -1,7 +1,7 @@
 /**
- * Reference for the /api page (TASK-069): mempoolxch.space has no server API of its own — every
+ * Reference for the /api page: mempoolxch.space has no server API of its own — every
  * page reads Coinset (or, for CAT names/icons and NFT metadata, Dexie/MintGarden) directly from
- * the browser (decision-012). This is a hand-maintained mirror of the calls src/shared/lib/rpc
+ * the browser. This is a hand-maintained mirror of the calls src/shared/lib/rpc
  * actually makes, kept in sync with it and with the wiki's architecture/data-sources.md.
  */
 

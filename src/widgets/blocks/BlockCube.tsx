@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/cn";
  * The block "cube": a front face whose lower part is filled proportionally to the block's
  * cost usage, with a lit top face and a shaded side face for depth, a bright fill line and a
  * soft inner glow. Original implementation styled after the mempool.space silhouette
- * (decision-003).
+ *.
  */
 export function BlockCube({
   fill,

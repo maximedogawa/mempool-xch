@@ -69,7 +69,7 @@ export function payoutsToResolve(records: readonly BlockRecord[]): string[] {
 }
 
 /**
- * Pool share of a window of blocks (TASK-060). A pool combines many farmers, each with their own
+ * Pool share of a window of blocks. A pool combines many farmers, each with their own
  * payout address, so addresses are merged by the pool their rewards are claimed to (`claims`,
  * see claims.ts) and by registry entry; whatever is still unresolved stays a row of its own.
  */

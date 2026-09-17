@@ -8,7 +8,7 @@ import { formatXchDecimal } from "./format";
 import { useNftOffers } from "./useNftSection";
 
 /**
- * Open sell offers from Dexie, cheapest first (TASK-066). The Sage app bridge has no
+ * Open sell offers from Dexie, cheapest first. The Sage app bridge has no
  * offer-accept capability (checked against sage-app-sdk's UserBridgeCapability union, 2026-09-17:
  * only send_xch / sign_coin_spends / send_transaction and no take-offer method), so this links out
  * to Dexie or hands over the offer file to paste into a wallet instead of a one-click accept.

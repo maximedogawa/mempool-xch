@@ -1,5 +1,5 @@
 /**
- * Projected next blocks (TASK-006): pack mempool items by descending fee per cost into blocks
+ * Projected next blocks: pack mempool items by descending fee per cost into blocks
  * bounded by block_max_cost, the same greedy order the Chia node uses when it fills a
  * transaction block. Pure and deterministic so it can be unit tested with fixtures.
  */

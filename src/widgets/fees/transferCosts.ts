@@ -1,5 +1,5 @@
 /**
- * "What a transfer costs" table (TASK-059), parity with xchmempool.com/fees: the CLVM cost of
+ * "What a transfer costs" table, parity with xchmempool.com/fees: the CLVM cost of
  * five common spend shapes, given (not independently re-derived here) as the values that page
  * publishes, times the current fee rate.
  */
