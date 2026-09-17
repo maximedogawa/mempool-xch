@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ConsentBanner } from "@/widgets/legal/ConsentBanner";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
@@ -10,6 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <ConsentBanner />
     </div>
   );
 }

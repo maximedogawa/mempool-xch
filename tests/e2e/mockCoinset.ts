@@ -184,7 +184,15 @@ export async function answerNodeMethod(route: Route) {
 }
 
 /** Intercepts every Coinset call and the hosted APIs; anything unknown answers not found. */
-export async function mockCoinset(page: Page) {
+/** Record a "Reject all" decision so the consent panel does not cover controls under test. */
+export async function seedConsent(page: Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("mempool-xch:consent:v1", JSON.stringify({ analytics: false, advertising: false, decidedAt: Date.now() }));
+  });
+}
+
+export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
+  if (consent) await seedConsent(page);
   await page.route("**/api/mainnet/mempool", (route) => json(route, mockSummary()));
   await page.route("**/api/testnet11/mempool", (route) => json(route, { ...mockSummary(), network: "testnet11" }));
   await page.route("**/api/mainnet/chain**", (route) => route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: stringifyJsonTagged(mockChain()) }));
@@ -199,6 +207,7 @@ export const CUSTOM_NODE_URL = "https://node.example.test:8556";
 
 /** A custom full-node RPC (no Coinset, no hosted APIs): the app must poll and fetch the mempool itself. */
 export async function mockCustomNode(page: Page) {
+  await seedConsent(page);
   await page.addInitScript((rpcUrl) => {
     window.localStorage.setItem(
       "mempool-xch:settings:v1",
