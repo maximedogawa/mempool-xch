@@ -118,6 +118,8 @@ export async function answerNodeMethod(route: Route) {
         const end = Number(body.end ?? 0);
         return json(route, { block_records: records.filter((r) => r.height >= start && r.height < end), success: true });
       }
+      case "get_network_space":
+        return json(route, { space: 2_500_000_000_000_000_000, success: true });
       case "get_block_record_by_height": {
         const rec = records.find((r) => r.height === Number(body.height));
         return json(route, rec ? { block_record: rec, success: true } : { success: false, error: "Block height not found" });

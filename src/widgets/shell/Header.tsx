@@ -17,6 +17,7 @@ const NAV = [
   { href: routes.home(), label: "Dashboard", match: (p: string) => p === "/" },
   { href: routes.blocks(), label: "Blocks", match: (p: string) => p.startsWith("/blocks") || p.startsWith("/block") },
   { href: routes.mempool(), label: "Mempool", match: (p: string) => p.startsWith("/mempool") },
+  { href: routes.charts(), label: "Charts", match: (p: string) => p.startsWith("/charts") },
   { href: routes.docs(), label: "Help", match: (p: string) => p.startsWith("/docs") },
 ];
 

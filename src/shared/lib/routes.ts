@@ -33,6 +33,7 @@ export const routes = {
   nft: (nftId: string) => detail("nft", nftId),
   blocks: () => page("blocks"),
   mempool: () => page("mempool"),
+  charts: () => page("charts"),
   settings: () => page("settings"),
   wallet: () => page("wallet"),
   docs: () => page("docs"),
