@@ -29,6 +29,29 @@ export default function DocsPage() {
         </p>
       </div>
 
+      <Card id="why">
+        <CardHeader title="Why mempoolxch.space" />
+        <CardBody className="flex flex-col gap-2 text-sm text-fg-muted">
+          <p>
+            A handful of things this build does that other Chia explorers we compared against do not, as of the last check:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>A Sage in-app wallet page: your pending transactions on the dashboard with queue position and a confirmation chime.</li>
+            <li>Projected next blocks packed the way the node actually fills them (cost-ordered), not just a queue length.</li>
+            <li>Every CAT gets a name and icon from the Dexie registry, on every page that shows one, not just a lookup page.</li>
+            <li>Accessibility checked on every route: automated axe AA passes and a full keyboard walk, in the test suite, not just claimed.</li>
+            <li>Open source under MIT, one Docker image, deployed the same way documented in the repo.</li>
+          </ul>
+          <p>
+            The full feature-by-feature comparison, including what still favours the competition, is kept up to date in the{" "}
+            <a href={`${WIKI}/architecture/competitors.md`} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+              competitor matrix
+            </a>{" "}
+            (wiki).
+          </p>
+        </CardBody>
+      </Card>
+
       <Card id="reading">
         <CardHeader title="Reading the dashboard" />
         <CardBody className="flex flex-col gap-4">
@@ -126,11 +149,11 @@ export default function DocsPage() {
             history, CAT and NFT history) are hidden with a note. Everything block, coin and mempool related keeps working.
           </Q>
           <Q q="Where do live updates come from?" id="channels">
-            The connection pill (hover it), the footer and Settings name the channel your tab is on:
+            The connection pill (hover it), the footer and Settings name the channel your tab is on. There is no server in between: this site only
+            hosts the app itself, and every tab talks to the chain endpoint directly (decision-012).
             <ul className="mt-1 list-disc pl-5">
-              <li><strong className="text-fg">Server events</strong>: this site&apos;s server keeps one Coinset WebSocket per network and relays it to every viewer, together with cached chain state, recent blocks and fees. The normal mode on mempoolxch.space.</li>
-              <li><strong className="text-fg">Coinset socket</strong>: the tab streams from Coinset directly. Used by the Sage in-app snapshot, which has no server of its own.</li>
-              <li><strong className="text-fg">Polling</strong>: no stream is available, so the tab asks the endpoint every few seconds. Always the case with a custom node.</li>
+              <li><strong className="text-fg">Coinset socket</strong>: your tab streams peak height and transaction events from Coinset&apos;s WebSocket directly. The normal mode on mempoolxch.space and inside the Sage in-app snapshot.</li>
+              <li><strong className="text-fg">Polling</strong>: no stream is available, so the tab asks the endpoint every few seconds. Always the case with a custom node, and the fallback if the socket cannot connect.</li>
             </ul>
           </Q>
         </CardBody>
