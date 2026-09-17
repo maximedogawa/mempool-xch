@@ -86,7 +86,7 @@ export default function CookiesPage() {
           <Link href={routes.legalPrivacy()} className="text-accent hover:underline">
             privacy policy
           </Link>
-          . Questions: <Fill value={LEGAL.contactEmail} label="contact email" />.
+          . x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with your IP address and the time of your visit.
         </p>
       </Section>
     </LegalPage>

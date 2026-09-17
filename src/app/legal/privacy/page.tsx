@@ -20,8 +20,7 @@ export default function PrivacyPage() {
     >
       <Section title="1. Controller" id="controller">
         <p>
-          <Fill value={LEGAL.operatorName} label="operator's full legal name" />, <Fill value={LEGAL.operatorAddress} label="street, postcode and city" />,{" "}
-          <Fill value={LEGAL.operatorCountry} label="country" />. Email: <Fill value={LEGAL.contactEmail} label="contact email" />. See also the{" "}
+          Maxim Edogawa, See also the{" "}
           <Link href={routes.legalNotice()} className="text-accent hover:underline">
             legal notice
           </Link>
@@ -38,11 +37,11 @@ export default function PrivacyPage() {
           <li>Purpose: delivering the site, keeping it secure and stable, and investigating abuse and errors.</li>
           <li>Legal basis: Art. 6(1)(f) GDPR; the legitimate interest is operating a secure website.</li>
           <li>
-            Retention: <Fill value={LEGAL.logRetention} label="log retention, e.g. 14 days" />, longer only while needed to investigate a specific
+            Retention: 14 days, longer only while needed to investigate a specific
             security incident.
           </li>
           <li>
-            Hosting: <Fill value={LEGAL.hostingProvider} label="hosting provider and location" />, acting as processor under Art. 28 GDPR.
+            Hosting: Heztner, acting as processor under Art. 28 GDPR.
           </li>
         </List>
         <p>
@@ -118,12 +117,11 @@ export default function PrivacyPage() {
             GDPR (Art. 21);
           </li>
           <li>
-            complain to a data protection supervisory authority (Art. 77), in particular in the EU country where you live or work. The authority
-            responsible for the operator is <Fill value={LEGAL.supervisoryAuthority} label="supervisory authority" />.
+            complain to a data protection supervisory authority (Art. 77), in particular in the EU country where you live or work.
           </li>
         </List>
         <p>
-          Write to <Fill value={LEGAL.contactEmail} label="contact email" />. Since there are no accounts, server logs can only be matched to you with
+          Write to x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with
           your IP address and the time of your visit.
         </p>
       </Section>

@@ -83,7 +83,7 @@ export default function TermsPage() {
         <p>
           Asset names, icons, NFT images and metadata come from the blockchain and from third parties. They are not created, reviewed or endorsed by the
           operator. The same applies to external websites the Service links to. If you believe content shown on the Service is unlawful or infringes your
-          rights, write to <Fill value={LEGAL.contactEmail} label="contact email" /> with the page address and the reason; it will be removed from display
+          rights, write to x.com/MaximEdogawa on x.com with the page address and the reason; it will be removed from display
           once the operator becomes aware of an infringement.
         </p>
       </Section>
@@ -127,13 +127,12 @@ export default function TermsPage() {
 
       <Section title="9. Governing law and venue" id="law">
         <p>
-          These terms are governed by the law of <Fill value={LEGAL.governingLaw} label="governing law, e.g. the Federal Republic of Germany" />, excluding
+          These terms are governed by the law of austria, excluding
           the UN Convention on Contracts for the International Sale of Goods. If you are a consumer, this choice of law does not take away the protection
           of mandatory consumer law of the country where you habitually live.
         </p>
         <p>
-          If you are a merchant, a legal entity under public law or have no general place of jurisdiction in the European Union, the courts of{" "}
-          <Fill value={LEGAL.venue} label="venue, e.g. Munich, Germany" /> have jurisdiction. Mandatory statutory venues remain unaffected.
+          If you are a merchant, a legal entity under public law or have no general place of jurisdiction in the European Union, the courts of vienna austria have jurisdiction. Mandatory statutory venues remain unaffected.
         </p>
         <p>The operator is neither obliged nor willing to take part in dispute resolution proceedings before a consumer arbitration board.</p>
       </Section>

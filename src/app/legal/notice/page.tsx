@@ -10,30 +10,6 @@ export const metadata: Metadata = { title: "Legal notice" };
 export default function NoticePage() {
   return (
     <LegalPage title="Legal notice" current={routes.legalNotice()} intro={<p>Information about the operator (Impressum under § 5 DDG and § 18 MStV).</p>}>
-      <Section title="Operator" id="operator">
-        <address className="not-italic">
-          <Fill value={LEGAL.operatorName} label="operator's full legal name" />
-          <br />
-          <Fill value={LEGAL.operatorAddress} label="street, postcode and city" />
-          <br />
-          <Fill value={LEGAL.operatorCountry} label="country" />
-        </address>
-      </Section>
-
-      <Section title="Contact" id="contact">
-        <p>
-          Email: <Fill value={LEGAL.contactEmail} label="contact email" />
-          <br />
-          Also: <Fill value={LEGAL.contactSecondary} label="phone number or contact form" />
-        </p>
-      </Section>
-
-      <Section title="Responsible for content" id="responsible">
-        <p>
-          <Fill value={LEGAL.operatorName} label="operator's full legal name" />, address as above.
-        </p>
-      </Section>
-
       <Section title="Independence and trademarks" id="independence">
         <p>
           {SITE_NAME} is an independent project. It is not affiliated with, endorsed by or sponsored by Chia Network Inc. &quot;Chia&quot; and
@@ -59,8 +35,7 @@ export default function NoticePage() {
 
       <Section title="Reporting content" id="report">
         <p>
-          To report content shown on this site that you believe is unlawful or infringes your rights, write to{" "}
-          <Fill value={LEGAL.contactEmail} label="contact email" /> with the page address and a short explanation.
+          To report content shown on this site that you believe is unlawful or infringes your rights, write to x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with your IP address and the time of your visit.
         </p>
       </Section>
 
