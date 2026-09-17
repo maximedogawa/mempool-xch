@@ -59,6 +59,44 @@ export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694
 
 const hash = (n: number) => n.toString(16).padStart(64, "0");
 
+/** Registry-known payout hash (XCHpool) so the pools page has one identified row to assert on. */
+export const XCHPOOL_PUZZLE_HASH = "0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2";
+const UNKNOWN_POOL_PUZZLE_HASHES = [hash(0xf001), hash(0xf002)];
+
+/** A block record shaped like Coinset's raw response, farmed by `poolPuzzleHash` at `height`. */
+function syntheticBlockRecord(height: number, poolPuzzleHash: string) {
+  return {
+    height,
+    header_hash: `0x${height.toString(16).padStart(64, "0")}`,
+    prev_hash: `0x${(height - 1).toString(16).padStart(64, "0")}`,
+    weight: 1,
+    total_iters: 1,
+    timestamp: null,
+    fees: null,
+    farmer_puzzle_hash: `0x${poolPuzzleHash}`,
+    pool_puzzle_hash: `0x${poolPuzzleHash}`,
+    prev_transaction_block_hash: null,
+    prev_transaction_block_height: height - 1,
+    reward_claims_incorporated: null,
+    overflow: false,
+    signage_point_index: 0,
+    deficit: 0,
+    sub_epoch_summary_included: null,
+  };
+}
+
+/**
+ * Synthesizes a window of block records for a height range the small fixture doesn't cover
+ * (the pools page reads a 4,608-block window far behind the fixture's dozen recent blocks): half
+ * the rotation goes to the registry-known XCHpool hash, the rest split across two unnamed hashes.
+ */
+function syntheticPoolWindow(start: number, end: number) {
+  const pools = [XCHPOOL_PUZZLE_HASH, XCHPOOL_PUZZLE_HASH, ...UNKNOWN_POOL_PUZZLE_HASHES];
+  const out = [];
+  for (let h = start; h < end; h += 1) out.push(syntheticBlockRecord(h, pools[h % pools.length]!));
+  return out;
+}
+
 function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { coinbase?: boolean; spent?: boolean } = {}) {
   const coin = { parent_coin_info: `0x${parent}`, puzzle_hash: `0x${puzzleHash}`, amount: Number(amount) };
   const name = coinName({ parentCoinInfo: parent, puzzleHash, amount });
@@ -116,7 +154,11 @@ export async function answerNodeMethod(route: Route) {
       case "get_block_records": {
         const start = Number(body.start ?? 0);
         const end = Number(body.end ?? 0);
-        return json(route, { block_records: records.filter((r) => r.height >= start && r.height < end), success: true });
+        const real = records.filter((r) => r.height >= start && r.height < end);
+        if (real.length > 0) return json(route, { block_records: real, success: true });
+        // A wide, fixture-uncovered range is the pools page's chunked scan over its 4,608-block window.
+        if (end - start >= 500) return json(route, { block_records: syntheticPoolWindow(start, end), success: true });
+        return json(route, { block_records: [], success: true });
       }
       case "get_network_space":
         return json(route, { space: 2_500_000_000_000_000_000, success: true });

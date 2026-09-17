@@ -1,1 +1,28 @@
-{ "pools": [] }
+{
+  "pools": [
+    {
+      "name": "XCHpool",
+      "url": "https://xchpool.org/",
+      "source": "https://pool.xchpool.org/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["0d82c2e32037b77da9c8fdd5d1d4fa4b8cfa08026d2c04834906b741fdcb6fe2"]
+    },
+    {
+      "name": "Sweet chia pool",
+      "url": "https://sweetchia.com/",
+      "source": "https://pool.sweetchia.com/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["0b986e68f6e9c80cb02b70029cb92e65da3fcdffc067941b00863b56deb2774a"]
+    },
+    {
+      "name": "Spacefarmers.io",
+      "url": "https://spacefarmers.io/",
+      "source": "https://xch.spacefarmers.io/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["61751cc01a73d5e64a07d6e37b451eed9f157f04da53e3c7d06f355928ba2113"]
+    },
+    {
+      "name": "Foxy-Pool",
+      "url": "https://foxypool.io/",
+      "source": "https://farmer-chia.foxypool.io/pool_info (target_puzzle_hash, read 2026-09-17)",
+      "puzzleHashes": ["048785a90e6475263c5d3cdf8ce290499ddf1006a3fae2b314997ee93ba55cc1"]
+    }
+  ]
+}
