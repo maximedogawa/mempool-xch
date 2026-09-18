@@ -202,11 +202,9 @@ describe("parseCoinsetMessage: reorg and netspace", () => {
 describe("parseCoinsetMessage: vault", () => {
   test("recovery steps carry the vault id, action, status and tx", () => {
     const event = parseCoinsetMessage(
-      '{"message":{"type":"vault","data":{"vault_id":"0x' +
-        "ab".repeat(32) +
-        '","action":"initiate_recovery","status":"pending","tx_id":"0x' +
-        "cd".repeat(32) +
-        '"}}}'
+      `{"message":{"type":"vault","data":{"vault_id":"0x${"ab".repeat(
+        32
+      )}","action":"initiate_recovery","status":"pending","tx_id":"0x${"cd".repeat(32)}"}}}`
     );
     expect(event).toMatchObject({
       type: "vault",
