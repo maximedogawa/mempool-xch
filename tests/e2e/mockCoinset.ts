@@ -25,13 +25,11 @@ export function mockSummary() {
     cost: item.cost,
     feeRate: (item.fee + i * 1_000_000) / item.cost,
     spends: item.spend_bundle.coin_spends.length,
-    additions: item.additions
-      .slice(0, 4)
-      .map((c) => ({
-        ph: c.puzzle_hash.slice(2),
-        amount: String(c.amount),
-        parent: c.parent_coin_info.slice(2),
-      })),
+    additions: item.additions.slice(0, 4).map((c) => ({
+      ph: c.puzzle_hash.slice(2),
+      amount: String(c.amount),
+      parent: c.parent_coin_info.slice(2),
+    })),
     removals: item.removals.map((c) => ({
       ph: c.puzzle_hash.slice(2),
       amount: String(c.amount),
