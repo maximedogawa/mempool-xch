@@ -10,9 +10,17 @@
 import { TRUSTED_IMAGE_HOSTS } from "../../src/shared/lib/trustedImage";
 import { whitelistForNetwork, type SageManifest } from "./manifestSchema";
 
-export function buildAppCsp(whitelist: string[] = [], opts: { scriptSrcExtra?: string[]; prefetchSrc?: boolean; frameAncestors?: string } = {}): string {
+export function buildAppCsp(
+  whitelist: string[] = [],
+  opts: { scriptSrcExtra?: string[]; prefetchSrc?: boolean; frameAncestors?: string } = {}
+): string {
   const connectSrc = ["'self'", ...whitelist].join(" ");
-  const imgSrc = ["'self'", "blob:", "data:", ...whitelist.filter((e) => e.startsWith("https://"))].join(" ");
+  const imgSrc = [
+    "'self'",
+    "blob:",
+    "data:",
+    ...whitelist.filter((e) => e.startsWith("https://")),
+  ].join(" ");
   const scriptSrc = ["'self'", "'wasm-unsafe-eval'", ...(opts.scriptSrcExtra ?? [])].join(" ");
 
   return [
@@ -64,9 +72,18 @@ export function buildAppCspForManifest(manifest: SageManifest, networkId = "main
  *    it to matter against today.
  */
 export function buildHostedAppCsp(opts: { frameAncestors?: string } = {}): string {
-  const localNode = ["http://localhost:*", "http://127.0.0.1:*", "ws://localhost:*", "ws://127.0.0.1:*"];
+  const localNode = [
+    "http://localhost:*",
+    "http://127.0.0.1:*",
+    "ws://localhost:*",
+    "ws://127.0.0.1:*",
+  ];
   const imageHosts = [...TRUSTED_IMAGE_HOSTS].map((host) => `https://${host}`);
-  return buildAppCsp(["https:", "wss:", ...localNode, ...imageHosts], { scriptSrcExtra: ["'unsafe-inline'"], prefetchSrc: false, frameAncestors: opts.frameAncestors });
+  return buildAppCsp(["https:", "wss:", ...localNode, ...imageHosts], {
+    scriptSrcExtra: ["'unsafe-inline'"],
+    prefetchSrc: false,
+    frameAncestors: opts.frameAncestors,
+  });
 }
 
 /**

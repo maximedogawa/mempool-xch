@@ -33,7 +33,8 @@ const INLINE_SCRIPT_RE = /<script(?![^>]*\ssrc=)([^>]*)>([\s\S]*?)<\/script>/gi;
 /** `<link rel="manifest" …>` in any attribute order. */
 const MANIFEST_LINK_RE = /<link\b[^>]*\brel=["']manifest["'][^>]*>/gi;
 /** `(self.__next_s=self.__next_s||[]).push([0,{…}])` — one `beforeInteractive` script. */
-const NEXT_S_PUSH_RE = /^\(self\.__next_s\s*=\s*self\.__next_s\s*\|\|\s*\[\]\)\.push\(\[0,([\s\S]*)\]\);?$/;
+const NEXT_S_PUSH_RE =
+  /^\(self\.__next_s\s*=\s*self\.__next_s\s*\|\|\s*\[\]\)\.push\(\[0,([\s\S]*)\]\);?$/;
 
 interface Stats {
   htmlFiles: number;

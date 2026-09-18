@@ -4,7 +4,13 @@ import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
-import { describePending, EMPTY_TRACKED, pendingLine, trackPending, type TrackedState } from "@/shared/lib/wallet/pendingTracker";
+import {
+  describePending,
+  EMPTY_TRACKED,
+  pendingLine,
+  trackPending,
+  type TrackedState,
+} from "@/shared/lib/wallet/pendingTracker";
 import { receivesForP2 } from "@/shared/lib/watchlist/activity";
 import type { WatchItem } from "@/shared/lib/watchlist/store";
 import { routes } from "@/shared/lib/routes";
@@ -52,8 +58,19 @@ export function WatchedAddressRow({
   return (
     <li className="flex flex-col gap-1.5 py-2.5 text-sm">
       <div className="flex flex-wrap items-center gap-3">
-        <Hash value={item.label} href={routes.address(item.label)} head={10} tail={6} className="min-w-0 flex-1 font-medium" />
-        <button type="button" onClick={onRemove} aria-label={`Stop watching ${item.label}`} className="rounded-sm p-1 text-fg-faint hover:text-fg">
+        <Hash
+          value={item.label}
+          href={routes.address(item.label)}
+          head={10}
+          tail={6}
+          className="min-w-0 flex-1 font-medium"
+        />
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Stop watching ${item.label}`}
+          className="rounded-sm p-1 text-fg-faint hover:text-fg"
+        >
           <X size={14} aria-hidden="true" />
         </button>
       </div>
@@ -64,7 +81,10 @@ export function WatchedAddressRow({
       ) : (
         <ul className="flex flex-col gap-1 pl-1">
           {rows.map((tx) => (
-            <li key={tx.id} className="flex items-center justify-between gap-2 text-xs text-fg-muted">
+            <li
+              key={tx.id}
+              className="flex items-center justify-between gap-2 text-xs text-fg-muted"
+            >
               <Hash value={tx.id} href={routes.tx(tx.id)} head={6} tail={4} />
               <span>{pendingLine(describePending(tx.id, projectedItems, projectedBlocks))}</span>
             </li>

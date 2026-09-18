@@ -1,8 +1,21 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createLiveStream, type LiveEvent, type LiveStatus, type LiveTransport } from "@/shared/lib/live/stream";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  createLiveStream,
+  type LiveEvent,
+  type LiveStatus,
+  type LiveTransport,
+} from "@/shared/lib/live/stream";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { useSettings } from "./SettingsProvider";
 
@@ -80,14 +93,21 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
       void queryClient.invalidateQueries({ queryKey: [...queryKeys.chainRoot(network), "recent"] });
     }, 1_000);
-    const invalidateMempool = throttled(() => void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) }), 3_000);
+    const invalidateMempool = throttled(
+      () => void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) }),
+      3_000
+    );
     const stream = createLiveStream({
       wsUrl: endpoints.wsUrl,
       pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,
       poll: async () => {
         const state = await client.getBlockchainState();
         queryClient.setQueryData(queryKeys.state(network), state);
-        return { peakHeight: state.peak.height, peakIsTx: state.peak.isTransactionBlock, mempoolSize: state.mempoolSize };
+        return {
+          peakHeight: state.peak.height,
+          peakIsTx: state.peak.isTransactionBlock,
+          mempoolSize: state.mempoolSize,
+        };
       },
       onEvent: (event) => {
         if (event.type === "status") {
@@ -106,7 +126,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           setTxBatch((n) => n + 1);
           setLastTxEvent(event);
           invalidateMempool();
-          event.ids.forEach((id) => void queryClient.invalidateQueries({ queryKey: queryKeys.tx(network, id) }));
+          event.ids.forEach(
+            (id) => void queryClient.invalidateQueries({ queryKey: queryKeys.tx(network, id) })
+          );
           if (event.status === "confirmed") {
             void queryClient.invalidateQueries({ queryKey: queryKeys.addressRoot(network) });
           }
@@ -129,7 +151,16 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   }, [client, endpoints.wsUrl, hydrated, network, queryClient]);
 
   const value = useMemo<LiveContextValue>(
-    () => ({ status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent, netspace, lastReorg }),
+    () => ({
+      status,
+      transport,
+      lastEventAt,
+      peakHeight,
+      txBatch,
+      lastTxEvent,
+      netspace,
+      lastReorg,
+    }),
     [status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent, netspace, lastReorg]
   );
   return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;

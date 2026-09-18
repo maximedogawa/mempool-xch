@@ -123,7 +123,8 @@ export function normaliseBlockRecord(raw: unknown): BlockRecord {
     overflow: Boolean(r.overflow),
     signagePointIndex: num(r.signage_point_index),
     deficit: num(r.deficit),
-    subEpochSummaryIncluded: r.sub_epoch_summary_included !== null && r.sub_epoch_summary_included !== undefined,
+    subEpochSummaryIncluded:
+      r.sub_epoch_summary_included !== null && r.sub_epoch_summary_included !== undefined,
     isTransactionBlock: timestamp !== null,
   };
 }
@@ -137,7 +138,8 @@ export function normaliseFullBlock(raw: unknown): FullBlockSummary {
   // any cost) is the reliable sign that the block carries spends.
   const generator = str(r.transactions_generator);
   const generatorRoot = info ? str(info.generator_root).replace(/^0x/, "") : "";
-  const hasGenerator = generator.length > 2 || /[1-9a-f]/i.test(generatorRoot) || (info ? num(info.cost) > 0 : false);
+  const hasGenerator =
+    generator.length > 2 || /[1-9a-f]/i.test(generatorRoot) || (info ? num(info.cost) > 0 : false);
   return {
     headerHash: hex(r.header_hash),
     height: num(rewardChain.height),
@@ -355,7 +357,12 @@ export function normalisePeerConnection(raw: unknown): PeerConnection {
 
 const nullableHex = (v: unknown): string | null => (typeof v === "string" && v ? hex(v) : null);
 
-function normaliseOfferSide(assetIds: unknown, xchMojos: unknown, catMojos: unknown, nftIds: unknown): OfferSide {
+function normaliseOfferSide(
+  assetIds: unknown,
+  xchMojos: unknown,
+  catMojos: unknown,
+  nftIds: unknown
+): OfferSide {
   const cats = asRaw(catMojos);
   const ids = arr(assetIds).map(hex);
   return {
@@ -370,12 +377,24 @@ export function normaliseOfferState(raw: unknown): OfferState {
   const status = str(r.status, "open");
   return {
     offerId: hex(r.offer_id),
-    status: (OFFER_STATUSES as readonly string[]).includes(status) ? (status as OfferStatus) : "open",
+    status: (OFFER_STATUSES as readonly string[]).includes(status)
+      ? (status as OfferStatus)
+      : "open",
     firstSeenMs: num(r.first_seen_ms),
     lastUpdatedMs: num(r.last_updated_ms),
     makerP2s: arr(r.maker_p2s).map(hex),
-    offered: normaliseOfferSide(r.offered_cat_asset_ids, r.offered_xch_mojos, r.offered_cat_mojos, r.offered_nft_ids),
-    requested: normaliseOfferSide(r.requested_cat_asset_ids, r.requested_xch_mojos, r.requested_cat_mojos, r.requested_nft_ids),
+    offered: normaliseOfferSide(
+      r.offered_cat_asset_ids,
+      r.offered_xch_mojos,
+      r.offered_cat_mojos,
+      r.offered_nft_ids
+    ),
+    requested: normaliseOfferSide(
+      r.requested_cat_asset_ids,
+      r.requested_xch_mojos,
+      r.requested_cat_mojos,
+      r.requested_nft_ids
+    ),
     feeMojos: big(r.fee_mojos),
     expiresBeforeHeight: nullableNum(r.expires_before_height),
     expiresBeforeTimeMs: nullableNum(r.expires_before_time_ms),
@@ -392,7 +411,11 @@ export function normaliseOfferState(raw: unknown): OfferState {
 
 export function normaliseOfferList(raw: unknown): OfferList {
   const r = asRaw(raw);
-  return { offers: arr(r.offers).map(normaliseOfferState), truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+  return {
+    offers: arr(r.offers).map(normaliseOfferState),
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
 }
 
 export function normaliseClawbackList(raw: unknown): ClawbackList {
@@ -411,7 +434,11 @@ export function normaliseClawbackList(raw: unknown): ClawbackList {
       revocable: Boolean(x.revocable),
     };
   });
-  return { clawbacks, truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+  return {
+    clawbacks,
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
 }
 
 export function normaliseReorgEvent(raw: unknown): ReorgEvent {
@@ -429,10 +456,17 @@ export function normaliseReorgEvent(raw: unknown): ReorgEvent {
 
 export function normaliseReorgList(raw: unknown): ReorgList {
   const r = asRaw(raw);
-  return { reorgs: arr(r.reorgs).map(normaliseReorgEvent), truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+  return {
+    reorgs: arr(r.reorgs).map(normaliseReorgEvent),
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
 }
 
 export function normaliseRawTransaction(raw: unknown): RawTransaction {
   const r = asRaw(raw);
-  return { source: r.source === "inferred" ? "inferred" : "mempool", item: normaliseMempoolItem(r.item) };
+  return {
+    source: r.source === "inferred" ? "inferred" : "mempool",
+    item: normaliseMempoolItem(r.item),
+  };
 }

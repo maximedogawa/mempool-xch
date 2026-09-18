@@ -5,7 +5,18 @@ import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { mintGardenCollectionUrl } from "@/shared/lib/nft/mintgarden";
 import type { CollectionInterval } from "@/shared/lib/nft/mintgarden";
-import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Skeleton,
+  Table,
+  Td,
+  Th,
+  Tr,
+} from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { formatXchDecimal } from "./format";
@@ -29,7 +40,10 @@ export function NftCollectionsPage() {
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">NFT collections</h1>
-          <Tooltip text="Sorted by trade volume in the window, from MintGarden. Floor price is MintGarden's own lowest active listing." placement="bottom" />
+          <Tooltip
+            text="Sorted by trade volume in the window, from MintGarden. Floor price is MintGarden's own lowest active listing."
+            placement="bottom"
+          />
         </div>
       </header>
 
@@ -49,7 +63,9 @@ export function NftCollectionsPage() {
         />
         <CardBody className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">Window</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">
+              Window
+            </span>
             <div role="radiogroup" aria-label="Window" className="flex flex-wrap gap-1">
               {INTERVALS.map((opt) => (
                 <button
@@ -60,7 +76,9 @@ export function NftCollectionsPage() {
                   onClick={() => setInterval(opt.id)}
                   className={cn(
                     "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                    interval === opt.id ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+                    interval === opt.id
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border bg-bg text-fg-muted hover:text-fg"
                   )}
                 >
                   {opt.label}
@@ -70,7 +88,11 @@ export function NftCollectionsPage() {
           </div>
 
           {query.error ? (
-            <EmptyState tone="danger" title="Could not load collections" description="MintGarden did not answer." />
+            <EmptyState
+              tone="danger"
+              title="Could not load collections"
+              description="MintGarden did not answer."
+            />
           ) : query.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 8 }, (_, i) => (
@@ -78,7 +100,9 @@ export function NftCollectionsPage() {
               ))}
             </div>
           ) : collections.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-faint">No collections match &quot;{search}&quot;.</p>
+            <p className="py-6 text-center text-sm text-fg-faint">
+              No collections match &quot;{search}&quot;.
+            </p>
           ) : (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Collections">
               <Table>
@@ -95,15 +119,33 @@ export function NftCollectionsPage() {
                   {collections.map((c) => (
                     <Tr key={c.id}>
                       <Td>
-                        <a href={mintGardenCollectionUrl(c.id)} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 hover:text-accent">
-                          <AssetImage urls={c.thumbnailUrl ? [c.thumbnailUrl] : []} alt="" className="h-8 w-8 shrink-0" rounded="rounded-sm" />
+                        <a
+                          href={mintGardenCollectionUrl(c.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex min-w-0 items-center gap-2 hover:text-accent"
+                        >
+                          <AssetImage
+                            urls={c.thumbnailUrl ? [c.thumbnailUrl] : []}
+                            alt=""
+                            className="h-8 w-8 shrink-0"
+                            rounded="rounded-sm"
+                          />
                           <span className="truncate font-medium">{c.name ?? "Untitled"}</span>
                         </a>
                       </Td>
-                      <Td className="tabular hidden text-right md:table-cell">{c.nftCount !== null ? formatNumber(c.nftCount) : "—"}</Td>
-                      <Td className="tabular text-right">{c.floorPriceXch !== null ? formatXchDecimal(c.floorPriceXch) : "—"}</Td>
-                      <Td className="tabular text-right">{c.volumeXch !== null ? formatXchDecimal(c.volumeXch) : "—"}</Td>
-                      <Td className="tabular hidden text-right sm:table-cell">{c.tradeCount !== null ? formatNumber(c.tradeCount) : "—"}</Td>
+                      <Td className="tabular hidden text-right md:table-cell">
+                        {c.nftCount !== null ? formatNumber(c.nftCount) : "—"}
+                      </Td>
+                      <Td className="tabular text-right">
+                        {c.floorPriceXch !== null ? formatXchDecimal(c.floorPriceXch) : "—"}
+                      </Td>
+                      <Td className="tabular text-right">
+                        {c.volumeXch !== null ? formatXchDecimal(c.volumeXch) : "—"}
+                      </Td>
+                      <Td className="tabular hidden text-right sm:table-cell">
+                        {c.tradeCount !== null ? formatNumber(c.tradeCount) : "—"}
+                      </Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -112,7 +154,12 @@ export function NftCollectionsPage() {
           )}
 
           {query.hasNextPage ? (
-            <Button size="sm" className="self-center" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+            <Button
+              size="sm"
+              className="self-center"
+              disabled={query.isFetchingNextPage}
+              onClick={() => void query.fetchNextPage()}
+            >
               {query.isFetchingNextPage ? "Loading…" : "Show more"}
             </Button>
           ) : null}

@@ -2,14 +2,16 @@ import { describe, expect, test } from "bun:test";
 // The CSP builder lives with the Sage scripts it was written for; bun's test root is src/, so its test lives here.
 import { buildAppCsp, buildEmbedCsp, buildHostedAppCsp } from "../../../scripts/sage/csp";
 
-const sources = (csp: string, name: string) => (csp.split("; ").find((d) => d.startsWith(`${name} `)) ?? "").split(" ").slice(1);
+const sources = (csp: string, name: string) =>
+  (csp.split("; ").find((d) => d.startsWith(`${name} `)) ?? "").split(" ").slice(1);
 
 describe("hosted app CSP", () => {
   const csp = buildHostedAppCsp();
 
   test("connects to any https/wss node and a localhost proxy, but to nothing else over plain http", () => {
     const connect = sources(csp, "connect-src");
-    for (const s of ["'self'", "https:", "wss:", "http://localhost:*", "ws://127.0.0.1:*"]) expect(connect).toContain(s);
+    for (const s of ["'self'", "https:", "wss:", "http://localhost:*", "ws://127.0.0.1:*"])
+      expect(connect).toContain(s);
     expect(connect).not.toContain("http:");
     expect(connect).not.toContain("*");
   });
@@ -22,7 +24,14 @@ describe("hosted app CSP", () => {
   });
 
   test("keeps the lockdown directives and drops the one Chrome rejects", () => {
-    for (const d of ["default-src 'self'", "object-src 'none'", "base-uri 'none'", "frame-ancestors 'self'", "form-action 'none'"]) expect(csp).toContain(d);
+    for (const d of [
+      "default-src 'self'",
+      "object-src 'none'",
+      "base-uri 'none'",
+      "frame-ancestors 'self'",
+      "form-action 'none'",
+    ])
+      expect(csp).toContain(d);
     expect(csp).not.toContain("prefetch-src");
   });
 

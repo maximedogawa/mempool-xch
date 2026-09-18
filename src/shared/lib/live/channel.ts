@@ -30,12 +30,19 @@ const host = (url: string) => {
 export function describeChannel(input: ChannelInput): ChannelDescription {
   const rpcHost = host(input.rpcUrl);
   if (!input.isCoinset) {
-    return { name: "Polling (custom node)", detail: `Polling your node at ${rpcHost} every few seconds; no stream, mempool fetched in the browser.` };
+    return {
+      name: "Polling (custom node)",
+      detail: `Polling your node at ${rpcHost} every few seconds; no stream, mempool fetched in the browser.`,
+    };
   }
-  if (input.status === "offline") return { name: "Offline", detail: `No connection to ${rpcHost}.` };
+  if (input.status === "offline")
+    return { name: "Offline", detail: `No connection to ${rpcHost}.` };
   if (input.transport === "websocket" && input.wsUrl) {
     return input.status === "live"
-      ? { name: "Coinset socket", detail: `Streaming peak and transaction events from ${host(input.wsUrl)} directly.` }
+      ? {
+          name: "Coinset socket",
+          detail: `Streaming peak and transaction events from ${host(input.wsUrl)} directly.`,
+        }
       : { name: "Coinset socket (reconnecting)", detail: `Reconnecting to ${host(input.wsUrl)}.` };
   }
   return { name: "Polling", detail: `Polling ${rpcHost} every few seconds.` };

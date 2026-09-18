@@ -13,6 +13,17 @@ export const walletPendingKey = (network: string) => ["sage", "pending", network
 export function useWalletPendingIds(): Set<string> {
   const { inSage } = useSage();
   const { endpoints } = useSettings();
-  const query = useQuery({ queryKey: walletPendingKey(endpoints.network), enabled: inSage, queryFn: fetchWalletPending, refetchInterval: 10_000 });
-  return useMemo(() => new Set((query.data ?? []).map((t) => t.id?.toLowerCase()).filter((id): id is string => !!id)), [query.data]);
+  const query = useQuery({
+    queryKey: walletPendingKey(endpoints.network),
+    enabled: inSage,
+    queryFn: fetchWalletPending,
+    refetchInterval: 10_000,
+  });
+  return useMemo(
+    () =>
+      new Set(
+        (query.data ?? []).map((t) => t.id?.toLowerCase()).filter((id): id is string => !!id)
+      ),
+    [query.data]
+  );
 }

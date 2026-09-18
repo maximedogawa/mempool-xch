@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { normaliseMintGardenNft } from "./nftMetadata";
-import { fetchDexieTokenMap, normaliseTokenList, readTokenCache, TOKEN_LIST_CACHE_KEY, TOKEN_LIST_TTL_MS, tokenLabel, writeTokenCache } from "@/shared/api/tokenList";
+import {
+  fetchDexieTokenMap,
+  normaliseTokenList,
+  readTokenCache,
+  TOKEN_LIST_CACHE_KEY,
+  TOKEN_LIST_TTL_MS,
+  tokenLabel,
+  writeTokenCache,
+} from "@/shared/api/tokenList";
 
 describe("tokenList", () => {
   const raw = {
@@ -9,7 +17,13 @@ describe("tokenList", () => {
     page: 1,
     page_size: 100,
     assets: [
-      { id: `0x${"AB".repeat(32)}`, name: " Spacebucks ", code: "sbx", denom: 1000, website: "https://spacebucks.io" },
+      {
+        id: `0x${"AB".repeat(32)}`,
+        name: " Spacebucks ",
+        code: "sbx",
+        denom: 1000,
+        website: "https://spacebucks.io",
+      },
       { id: "short", name: "bad" },
       { id: "cd".repeat(32), name: "", code: "" },
     ],
@@ -33,22 +47,36 @@ describe("tokenList", () => {
   });
   test("walks every Dexie page and merges", async () => {
     const urls: string[] = [];
-    const page = (n: number, ids: string[]) => ({ success: true, count: 250, page: n, page_size: 100, assets: ids.map((id) => ({ id, code: `T${n}`, name: `Token ${n}` })) });
+    const page = (n: number, ids: string[]) => ({
+      success: true,
+      count: 250,
+      page: n,
+      page_size: 100,
+      assets: ids.map((id) => ({ id, code: `T${n}`, name: `Token ${n}` })),
+    });
     const fetchImpl = async (url: string) => {
       urls.push(url);
       const n = Number(new URL(url).searchParams.get("page"));
-      const ids = n === 3 ? ["ef".repeat(32)] : Array.from({ length: 100 }, (_, i) => (n * 1000 + i).toString(16).padStart(64, "0"));
+      const ids =
+        n === 3
+          ? ["ef".repeat(32)]
+          : Array.from({ length: 100 }, (_, i) => (n * 1000 + i).toString(16).padStart(64, "0"));
       return { ok: true, status: 200, text: async () => JSON.stringify(page(n, ids)) };
     };
     const map = await fetchDexieTokenMap(fetchImpl);
     expect(urls).toHaveLength(3);
     expect(Object.keys(map)).toHaveLength(201);
     expect(map["ef".repeat(32)]!.symbol).toBe("T3");
-    await expect(fetchDexieTokenMap(async () => ({ ok: false, status: 429, text: async () => "" }))).rejects.toThrow("429");
+    await expect(
+      fetchDexieTokenMap(async () => ({ ok: false, status: 429, text: async () => "" }))
+    ).rejects.toThrow("429");
   });
   test("cache honours the ttl", () => {
     const data = new Map<string, string>();
-    const storage = { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v) };
+    const storage = {
+      getItem: (k: string) => data.get(k) ?? null,
+      setItem: (k: string, v: string) => void data.set(k, v),
+    };
     const tokens = normaliseTokenList(raw);
     writeTokenCache(storage, tokens, 1000);
     expect(readTokenCache(storage, 2000)).toEqual(tokens);
@@ -66,7 +94,14 @@ describe("normaliseMintGardenNft", () => {
         data_uris: ["https://ipfs.mintgarden.io/ipfs/x.jfif", "ipfs://x"],
         thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/a_512.webp",
         preview_uri: "https://assets.mainnet.mintgarden.io/thumbnails/a.webp",
-        metadata_json: { name: "ChiaLover #1", collection: { id: "c1", name: "ChiaLover", attributes: [{ type: "description", value: "desc" }] } },
+        metadata_json: {
+          name: "ChiaLover #1",
+          collection: {
+            id: "c1",
+            name: "ChiaLover",
+            attributes: [{ type: "description", value: "desc" }],
+          },
+        },
       },
       owner_address: { id: "9fbd", encoded_id: "xch1..." },
       creator_address: { id: "0xAB" },

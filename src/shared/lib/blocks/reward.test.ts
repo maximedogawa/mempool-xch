@@ -5,9 +5,17 @@ const XCH = 1_000_000_000_000n;
 
 describe("block reward", () => {
   test("follows the halving schedule with a 7/8 pool and 1/8 farmer split", () => {
-    expect(blockReward(1)).toEqual({ pool: 1_750_000_000_000n, farmer: 250_000_000_000n, total: 2n * XCH });
+    expect(blockReward(1)).toEqual({
+      pool: 1_750_000_000_000n,
+      farmer: 250_000_000_000n,
+      total: 2n * XCH,
+    });
     expect(blockReward(3 * BLOCKS_PER_YEAR - 1).total).toBe(2n * XCH);
-    expect(blockReward(3 * BLOCKS_PER_YEAR)).toEqual({ pool: 875_000_000_000n, farmer: 125_000_000_000n, total: XCH });
+    expect(blockReward(3 * BLOCKS_PER_YEAR)).toEqual({
+      pool: 875_000_000_000n,
+      farmer: 125_000_000_000n,
+      total: XCH,
+    });
     expect(blockReward(9_295_514).total).toBe(XCH);
     expect(blockReward(6 * BLOCKS_PER_YEAR).total).toBe(XCH / 2n);
     expect(blockReward(9 * BLOCKS_PER_YEAR).total).toBe(XCH / 4n);

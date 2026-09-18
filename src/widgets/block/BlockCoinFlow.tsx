@@ -19,7 +19,13 @@ function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boole
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
       <span className="flex min-w-0 flex-wrap items-center gap-x-2">
         <Hash value={record.name} href={routes.coin(record.name)} head={8} tail={6} />
-        <Hash value={address} href={routes.address(address)} head={8} tail={6} className="text-xs" />
+        <Hash
+          value={address}
+          href={routes.address(address)}
+          head={8}
+          tail={6}
+          className="text-xs"
+        />
         {ephemeral ? <Badge tone="neutral">spent in this block</Badge> : null}
       </span>
       <Amount mojos={record.coin.amount} className="tabular" />
@@ -37,7 +43,11 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
         <span className="sr-only">Spent coin </span>
         <CoinLine record={group.parent} ephemeral={ephemeral.has(group.parent.name)} />
       </div>
-      <ArrowRight size={16} aria-hidden="true" className="hidden self-start text-fg-faint md:mt-0.5 md:block" />
+      <ArrowRight
+        size={16}
+        aria-hidden="true"
+        className="hidden self-start text-fg-faint md:mt-0.5 md:block"
+      />
       <div className="flex flex-col gap-1 text-sm">
         {group.children.length === 0 ? (
           <span className="text-fg-faint">Created no coins</span>
@@ -51,7 +61,12 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
           </ul>
         )}
         {hidden > 0 ? (
-          <Button size="sm" variant="ghost" className="self-start" onClick={() => setExpanded(true)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="self-start"
+            onClick={() => setExpanded(true)}
+          >
             Show {hidden} more
           </Button>
         ) : null}
@@ -61,7 +76,13 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
 }
 
 /** Created coins linked to the spent coins they came from. */
-export function BlockCoinFlow({ data, loading }: { data: { additions: CoinRecord[]; removals: CoinRecord[] } | undefined; loading: boolean }) {
+export function BlockCoinFlow({
+  data,
+  loading,
+}: {
+  data: { additions: CoinRecord[]; removals: CoinRecord[] } | undefined;
+  loading: boolean;
+}) {
   const flow = useMemo(() => (data ? buildCoinFlow(data.additions, data.removals) : null), [data]);
   const [limit, setLimit] = useState(GROUPS_PAGE);
 
@@ -69,11 +90,18 @@ export function BlockCoinFlow({ data, loading }: { data: { additions: CoinRecord
     <Card>
       <CardHeader
         title="Flow"
-        action={flow ? <span className="tabular text-xs text-fg-faint">{flow.groups.length} spent · {data!.additions.length} created</span> : null}
+        action={
+          flow ? (
+            <span className="tabular text-xs text-fg-faint">
+              {flow.groups.length} spent · {data!.additions.length} created
+            </span>
+          ) : null
+        }
       />
       <CardBody className="flex flex-col gap-3">
         <p className="text-sm text-fg-muted">
-          Each coin spent in this block, and the coins its spend created. A new coin records its parent&apos;s coin id, so every link here is exact.
+          Each coin spent in this block, and the coins its spend created. A new coin records its
+          parent&apos;s coin id, so every link here is exact.
         </p>
         {loading || !flow ? (
           <div className="flex flex-col gap-2">
@@ -82,13 +110,23 @@ export function BlockCoinFlow({ data, loading }: { data: { additions: CoinRecord
             ))}
           </div>
         ) : flow.groups.length === 0 && flow.rewards.length === 0 ? (
-          <p className="py-4 text-center text-sm text-fg-faint">No coins were spent or created in this block.</p>
+          <p className="py-4 text-center text-sm text-fg-faint">
+            No coins were spent or created in this block.
+          </p>
         ) : (
           <>
             {flow.rewards.length > 0 ? (
-              <section aria-label="Reward coins" className="flex flex-col gap-1 rounded-sm border border-border bg-bg p-3 text-sm">
-                <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted">Rewards paid out ({flow.rewards.length})</h3>
-                <p className="text-xs text-fg-faint">Farmer and pool rewards for earlier blocks. They are created from nothing, so they have no spent parent.</p>
+              <section
+                aria-label="Reward coins"
+                className="flex flex-col gap-1 rounded-sm border border-border bg-bg p-3 text-sm"
+              >
+                <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted">
+                  Rewards paid out ({flow.rewards.length})
+                </h3>
+                <p className="text-xs text-fg-faint">
+                  Farmer and pool rewards for earlier blocks. They are created from nothing, so they
+                  have no spent parent.
+                </p>
                 <ul className="flex flex-col gap-1">
                   {flow.rewards.map((r) => (
                     <li key={r.name}>
@@ -116,7 +154,10 @@ export function BlockCoinFlow({ data, loading }: { data: { additions: CoinRecord
               </div>
             ) : null}
             {flow.unlinked.length > 0 ? (
-              <p className="text-xs text-warning">{flow.unlinked.length} created coins have no parent among this block&apos;s spent coins.</p>
+              <p className="text-xs text-warning">
+                {flow.unlinked.length} created coins have no parent among this block&apos;s spent
+                coins.
+              </p>
             ) : null}
           </>
         )}

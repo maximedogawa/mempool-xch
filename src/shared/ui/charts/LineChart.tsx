@@ -41,7 +41,10 @@ export function LineChart({
     const span = Math.max(1, t1 - t0);
     const values = points.map((p) => p.v);
     const maxV = Math.max(...values);
-    const minV = scale === "log" ? Math.min(...values.filter((v) => v > 0), maxV || 1) : Math.min(0, ...values);
+    const minV =
+      scale === "log"
+        ? Math.min(...values.filter((v) => v > 0), maxV || 1)
+        : Math.min(0, ...values);
     // Log scale needs a positive floor; values <= 0 are drawn at that floor rather than lost.
     const floor = scale === "log" ? Math.max(minV * 0.5, maxV > 0 ? maxV / 1000 : 1) : 0;
     const toY = (v: number) => (scale === "log" ? Math.log(Math.max(v, floor)) : v);
@@ -50,20 +53,41 @@ export function LineChart({
     const ySpan = Math.max(1e-9, yMax - yMin);
     const x = (t: number) => pad.l + ((t - t0) / span) * innerW;
     const y = (v: number) => pad.t + innerH - ((toY(v) - yMin) / ySpan) * innerH;
-    const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
+    const linePath = points
+      .map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`)
+      .join(" ");
     const areaPath = `${linePath} L${x(points[points.length - 1]!.t).toFixed(1)},${(pad.t + innerH).toFixed(1)} L${x(t0).toFixed(1)},${(pad.t + innerH).toFixed(1)} Z`;
     const tickCount = 4;
     const ticks = Array.from({ length: tickCount + 1 }, (_, i) => {
-      const v = scale === "log" ? Math.exp(yMin + (ySpan * i) / tickCount) : minV + ((maxV - minV) * i) / tickCount;
+      const v =
+        scale === "log"
+          ? Math.exp(yMin + (ySpan * i) / tickCount)
+          : minV + ((maxV - minV) * i) / tickCount;
       return { v, y: y(v) };
     });
-    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({ t: t0 + span * f, x: pad.l + innerW * f }));
-    return { x, y, linePath, areaPath, ticks, timeTicks, maxV, minV, latest: values[values.length - 1]! };
+    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({
+      t: t0 + span * f,
+      x: pad.l + innerW * f,
+    }));
+    return {
+      x,
+      y,
+      linePath,
+      areaPath,
+      ticks,
+      timeTicks,
+      maxV,
+      minV,
+      latest: values[values.length - 1]!,
+    };
   }, [points, scale, innerH, innerW, pad.l, pad.t]);
 
   if (!model || points.length < 2) {
     return (
-      <div className={cn("flex items-center justify-center text-sm text-fg-faint", className)} style={{ height }}>
+      <div
+        className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
+        style={{ height }}
+      >
         Not enough data yet.
       </div>
     );
@@ -75,7 +99,11 @@ export function LineChart({
   const onMove = (clientX: number, target: SVGSVGElement) => {
     const rect = target.getBoundingClientRect();
     const px = ((clientX - rect.left) / rect.width) * width;
-    const nearest = points.reduce((best, p, i) => (Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best), 0);
+    const nearest = points.reduce(
+      (best, p, i) =>
+        Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best,
+      0
+    );
     setHover(nearest);
   };
 
@@ -100,14 +128,34 @@ export function LineChart({
         <title>{summary}</title>
         {model.ticks.map((tick, i) => (
           <g key={i}>
-            <line x1={pad.l} x2={width - pad.r} y1={tick.y} y2={tick.y} stroke="var(--border)" strokeDasharray="3 3" />
-            <text x={pad.l - 6} y={tick.y + 4} textAnchor="end" fontSize="10" fill="var(--fg-faint)">
+            <line
+              x1={pad.l}
+              x2={width - pad.r}
+              y1={tick.y}
+              y2={tick.y}
+              stroke="var(--border)"
+              strokeDasharray="3 3"
+            />
+            <text
+              x={pad.l - 6}
+              y={tick.y + 4}
+              textAnchor="end"
+              fontSize="10"
+              fill="var(--fg-faint)"
+            >
               {formatValue(tick.v)}
             </text>
           </g>
         ))}
         {model.timeTicks.map((tick) => (
-          <text key={tick.t} x={tick.x} y={height - 6} textAnchor="middle" fontSize="10" fill="var(--fg-faint)">
+          <text
+            key={tick.t}
+            x={tick.x}
+            y={height - 6}
+            textAnchor="middle"
+            fontSize="10"
+            fill="var(--fg-faint)"
+          >
             {formatTime(tick.t)}
           </text>
         ))}
@@ -115,7 +163,14 @@ export function LineChart({
         <path d={model.linePath} fill="none" stroke={color} strokeWidth={1.5} />
         {hoverPoint ? (
           <>
-            <line x1={model.x(hoverPoint.t)} x2={model.x(hoverPoint.t)} y1={pad.t} y2={pad.t + innerH} stroke="var(--fg-muted)" strokeWidth={1} />
+            <line
+              x1={model.x(hoverPoint.t)}
+              x2={model.x(hoverPoint.t)}
+              y1={pad.t}
+              y2={pad.t + innerH}
+              stroke="var(--fg-muted)"
+              strokeWidth={1}
+            />
             <circle cx={model.x(hoverPoint.t)} cy={model.y(hoverPoint.v)} r={3} fill={color} />
           </>
         ) : null}

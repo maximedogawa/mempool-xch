@@ -15,7 +15,14 @@
           E.el("f" + t).textContent = rate(m);
           E.el("s" + t).textContent = m > 0 ? E.xch(m) : "no fee needed";
         });
-        E.el("foot").textContent = "Mempool " + E.cost(r.mempool_size || 0) + " of " + E.cost(r.mempool_max_size || 0) + " cost · last block paid " + E.xch(r.fees_last_block || 0) + " · refreshes every 45 s";
+        E.el("foot").textContent =
+          "Mempool " +
+          E.cost(r.mempool_size || 0) +
+          " of " +
+          E.cost(r.mempool_max_size || 0) +
+          " cost · last block paid " +
+          E.xch(r.fees_last_block || 0) +
+          " · refreshes every 45 s";
       })
       .catch(function (e) {
         E.fail("Could not reach Coinset (" + e.message + ").");

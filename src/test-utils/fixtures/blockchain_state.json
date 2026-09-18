@@ -1,56 +1,56 @@
 {
- "blockchain_state": {
-  "average_block_time": 19,
-  "block_max_cost": 11000000000,
-  "difficulty": 2160,
-  "genesis_challenge_initialized": true,
-  "mempool_cost": 109604159265,
-  "mempool_fees": 511752094,
-  "mempool_max_total_cost": 110000000000,
-  "mempool_min_fees": {
-   "cost_5000000": 0
+  "blockchain_state": {
+    "average_block_time": 19,
+    "block_max_cost": 11000000000,
+    "difficulty": 2160,
+    "genesis_challenge_initialized": true,
+    "mempool_cost": 109604159265,
+    "mempool_fees": 511752094,
+    "mempool_max_total_cost": 110000000000,
+    "mempool_min_fees": {
+      "cost_5000000": 0
+    },
+    "mempool_size": 74,
+    "node_id": "1a7433ec88df501b319454c775347e7ea28807db2955b4d88985c686beb71ee0",
+    "peak": {
+      "challenge_block_info_hash": "0x4dc98fcb0cb1dba171591bf65f03c26aecd4cbbbcc6b03252ea1022c11f9f3f9",
+      "challenge_vdf_output": {
+        "data": "0x0200f225a13036b4db0f44fa0ab71d5eec519faf83a987971b4808d8db2f33f7e3e4c083aafd4ebcaa2283d0c26526ffb9b86e2262e09b857c101f89ade12ae7fc54b367aaaf1d1dab2199ce557bb2902f47723385ca060a51da07ae8ff7f633c5200100"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x070302562ecf07c72d078592844622b624ab1769e97d1b6b86023fb075ece5d0",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xdec287a6728f63f3e2cd18c5de1d5138c78739b9033dab36cb44ed1f7571c555",
+      "height": 9295519,
+      "infused_challenge_vdf_output": {
+        "data": "0x030033e86bbff2d9e1edc2ceabfe0792cee11b28369cf9f8278d9a3f11bebfe62fee0c51a4bfa0ad0f32702e577d20c17d7f9d6e82faa6554058edfa49ed87fc7120fe1d38649e55df1855dcbf1c238fb1e61062b92e6abdc4fe661352719ecd56200200"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x070302562ecf07c72d078592844622b624ab1769e97d1b6b86023fb075ece5d0",
+      "prev_hash": "0x0e4994c1ff64d5fec874acc222a39508b2ac61aeddfdb45943388a0df1bf3091",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295517,
+      "required_iters": 7629230,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0xc4330e53a3b4c128349dd1e4587f2fc13d9ec93beacaf889a81ead2ee829f36f",
+      "signage_point_index": 51,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038774684078,
+      "weight": 56191641568
+    },
+    "space": 3571069341306150912,
+    "sub_slot_iters": 570425344,
+    "sync": {
+      "sync_mode": false,
+      "sync_progress_height": 0,
+      "sync_tip_height": 0,
+      "synced": true
+    }
   },
-  "mempool_size": 74,
-  "node_id": "1a7433ec88df501b319454c775347e7ea28807db2955b4d88985c686beb71ee0",
-  "peak": {
-   "challenge_block_info_hash": "0x4dc98fcb0cb1dba171591bf65f03c26aecd4cbbbcc6b03252ea1022c11f9f3f9",
-   "challenge_vdf_output": {
-    "data": "0x0200f225a13036b4db0f44fa0ab71d5eec519faf83a987971b4808d8db2f33f7e3e4c083aafd4ebcaa2283d0c26526ffb9b86e2262e09b857c101f89ade12ae7fc54b367aaaf1d1dab2199ce557bb2902f47723385ca060a51da07ae8ff7f633c5200100"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x070302562ecf07c72d078592844622b624ab1769e97d1b6b86023fb075ece5d0",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xdec287a6728f63f3e2cd18c5de1d5138c78739b9033dab36cb44ed1f7571c555",
-   "height": 9295519,
-   "infused_challenge_vdf_output": {
-    "data": "0x030033e86bbff2d9e1edc2ceabfe0792cee11b28369cf9f8278d9a3f11bebfe62fee0c51a4bfa0ad0f32702e577d20c17d7f9d6e82faa6554058edfa49ed87fc7120fe1d38649e55df1855dcbf1c238fb1e61062b92e6abdc4fe661352719ecd56200200"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x070302562ecf07c72d078592844622b624ab1769e97d1b6b86023fb075ece5d0",
-   "prev_hash": "0x0e4994c1ff64d5fec874acc222a39508b2ac61aeddfdb45943388a0df1bf3091",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295517,
-   "required_iters": 7629230,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0xc4330e53a3b4c128349dd1e4587f2fc13d9ec93beacaf889a81ead2ee829f36f",
-   "signage_point_index": 51,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038774684078,
-   "weight": 56191641568
-  },
-  "space": 3571069341306150912,
-  "sub_slot_iters": 570425344,
-  "sync": {
-   "sync_mode": false,
-   "sync_progress_height": 0,
-   "sync_tip_height": 0,
-   "synced": true
-  }
- },
- "success": true
+  "success": true
 }

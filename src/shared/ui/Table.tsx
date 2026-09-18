@@ -1,4 +1,9 @@
-import type { HTMLAttributes, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
+import type {
+  HTMLAttributes,
+  TableHTMLAttributes,
+  TdHTMLAttributes,
+  ThHTMLAttributes,
+} from "react";
 import { cn } from "@/shared/lib/cn";
 
 export function Table({ className, ...props }: TableHTMLAttributes<HTMLTableElement>) {
@@ -22,7 +27,9 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
 }
 
 export function Td({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("border-b border-border/60 px-3 py-2 align-middle", className)} {...props} />;
+  return (
+    <td className={cn("border-b border-border/60 px-3 py-2 align-middle", className)} {...props} />
+  );
 }
 
 export function Tr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {

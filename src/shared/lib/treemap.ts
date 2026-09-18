@@ -32,7 +32,12 @@ function worstRatio(row: number[], side: number): number {
   return Math.max((s2 * max) / (sum * sum), (sum * sum) / (s2 * min));
 }
 
-function layoutRow<T>(row: TreemapInput<T>[], areas: number[], rect: Rect, cells: TreemapCell<T>[]): Rect {
+function layoutRow<T>(
+  row: TreemapInput<T>[],
+  areas: number[],
+  rect: Rect,
+  cells: TreemapCell<T>[]
+): Rect {
   const sum = areas.reduce((a, b) => a + b, 0);
   const horizontal = rect.width >= rect.height;
   // The row spans the shorter side; its thickness is proportional to the area it covers.
@@ -56,7 +61,11 @@ function layoutRow<T>(row: TreemapInput<T>[], areas: number[], rect: Rect, cells
   return { x: rect.x, y: rect.y + thickness, width: rect.width, height: rect.height - thickness };
 }
 
-export function squarify<T>(inputs: TreemapInput<T>[], width: number, height: number): TreemapCell<T>[] {
+export function squarify<T>(
+  inputs: TreemapInput<T>[],
+  width: number,
+  height: number
+): TreemapCell<T>[] {
   const items = inputs.filter((i) => i.weight > 0).sort((a, b) => b.weight - a.weight);
   const total = items.reduce((s, i) => s + i.weight, 0);
   if (items.length === 0 || total <= 0 || width <= 0 || height <= 0) return [];

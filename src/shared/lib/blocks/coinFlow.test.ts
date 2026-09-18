@@ -7,7 +7,15 @@ const ph = (n: number) => n.toString(16).padStart(64, "0");
 
 function record(parent: string, puzzle: number, amount: bigint, coinbase = false): CoinRecord {
   const coin = { parentCoinInfo: parent, puzzleHash: ph(puzzle), amount };
-  return { coin, name: coinName(coin), coinbase, confirmedBlockIndex: 10, spent: false, spentBlockIndex: 0, timestamp: 0 };
+  return {
+    coin,
+    name: coinName(coin),
+    coinbase,
+    confirmedBlockIndex: 10,
+    spent: false,
+    spentBlockIndex: 0,
+    timestamp: 0,
+  };
 }
 
 describe("coin flow", () => {
@@ -36,7 +44,9 @@ describe("coin flow", () => {
     const flow = buildCoinFlow([e, e1, stray], [a, e, melted]);
     expect(flow.ephemeral.has(e.name)).toBe(true);
     expect(flow.groups.find((g) => g.parent.name === melted.name)?.children).toEqual([]);
-    expect(flow.groups.find((g) => g.parent.name === e.name)?.children.map((c) => c.name)).toEqual([e1.name]);
+    expect(flow.groups.find((g) => g.parent.name === e.name)?.children.map((c) => c.name)).toEqual([
+      e1.name,
+    ]);
     expect(flow.unlinked.map((c) => c.name)).toEqual([stray.name]);
   });
 });

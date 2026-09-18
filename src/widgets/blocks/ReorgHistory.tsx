@@ -9,14 +9,31 @@ import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Badge, Card, CardBody, CardHeader, Hash, Skeleton, Table, Td, Th, Tooltip, Tr } from "@/shared/ui";
+import {
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  Hash,
+  Skeleton,
+  Table,
+  Td,
+  Th,
+  Tooltip,
+  Tr,
+} from "@/shared/ui";
 
 /** Reorg events Coinset persisted, newest first; refreshed when the live stream reports one. */
 export function useReorgs(limit = 20) {
   const { client, endpoints } = useSettings();
   const { lastReorg } = useLive();
   return useQuery({
-    queryKey: [...queryKeys.chainRoot(endpoints.network), "reorgs", limit, lastReorg?.detectedAtMs ?? 0],
+    queryKey: [
+      ...queryKeys.chainRoot(endpoints.network),
+      "reorgs",
+      limit,
+      lastReorg?.detectedAtMs ?? 0,
+    ],
     queryFn: ({ signal }) => client.getReorgs({ limit }, signal),
     enabled: client.hasIndexed,
     staleTime: 5 * 60_000,
@@ -40,7 +57,13 @@ export function ReorgHistory() {
             <Tooltip text="A reorg replaces the most recent block(s) with a competing chain. Chia reorgs are usually one block deep and harmless; a transaction in a reorged block is simply included again a block later." />
           </span>
         }
-        action={reorgs.data ? <span className="text-xs text-fg-faint">{reorgs.data.reorgs.length} most recent, as detected by Coinset</span> : null}
+        action={
+          reorgs.data ? (
+            <span className="text-xs text-fg-faint">
+              {reorgs.data.reorgs.length} most recent, as detected by Coinset
+            </span>
+          ) : null
+        }
       />
       <CardBody>
         {reorgs.isLoading ? (
@@ -72,7 +95,10 @@ export function ReorgHistory() {
                     </Badge>
                   </Td>
                   <Td className="tabular text-right">
-                    <Link href={routes.block(r.newPeakHeight)} className="text-accent hover:underline">
+                    <Link
+                      href={routes.block(r.newPeakHeight)}
+                      className="text-accent hover:underline"
+                    >
                       #{formatNumber(r.newPeakHeight)}
                     </Link>
                     <span className="text-fg-faint"> from #{formatNumber(r.oldPeakHeight)}</span>
@@ -81,7 +107,12 @@ export function ReorgHistory() {
                     <Hash value={r.oldPeakHash} head={8} tail={5} />
                   </Td>
                   <Td className="hidden md:table-cell">
-                    <Hash value={r.newPeakHash} href={routes.block(r.newPeakHash)} head={8} tail={5} />
+                    <Hash
+                      value={r.newPeakHash}
+                      href={routes.block(r.newPeakHash)}
+                      head={8}
+                      tail={5}
+                    />
                   </Td>
                 </Tr>
               ))}

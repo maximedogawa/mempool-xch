@@ -63,7 +63,10 @@ export function BlockCube({
     textShadow: "0 1px 2px rgba(0,0,0,0.65)",
   };
   const body = (
-    <div className={cn("relative", animate && "animate-block-in", glow && "animate-cube-glow")} style={{ width: size + depth, height: size + depth }}>
+    <div
+      className={cn("relative", animate && "animate-block-in", glow && "animate-cube-glow")}
+      style={{ width: size + depth, height: size + depth }}
+    >
       {/* top face: lit */}
       <div
         aria-hidden="true"
@@ -71,7 +74,9 @@ export function BlockCube({
         style={{
           width: size,
           height: depth,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to right, color-mix(in srgb, var(--block-top) 78%, white 14%), var(--block-top))",
+          background: empty
+            ? "var(--block-empty)"
+            : "linear-gradient(to right, color-mix(in srgb, var(--block-top) 78%, white 14%), var(--block-top))",
           transform: "skewX(-45deg)",
           transformOrigin: "bottom left",
           borderTopRightRadius: 3,
@@ -87,7 +92,9 @@ export function BlockCube({
           top: depth,
           width: depth,
           height: size,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to bottom, color-mix(in srgb, var(--block-side) 85%, black), color-mix(in srgb, var(--block-side) 55%, black))",
+          background: empty
+            ? "var(--block-empty)"
+            : "linear-gradient(to bottom, color-mix(in srgb, var(--block-side) 85%, black), color-mix(in srgb, var(--block-side) 55%, black))",
           transform: "skewY(-45deg)",
           transformOrigin: "top left",
           borderBottomRightRadius: 3,
@@ -97,7 +104,9 @@ export function BlockCube({
       <div
         className={cn(
           "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[3px] rounded-tr-none text-center text-fg transition-transform duration-200",
-          variant === "projected" && !selected && "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          variant === "projected" &&
+            !selected &&
+            "outline-1 outline-dashed outline-white/15 -outline-offset-4",
           selected && "outline-2 outline-solid outline-primary -outline-offset-2",
           (onClick || href) && "group-hover:-translate-y-1"
         )}
@@ -107,7 +116,8 @@ export function BlockCube({
       </div>
     </div>
   );
-  const common = "group relative inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary";
+  const common =
+    "group relative inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary";
   if (href) {
     return (
       <a href={href} aria-label={ariaLabel} className={cn(common, className)}>
@@ -117,7 +127,12 @@ export function BlockCube({
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} aria-label={ariaLabel} className={cn(common, className)}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={cn(common, className)}
+      >
         {body}
       </button>
     );

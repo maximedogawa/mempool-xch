@@ -10,20 +10,33 @@ test.describe("dashboard", () => {
   test("renders projected and confirmed blocks, fees and feeds from fixtures", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/mempoolxch\.space/);
-    await expect(page.getByRole("list", { name: "Projected next blocks" }).getByRole("listitem").first()).toBeVisible();
-    await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Projected next blocks" }).getByRole("listitem").first()
+    ).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible();
     await expect(page.getByText("9,295,514", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Transaction fees")).toBeVisible();
     await expect(page.getByText("Next block", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Latest transactions")).toBeVisible();
     await expect(page.getByText("Latest blocks")).toBeVisible();
     // Connection indicator falls back to polling because the WebSocket is closed by the mock.
-    await expect(page.getByRole("status").filter({ hasText: /Polling|Live|Connecting/ }).first()).toBeVisible();
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: /Polling|Live|Connecting/ })
+        .first()
+    ).toBeVisible();
   });
 
   test("opens a projected block drill-down", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("list", { name: "Projected next blocks" }).getByRole("button").first().click();
+    await page
+      .getByRole("list", { name: "Projected next blocks" })
+      .getByRole("button")
+      .first()
+      .click();
     await expect(page.getByText(/Projected block 1 ·/)).toBeVisible();
     await expect(page.getByRole("link", { name: /…/ }).first()).toBeVisible();
   });
@@ -47,7 +60,9 @@ test.describe("dashboard", () => {
     await expect(page).toHaveURL(new RegExp(`/tx/${TX_ID}`));
   });
 
-  test("free text with no known shape finds NFT and collection matches by name", async ({ page }) => {
+  test("free text with no known shape finds NFT and collection matches by name", async ({
+    page,
+  }) => {
     await mockMintGardenSearch(page);
     await page.goto("/");
     const search = page.getByRole("searchbox").first();
@@ -57,11 +72,16 @@ test.describe("dashboard", () => {
     const nftLink = page.getByRole("link", { name: /Test Friend #1/ });
     await expect(nftLink).toHaveAttribute("href", new RegExp(`/nft/${NFT_ID}`));
     const collectionLink = page.getByRole("link", { name: /Test Friends/ });
-    await expect(collectionLink).toHaveAttribute("href", `https://mintgarden.io/collections/${COLLECTION_ID}`);
+    await expect(collectionLink).toHaveAttribute(
+      "href",
+      `https://mintgarden.io/collections/${COLLECTION_ID}`
+    );
     await expect(collectionLink).toHaveAttribute("target", "_blank");
   });
 
-  test("free text search with no MintGarden matches degrades to a not-recognised message, not an error", async ({ page }) => {
+  test("free text search with no MintGarden matches degrades to a not-recognised message, not an error", async ({
+    page,
+  }) => {
     await mockMintGardenSearch(page);
     await page.goto("/");
     const search = page.getByRole("searchbox").first();

@@ -31,7 +31,12 @@ export function kindFromOuterPuzzleType(type: string | undefined): TxKindHint {
   return "unknown";
 }
 
-export function flowFromCoins(removals: Coin[], additions: Coin[], kind: TxKindHint, assetIds: string[]): Flow {
+export function flowFromCoins(
+  removals: Coin[],
+  additions: Coin[],
+  kind: TxKindHint,
+  assetIds: string[]
+): Flow {
   const toFlow = (coin: Coin): FlowCoin => ({
     coinId: coinName(coin),
     puzzleHash: coin.puzzleHash,

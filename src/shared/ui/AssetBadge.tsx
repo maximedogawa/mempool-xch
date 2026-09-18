@@ -1,7 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftRight, Fingerprint, Hexagon, Image as ImageIcon, HelpCircle, Pickaxe } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Fingerprint,
+  Hexagon,
+  Image as ImageIcon,
+  HelpCircle,
+  Pickaxe,
+} from "lucide-react";
 import { useState } from "react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
@@ -18,7 +25,19 @@ import { KindBadge } from "./Badge";
  * registry's, else Dexie's deterministic per-id icon; a two-letter badge when the image does not
  * exist.
  */
-export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { kind: TxKindHint; assetId?: string; iconUrl?: string | null; size?: number; className?: string }) {
+export function AssetIcon({
+  kind,
+  assetId,
+  iconUrl,
+  size = 18,
+  className,
+}: {
+  kind: TxKindHint;
+  assetId?: string;
+  iconUrl?: string | null;
+  size?: number;
+  className?: string;
+}) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   // NFT thumbnails: assetId is the 32-byte launcher id (same field CAT asset ids use,
@@ -46,17 +65,35 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
     if (src) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={token?.name ?? "CAT"} loading="lazy" decoding="async" onError={() => setFailed((prev) => new Set(prev).add(src))} className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)} style={{ width: size, height: size }} />
+        <img
+          src={src}
+          alt={token?.name ?? "CAT"}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed((prev) => new Set(prev).add(src))}
+          className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)}
+          style={{ width: size, height: size }}
+        />
       );
     }
     return (
-      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-[9px] font-bold text-kind-cat", className)} style={{ width: size, height: size }}>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-[9px] font-bold text-kind-cat",
+          className
+        )}
+        style={{ width: size, height: size }}
+      >
         {token?.symbol?.slice(0, 2) ?? "C"}
       </span>
     );
   }
   if (kind === "nft" && nftId) {
-    const candidates = nftIconCandidates({ thumbnailUrl: primaryNftThumbnail, fallbackImageUrls: nftFallback.data ?? [] });
+    const candidates = nftIconCandidates({
+      thumbnailUrl: primaryNftThumbnail,
+      fallbackImageUrls: nftFallback.data ?? [],
+    });
     const src = candidates.find((u) => !failed.has(u)) ?? null;
     if (src) {
       return (
@@ -76,7 +113,18 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
       );
     }
   }
-  const Icon = kind === "nft" ? ImageIcon : kind === "did" ? Fingerprint : kind === "offer" ? ArrowLeftRight : kind === "pool" ? Pickaxe : kind === "singleton" ? Hexagon : HelpCircle;
+  const Icon =
+    kind === "nft"
+      ? ImageIcon
+      : kind === "did"
+        ? Fingerprint
+        : kind === "offer"
+          ? ArrowLeftRight
+          : kind === "pool"
+            ? Pickaxe
+            : kind === "singleton"
+              ? Hexagon
+              : HelpCircle;
   const tone =
     kind === "nft"
       ? "text-kind-nft bg-[color-mix(in_srgb,var(--kind-nft)_20%,transparent)]"
@@ -88,17 +136,36 @@ export function AssetIcon({ kind, assetId, iconUrl, size = 18, className }: { ki
             ? "text-info bg-[color-mix(in_srgb,var(--info)_20%,transparent)]"
             : "text-fg-faint bg-surface-2";
   return (
-    <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center rounded-full", tone, className)} style={{ width: size, height: size }}>
+    <span
+      aria-hidden="true"
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full",
+        tone,
+        className
+      )}
+      style={{ width: size, height: size }}
+    >
       <Icon size={Math.round(size * 0.6)} />
     </span>
   );
 }
 
 /** Kind badge with the asset icon in front and the CAT ticker when the registry knows it. */
-export function AssetBadge({ kind, assetId, className }: { kind: TxKindHint; assetId?: string; className?: string }) {
+export function AssetBadge({
+  kind,
+  assetId,
+  className,
+}: {
+  kind: TxKindHint;
+  assetId?: string;
+  className?: string;
+}) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   return (
-    <span className={cn("inline-flex items-center gap-1.5", className)} title={token ? `${token.name} (${token.symbol})` : undefined}>
+    <span
+      className={cn("inline-flex items-center gap-1.5", className)}
+      title={token ? `${token.name} (${token.symbol})` : undefined}
+    >
       <AssetIcon kind={kind} assetId={assetId} />
       {token ? (
         <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-transparent bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-kind-cat">

@@ -47,7 +47,8 @@ export function usePagedList<T>({
   }, [keyString]);
 
   useEffect(() => {
-    if (first.data && cursor === null && extra.length === 0) setCursor(first.data.truncated ? first.data.nextCursor : null);
+    if (first.data && cursor === null && extra.length === 0)
+      setCursor(first.data.truncated ? first.data.nextCursor : null);
   }, [first.data, cursor, extra.length]);
 
   const loadMore = useCallback(async () => {
@@ -73,5 +74,12 @@ export function usePagedList<T>({
     seen.add(key);
     return true;
   });
-  return { items, isLoading: first.isLoading, error: first.error, hasMore: cursor !== null, loadMore, loadingMore };
+  return {
+    items,
+    isLoading: first.isLoading,
+    error: first.error,
+    hasMore: cursor !== null,
+    loadMore,
+    loadingMore,
+  };
 }

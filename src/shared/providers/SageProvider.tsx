@@ -1,7 +1,13 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { capabilities, fetchSageNetwork, fetchSageTheme, fetchSageWalletAddress, listenSageTheme } from "@/shared/lib/sage/bridge";
+import {
+  capabilities,
+  fetchSageNetwork,
+  fetchSageTheme,
+  fetchSageWalletAddress,
+  listenSageTheme,
+} from "@/shared/lib/sage/bridge";
 import { isSageRuntime } from "@/shared/lib/sage/mappers";
 import { useSettings } from "./SettingsProvider";
 
@@ -14,7 +20,11 @@ export interface SageContextValue {
   walletAddress: string | null;
 }
 
-const SageContext = createContext<SageContextValue>({ inSage: false, sageTheme: null, walletAddress: null });
+const SageContext = createContext<SageContextValue>({
+  inSage: false,
+  sageTheme: null,
+  walletAddress: null,
+});
 
 /**
  * Follows the Sage host: network from environment.getNetwork (picker becomes
@@ -50,7 +60,10 @@ export function SageProvider({ children }: { children: ReactNode }) {
     };
   }, [update]);
 
-  const value = useMemo(() => ({ inSage, sageTheme, walletAddress }), [inSage, sageTheme, walletAddress]);
+  const value = useMemo(
+    () => ({ inSage, sageTheme, walletAddress }),
+    [inSage, sageTheme, walletAddress]
+  );
   return <SageContext.Provider value={value}>{children}</SageContext.Provider>;
 }
 

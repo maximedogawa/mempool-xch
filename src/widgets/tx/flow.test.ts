@@ -17,7 +17,9 @@ describe("tx flow helpers", () => {
     const flow = flowFromEvents(tx.events);
     expect(flow.inputs.length).toBeGreaterThan(0);
     expect(flow.outputs.length).toBe(2);
-    expect(flow.inputs[0]!.coinId).toBe("0ff17454d122555c4a6f1aa95369f00bce3b51675b2a67548476f1bebc32116d");
+    expect(flow.inputs[0]!.coinId).toBe(
+      "0ff17454d122555c4a6f1aa95369f00bce3b51675b2a67548476f1bebc32116d"
+    );
     expect(flow.inputs[0]!.kind).toBe("xch");
     expect(flow.totalIn - flow.totalOut).toBe(tx.feeMojos);
     expect(collectMemos(tx.events)).toEqual([]);

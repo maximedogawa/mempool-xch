@@ -22,7 +22,8 @@ export function BlocksRow() {
   const divider = useRef<HTMLDivElement>(null);
   const userScrolled = useRef(false);
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
-  const selectedBlock = selected !== null ? projected.blocks.find((b) => b.index === selected) : undefined;
+  const selectedBlock =
+    selected !== null ? projected.blocks.find((b) => b.index === selected) : undefined;
   const blockMaxCost = projected.summary?.state.blockMaxCost ?? CHIA.BLOCK_MAX_COST;
   const ready = projected.blocks.length > 0 || !!recent.data;
 
@@ -39,7 +40,10 @@ export function BlocksRow() {
     // Layout can still shift when cubes animate in; re-anchor once more on the next frame.
     const id = requestAnimationFrame(() => {
       if (!userScrolled.current && scroller.current && divider.current) {
-        scroller.current.scrollLeft = Math.max(0, divider.current.offsetLeft - scroller.current.clientWidth * share);
+        scroller.current.scrollLeft = Math.max(
+          0,
+          divider.current.offsetLeft - scroller.current.clientWidth * share
+        );
       }
     });
     return () => cancelAnimationFrame(id);
@@ -62,7 +66,10 @@ export function BlocksRow() {
   };
 
   return (
-    <section aria-label="Blocks" className="rounded-card border border-border/60 bg-[linear-gradient(180deg,var(--bg-elevated),color-mix(in_srgb,var(--bg)_85%,black))]">
+    <section
+      aria-label="Blocks"
+      className="rounded-card border border-border/60 bg-[linear-gradient(180deg,var(--bg-elevated),color-mix(in_srgb,var(--bg)_85%,black))]"
+    >
       <div
         ref={scroller}
         className="scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
@@ -82,16 +89,33 @@ export function BlocksRow() {
       >
         <div className="flex min-w-max items-end gap-4">
           <div className="flex flex-col items-end gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Projected · next blocks</span>
-            <ProjectedBlocks blocks={projected.blocks} loading={projected.isLoading} selected={selected} onSelect={setSelected} />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
+              Projected · next blocks
+            </span>
+            <ProjectedBlocks
+              blocks={projected.blocks}
+              loading={projected.isLoading}
+              selected={selected}
+              onSelect={setSelected}
+            />
           </div>
-          <div ref={divider} aria-hidden="true" className="relative mb-7 h-[196px] w-0 self-end border-l-2 border-dashed border-fg-faint/70">
+          <div
+            ref={divider}
+            aria-hidden="true"
+            className="relative mb-7 h-[196px] w-0 self-end border-l-2 border-dashed border-fg-faint/70"
+          >
             <span className="absolute -left-[7px] -top-4 text-[11px] text-fg-faint">⇅</span>
             <span className="absolute -bottom-4 -left-[7px] text-[11px] text-fg-faint">⇄</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Confirmed · recent transaction blocks</span>
-            <RecentBlocks data={recent.data} loading={recent.isLoading} blockMaxCost={blockMaxCost} />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
+              Confirmed · recent transaction blocks
+            </span>
+            <RecentBlocks
+              data={recent.data}
+              loading={recent.isLoading}
+              blockMaxCost={blockMaxCost}
+            />
           </div>
         </div>
       </div>

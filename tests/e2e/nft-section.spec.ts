@@ -45,7 +45,9 @@ test.describe("NFT section", () => {
     await expect(page.getByRole("heading", { name: /Open offers/ })).toBeVisible();
     await expect(page.getByText("1.25 XCH")).toBeVisible();
     await expect(page.getByRole("link", { name: /View on Dexie/ })).toBeVisible();
-    await expect(page.getByText(/Sage's app bridge does not yet expose a way to accept an offer/)).toBeVisible();
+    await expect(
+      page.getByText(/Sage's app bridge does not yet expose a way to accept an offer/)
+    ).toBeVisible();
   });
 
   test("NFTs nav link reaches the home page", async ({ page, isMobile }) => {

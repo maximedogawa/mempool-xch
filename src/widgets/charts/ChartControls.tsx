@@ -36,7 +36,9 @@ function RadioRow<T extends string>({
             onClick={() => onSelect(opt.id)}
             className={cn(
               "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-              selected === opt.id ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+              selected === opt.id
+                ? "border-primary bg-primary-soft text-primary"
+                : "border-border bg-bg text-fg-muted hover:text-fg"
             )}
           >
             {opt.label}
@@ -52,12 +54,33 @@ const SCALES: readonly { id: ScaleId; label: string }[] = [
   { id: "log", label: "Log" },
 ];
 
-export function ChartControls({ value, onChange }: { value: ChartControlsState; onChange: (next: ChartControlsState) => void }) {
+export function ChartControls({
+  value,
+  onChange,
+}: {
+  value: ChartControlsState;
+  onChange: (next: ChartControlsState) => void;
+}) {
   return (
     <div className="flex flex-col gap-3 rounded-sm border border-border bg-bg-elevated p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-      <RadioRow label="Range" options={RANGES} selected={value.range} onSelect={(range) => onChange({ ...value, range })} />
-      <RadioRow label="Smoothing" options={SMOOTHING_LEVELS} selected={value.smoothing} onSelect={(smoothing) => onChange({ ...value, smoothing })} />
-      <RadioRow label="Scale" options={SCALES} selected={value.scale} onSelect={(scale) => onChange({ ...value, scale })} />
+      <RadioRow
+        label="Range"
+        options={RANGES}
+        selected={value.range}
+        onSelect={(range) => onChange({ ...value, range })}
+      />
+      <RadioRow
+        label="Smoothing"
+        options={SMOOTHING_LEVELS}
+        selected={value.smoothing}
+        onSelect={(smoothing) => onChange({ ...value, smoothing })}
+      />
+      <RadioRow
+        label="Scale"
+        options={SCALES}
+        selected={value.scale}
+        onSelect={(scale) => onChange({ ...value, scale })}
+      />
     </div>
   );
 }

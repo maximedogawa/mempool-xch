@@ -103,7 +103,12 @@ export interface VaultBalance {
 }
 
 /** Combines a vault's singleton coin and address coins into one balance; pure for tests. */
-export function summariseVault(vault: PrefarmVault, singleton: VaultBalance["singleton"], coins: VaultCoin[], singletonCoinName: string | null): VaultBalance {
+export function summariseVault(
+  vault: PrefarmVault,
+  singleton: VaultBalance["singleton"],
+  coins: VaultCoin[],
+  singletonCoinName: string | null
+): VaultBalance {
   const seen = new Set<string>();
   const unique = coins.filter((c) => {
     if (seen.has(c.name)) return false;
@@ -113,7 +118,10 @@ export function summariseVault(vault: PrefarmVault, singleton: VaultBalance["sin
   let total = unique.reduce((s, c) => s + c.amount, 0n);
   // The singleton coin is usually locked to one of the listed puzzle hashes; count it once.
   if (singleton && singletonCoinName && !seen.has(singletonCoinName)) total += singleton.amount;
-  const latest = unique.reduce<VaultCoin | null>((best, c) => (!best || c.confirmedHeight > best.confirmedHeight ? c : best), null);
+  const latest = unique.reduce<VaultCoin | null>(
+    (best, c) => (!best || c.confirmedHeight > best.confirmedHeight ? c : best),
+    null
+  );
   return {
     vault,
     singleton,

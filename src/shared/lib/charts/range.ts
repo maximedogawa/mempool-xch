@@ -37,9 +37,15 @@ export const DEFAULT_SAMPLE_SIZE = 120;
  * `windows * sampleSize` regardless of how long the range is (no server-side
  * history to sample from instead).
  */
-export function heightWindows(peakHeight: number, oldestHeight: number, windows: number, sampleSize = DEFAULT_SAMPLE_SIZE): { start: number; end: number }[] {
+export function heightWindows(
+  peakHeight: number,
+  oldestHeight: number,
+  windows: number,
+  sampleSize = DEFAULT_SAMPLE_SIZE
+): { start: number; end: number }[] {
   const span = Math.max(0, peakHeight - oldestHeight);
-  if (span === 0 || windows <= 0) return [{ start: Math.max(0, peakHeight - sampleSize + 1), end: peakHeight + 1 }];
+  if (span === 0 || windows <= 0)
+    return [{ start: Math.max(0, peakHeight - sampleSize + 1), end: peakHeight + 1 }];
   const step = Math.max(1, Math.floor(span / windows));
   const windowSize = Math.min(step, sampleSize);
   // A window this small (the last one often is, clipped against peakHeight+1) has too few
@@ -71,7 +77,11 @@ export function bucketHeight(height: number, size = 50): number {
 }
 
 /** Oldest height to fetch for a range, given the peak and the chain's average block time. */
-export function oldestHeightForRange(peakHeight: number, range: RangeDef, averageBlockTimeS: number): number {
+export function oldestHeightForRange(
+  peakHeight: number,
+  range: RangeDef,
+  averageBlockTimeS: number
+): number {
   if (range.ms === null) return 0;
   const blocks = Math.ceil(range.ms / 1000 / Math.max(1, averageBlockTimeS));
   return Math.max(0, peakHeight - blocks);

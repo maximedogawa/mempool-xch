@@ -25,9 +25,22 @@ export function WalletAmount({ refItem, sign }: { refItem: WalletCoinRef; sign: 
   const kind = kindOf(refItem);
   const cls = sign === "+" ? "block text-primary" : "block text-danger";
   if (kind === "cat" && refItem.assetId) {
-    return <CatRef assetId={refItem.assetId} iconUrl={refItem.iconUrl} amountText={`${sign}${catUnits(refItem)}`} size={14} className={cls} />;
+    return (
+      <CatRef
+        assetId={refItem.assetId}
+        iconUrl={refItem.iconUrl}
+        amountText={`${sign}${catUnits(refItem)}`}
+        size={14}
+        className={cls}
+      />
+    );
   }
-  const text = kind === "xch" ? formatAmount(refItem.amount) : kind === "nft" || kind === "did" ? `1 ${kind.toUpperCase()}` : `${catUnits(refItem)} ${refItem.ticker ?? "CAT"}`;
+  const text =
+    kind === "xch"
+      ? formatAmount(refItem.amount)
+      : kind === "nft" || kind === "did"
+        ? `1 ${kind.toUpperCase()}`
+        : `${catUnits(refItem)} ${refItem.ticker ?? "CAT"}`;
   return (
     <span className={cls}>
       {sign}

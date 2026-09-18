@@ -10,7 +10,17 @@ const PAGES = [
   { href: routes.legalCookies(), label: "Cookie policy" },
 ];
 
-export function LegalPage({ title, current, intro, children }: { title: string; current: string; intro?: ReactNode; children: ReactNode }) {
+export function LegalPage({
+  title,
+  current,
+  intro,
+  children,
+}: {
+  title: string;
+  current: string;
+  intro?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6">
       <nav aria-label="Legal pages" className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -19,7 +29,9 @@ export function LegalPage({ title, current, intro, children }: { title: string; 
             key={page.href}
             href={page.href}
             aria-current={page.href === current ? "page" : undefined}
-            className={page.href === current ? "font-semibold text-fg" : "text-fg-muted hover:text-fg"}
+            className={
+              page.href === current ? "font-semibold text-fg" : "text-fg-muted hover:text-fg"
+            }
           >
             {page.label}
           </Link>
@@ -35,7 +47,15 @@ export function LegalPage({ title, current, intro, children }: { title: string; 
   );
 }
 
-export function Section({ title, id, children }: { title: string; id?: string; children: ReactNode }) {
+export function Section({
+  title,
+  id,
+  children,
+}: {
+  title: string;
+  id?: string;
+  children: ReactNode;
+}) {
   return (
     <section id={id} className="flex flex-col gap-2">
       <h2 className="text-base font-semibold text-fg">{title}</h2>

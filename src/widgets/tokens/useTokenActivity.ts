@@ -25,7 +25,12 @@ export function useTokenActivity(assetId: string, enabled: boolean) {
     queryKey: queryKeys.cat(endpoints.network, assetId, "activityFirst"),
     enabled: active,
     staleTime: Infinity,
-    queryFn: ({ signal }) => rowLimit(async () => (await client.getTransactionsByCatAssetId(assetId, { limit: 1, order: "asc" }, signal)).transactions[0]?.confirmedAtMs ?? null),
+    queryFn: ({ signal }) =>
+      rowLimit(
+        async () =>
+          (await client.getTransactionsByCatAssetId(assetId, { limit: 1, order: "asc" }, signal))
+            .transactions[0]?.confirmedAtMs ?? null
+      ),
   });
   const recent = useQuery({
     queryKey: queryKeys.cat(endpoints.network, assetId, "activityRecent"),
@@ -33,11 +38,20 @@ export function useTokenActivity(assetId: string, enabled: boolean) {
     staleTime: 2 * 60 * 1000,
     queryFn: ({ signal }) =>
       rowLimit(async () => {
-        const page = await client.getTransactionsByCatAssetId(assetId, { limit: RECENT_SAMPLE, order: "desc" }, signal);
+        const page = await client.getTransactionsByCatAssetId(
+          assetId,
+          { limit: RECENT_SAMPLE, order: "desc" },
+          signal
+        );
         return summariseRecentActivity(assetId, page.transactions, page.nextCursor !== null);
       }),
   });
 
-  const data: TokenActivitySample | null = first.isSuccess && recent.data ? { firstSeenMs: first.data, ...recent.data } : null;
-  return { data, isLoading: active && (first.isLoading || recent.isLoading), available: client.hasIndexed };
+  const data: TokenActivitySample | null =
+    first.isSuccess && recent.data ? { firstSeenMs: first.data, ...recent.data } : null;
+  return {
+    data,
+    isLoading: active && (first.isLoading || recent.isLoading),
+    available: client.hasIndexed,
+  };
 }

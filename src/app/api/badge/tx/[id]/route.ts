@@ -7,8 +7,17 @@ import { NextResponse } from "next/server";
  */
 export const dynamic = "force-dynamic";
 
-const COINSET: Record<string, string> = { mainnet: "https://api.coinset.org", testnet11: "https://testnet11.api.coinset.org" };
-const COLOUR: Record<string, string> = { confirmed: "#3aac59", pending: "#d9a400", removed: "#e0505c", "not found": "#67708f", invalid: "#67708f" };
+const COINSET: Record<string, string> = {
+  mainnet: "https://api.coinset.org",
+  testnet11: "https://testnet11.api.coinset.org",
+};
+const COLOUR: Record<string, string> = {
+  confirmed: "#3aac59",
+  pending: "#d9a400",
+  removed: "#e0505c",
+  "not found": "#67708f",
+  invalid: "#67708f",
+};
 
 function badge(label: string, status: string): string {
   const colour = COLOUR[status] ?? COLOUR.invalid!;
@@ -25,10 +34,18 @@ function badge(label: string, status: string): string {
 
 async function status(base: string, id: string): Promise<string> {
   const post = (method: string, body: unknown) =>
-    fetch(`${base}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(8_000) })
+    fetch(`${base}/${method}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(8_000),
+    })
       .then((r) => (r.ok ? (r.json() as Promise<Record<string, unknown>>) : null))
       .catch(() => null);
-  const [mempool, tx] = await Promise.all([post("get_mempool_item_by_tx_id", { tx_id: `0x${id}` }), post("get_transaction", { tx_id: id })]);
+  const [mempool, tx] = await Promise.all([
+    post("get_mempool_item_by_tx_id", { tx_id: `0x${id}` }),
+    post("get_transaction", { tx_id: id }),
+  ]);
   const summary = tx?.transaction as { status?: string } | null | undefined;
   if (summary?.status === "confirmed") return "confirmed";
   if (mempool?.mempool_item) return "pending";
@@ -39,8 +56,12 @@ async function status(base: string, id: string): Promise<string> {
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: raw } = await params;
-  const id = raw.replace(/\.svg$/i, "").replace(/^0x/i, "").toLowerCase();
-  const network = new URL(request.url).searchParams.get("network") === "testnet11" ? "testnet11" : "mainnet";
+  const id = raw
+    .replace(/\.svg$/i, "")
+    .replace(/^0x/i, "")
+    .toLowerCase();
+  const network =
+    new URL(request.url).searchParams.get("network") === "testnet11" ? "testnet11" : "mainnet";
   const valid = /^[0-9a-f]{64}$/.test(id);
   const state = valid ? await status(COINSET[network]!, id) : "invalid";
   return new NextResponse(badge("chia tx", state), {

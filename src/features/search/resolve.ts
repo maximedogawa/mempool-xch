@@ -52,7 +52,11 @@ async function probe<T>(fn: () => Promise<T>): Promise<T | null> {
   }
 }
 
-export async function resolveHex32(client: RpcClient, network: NetworkId, hex: string): Promise<SearchMatch[]> {
+export async function resolveHex32(
+  client: RpcClient,
+  network: NetworkId,
+  hex: string
+): Promise<SearchMatch[]> {
   const [mempoolItem, tx, coin, block, offer] = await Promise.all([
     probe(() => client.getMempoolItemByTxId(hex)),
     client.hasIndexed ? probe(() => client.getTransaction(hex)) : Promise.resolve(null),
@@ -63,8 +67,14 @@ export async function resolveHex32(client: RpcClient, network: NetworkId, hex: s
   const matches: SearchMatch[] = [];
   if (mempoolItem || tx) matches.push({ kind: "tx", label: "Transaction", href: routes.tx(hex) });
   if (coin) matches.push({ kind: "coin", label: "Coin", href: routes.coin(hex) });
-  if (block) matches.push({ kind: "block", label: `Block ${block.height}`, href: routes.block(hex) });
-  if (offer) matches.push({ kind: "offer", label: `Offer (${offer.status.replace("_", " ")})`, href: routes.offer(hex) });
+  if (block)
+    matches.push({ kind: "block", label: `Block ${block.height}`, href: routes.block(hex) });
+  if (offer)
+    matches.push({
+      kind: "offer",
+      label: `Offer (${offer.status.replace("_", " ")})`,
+      href: routes.offer(hex),
+    });
   if (matches.length > 0) return matches;
 
   // Slower probes only when nothing direct matched.
@@ -72,8 +82,10 @@ export async function resolveHex32(client: RpcClient, network: NetworkId, hex: s
     probe(() => client.getCoinRecordsByHint(hex, true)),
     client.hasIndexed ? probe(() => client.getSingletonInfo(hex)) : Promise.resolve(null),
   ]);
-  if (singleton?.singletonType === "nft") matches.push({ kind: "nft", label: "NFT", href: routes.nft(hex) });
-  else if (singleton?.singletonType === "did") matches.push({ kind: "did", label: "DID", href: routes.address(hex) });
+  if (singleton?.singletonType === "nft")
+    matches.push({ kind: "nft", label: "NFT", href: routes.nft(hex) });
+  else if (singleton?.singletonType === "did")
+    matches.push({ kind: "did", label: "DID", href: routes.address(hex) });
   if (catCoins && catCoins.length > 0 && !singleton) {
     matches.push({ kind: "cat", label: "CAT asset", href: routes.cat(hex), assetId: hex });
   }

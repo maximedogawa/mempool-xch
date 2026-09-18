@@ -17,8 +17,12 @@ test.describe("custom node", () => {
       if (/api\.coinset\.org/.test(url)) coinset.push(url);
     });
     await page.goto("/");
-    await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("status").filter({ hasText: "Polling" }).first()).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("status").filter({ hasText: "Polling" }).first()).toBeVisible({
+      timeout: 20_000,
+    });
     await expect(page.getByRole("status").filter({ hasText: "custom node" }).first()).toBeVisible();
     await expect(page.getByText(/custom node/).first()).toBeVisible();
     await page.waitForTimeout(1_000);
@@ -29,7 +33,9 @@ test.describe("custom node", () => {
   test("settings name the endpoint and the polling channel", async ({ page }) => {
     await mockCustomNode(page);
     await page.goto("/settings");
-    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({
+      timeout: 20_000,
+    });
     await expect(page.getByText(CUSTOM_NODE_URL).first()).toBeVisible();
   });
 });

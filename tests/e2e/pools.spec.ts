@@ -6,7 +6,9 @@ test.describe("pools", () => {
     await mockCoinset(page);
   });
 
-  test("groups PlotNFT farmers under the pool that claims their rewards, next to fixed-address pools", async ({ page }) => {
+  test("groups PlotNFT farmers under the pool that claims their rewards, next to fixed-address pools", async ({
+    page,
+  }) => {
     await page.goto("/pools");
     await expect(page.getByRole("heading", { level: 1, name: "Pools" })).toBeVisible();
 
@@ -16,7 +18,9 @@ test.describe("pools", () => {
     await expect(spacefarmers.getByText("50.00%")).toBeVisible();
     await expect(spacefarmers.getByRole("link", { name: /^xch1/ })).toHaveCount(2);
     // H9.com's fixed payout address needs no claim to be named.
-    await expect(table.getByRole("row").filter({ hasText: "H9.com" }).getByText("25.00%")).toBeVisible();
+    await expect(
+      table.getByRole("row").filter({ hasText: "H9.com" }).getByText("25.00%")
+    ).toBeVisible();
     // A both-shares address is nobody's PlotNFT: it stays a row of its own.
     const unknown = table.getByRole("row").filter({ hasText: "Unknown" });
     await expect(unknown.getByText("both shares")).toBeVisible();
@@ -25,17 +29,23 @@ test.describe("pools", () => {
     await expect(page.getByText("Named pools").locator("..").locator("..")).toContainText("75.0%");
   });
 
-  test("resolved claims are remembered, so a second visit asks Coinset nothing new", async ({ page }) => {
+  test("resolved claims are remembered, so a second visit asks Coinset nothing new", async ({
+    page,
+  }) => {
     await page.goto("/pools");
     const table = page.getByRole("region", { name: "Share by pool" });
-    await expect(table.getByRole("row").filter({ hasText: "Spacefarmers.io" }).getByText("50.00%")).toBeVisible();
+    await expect(
+      table.getByRole("row").filter({ hasText: "Spacefarmers.io" }).getByText("50.00%")
+    ).toBeVisible();
 
     let lookups = 0;
     page.on("request", (request) => {
       if (request.url().endsWith("/get_transactions_by_p2")) lookups += 1;
     });
     await page.reload();
-    await expect(table.getByRole("row").filter({ hasText: "Spacefarmers.io" }).getByText("50.00%")).toBeVisible();
+    await expect(
+      table.getByRole("row").filter({ hasText: "Spacefarmers.io" }).getByText("50.00%")
+    ).toBeVisible();
     expect(lookups).toBe(0);
   });
 

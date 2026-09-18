@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { NetworkId } from "@/shared/config/networks";
 import { GEO_BATCH_SIZE, lookupGeo } from "@/shared/lib/map/geo";
-import { applyGeo, emptyRegistry, mergeObserved, parseRegistry, pendingGeo, REGISTRY_KEY_PREFIX, type NodeRegistry } from "@/shared/lib/map/registry";
+import {
+  applyGeo,
+  emptyRegistry,
+  mergeObserved,
+  parseRegistry,
+  pendingGeo,
+  REGISTRY_KEY_PREFIX,
+  type NodeRegistry,
+} from "@/shared/lib/map/registry";
 import { resolveSeeder, SEEDERS, type DnsRecordType } from "@/shared/lib/map/seeders";
 
 /** One seeder question per tick; every answer is a fresh batch of up to 32 addresses. */
@@ -103,14 +111,34 @@ export function useNodeScan(network: NetworkId): NodeScanState {
         commit(merged.registry);
         setScans((n) => n + 1);
         setLastScanAt(now);
-        setLog((l) => [{ t: now, seeder, type, answered: ips.length, added: merged.added.length }, ...l].slice(0, LOG_LIMIT));
+        setLog((l) =>
+          [{ t: now, seeder, type, answered: ips.length, added: merged.added.length }, ...l].slice(
+            0,
+            LOG_LIMIT
+          )
+        );
       } catch (error) {
         if (controller.signal.aborted) return;
-        setLog((l) => [{ t: now, seeder, type, answered: 0, added: 0, error: error instanceof Error ? error.message : "lookup failed" }, ...l].slice(0, LOG_LIMIT));
+        setLog((l) =>
+          [
+            {
+              t: now,
+              seeder,
+              type,
+              answered: 0,
+              added: 0,
+              error: error instanceof Error ? error.message : "lookup failed",
+            },
+            ...l,
+          ].slice(0, LOG_LIMIT)
+        );
       }
       try {
         const batch = pendingGeo(registryRef.current, GEO_BATCH_SIZE);
-        if (batch.length > 0) commit(applyGeo(registryRef.current, await lookupGeo(batch, undefined, controller.signal)));
+        if (batch.length > 0)
+          commit(
+            applyGeo(registryRef.current, await lookupGeo(batch, undefined, controller.signal))
+          );
       } catch {
         // GeoJS hiccup: the addresses stay pending and are retried next tick.
       } finally {
@@ -138,5 +166,12 @@ export function useNodeScan(network: NetworkId): NodeScanState {
     };
   }, [network, commit]);
 
-  return { registry, scanning, scans, lastScanAt, log, pendingGeo: pendingGeo(registry, Number.MAX_SAFE_INTEGER).length };
+  return {
+    registry,
+    scanning,
+    scans,
+    lastScanAt,
+    log,
+    pendingGeo: pendingGeo(registry, Number.MAX_SAFE_INTEGER).length,
+  };
 }

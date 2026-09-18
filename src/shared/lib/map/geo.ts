@@ -48,7 +48,8 @@ export function parseGeoRows(rows: unknown): Map<string, NodeGeo | null> {
     const ip = raw.ip.toLowerCase();
     const lat = num(raw.latitude);
     const lon = num(raw.longitude);
-    const countryCode = typeof raw.country_code === "string" ? raw.country_code.toUpperCase() : null;
+    const countryCode =
+      typeof raw.country_code === "string" ? raw.country_code.toUpperCase() : null;
     if (lat === null || lon === null || !countryCode) {
       out.set(ip, null);
       continue;
@@ -59,16 +60,26 @@ export function parseGeoRows(rows: unknown): Map<string, NodeGeo | null> {
       city: typeof raw.city === "string" && raw.city ? raw.city : null,
       lat,
       lon,
-      org: typeof raw.organization_name === "string" && raw.organization_name ? raw.organization_name : null,
+      org:
+        typeof raw.organization_name === "string" && raw.organization_name
+          ? raw.organization_name
+          : null,
     });
   }
   return out;
 }
 
-export async function lookupGeo(ips: string[], fetchImpl: FetchLike = (i, init) => fetch(i, init), signal?: AbortSignal): Promise<Map<string, NodeGeo | null>> {
+export async function lookupGeo(
+  ips: string[],
+  fetchImpl: FetchLike = (i, init) => fetch(i, init),
+  signal?: AbortSignal
+): Promise<Map<string, NodeGeo | null>> {
   const batch = ips.slice(0, GEO_BATCH_SIZE);
   if (batch.length === 0) return new Map();
-  const response = await fetchImpl(`${GEO_ENDPOINT}?ip=${batch.map(encodeURIComponent).join(",")}`, { signal });
+  const response = await fetchImpl(
+    `${GEO_ENDPOINT}?ip=${batch.map(encodeURIComponent).join(",")}`,
+    { signal }
+  );
   if (!response.ok) throw new Error(`GeoJS HTTP ${response.status}`);
   const parsed = parseGeoRows(await response.json());
   // An IP missing from the answer is treated like an unplaceable one, so it is not retried forever.

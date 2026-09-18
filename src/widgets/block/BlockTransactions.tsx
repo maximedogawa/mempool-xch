@@ -7,11 +7,37 @@ import { classifyCoinSpends } from "@/shared/lib/mempool/classify";
 import { routes } from "@/shared/lib/routes";
 import type { CoinSpend, TxSummary } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Amount, Button, Card, CardBody, CardHeader, Hash, KindBadge, Skeleton, SummaryKindBadge, Table, Td, Th, Tr } from "@/shared/ui";
+import {
+  Amount,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Hash,
+  KindBadge,
+  Skeleton,
+  SummaryKindBadge,
+  Table,
+  Td,
+  Th,
+  Tr,
+} from "@/shared/ui";
 import { BlockTreemap } from "./BlockTreemap";
 import { txAmountMoved, useBlockSpends, useBlockTransactions } from "./useBlock";
 
-export function BlockTransactions({ height, headerHash, blockCost, blockMaxCost, isTransactionBlock }: { height: number; headerHash: string; blockCost: number; blockMaxCost: number; isTransactionBlock: boolean }) {
+export function BlockTransactions({
+  height,
+  headerHash,
+  blockCost,
+  blockMaxCost,
+  isTransactionBlock,
+}: {
+  height: number;
+  headerHash: string;
+  blockCost: number;
+  blockMaxCost: number;
+  isTransactionBlock: boolean;
+}) {
   const { client } = useSettings();
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const pages = cursors.map((c) => c);
@@ -38,10 +64,19 @@ export function BlockTransactions({ height, headerHash, blockCost, blockMaxCost,
         title={
           <span>
             Transactions
-            {transactions.length > 0 ? <span className="tabular ml-2 text-fg-faint">{transactions.length}{nextCursor ? "+" : ""}</span> : null}
+            {transactions.length > 0 ? (
+              <span className="tabular ml-2 text-fg-faint">
+                {transactions.length}
+                {nextCursor ? "+" : ""}
+              </span>
+            ) : null}
           </span>
         }
-        action={<span className="text-xs text-fg-faint">{formatCost(blockCost)} of {formatCost(blockMaxCost)} cost</span>}
+        action={
+          <span className="text-xs text-fg-faint">
+            {formatCost(blockCost)} of {formatCost(blockMaxCost)} cost
+          </span>
+        }
       />
       <CardBody className="flex flex-col gap-4">
         {client.hasIndexed ? (
@@ -59,7 +94,9 @@ export function BlockTransactions({ height, headerHash, blockCost, blockMaxCost,
               </div>
             ) : transactions.length === 0 ? (
               <p className="py-4 text-center text-sm text-fg-faint">
-                {txQuery.error ? "Coinset has not indexed this block's transactions." : "This transaction block carries no spend bundles (only farmer and pool rewards)."}
+                {txQuery.error
+                  ? "Coinset has not indexed this block's transactions."
+                  : "This transaction block carries no spend bundles (only farmer and pool rewards)."}
               </p>
             ) : (
               <Table>
@@ -85,9 +122,15 @@ export function BlockTransactions({ height, headerHash, blockCost, blockMaxCost,
                       <Td className="text-right">
                         <Amount mojos={txAmountMoved(tx)} />
                       </Td>
-                      <Td className="tabular hidden text-right sm:table-cell">{formatAmount(tx.feeMojos)}</Td>
-                      <Td className="tabular hidden text-right md:table-cell">{formatCost(tx.cost)}</Td>
-                      <Td className="tabular hidden text-right md:table-cell">{formatFeeRate(feePerCost(tx.feeMojos, tx.cost))}</Td>
+                      <Td className="tabular hidden text-right sm:table-cell">
+                        {formatAmount(tx.feeMojos)}
+                      </Td>
+                      <Td className="tabular hidden text-right md:table-cell">
+                        {formatCost(tx.cost)}
+                      </Td>
+                      <Td className="tabular hidden text-right md:table-cell">
+                        {formatFeeRate(feePerCost(tx.feeMojos, tx.cost))}
+                      </Td>
                     </Tr>
                   ))}
                 </tbody>
@@ -95,7 +138,11 @@ export function BlockTransactions({ height, headerHash, blockCost, blockMaxCost,
             )}
             {nextCursor ? (
               <div className="flex justify-center">
-                <Button size="sm" disabled={txQuery.isFetching} onClick={() => setCursors((c) => [...c, nextCursor])}>
+                <Button
+                  size="sm"
+                  disabled={txQuery.isFetching}
+                  onClick={() => setCursors((c) => [...c, nextCursor])}
+                >
                   {txQuery.isFetching ? "Loading…" : "Load more"}
                 </Button>
               </div>
@@ -118,7 +165,8 @@ function SpendList({ spends, loading }: { spends: CoinSpend[] | undefined; loadi
   return (
     <>
       <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
-        Semantic transaction summaries need Coinset. With a custom node the block's {spends.length} coin spends are listed individually, with a kind guessed from each puzzle.
+        Semantic transaction summaries need Coinset. With a custom node the block's {spends.length}{" "}
+        coin spends are listed individually, with a kind guessed from each puzzle.
       </p>
       <Table>
         <thead>

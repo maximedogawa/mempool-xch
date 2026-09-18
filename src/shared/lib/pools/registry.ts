@@ -27,7 +27,9 @@ export interface PoolEntry {
 const entries = registry.pools as PoolEntry[];
 
 const byHash = new Map<string, PoolEntry>(
-  entries.flatMap((pool) => [...pool.claimTargets, ...pool.payoutAddresses].map((hash) => [normalise(hash), pool] as const))
+  entries.flatMap((pool) =>
+    [...pool.claimTargets, ...pool.payoutAddresses].map((hash) => [normalise(hash), pool] as const)
+  )
 );
 
 function normalise(hash: string): string {

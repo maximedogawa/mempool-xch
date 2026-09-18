@@ -28,7 +28,11 @@ function pointInRing([x, y]: [number, number], ring: Ring): boolean {
 
 function main() {
   const topo = land as unknown as Topology;
-  const geo = feature(topo, topo.objects.land!) as unknown as { type: string; geometry?: MultiPolygon | Polygon; features?: { geometry: MultiPolygon | Polygon }[] };
+  const geo = feature(topo, topo.objects.land!) as unknown as {
+    type: string;
+    geometry?: MultiPolygon | Polygon;
+    features?: { geometry: MultiPolygon | Polygon }[];
+  };
   const geometries = geo.features ? geo.features.map((f) => f.geometry) : [geo.geometry!];
   const rings: Ring[] = [];
   for (const g of geometries) {

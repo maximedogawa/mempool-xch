@@ -8,7 +8,13 @@
 import type { NetworkId } from "@/shared/config/networks";
 
 export const SEEDERS: Record<NetworkId, readonly string[]> = {
-  mainnet: ["dns-introducer.chia.net", "chia.ctrlaltdel.ch", "seeder.dexie.space", "chia.hoffmang.com", "seeder.xchpool.org"],
+  mainnet: [
+    "dns-introducer.chia.net",
+    "chia.ctrlaltdel.ch",
+    "seeder.dexie.space",
+    "chia.hoffmang.com",
+    "seeder.xchpool.org",
+  ],
   testnet11: ["dns-introducer-testnet11.chia.net"],
 };
 
@@ -20,7 +26,10 @@ export interface DohResponse {
 }
 
 /** Cloudflare's DNS-over-HTTPS JSON endpoint (CORS `*`), with Google's as a fallback. */
-export const DOH_ENDPOINTS = ["https://cloudflare-dns.com/dns-query", "https://dns.google/resolve"] as const;
+export const DOH_ENDPOINTS = [
+  "https://cloudflare-dns.com/dns-query",
+  "https://dns.google/resolve",
+] as const;
 
 const RECORD_TYPE_CODE: Record<DnsRecordType, number> = { A: 1, AAAA: 28 };
 
@@ -40,7 +49,13 @@ export function isPublicIp(ip: string): boolean {
   }
   if (IPV6.test(ip) && ip.includes(":")) {
     const lower = ip.toLowerCase();
-    return !(lower === "::1" || lower.startsWith("fe80") || lower.startsWith("fc") || lower.startsWith("fd") || lower === "::");
+    return !(
+      lower === "::1" ||
+      lower.startsWith("fe80") ||
+      lower.startsWith("fc") ||
+      lower.startsWith("fd") ||
+      lower === "::"
+    );
   }
   return false;
 }
@@ -61,11 +76,19 @@ export function parseDohAnswer(body: DohResponse, type: DnsRecordType): string[]
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
 /** One seeder query over DoH; tries each endpoint in turn and returns the first usable answer. */
-export async function resolveSeeder(name: string, type: DnsRecordType, fetchImpl: FetchLike = (i, init) => fetch(i, init), signal?: AbortSignal): Promise<string[]> {
+export async function resolveSeeder(
+  name: string,
+  type: DnsRecordType,
+  fetchImpl: FetchLike = (i, init) => fetch(i, init),
+  signal?: AbortSignal
+): Promise<string[]> {
   let lastError: unknown = null;
   for (const endpoint of DOH_ENDPOINTS) {
     try {
-      const response = await fetchImpl(`${endpoint}?name=${encodeURIComponent(name)}&type=${type}`, { headers: { accept: "application/dns-json" }, signal });
+      const response = await fetchImpl(
+        `${endpoint}?name=${encodeURIComponent(name)}&type=${type}`,
+        { headers: { accept: "application/dns-json" }, signal }
+      );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return parseDohAnswer((await response.json()) as DohResponse, type);
     } catch (error) {

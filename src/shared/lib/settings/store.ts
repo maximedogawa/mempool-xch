@@ -43,7 +43,10 @@ export interface ResolvedEndpoints {
   isCoinset: boolean;
 }
 
-export function resolveEndpoints(settings: Settings, network: NetworkId = settings.network): ResolvedEndpoints {
+export function resolveEndpoints(
+  settings: Settings,
+  network: NetworkId = settings.network
+): ResolvedEndpoints {
   const rpcUrl = settings.endpoints[network]?.rpcUrl?.trim() || NETWORKS[network].rpcUrl;
   const isCoinset = isCoinsetUrl(network, rpcUrl);
   return {
@@ -57,15 +60,23 @@ export function resolveEndpoints(settings: Settings, network: NetworkId = settin
 
 function sanitise(raw: unknown): Settings {
   const r = raw && typeof raw === "object" ? (raw as Partial<Settings>) : {};
-  const network = NETWORK_IDS.includes(r.network as NetworkId) ? (r.network as NetworkId) : DEFAULT_SETTINGS.network;
+  const network = NETWORK_IDS.includes(r.network as NetworkId)
+    ? (r.network as NetworkId)
+    : DEFAULT_SETTINGS.network;
   const endpoints = Object.fromEntries(
     NETWORK_IDS.map((id) => {
       const url = r.endpoints?.[id]?.rpcUrl;
-      return [id, { rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl }];
+      return [
+        id,
+        { rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl },
+      ];
     })
   ) as Settings["endpoints"];
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
-  const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
+  const recentBlocks =
+    typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20
+      ? r.recentBlocks
+      : 8;
   const sounds = r.sounds !== false;
   const notifications = r.notifications === true;
   return { network, endpoints, theme, recentBlocks, sounds, notifications };
@@ -80,7 +91,9 @@ export interface SettingsStore {
   subscribe: (listener: Listener) => () => void;
 }
 
-export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null): SettingsStore {
+export function createSettingsStore(
+  storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null
+): SettingsStore {
   let current: Settings = DEFAULT_SETTINGS;
   const listeners = new Set<Listener>();
   try {

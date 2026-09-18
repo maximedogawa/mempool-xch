@@ -70,5 +70,14 @@ export function usePagedTransactions({
     seen.add(tx.id);
     return true;
   });
-  return { transactions, isLoading: first.isLoading, error: first.error, hasMore: cursor !== null && (first.data?.truncated ?? false) || (cursor !== null && extra.length > 0), loadMore, loadingMore };
+  return {
+    transactions,
+    isLoading: first.isLoading,
+    error: first.error,
+    hasMore:
+      (cursor !== null && (first.data?.truncated ?? false)) ||
+      (cursor !== null && extra.length > 0),
+    loadMore,
+    loadingMore,
+  };
 }

@@ -115,7 +115,9 @@ describe("normalisers with recorded Coinset fixtures", () => {
   });
 });
 
-function mockFetch(handler: (url: string, body: Record<string, unknown>) => Response | Promise<Response>): FetchLike {
+function mockFetch(
+  handler: (url: string, body: Record<string, unknown>) => Response | Promise<Response>
+): FetchLike {
   return async (input, init) => {
     const url = String(input);
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
@@ -135,9 +137,15 @@ describe("createRpcClient", () => {
       fetchImpl: mockFetch((url, body) => {
         calls.push({ url, body });
         if (url.endsWith("/get_blockchain_state")) return json(blockchainState);
-        if (url.endsWith("/get_all_mempool_tx_ids")) return json({ tx_ids: ["0xaa", "bb"], success: true });
-        if (url.endsWith("/get_block_record_by_height")) return json({ block_record: blockRecords.block_records.find((r) => r.height === 9295514), success: true });
-        if (url.endsWith("/get_transaction")) return json({ transaction: blockTransactions.transactions[0], success: true });
+        if (url.endsWith("/get_all_mempool_tx_ids"))
+          return json({ tx_ids: ["0xaa", "bb"], success: true });
+        if (url.endsWith("/get_block_record_by_height"))
+          return json({
+            block_record: blockRecords.block_records.find((r) => r.height === 9295514),
+            success: true,
+          });
+        if (url.endsWith("/get_transaction"))
+          return json({ transaction: blockTransactions.transactions[0], success: true });
         if (url.endsWith("/get_fee_estimate")) return json(feeEstimate);
         return json({ success: false, error: "unknown" }, 200);
       }),
@@ -149,7 +157,9 @@ describe("createRpcClient", () => {
     const record = await client.getBlockRecordByHeight(9295514);
     expect(record.height).toBe(9295514);
     expect(calls[2]!.body).toEqual({ height: 9295514 });
-    const tx = await client.getTransaction("b379124c34f5843bc709e460abddcbebeda648ba4b0978b44fac20fb8eb14df5");
+    const tx = await client.getTransaction(
+      "b379124c34f5843bc709e460abddcbebeda648ba4b0978b44fac20fb8eb14df5"
+    );
     expect(tx.kind).toBe("transfer");
     const fee = await client.getFeeEstimate(1_000_000, [60, 300]);
     expect(calls[4]!.body).toEqual({ cost: 1_000_000, target_times: [60, 300] });
@@ -163,15 +173,20 @@ describe("createRpcClient", () => {
       fetchImpl: mockFetch((url) => {
         if (url.endsWith("/get_blockchain_state")) throw new TypeError("fetch failed");
         if (url.endsWith("/get_block_record")) return new Response("nope", { status: 503 });
-        if (url.endsWith("/get_coin_record_by_name")) return json({ success: false, error: "Coin record 0xaa not found" });
-        if (url.endsWith("/get_block")) return json({ success: false, error: "Something exploded" });
+        if (url.endsWith("/get_coin_record_by_name"))
+          return json({ success: false, error: "Coin record 0xaa not found" });
+        if (url.endsWith("/get_block"))
+          return json({ success: false, error: "Something exploded" });
         return new Response("<html>", { status: 200 });
       }),
     });
     await expect(client.getBlockchainState()).rejects.toMatchObject({ kind: "network" });
     await expect(client.getBlockRecord("aa")).rejects.toMatchObject({ kind: "http", status: 503 });
     await expect(client.getCoinRecordByName("aa")).rejects.toMatchObject({ kind: "not_found" });
-    await expect(client.getBlock("aa")).rejects.toMatchObject({ kind: "rpc", message: "Something exploded" });
+    await expect(client.getBlock("aa")).rejects.toMatchObject({
+      kind: "rpc",
+      message: "Something exploded",
+    });
     await expect(client.getAllMempoolTxIds()).rejects.toMatchObject({ kind: "malformed" });
     await expect(client.getTransaction("aa")).rejects.toBeInstanceOf(RpcError);
     expect(client.hasIndexed).toBe(false);

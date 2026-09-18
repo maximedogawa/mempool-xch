@@ -35,10 +35,20 @@ function useNow(intervalMs = 10_000) {
 
 /** Count of non-transaction blocks between two consecutive transaction blocks. */
 function gapBetween(all: BlockRecord[], newer: BlockRecord, older: BlockRecord): number {
-  return all.filter((r) => r.height < newer.height && r.height > older.height && !r.isTransactionBlock).length;
+  return all.filter(
+    (r) => r.height < newer.height && r.height > older.height && !r.isTransactionBlock
+  ).length;
 }
 
-export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBlocksResult | undefined; loading: boolean; blockMaxCost: number }) {
+export function RecentBlocks({
+  data,
+  loading,
+  blockMaxCost,
+}: {
+  data: RecentBlocksResult | undefined;
+  loading: boolean;
+  blockMaxCost: number;
+}) {
   const now = useNow();
   const lookupPool = usePoolLookup();
   const [seen, setSeen] = useState<Set<number>>(() => new Set());
@@ -49,7 +59,9 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
     return () => clearTimeout(id);
   }, [newest]);
 
-  const totals = useBlocksAssetTotals((data?.txBlocks ?? []).map((b) => ({ height: b.height, hash: b.headerHash })));
+  const totals = useBlocksAssetTotals(
+    (data?.txBlocks ?? []).map((b) => ({ height: b.height, hash: b.headerHash }))
+  );
 
   if (loading && !data) {
     return (
@@ -68,13 +80,20 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
         const gap = older && data ? gapBetween(data.all, block, older) : 0;
         const fees = block.fees ?? 0n;
         const ageMs = (block.timestamp ?? 0) * 1000;
-        const fill = Math.min(1, 0.15 + Number(fees > 0n ? 0.35 : 0.1) + (block.rewardClaimsIncorporated?.length ?? 0) * 0.02);
+        const fill = Math.min(
+          1,
+          0.15 +
+            Number(fees > 0n ? 0.35 : 0.1) +
+            (block.rewardClaimsIncorporated?.length ?? 0) * 0.02
+        );
         const pool = lookupPool(block.poolPuzzleHash);
         const label = `Block ${formatNumber(block.height)}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, ${pool ? `farmed by ${pool.name}` : `farmer ${shortId(block.farmerPuzzleHash)}`}`;
         return (
           <li key={block.height} className="flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
-              <span className="tabular h-4 text-xs font-semibold text-fg-muted">{formatNumber(block.height)}</span>
+              <span className="tabular h-4 text-xs font-semibold text-fg-muted">
+                {formatNumber(block.height)}
+              </span>
               <BlockCube
                 fill={fill}
                 gradient={CONFIRMED_GRADIENT}
@@ -84,23 +103,40 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
                 animate={!seen.has(block.height) && i === 0}
                 size={CUBE}
               >
-                <span className="tabular text-[15px] font-bold leading-tight">{formatAmount(fees)}</span>
+                <span className="tabular text-[15px] font-bold leading-tight">
+                  {formatAmount(fees)}
+                </span>
                 <span className="text-[10px] font-medium text-fg/70">total fees</span>
                 <span className="tabular mt-1.5 text-[11px] text-fg/85">
-                  {totals[i]?.data ? `${formatAmount(BigInt(totals[i]!.data!.xch))} moved` : `${block.rewardClaimsIncorporated?.length ?? 0} reward claims`}
+                  {totals[i]?.data
+                    ? `${formatAmount(BigInt(totals[i]!.data!.xch))} moved`
+                    : `${block.rewardClaimsIncorporated?.length ?? 0} reward claims`}
                 </span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
               </BlockCube>
               <span
-                className={cn("inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted", !pool && "mono")}
-                title={pool ? `${pool.name} · farmer ${block.farmerPuzzleHash}` : `Farmer ${block.farmerPuzzleHash}`}
+                className={cn(
+                  "inline-flex h-5 max-w-[150px] items-center gap-1 truncate rounded-full border border-border bg-surface px-2 text-[10px] text-fg-muted",
+                  !pool && "mono"
+                )}
+                title={
+                  pool
+                    ? `${pool.name} · farmer ${block.farmerPuzzleHash}`
+                    : `Farmer ${block.farmerPuzzleHash}`
+                }
               >
-                <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full" style={{ background: farmerColor(block.farmerPuzzleHash) }} />
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ background: farmerColor(block.farmerPuzzleHash) }}
+                />
                 {pool ? pool.name : shortId(block.farmerPuzzleHash, 5, 4)}
               </span>
             </div>
             {gap > 0 ? (
-              <Tooltip text={`${gap} non-transaction block${gap > 1 ? "s" : ""} between ${formatNumber(block.height)} and ${formatNumber(older!.height)} (they carry no spends)`}>
+              <Tooltip
+                text={`${gap} non-transaction block${gap > 1 ? "s" : ""} between ${formatNumber(block.height)} and ${formatNumber(older!.height)} (they carry no spends)`}
+              >
                 <span className="mb-[72px] inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-muted">
                   +{gap}
                 </span>
@@ -110,7 +146,9 @@ export function RecentBlocks({ data, loading, blockMaxCost }: { data: RecentBloc
         );
       })}
       {blocks.length === 0 ? (
-        <li className="text-sm text-fg-faint">No transaction blocks in the recent window ({formatNumber(blockMaxCost)} cost each).</li>
+        <li className="text-sm text-fg-faint">
+          No transaction blocks in the recent window ({formatNumber(blockMaxCost)} cost each).
+        </li>
       ) : null}
     </ul>
   );

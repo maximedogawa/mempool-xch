@@ -9,17 +9,27 @@ import { classifyMempoolItem } from "./classify";
  * Coinset labels plot-NFT pool claims as XCH+SINGLETON; we call them "pool".
  */
 describe("heuristic kinds against Coinset coin types", () => {
-  const rows = (sample as { rows: { item: unknown; coinsetKind: string; coinsetTypes: string[] }[] }).rows;
+  const rows = (
+    sample as { rows: { item: unknown; coinsetKind: string; coinsetTypes: string[] }[] }
+  ).rows;
   test("mismatch rate stays below 10% on the recorded sample", () => {
     const results = rows.map((r) => {
       const ours = classifyMempoolItem(normaliseMempoolItem(r.item)).kind;
-      const expected = r.coinsetTypes.includes("SINGLETON") && !r.coinsetTypes.includes("NFT") && !r.coinsetTypes.includes("DID") ? ["pool", "singleton"] : [r.coinsetKind];
+      const expected =
+        r.coinsetTypes.includes("SINGLETON") &&
+        !r.coinsetTypes.includes("NFT") &&
+        !r.coinsetTypes.includes("DID")
+          ? ["pool", "singleton"]
+          : [r.coinsetKind];
       return { ours, expected, ok: expected.includes(ours) };
     });
     const mismatches = results.filter((r) => !r.ok);
     expect(rows.length).toBe(50);
     expect(mismatches.length / rows.length).toBeLessThan(0.1);
-    const counts = results.reduce((a, r) => ({ ...a, [r.ours]: (a[r.ours] ?? 0) + 1 }), {} as Record<string, number>);
+    const counts = results.reduce(
+      (a, r) => ({ ...a, [r.ours]: (a[r.ours] ?? 0) + 1 }),
+      {} as Record<string, number>
+    );
     expect(counts.cat).toBeGreaterThanOrEqual(6);
     expect(counts.pool).toBeGreaterThanOrEqual(20);
   });

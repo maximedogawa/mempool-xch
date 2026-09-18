@@ -1,7 +1,11 @@
 "use client";
 
 import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
-import { assetTotalsFromSpends, assetTotalsFromSummaries, type BlockAssetTotals } from "@/shared/lib/blocks/assetTotals";
+import {
+  assetTotalsFromSpends,
+  assetTotalsFromSummaries,
+  type BlockAssetTotals,
+} from "@/shared/lib/blocks/assetTotals";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
@@ -38,13 +42,18 @@ export function useBlock(id: string) {
   });
 }
 
-export function useBlockTransactions(height: number | null, cursor: string | null, enabled: boolean) {
+export function useBlockTransactions(
+  height: number | null,
+  cursor: string | null,
+  enabled: boolean
+) {
   const { client, endpoints } = useSettings();
   return useQuery({
     queryKey: queryKeys.blockTxs(endpoints.network, height ?? -1, cursor),
     enabled: enabled && height !== null && client.hasIndexed,
     placeholderData: keepPreviousData,
-    queryFn: ({ signal }) => client.getBlockTransactions(height!, { limit: 50, ...(cursor ? { cursor } : {}) }, signal),
+    queryFn: ({ signal }) =>
+      client.getBlockTransactions(height!, { limit: 50, ...(cursor ? { cursor } : {}) }, signal),
   });
 }
 
@@ -74,7 +83,9 @@ export function useNextTransactionBlock(height: number | null, enabled: boolean)
     enabled: enabled && height !== null,
     queryFn: async ({ signal }): Promise<BlockRecord | null> => {
       const records = await client.getBlockRecords(height! + 1, height! + 41, signal);
-      return records.filter((r) => r.isTransactionBlock).sort((a, b) => a.height - b.height)[0] ?? null;
+      return (
+        records.filter((r) => r.isTransactionBlock).sort((a, b) => a.height - b.height)[0] ?? null
+      );
     },
   });
 }
@@ -89,7 +100,12 @@ const blockTotalsLimit = createLimiter(3);
 export function useBlockAssetTotals(height: number | null, hash: string | null, enabled: boolean) {
   const { client, endpoints } = useSettings();
   return useQuery({
-    queryKey: [...queryKeys.blockRoot(endpoints.network), "assetTotals", height ?? -1, client.hasIndexed ? "coinset" : "rpc"],
+    queryKey: [
+      ...queryKeys.blockRoot(endpoints.network),
+      "assetTotals",
+      height ?? -1,
+      client.hasIndexed ? "coinset" : "rpc",
+    ],
     enabled: enabled && height !== null && hash !== null,
     staleTime: Infinity,
     queryFn: async ({ signal }): Promise<BlockAssetTotals> => {
@@ -99,7 +115,9 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
         let partial = false;
         for (let page = 0; page < TOTALS_PAGES; page += 1) {
           const c = cursor;
-          const list: TxList = await blockTotalsLimit(() => client.getBlockTransactions(height!, { limit: 50, ...(c ? { cursor: c } : {}) }, signal));
+          const list: TxList = await blockTotalsLimit(() =>
+            client.getBlockTransactions(height!, { limit: 50, ...(c ? { cursor: c } : {}) }, signal)
+          );
           txs.push(...list.transactions);
           cursor = list.nextCursor;
           if (!cursor) break;
@@ -117,11 +135,18 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
   const { client, endpoints } = useSettings();
   return useQueries({
     queries: blocks.map((b) => ({
-      queryKey: [...queryKeys.blockRoot(endpoints.network), "assetTotals", b.height, client.hasIndexed ? "coinset" : "rpc"],
+      queryKey: [
+        ...queryKeys.blockRoot(endpoints.network),
+        "assetTotals",
+        b.height,
+        client.hasIndexed ? "coinset" : "rpc",
+      ],
       staleTime: Infinity,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
         if (client.hasIndexed) {
-          const list = await blockTotalsLimit(() => client.getBlockTransactions(b.height, { limit: 50 }, signal));
+          const list = await blockTotalsLimit(() =>
+            client.getBlockTransactions(b.height, { limit: 50 }, signal)
+          );
           return assetTotalsFromSummaries(list.transactions, list.nextCursor !== null);
         }
         return assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal));

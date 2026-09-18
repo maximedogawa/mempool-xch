@@ -35,11 +35,15 @@ export function PoolShareBar({ share }: { share: PoolShare }) {
   const segments = [
     ...leading.map((group, rank) => ({
       key: group.key,
-      label: group.entry ? group.entry.name : `${groupLabel(group)} ${shortId(group.claimTarget ?? group.payouts[0]!.payoutHash, 6, 4)}`,
+      label: group.entry
+        ? group.entry.name
+        : `${groupLabel(group)} ${shortId(group.claimTarget ?? group.payouts[0]!.payoutHash, 6, 4)}`,
       share: group.share,
       color: poolColor(rank),
     })),
-    ...(share.groups.length > leading.length ? [{ key: "other", label: "everyone else", share: otherShare, color: OTHER_COLOR }] : []),
+    ...(share.groups.length > leading.length
+      ? [{ key: "other", label: "everyone else", share: otherShare, color: OTHER_COLOR }]
+      : []),
   ];
   const summaryText = segments.map((s) => `${formatPercent(s.share, 1)} ${s.label}`).join(", ");
 
@@ -49,7 +53,16 @@ export function PoolShareBar({ share }: { share: PoolShare }) {
       aria-label={`Share of the last ${formatNumber(share.totalBlocks)} blocks: ${summaryText}`}
       className="flex h-3 w-full gap-px overflow-hidden rounded-full bg-surface-2"
     >
-      {segments.map((s) => (s.share > 0 ? <div key={s.key} title={`${s.label} · ${formatPercent(s.share, 1)}`} style={{ width: `${s.share * 100}%`, background: s.color }} className="h-full" /> : null))}
+      {segments.map((s) =>
+        s.share > 0 ? (
+          <div
+            key={s.key}
+            title={`${s.label} · ${formatPercent(s.share, 1)}`}
+            style={{ width: `${s.share * 100}%`, background: s.color }}
+            className="h-full"
+          />
+        ) : null
+      )}
     </div>
   );
 }

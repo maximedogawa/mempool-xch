@@ -45,7 +45,9 @@ describe("compactMempoolItem", () => {
 describe("classifyCoinSpends", () => {
   const coin = { parentCoinInfo: "00".repeat(32), puzzleHash: "11".repeat(32), amount: 1n };
   test("plain xch", () => {
-    expect(classifyCoinSpends([{ coin, puzzleReveal: "ff02ffff01", solution: "80" }]).kind).toBe("xch");
+    expect(classifyCoinSpends([{ coin, puzzleReveal: "ff02ffff01", solution: "80" }]).kind).toBe(
+      "xch"
+    );
   });
   test("cat with asset id extraction", () => {
     const tail = "ab".repeat(32);
@@ -58,7 +60,9 @@ describe("classifyCoinSpends", () => {
     const reveal = `ff04ffff01a0${MOD_HASHES.CAT2}ffff04ffff01a0${"cd".repeat(32)}ffff04ffff01a0${MOD_HASHES.NFT_STATE_LAYER}`;
     expect(classifyCoinSpends([{ coin, puzzleReveal: reveal, solution: "80" }]).kind).toBe("nft");
     const settlement = { ...coin, puzzleHash: MOD_HASHES.SETTLEMENT_PAYMENTS };
-    expect(classifyCoinSpends([{ coin: settlement, puzzleReveal: reveal, solution: "80" }]).kind).toBe("offer");
+    expect(
+      classifyCoinSpends([{ coin: settlement, puzzleReveal: reveal, solution: "80" }]).kind
+    ).toBe("offer");
   });
   test("did and singleton launcher ids", () => {
     const launcher = "ef".repeat(32);
@@ -85,7 +89,12 @@ describe("packProjectedBlocks", () => {
   test("skips items that do not fit and keeps filling, like the node", () => {
     // 7B (best rate) + 6B does not fit; the node takes the next smaller ones instead of
     // opening a new block, so the 3B and 1B items land in block 1 and 6B waits for block 2.
-    const items = [item("big", 70n, 7_000_000_000, 1), item("six", 12n, 6_000_000_000, 2), item("three", 3n, 3_000_000_000, 3), item("one", 1n, 1_000_000_000, 4)];
+    const items = [
+      item("big", 70n, 7_000_000_000, 1),
+      item("six", 12n, 6_000_000_000, 2),
+      item("three", 3n, 3_000_000_000, 3),
+      item("one", 1n, 1_000_000_000, 4),
+    ];
     const blocks = packProjectedBlocks(items, OPTS);
     expect(blocks.map((b) => b.items.map((i) => i.id))).toEqual([["big", "three", "one"], ["six"]]);
     expect(blocks[0]!.fill).toBeCloseTo(1, 5);
@@ -110,7 +119,9 @@ describe("packProjectedBlocks", () => {
     expect(blocks[0]!.fill).toBeCloseTo(10 / 11, 5);
   });
   test("overflowing mempool folds extra blocks into the last visible one", () => {
-    const items = Array.from({ length: 40 }, (_, i) => item(`i${i}`, BigInt(40 - i), 5_500_000_000, i));
+    const items = Array.from({ length: 40 }, (_, i) =>
+      item(`i${i}`, BigInt(40 - i), 5_500_000_000, i)
+    );
     const blocks = packProjectedBlocks(items, { ...OPTS, maxBlocks: 3 });
     expect(blocks.length).toBe(3);
     expect(blocks[0]!.items.length).toBe(2);
@@ -118,10 +129,16 @@ describe("packProjectedBlocks", () => {
     expect(blocks[2]!.fill).toBe(1);
   });
   test("items larger than a block are skipped and ties are stable", () => {
-    const blocks = packProjectedBlocks([item("huge", 1n, 12_000_000_000), item("b", 0n, 1, 5), item("a", 0n, 1, 5)], OPTS);
+    const blocks = packProjectedBlocks(
+      [item("huge", 1n, 12_000_000_000), item("b", 0n, 1, 5), item("a", 0n, 1, 5)],
+      OPTS
+    );
     expect(blocks.length).toBe(1);
     expect(blocks[0]!.items.map((i) => i.id)).toEqual(["a", "b"]);
-    expect(sortByFeeRate([item("x", 5n, 1, 9), item("y", 5n, 1, 1)]).map((i) => i.id)).toEqual(["y", "x"]);
+    expect(sortByFeeRate([item("x", 5n, 1, 9), item("y", 5n, 1, 1)]).map((i) => i.id)).toEqual([
+      "y",
+      "x",
+    ]);
   });
   test("findProjectedPosition", () => {
     const blocks = packProjectedBlocks([item("a", 10n, 1), item("b", 5n, 1)], OPTS);

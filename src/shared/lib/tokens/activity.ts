@@ -6,7 +6,12 @@ export function catAmountMoved(tx: TxSummary, assetId: string): Mojos {
   return tx.events.reduce(
     (sum, e) =>
       sum +
-      e.participants.reduce((s, p) => s + p.received.cats.filter((c) => c.assetId === assetId).reduce((a, c) => a + c.amount, 0n), 0n),
+      e.participants.reduce(
+        (s, p) =>
+          s +
+          p.received.cats.filter((c) => c.assetId === assetId).reduce((a, c) => a + c.amount, 0n),
+        0n
+      ),
     0n
   );
 }
@@ -24,7 +29,11 @@ export interface TokenActivitySample {
 }
 
 /** Reduces a bounded recent page (desc order) into the sampled activity figures. */
-export function summariseRecentActivity(assetId: string, recent: TxSummary[], hasMore: boolean): Omit<TokenActivitySample, "firstSeenMs"> {
+export function summariseRecentActivity(
+  assetId: string,
+  recent: TxSummary[],
+  hasMore: boolean
+): Omit<TokenActivitySample, "firstSeenMs"> {
   return {
     lastSeenMs: recent[0]?.confirmedAtMs ?? null,
     sampledSpends: recent.length,

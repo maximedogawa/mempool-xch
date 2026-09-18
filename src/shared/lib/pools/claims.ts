@@ -25,11 +25,15 @@ export function claimsFromTransaction(tx: TxSummary): Map<string, PoolClaim> {
   const claims = new Map<string, PoolClaim>();
   for (const event of tx.events) {
     const singletons = event.inputs.filter((i) => i.outerPuzzleType === "Singleton");
-    const selfPooled = singletons.length > 0 && singletons.every((s) => s.custodyPuzzleType === "PoolWaitingRoom");
+    const selfPooled =
+      singletons.length > 0 && singletons.every((s) => s.custodyPuzzleType === "PoolWaitingRoom");
     for (const input of event.inputs) {
-      if (!input.custodyPuzzleType?.startsWith("P2Singleton") || claims.has(input.puzzleHash)) continue;
+      if (!input.custodyPuzzleType?.startsWith("P2Singleton") || claims.has(input.puzzleHash))
+        continue;
       const targets = new Set(
-        event.outputs.filter((o) => o.amount === input.amount && o.outerPuzzleType !== "Singleton").map((o) => o.puzzleHash)
+        event.outputs
+          .filter((o) => o.amount === input.amount && o.outerPuzzleType !== "Singleton")
+          .map((o) => o.puzzleHash)
       );
       if (targets.size !== 1) continue;
       claims.set(input.puzzleHash, { target: [...targets][0]!, selfPooled });
@@ -59,7 +63,15 @@ export interface ResolveClaimsOptions {
  * of several hundred PlotNFT farmers to a few hundred small requests.
  */
 export async function resolveClaims(options: ResolveClaimsOptions): Promise<void> {
-  const { payouts, fetchLatestTransaction, onResolved, onFailed, signal, concurrency = 4, retryDelayMs = 1500 } = options;
+  const {
+    payouts,
+    fetchLatestTransaction,
+    onResolved,
+    onFailed,
+    signal,
+    concurrency = 4,
+    retryDelayMs = 1500,
+  } = options;
   const settled = new Set<string>();
   let next = 0;
 

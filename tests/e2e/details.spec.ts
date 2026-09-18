@@ -6,7 +6,9 @@ test.describe("detail pages", () => {
     await mockCoinset(page);
   });
 
-  test("confirmed transaction shows block, kind, coin flow, farmed by and a verdict", async ({ page }) => {
+  test("confirmed transaction shows block, kind, coin flow, farmed by and a verdict", async ({
+    page,
+  }) => {
     await page.goto(`/tx/${TX_ID}`);
     await expect(page.getByRole("heading", { level: 1, name: "Transaction" })).toBeVisible();
     await expect(page.getByText("Confirmed", { exact: true }).first()).toBeVisible();
@@ -33,6 +35,11 @@ test.describe("detail pages", () => {
   test("address page resolves a raw puzzle hash and shows balances", async ({ page }) => {
     await page.goto(`/address/${P2}`);
     await expect(page.getByText(/673\.04/).first()).toBeVisible();
-    await expect(page.locator("svg").filter({ has: page.locator("path") }).first()).toBeVisible();
+    await expect(
+      page
+        .locator("svg")
+        .filter({ has: page.locator("path") })
+        .first()
+    ).toBeVisible();
   });
 });

@@ -208,7 +208,9 @@ a {
 
 /* Capacity bar: eased fill, travelling sheen */
 .capacity-fill {
-  transition: width 900ms cubic-bezier(0.2, 0.8, 0.2, 1), background 600ms ease;
+  transition:
+    width 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 600ms ease;
 }
 
 @keyframes sheen {
@@ -259,12 +261,22 @@ a {
 
 /* Page flair: soft green glow at the top, gradient hairline under the header */
 body {
-  background-image: radial-gradient(1200px 420px at 50% -120px, rgba(94, 206, 123, 0.12), transparent 70%);
+  background-image: radial-gradient(
+    1200px 420px at 50% -120px,
+    rgba(94, 206, 123, 0.12),
+    transparent 70%
+  );
   background-repeat: no-repeat;
 }
 
 .header-hairline {
-  background: linear-gradient(90deg, transparent, var(--primary) 30%, var(--accent) 70%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--primary) 30%,
+    var(--accent) 70%,
+    transparent
+  );
   opacity: 0.55;
 }
 
@@ -365,7 +377,10 @@ body {
 }
 
 .card-lift {
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .card-lift:hover {

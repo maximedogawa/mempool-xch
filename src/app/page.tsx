@@ -8,7 +8,9 @@ import { MempoolStats } from "@/widgets/mempool/MempoolStats";
 import { WalletPending } from "@/widgets/wallet/WalletPending";
 import { WatchlistPanel } from "@/widgets/watchlist/WatchlistPanel";
 
-export const metadata: Metadata = { title: { absolute: "mempoolxch.space · Chia mempool explorer" } };
+export const metadata: Metadata = {
+  title: { absolute: "mempoolxch.space · Chia mempool explorer" },
+};
 
 export default function HomePage() {
   return (

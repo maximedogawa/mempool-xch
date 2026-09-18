@@ -10,7 +10,13 @@ import type { MempoolItem, TxSummary } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export type TransactionView =
-  | { status: "pending"; item: MempoolItem; kind: TxKindHint; assetIds: string[]; summary: TxSummary | null }
+  | {
+      status: "pending";
+      item: MempoolItem;
+      kind: TxKindHint;
+      assetIds: string[];
+      summary: TxSummary | null;
+    }
   | { status: "confirmed" | "removed"; summary: TxSummary; item: null }
   | { status: "not_found"; item: null; summary: null };
 
@@ -44,7 +50,12 @@ export function useTransaction(id: string | null) {
         const { kind, assetIds } = classifyMempoolItem(item);
         return { status: "pending", item, kind, assetIds, summary };
       }
-      if (summary) return { status: summary.status === "removed" ? "removed" : "confirmed", summary, item: null };
+      if (summary)
+        return {
+          status: summary.status === "removed" ? "removed" : "confirmed",
+          summary,
+          item: null,
+        };
       return { status: "not_found", item: null, summary: null };
     },
     refetchInterval: (query) => (query.state.data?.status === "pending" ? 10_000 : false),

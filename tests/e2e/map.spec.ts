@@ -13,7 +13,9 @@ test.describe("network map", () => {
     const map = page.getByRole("group", { name: /World map of \d+ observed Chia nodes/ });
     await expect(map).toBeVisible();
     await expect(page.getByRole("img", { name: "Berlin, Germany: 2 nodes" })).toBeVisible();
-    await expect(page.getByRole("img", { name: "San Francisco, United States: 1 node" })).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "San Francisco, United States: 1 node" })
+    ).toBeVisible();
 
     const countries = page.getByRole("table").first();
     await expect(countries.getByText("Germany")).toBeVisible();
@@ -35,7 +37,9 @@ test.describe("network map", () => {
     await mockNodeScan(page);
     await page.goto("/map");
     await expect(page.getByRole("img", { name: "Berlin, Germany: 2 nodes" })).toBeVisible();
-    const stored = await page.evaluate(() => window.localStorage.getItem("mempool-xch:nodes:v1:mainnet"));
+    const stored = await page.evaluate(() =>
+      window.localStorage.getItem("mempool-xch:nodes:v1:mainnet")
+    );
     expect(stored).toContain("203.0.113.10");
 
     // Seeders unreachable on the next visit: the map still shows what was learnt before.
@@ -56,6 +60,8 @@ test.describe("network map", () => {
     await expect(table.getByText("203.0.113.10:8444")).toBeVisible();
     await expect(table.getByText("Wallet")).toBeVisible();
     await expect(page.getByText("Full node", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("img", { name: /Connected peer 203\.0\.113\.10 near Berlin, Germany/ })).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: /Connected peer 203\.0\.113\.10 near Berlin, Germany/ })
+    ).toBeVisible();
   });
 });

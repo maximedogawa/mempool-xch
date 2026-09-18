@@ -17,7 +17,10 @@ import { OFFER_STATUS_LABEL, OfferSideView, OfferStatusBadge } from "./OfferPart
 
 const STATUS_TABS: OfferStatus[] = ["open", "confirmed", "cancelled", "expired", "pending"];
 
-export type OfferScope = { kind: "address"; p2: string } | { kind: "cat"; assetId: string } | { kind: "nft"; nftId: string };
+export type OfferScope =
+  | { kind: "address"; p2: string }
+  | { kind: "cat"; assetId: string }
+  | { kind: "nft"; nftId: string };
 
 function scopeKey(scope: OfferScope): string {
   return scope.kind === "address" ? scope.p2 : scope.kind === "cat" ? scope.assetId : scope.nftId;
@@ -34,7 +37,17 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
   const id = scopeKey(scope);
   const network = endpoints.network;
   const list = usePagedList<OfferState>({
-    queryKey: useCallback((cursor: string | null) => [...queryKeys.chainRoot(network), "offers", scope.kind, id, status, cursor], [network, scope.kind, id, status]),
+    queryKey: useCallback(
+      (cursor: string | null) => [
+        ...queryKeys.chainRoot(network),
+        "offers",
+        scope.kind,
+        id,
+        status,
+        cursor,
+      ],
+      [network, scope.kind, id, status]
+    ),
     fetchPage: useCallback(
       async (cursor: string | null, limit: number, signal: AbortSignal) => {
         const opts = { cursor: cursor ?? undefined, limit };
@@ -66,7 +79,12 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
                 type="button"
                 aria-pressed={status === s}
                 onClick={() => setStatus(s)}
-                className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors", status === s ? "border-primary bg-primary-soft text-primary" : "border-border text-fg-muted hover:text-fg")}
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
+                  status === s
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-border text-fg-muted hover:text-fg"
+                )}
               >
                 {OFFER_STATUS_LABEL[s].label}
               </button>
@@ -84,14 +102,22 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
         ) : list.error ? (
           <p className="py-4 text-center text-sm text-danger">{errorMessage(list.error)}</p>
         ) : list.items.length === 0 ? (
-          <p className="py-4 text-center text-sm text-fg-faint">No {OFFER_STATUS_LABEL[status].label.toLowerCase()} offers indexed{scope.kind === "address" ? " with this address as maker" : " for this asset"}.</p>
+          <p className="py-4 text-center text-sm text-fg-faint">
+            No {OFFER_STATUS_LABEL[status].label.toLowerCase()} offers indexed
+            {scope.kind === "address" ? " with this address as maker" : " for this asset"}.
+          </p>
         ) : (
           <ul className="flex flex-col divide-y divide-border/60 text-sm" data-testid="offers-list">
             {list.items.map((o) => {
-              const maker = o.makerP2s[0] ? puzzleHashToAddress(o.makerP2s[0], networkConfig.addressPrefix) : null;
+              const maker = o.makerP2s[0]
+                ? puzzleHashToAddress(o.makerP2s[0], networkConfig.addressPrefix)
+                : null;
               const when = o.confirmedAtMs ?? o.cancelledAtMs ?? o.firstSeenMs;
               return (
-                <li key={o.offerId} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
+                <li
+                  key={o.offerId}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2"
+                >
                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <OfferStatusBadge status={o.status} />
                     <span className="inline-flex flex-wrap items-center gap-1.5">
@@ -119,7 +145,13 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
           </ul>
         )}
         {list.hasMore ? (
-          <Button variant="secondary" size="sm" onClick={() => void list.loadMore()} disabled={list.loadingMore} className="self-center">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void list.loadMore()}
+            disabled={list.loadingMore}
+            className="self-center"
+          >
             {list.loadingMore ? "Loading…" : "Load more"}
           </Button>
         ) : null}

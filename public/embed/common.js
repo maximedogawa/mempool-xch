@@ -4,11 +4,16 @@
   var theme = params.get("theme") === "light" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", theme);
   var network = params.get("network") === "testnet11" ? "testnet11" : "mainnet";
-  var base = network === "testnet11" ? "https://testnet11.api.coinset.org" : "https://api.coinset.org";
+  var base =
+    network === "testnet11" ? "https://testnet11.api.coinset.org" : "https://api.coinset.org";
   var site = location.origin;
 
   function rpc(method, body) {
-    return fetch(base + "/" + method, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) }).then(function (r) {
+    return fetch(base + "/" + method, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body || {}),
+    }).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     });
@@ -43,7 +48,21 @@
     if (e) e.textContent = message;
   }
   var brand = document.querySelector(".brand");
-  if (brand) brand.href = site + (params.get("network") === "testnet11" ? "/?network=testnet11" : "/");
+  if (brand)
+    brand.href = site + (params.get("network") === "testnet11" ? "/?network=testnet11" : "/");
 
-  window.Embed = { params: params, theme: theme, network: network, base: base, site: site, rpc: rpc, xch: xch, cost: cost, pct: pct, age: age, el: el, fail: fail };
+  window.Embed = {
+    params: params,
+    theme: theme,
+    network: network,
+    base: base,
+    site: site,
+    rpc: rpc,
+    xch: xch,
+    cost: cost,
+    pct: pct,
+    age: age,
+    el: el,
+    fail: fail,
+  };
 })();

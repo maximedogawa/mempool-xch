@@ -6,17 +6,39 @@ import { formatAmount, formatCost, formatFeeRate } from "@/shared/lib/chia/amoun
 import { formatAge, formatEta } from "@/shared/lib/format/time";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { routes } from "@/shared/lib/routes";
-import { AssetAmount, AssetBadge, Card, CardBody, CardHeader, Hash, Table, Td, Th, Tr } from "@/shared/ui";
+import {
+  AssetAmount,
+  AssetBadge,
+  Card,
+  CardBody,
+  CardHeader,
+  Hash,
+  Table,
+  Td,
+  Th,
+  Tr,
+} from "@/shared/ui";
 import { Button } from "@/shared/ui/Button";
 
-export function ProjectedBlockDetails({ block, onClose }: { block: ProjectedBlock; onClose: () => void }) {
+export function ProjectedBlockDetails({
+  block,
+  onClose,
+}: {
+  block: ProjectedBlock;
+  onClose: () => void;
+}) {
   const items = block.items.slice(0, 200);
   return (
     <Card className="mt-4">
       <CardHeader
         title={`Projected block ${block.index + 1} · ${block.items.length} spend bundles · ${formatCost(block.totalCost)} cost · ${formatEta(block.etaSeconds)}`}
         action={
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close projected block details">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Close projected block details"
+          >
             <X size={14} aria-hidden="true" /> Close
           </Button>
         }
@@ -46,7 +68,9 @@ export function ProjectedBlockDetails({ block, onClose }: { block: ProjectedBloc
                 <Td className="tabular text-right">{formatAmount(BigInt(item.fee))}</Td>
                 <Td className="tabular text-right">{formatCost(item.cost)}</Td>
                 <Td className="tabular text-right">{formatFeeRate(item.feeRate)}</Td>
-                <Td className="text-right"><AssetAmount assets={item.assets} kind={item.kind} /></Td>
+                <Td className="text-right">
+                  <AssetAmount assets={item.assets} kind={item.kind} />
+                </Td>
                 <Td className="tabular text-right text-fg-faint">{formatAge(item.firstSeen)}</Td>
               </Tr>
             ))}
@@ -54,7 +78,11 @@ export function ProjectedBlockDetails({ block, onClose }: { block: ProjectedBloc
         </Table>
         {block.items.length > items.length ? (
           <p className="mt-2 text-xs text-fg-faint">
-            Showing the first {items.length} of {block.items.length}. <Link href={routes.mempool()} className="text-accent hover:underline">Open the full mempool table</Link>.
+            Showing the first {items.length} of {block.items.length}.{" "}
+            <Link href={routes.mempool()} className="text-accent hover:underline">
+              Open the full mempool table
+            </Link>
+            .
           </p>
         ) : null}
       </CardBody>
