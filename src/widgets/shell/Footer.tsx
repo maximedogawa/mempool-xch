@@ -35,6 +35,9 @@ export function Footer() {
           <span title={channel.detail}>live: {channel.name.toLowerCase()}</span>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Link href={routes.learn()} className="hover:text-fg">
+            Learn
+          </Link>
           <Link href={routes.docs()} className="hover:text-fg">
             Help
           </Link>
@@ -43,6 +46,15 @@ export function Footer() {
           </Link>
           <Link href={routes.map()} className="hover:text-fg">
             Network
+          </Link>
+          <Link href={routes.prefarm()} className="hover:text-fg">
+            Prefarm
+          </Link>
+          <Link href={routes.status()} className="hover:text-fg">
+            Status
+          </Link>
+          <Link href={routes.changelog()} className="hover:text-fg">
+            Changelog
           </Link>
           <Link href={routes.settings()} className="hover:text-fg">
             Settings

@@ -200,6 +200,15 @@ export function blockCoinFlow() {
 }
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
 
+/** Mocked prefarm custody vaults (src/shared/lib/prefarm/vaults.ts): the singleton coin sits at the first address of each. */
+const PREFARM_SINGLETONS: Record<string, { puzzleHash: string; amount: bigint }> = {
+  "6c77dce3c3bab525dab7883e8ad513a8f3ff127e872009b12836cbb1c8f26647": { puzzleHash: "21810d9384937e833ab004915603e0653705005933df43ea7cd56320677be8dd", amount: 2_437_500_000_000_000_000n },
+  "355042db2e191d9176c25d3e059524265653549cee0fc65c4ed235d58bf8e659": { puzzleHash: "94dfb96a8c234e3ed624f4fa1686af5e5de65a90aa6cc8513402ebb848508278", amount: 8_375_000_000_000_000_000n },
+  d76ef7df8cfab2d8514f58e72fd12f2e7f5ada69db6eb5be90f084cfa37a29a2: { puzzleHash: "5071e05aba59fb65b60df4205d070b685ea8ea19376c9835900653c0109ffc6e", amount: 650_000_000_000_000_000n },
+  a26cb54f7b9e8f38e2ee903880468ba262f5a1b39fe123c88053b14fac66ad10: { puzzleHash: "3dc2fea720de193d7a8d006664dede4210ec065debefcc5697e73c55dbbd51db", amount: 42_500_000_000_000_000n },
+};
+const PREFARM_COINS: Record<string, bigint> = Object.fromEntries(Object.values(PREFARM_SINGLETONS).map((v) => [v.puzzleHash, v.amount]));
+
 /** A real pending mempool item's id (mempool_items.json's first entry), reused for the watchlist. */
 export const WATCHED_PENDING_TX_ID = "124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd";
 
@@ -303,7 +312,12 @@ export async function answerNodeMethod(route: Route) {
       }
       case "get_coin_record_by_name":
         return json(route, { success: false, error: "Coin record not found" });
-      case "get_coin_records_by_puzzle_hash":
+      case "get_coin_records_by_puzzle_hash": {
+        // The prefarm vaults' addresses hold coins; every other puzzle hash is empty.
+        const ph = String(body.puzzle_hash ?? "").replace(/^0x/, "");
+        const held = PREFARM_COINS[ph];
+        return json(route, { coin_records: held ? [coinRecord(hash(0x9f), ph, held).record] : [], success: true });
+      }
       case "get_coin_records_by_hint":
       case "get_coin_records_by_parent_ids":
       case "get_coin_records_by_names":
@@ -337,8 +351,16 @@ export async function answerNodeMethod(route: Route) {
         return json(route, { transactions: [], success: true });
       case "get_coin_details":
         return json(route, { success: false, error: "not found" }, 404);
-      case "get_singleton_info":
-        return json(route, { launcher_id: body.launcher_id, singleton_type: null, coin_record: null, success: true });
+      case "get_singleton_info": {
+        const launcher = String(body.launcher_id ?? "").replace(/^0x/, "");
+        const vault = PREFARM_SINGLETONS[launcher];
+        return json(route, {
+          launcher_id: body.launcher_id,
+          singleton_type: vault ? "singleton" : null,
+          coin_record: vault ? { coin: { parent_coin_info: `0x${hash(0x9f)}`, puzzle_hash: `0x${vault.puzzleHash}`, amount: Number(vault.amount) }, confirmed_block_index: 8_969_947, spent: false, spent_block_index: 0, coinbase: false, timestamp: 1_789_000_000 } : null,
+          success: true,
+        });
+      }
       case "get_latest_nft_coin_by_nft_id":
         return json(route, { nft_coin_record: null, success: true });
       case "get_offer": {

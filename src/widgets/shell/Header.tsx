@@ -32,6 +32,7 @@ const PRIMARY: NavItem[] = [
 const MORE: NavItem[] = [
   { href: routes.blocks(), label: "Blocks", match: (p) => p.startsWith("/blocks") || p.startsWith("/block") },
   { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
+  { href: routes.learn(), label: "Learn", match: (p) => p.startsWith("/learn") },
   { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
 ];
 

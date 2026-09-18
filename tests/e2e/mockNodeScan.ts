@@ -17,6 +17,8 @@ const GEO: Record<string, unknown> = {
   [SEED_NODES.sanFrancisco]: { ip: SEED_NODES.sanFrancisco, country: "United States", country_code: "US", city: "San Francisco", latitude: "37.77", longitude: "-122.42" },
   [SEED_NODES.unplaced]: { ip: SEED_NODES.unplaced, latitude: "nil", longitude: "nil" },
   [SEED_NODES.v6]: { ip: SEED_NODES.v6, country: "Germany", country_code: "DE", city: "Hamburg", latitude: "53.55", longitude: "9.99" },
+  /** The status page's probe address. */
+  "8.8.8.8": { ip: "8.8.8.8", country: "United States", country_code: "US", latitude: "37.751", longitude: "-97.822", organization_name: "Google LLC" },
 };
 
 /**

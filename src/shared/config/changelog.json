@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-09-18",
+  "releases": [
+    {
+      "version": "unreleased",
+      "date": null,
+      "changes": [
+        "Coinset parity: offers, clawbacks, reorgs, netspace and raw transactions",
+        "Network map: scan the Chia seeders from the browser and place nodes on a world map",
+        "Charts: hide series without a data source; next-block goggles redesign"
+      ]
+    },
+    {
+      "version": "0.4.0",
+      "date": "2026-09-17",
+      "changes": [
+        "Remove the intro paragraphs from the Pools and Help pages",
+        "Comments: drop task and decision ids, remove ones that say nothing",
+        "Bump version to 0.4.0 in package.json and sage-manifest.json",
+        "Code review cleanup: encoded outbound links, dead server-layer leftovers",
+        "Keep output file tracing off the Sage snapshot reads (TASK-044)",
+        "CI: harden the image workflow and build on the production bun version",
+        "Production security headers for the hosted build (TASK-050)",
+        "Pools page: group PlotNFT farmers by the pool that claims their rewards (TASK-060)",
+        "Search resolves NFTs and collections by name via MintGarden (TASK-055)",
+        "NFT thumbnails everywhere a compact asset icon is shown (TASK-054)",
+        "Restrict asset image origins to a trusted host allowlist (TASK-051)",
+        "Fix pool registry: only fixed-address pools can be named this way",
+        "Redesign the Pools page: share chart, aggregated unidentified total, verified NoSSD entry",
+        "Rearrange top nav, add 6 verified pools, and clean up the pools label",
+        "Redesign shell, search, and page headers for a modern premium look",
+        "TASK-065: network map (connections table, client-side only)",
+        "TASK-066: NFT section (home, collections, activity, mints, offers)",
+        "TASK-071: watchlist and opt-in browser notifications",
+        "TASK-069: API reference page",
+        "TASK-073: Why mempoolxch.space section, fix stale live-updates docs",
+        "TASK-067: Tokens page",
+        "TASK-060/TASK-061: pools page, pool registry and block-page pool naming",
+        "Redesign header: bigger, more visible search and cleaner nav",
+        "TASK-059: Fees page (node estimate, rate distribution, transfer costs, history)",
+        "TASK-058: Charts page (Market, Mempool, Blocks, Network, Coin set)",
+        "TASK-062: transaction page parity with xchmempool.com",
+        "TASK-061: block page parity with xchmempool.com",
+        "Bump version to 0.2.0 in package.json and sage-manifest.json"
+      ]
+    },
+    {
+      "version": "0.3.1",
+      "date": "2026-09-17",
+      "changes": [
+        "Fix Docker build workflow: always push image and remove pull request condition on a new release",
+        "Run Docker build on PRs and workflow_dispatch, push only on release",
+        "Bump version to 0.3.1 in package.json and sage-manifest.json",
+        "Fix Docker build: bump Bun to 1.4 and add PR build check"
+      ]
+    },
+    {
+      "version": "0.3.0",
+      "date": "2026-09-17",
+      "changes": [
+        "Bump version to 0.3.0 in package.json and sage-manifest.json",
+        "Add TanStack Query devtools in development",
+        "Remove server-side Coinset/Dexie caching: client-direct data access",
+        "Refactor legal tests: remove commented code and obsolete test cases",
+        "Implement disclaimer functionality with storage and UI components",
+        "Refactor legal pages: remove unused imports for improved clarity",
+        "Update legal pages with direct contact information and remove placeholder fields",
+        "TASK-056: legal pages, consent panel and footer disclaimer",
+        "Remove Coinset API key and webhook receiver: anonymous WebSocket only",
+        "CLAUDE.md: last stray \"Mempool.xch\" reference → mempoolxch.space"
+      ]
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-09-16",
+      "changes": [
+        "AssetIcon: fall through wallet icon → registry → Dexie before the letter badge",
+        "Sage: asset balances granted at install (required capability); forget stale refusals once granted (TASK-043)",
+        "Dashboard: the connected Sage wallet's pending transactions with queue position and a coin chime (TASK-042)",
+        "CAT names, tickers and icons from Dexie; Spacescan removed (TASK-041)",
+        "Load measurement and tuning: zero browser Coinset calls on the hosted app (TASK-037)",
+        "Channel visibility and custom-node parity (TASK-036)",
+        "Coinset API key on server calls and a verified webhook receiver (TASK-035)",
+        "Server-sent events and hosted chain cache (TASK-034)",
+        "CAT ids resolve to ticker and icon everywhere; quiet dev WebSocket close; gate per-block Coinset calls",
+        "Sage wallet: ask each capability once, tabbed assets/transactions/coins layout (TASK-038)",
+        "Server-side Coinset event hub driving the mempool syncer (TASK-033)",
+        "Sage wallet page: recent first, lazy-load all transactions, coins and assets (TASK-032)",
+        "Asset registry: server-cached token list, loaded once via TanStack, useAsset hook (TASK-031)",
+        "docker compose: pass version and commit build args",
+        "Asset-aware next-block treemap and keyboard/touch checks (TASK-029, TASK-022)",
+        "Block pages and strips show what moved per asset (TASK-030)",
+        "Mempool and coin data checks (TASK-028)",
+        "Verify fee, cost and mojo-per-cost semantics against the node (TASK-027)",
+        "Show asset amounts in their own unit (TASK-026)"
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-09-15",
+      "changes": [
+        "Stabilize header layout: fixes mobile overflow flake, tooltip clipping",
+        "Add end-to-end test for debugging overflow issues in block view",
+        "Fix CI: regenerate bun.lock as lockfileVersion 1",
+        "README wording",
+        "Brand and URL: mempoolxch.space everywhere (wordmark, titles, manifest, docs, licence)",
+        "Sage-first data: wallet answers everything it can inside Sage",
+        "e2e: disambiguate the Next block label",
+        "Block queue: silhouette glow, shared baseline, divider anchoring; compact animated next-block treemap",
+        "One-scroller block queue with true cubes, instant summary API, Sage wallet page",
+        "Block queue redesign, next-block goggles, block time card, lighter data load, user docs",
+        "Visual polish: connection pill, animated capacity bar, asset icons from Spacescan",
+        "Accessibility fixes, e2e stabilisation, coin-transactions client method",
+        "Explorer pages, settings, docs, Sage packaging, e2e suites",
+        "Scaffold Next.js app with data layer, live stream, design system and dashboard",
+        "Initial commit"
+      ]
+    }
+  ]
+}
