@@ -6,6 +6,8 @@ import type {
   BlockRecord,
   BlockchainState,
   CatBalance,
+  ClawbackCoin,
+  ClawbackList,
   Coin,
   CoinDetails,
   CoinRecord,
@@ -13,9 +15,16 @@ import type {
   FeeEstimate,
   FullBlockSummary,
   MempoolItem,
+  OfferList,
+  OfferSide,
+  OfferState,
+  OfferStatus,
   ParticipantFlow,
   PeerConnection,
   RawCoinRef,
+  RawTransaction,
+  ReorgEvent,
+  ReorgList,
   SingletonInfo,
   TxList,
   TxSummary,
@@ -23,6 +32,7 @@ import type {
   TxSummaryKind,
   XchBalance,
 } from "./types";
+import { OFFER_STATUSES } from "./types";
 
 type Raw = Record<string, unknown>;
 const asRaw = (v: unknown): Raw => (v && typeof v === "object" ? (v as Raw) : {});
@@ -339,4 +349,90 @@ export function normalisePeerConnection(raw: unknown): PeerConnection {
     peakHeight: nullableNum(r.peak_height),
     creationTimeS: nullableNum(r.creation_time),
   };
+}
+
+/* ---- Coinset offers, clawbacks, reorgs, raw transactions ---- */
+
+const nullableHex = (v: unknown): string | null => (typeof v === "string" && v ? hex(v) : null);
+
+function normaliseOfferSide(assetIds: unknown, xchMojos: unknown, catMojos: unknown, nftIds: unknown): OfferSide {
+  const cats = asRaw(catMojos);
+  const ids = arr(assetIds).map(hex);
+  return {
+    xch: big(xchMojos),
+    cats: ids.map((assetId) => ({ assetId, amount: big(cats[assetId] ?? cats[`0x${assetId}`]) })),
+    nfts: arr(nftIds).map(hex),
+  };
+}
+
+export function normaliseOfferState(raw: unknown): OfferState {
+  const r = asRaw(raw);
+  const status = str(r.status, "open");
+  return {
+    offerId: hex(r.offer_id),
+    status: (OFFER_STATUSES as readonly string[]).includes(status) ? (status as OfferStatus) : "open",
+    firstSeenMs: num(r.first_seen_ms),
+    lastUpdatedMs: num(r.last_updated_ms),
+    makerP2s: arr(r.maker_p2s).map(hex),
+    offered: normaliseOfferSide(r.offered_cat_asset_ids, r.offered_xch_mojos, r.offered_cat_mojos, r.offered_nft_ids),
+    requested: normaliseOfferSide(r.requested_cat_asset_ids, r.requested_xch_mojos, r.requested_cat_mojos, r.requested_nft_ids),
+    feeMojos: big(r.fee_mojos),
+    expiresBeforeHeight: nullableNum(r.expires_before_height),
+    expiresBeforeTimeMs: nullableNum(r.expires_before_time_ms),
+    pendingTxId: nullableHex(r.pending_tx_id),
+    confirmedTxId: nullableHex(r.confirmed_tx_id),
+    confirmedHeight: nullableNum(r.confirmed_height),
+    confirmedAtMs: nullableNum(r.confirmed_at_ms),
+    cancelledByTxId: nullableHex(r.cancelled_by_tx_id),
+    cancelledHeight: nullableNum(r.cancelled_height),
+    cancelledAtMs: nullableNum(r.cancelled_at_ms),
+    expiredAtHeight: nullableNum(r.expired_at_height),
+  };
+}
+
+export function normaliseOfferList(raw: unknown): OfferList {
+  const r = asRaw(raw);
+  return { offers: arr(r.offers).map(normaliseOfferState), truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+}
+
+export function normaliseClawbackList(raw: unknown): ClawbackList {
+  const r = asRaw(raw);
+  const clawbacks = arr(r.clawbacks).map((c): ClawbackCoin => {
+    const x = asRaw(c);
+    const kind = str(x.asset_kind, "xch");
+    return {
+      coinId: hex(x.coin_id),
+      receiverP2: hex(x.receiver_p2),
+      senderP2: hex(x.sender_p2),
+      seconds: num(x.seconds),
+      amount: big(x.amount),
+      assetKind: kind === "cat" || kind === "nft" ? kind : "xch",
+      assetId: nullableHex(x.asset_id),
+      revocable: Boolean(x.revocable),
+    };
+  });
+  return { clawbacks, truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+}
+
+export function normaliseReorgEvent(raw: unknown): ReorgEvent {
+  const r = asRaw(raw);
+  return {
+    id: str(r.id),
+    detectedAtMs: num(r.detected_at_ms),
+    oldPeakHeight: num(r.old_peak_height),
+    oldPeakHash: hex(r.old_peak_hash),
+    newPeakHeight: num(r.new_peak_height),
+    newPeakHash: hex(r.new_peak_hash),
+    depth: num(r.reorg_depth, Math.max(0, num(r.old_peak_height) - num(r.new_peak_height))),
+  };
+}
+
+export function normaliseReorgList(raw: unknown): ReorgList {
+  const r = asRaw(raw);
+  return { reorgs: arr(r.reorgs).map(normaliseReorgEvent), truncated: Boolean(r.truncated), nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null };
+}
+
+export function normaliseRawTransaction(raw: unknown): RawTransaction {
+  const r = asRaw(raw);
+  return { source: r.source === "inferred" ? "inferred" : "mempool", item: normaliseMempoolItem(r.item) };
 }

@@ -16,6 +16,7 @@ import { AssetImage } from "@/shared/ui/AssetImage";
 import { CoinsetNotice } from "./CatPage";
 import { fetchNftMetadata } from "./nftMetadata";
 import { NftOffersCard } from "@/widgets/nft/NftOffersCard";
+import { OffersCard } from "@/widgets/offers/OffersCard";
 import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
 
@@ -151,6 +152,7 @@ export function NftPage() {
       </Card>
 
       <NftOffersCard nftId={ids.nftId} enabled={network === "mainnet"} />
+      <OffersCard scope={{ kind: "nft", nftId: ids.nftId }} title="Offer history on chain" />
 
       <Card>
         <CardHeader title="Transfer history" />

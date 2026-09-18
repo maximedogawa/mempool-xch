@@ -17,6 +17,7 @@ import { tokenLabel } from "@/shared/api/tokenList";
 import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
 import { useTokenList } from "@/shared/api/useTokenList";
+import { OffersCard } from "@/widgets/offers/OffersCard";
 
 export function CoinsetNotice({ what }: { what: string }) {
   return (
@@ -119,6 +120,8 @@ export function CatPage() {
           )}
         </CardBody>
       </Card>
+
+      <OffersCard scope={{ kind: "cat", assetId }} title="Offers involving this token" />
     </div>
   );
 }

@@ -16,6 +16,10 @@ export interface LiveContextValue {
   /** Monotonic counter bumped on every transaction batch, for feeds that want a nudge. */
   txBatch: number;
   lastTxEvent: Extract<LiveEvent, { type: "transaction" }> | null;
+  /** Latest netspace estimate pushed by Coinset (null on custom nodes and before the first frame). */
+  netspace: { bytes: bigint; difficulty: number; at: number } | null;
+  /** Most recent reorg seen on this connection; null until one happens. */
+  lastReorg: Extract<LiveEvent, { type: "reorg" }> | null;
 }
 
 const LiveContext = createContext<LiveContextValue | null>(null);
@@ -48,6 +52,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const [peakHeight, setPeakHeight] = useState<number | null>(null);
   const [txBatch, setTxBatch] = useState(0);
   const [lastTxEvent, setLastTxEvent] = useState<LiveContextValue["lastTxEvent"]>(null);
+  const [netspace, setNetspace] = useState<LiveContextValue["netspace"]>(null);
+  const [lastReorg, setLastReorg] = useState<LiveContextValue["lastReorg"]>(null);
   const network = endpoints.network;
   const peakRef = useRef<number | null>(null);
 
@@ -63,6 +69,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     setPeakHeight(null);
     setLastEventAt(null);
     setLastTxEvent(null);
+    setNetspace(null);
+    setLastReorg(null);
     setStatus("connecting");
     // Only the families that change with a new peak: state, fees and the recent window.
     // Per-block data (records by hash, transactions, asset totals) is immutable and keyed by
@@ -104,6 +112,15 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           }
         } else if (event.type === "mempool") {
           invalidateMempool();
+        } else if (event.type === "netspace") {
+          setNetspace({ bytes: event.bytes, difficulty: event.difficulty, at: Date.now() });
+        } else if (event.type === "reorg") {
+          setLastReorg(event);
+          // The rolled-back blocks are gone: everything keyed on the recent chain is stale.
+          peakRef.current = null;
+          invalidateChain();
+          invalidateMempool();
+          void queryClient.invalidateQueries({ queryKey: queryKeys.blockRoot(network) });
         }
       },
     });
@@ -112,8 +129,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   }, [client, endpoints.wsUrl, hydrated, network, queryClient]);
 
   const value = useMemo<LiveContextValue>(
-    () => ({ status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent }),
-    [status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent]
+    () => ({ status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent, netspace, lastReorg }),
+    [status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent, netspace, lastReorg]
   );
   return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
 }

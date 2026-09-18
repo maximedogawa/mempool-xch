@@ -17,6 +17,8 @@ import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
 import { SageAddressPanel } from "@/widgets/wallet/SagePanels";
 import { WatchButton } from "@/widgets/watchlist/WatchButton";
+import { OffersCard } from "@/widgets/offers/OffersCard";
+import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
 function Unavailable({ what }: { what: string }) {
@@ -156,6 +158,8 @@ export function AddressPage() {
         </Card>
       ) : null}
 
+      {data.indexed && !isDid ? <ClawbacksCard p2={ph} /> : null}
+
       {data.indexed ? (
         <Card>
           <CardHeader title={`Pending transactions${data.pending.transactions.length ? ` (${data.pending.transactions.length})` : ""}`} action={<span className="text-[11px] text-fg-faint">refreshes every 10 s</span>} />
@@ -175,6 +179,8 @@ export function AddressPage() {
           )}
         </CardBody>
       </Card>
+
+      {data.indexed && !isDid ? <OffersCard scope={{ kind: "address", p2: ph }} title="Offers made from this address" /> : null}
     </div>
   );
 }

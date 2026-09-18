@@ -10,13 +10,18 @@ import {
   normaliseBlockRecord,
   normaliseBlockchainState,
   normaliseCatBalances,
+  normaliseClawbackList,
   normaliseCoinDetails,
   normaliseCoinRecord,
   normaliseCoinSpend,
   normaliseFeeEstimate,
   normaliseFullBlock,
   normaliseMempoolItem,
+  normaliseOfferList,
+  normaliseOfferState,
   normalisePeerConnection,
+  normaliseRawTransaction,
+  normaliseReorgList,
   normaliseSingletonInfo,
   normaliseTxList,
   normaliseTxSummary,
@@ -26,13 +31,19 @@ import type {
   BlockRecord,
   BlockchainState,
   CatBalance,
+  ClawbackList,
   CoinDetails,
   CoinRecord,
   CoinSpend,
   FeeEstimate,
   FullBlockSummary,
   MempoolItem,
+  OfferList,
+  OfferState,
+  OfferStatus,
   PeerConnection,
+  RawTransaction,
+  ReorgList,
   SingletonInfo,
   TxList,
   TxSummary,
@@ -351,6 +362,44 @@ export function createRpcClient(options: RpcClientOptions) {
     async getLatestNftCoinByNftId(nftId: string, signal?: AbortSignal): Promise<Raw | null> {
       const r = await indexed("get_latest_nft_coin_by_nft_id", { nft_id: nftId }, signal);
       return r.nft_coin_record && typeof r.nft_coin_record === "object" ? (r.nft_coin_record as Raw) : null;
+    },
+
+    /* ---- offers, clawbacks, reorgs, raw transactions (Coinset only) ---- */
+
+    async getOffer(offerId: string, signal?: AbortSignal): Promise<OfferState> {
+      const r = await indexed("get_offer", { offer_id: offerId.replace(/^0x/, "") }, signal);
+      return normaliseOfferState(notFoundIfMissing(r.state, "get_offer", "Offer"));
+    },
+
+    async getOffersByP2(p2: string, status: OfferStatus, opts: ListOptions = {}, signal?: AbortSignal): Promise<OfferList> {
+      const r = await indexed("get_offers_by_p2", { p2: withHexPrefix(p2), status, order: "desc", ...opts }, signal);
+      return normaliseOfferList(r);
+    },
+
+    async getOffersByCatAssetId(assetId: string, status: OfferStatus, opts: ListOptions = {}, signal?: AbortSignal): Promise<OfferList> {
+      const r = await indexed("get_offers_by_cat_asset_id", { asset_id: withHexPrefix(assetId), status, filter: "all", order: "desc", ...opts }, signal);
+      return normaliseOfferList(r);
+    },
+
+    async getOffersByNftId(nftId: string, status: OfferStatus, opts: ListOptions = {}, signal?: AbortSignal): Promise<OfferList> {
+      const r = await indexed("get_offers_by_nft_id", { nft_id: nftId, status, filter: "all", order: "desc", ...opts }, signal);
+      return normaliseOfferList(r);
+    },
+
+    async getClawbackCoinsByReceiver(p2: string, opts: ListOptions = {}, signal?: AbortSignal): Promise<ClawbackList> {
+      const r = await indexed("get_clawback_coins_by_receiver", { p2: withHexPrefix(p2), order: "desc", ...opts }, signal);
+      return normaliseClawbackList(r);
+    },
+
+    async getReorgs(opts: ListOptions = {}, signal?: AbortSignal): Promise<ReorgList> {
+      const r = await indexed("get_reorgs", { limit: 50, ...opts }, signal);
+      return normaliseReorgList(r);
+    },
+
+    /** Mempool-style item of a bundle even after it left the mempool (confirmed or inferred from the block). */
+    async getRawTransactionById(txId: string, signal?: AbortSignal): Promise<RawTransaction> {
+      const r = await indexed("get_raw_transaction_by_id", { tx_id: txId.replace(/^0x/, "") }, signal);
+      return normaliseRawTransaction({ ...r, item: notFoundIfMissing(r.item, "get_raw_transaction_by_id", "Transaction") });
     },
   };
 }

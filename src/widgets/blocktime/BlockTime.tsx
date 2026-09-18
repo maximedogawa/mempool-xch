@@ -3,11 +3,16 @@
 import { useEffect, useState } from "react";
 import { useBlockchainState, useRecentBlocks } from "@/shared/api/hooks";
 import { CHIA } from "@/shared/config/networks";
+import Link from "next/link";
 import { formatNumber } from "@/shared/lib/chia/amounts";
+import { formatBytes } from "@/shared/lib/charts/format";
 import { cn } from "@/shared/lib/cn";
-import { formatDuration } from "@/shared/lib/format/time";
+import { formatAge, formatDuration } from "@/shared/lib/format/time";
+import { routes } from "@/shared/lib/routes";
+import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
+import { useReorgs } from "@/widgets/blocks/ReorgHistory";
 
 function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -41,6 +46,16 @@ export function BlockTime() {
   const progress = sinceLast !== null ? Math.min(1, sinceLast / expectedInterval) : 0;
   const overdue = sinceLast !== null && sinceLast > expectedInterval;
   const peak = state.data?.peak.height;
+  // Netspace from Coinset's pushed estimate when the stream has one, else the node's own state.
+  const { netspace: pushed, lastReorg } = useLive();
+  const netspace = pushed?.bytes ?? state.data?.space ?? null;
+  const reorgs = useReorgs(1);
+  const latestReorg = lastReorg
+    ? { at: lastReorg.detectedAtMs, depth: lastReorg.depth, height: lastReorg.newPeakHeight }
+    : reorgs.data?.reorgs[0]
+      ? { at: reorgs.data.reorgs[0].detectedAtMs, depth: reorgs.data.reorgs[0].depth, height: reorgs.data.reorgs[0].newPeakHeight }
+      : null;
+  const recentReorg = latestReorg !== null && now - latestReorg.at < 60 * 60_000;
 
   return (
     <Card>
@@ -65,7 +80,7 @@ export function BlockTime() {
                 <div aria-hidden="true" className="capacity-sheen absolute inset-0" />
               </div>
             </div>
-            <dl className="grid grid-cols-3 gap-2 text-center">
+            <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Avg block</dt>
                 <dd className="tabular text-sm font-semibold">{avgBlock.toFixed(1)} s</dd>
@@ -78,9 +93,22 @@ export function BlockTime() {
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Observed gap</dt>
                 <dd className="tabular text-sm font-semibold">~{formatDuration(observedInterval)}</dd>
               </div>
+              <div className="rounded-sm border border-border bg-bg px-2 py-2" title={pushed ? `Pushed by Coinset ${formatAge(pushed.at)} · difficulty ${formatNumber(pushed.difficulty)}` : "From get_blockchain_state"}>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Netspace</dt>
+                <dd className="tabular text-sm font-semibold" data-testid="netspace">{netspace !== null ? formatBytes(Number(netspace)) : "…"}</dd>
+              </div>
             </dl>
             <p className="text-[11px] text-fg-faint">
               Peak {peak !== undefined ? formatNumber(peak) : "…"} · last transaction block {last ? formatNumber(last.height) : "…"} · window of {all.length} blocks
+              {latestReorg ? (
+                <>
+                  {" · "}
+                  <Link href={routes.blocks()} className={cn("hover:underline", recentReorg ? "font-medium text-warning" : undefined)} data-testid="reorg-indicator">
+                    {recentReorg ? "reorg " : "last reorg "}
+                    {formatAge(latestReorg.at)} ({latestReorg.depth} block{latestReorg.depth === 1 ? "" : "s"} at #{formatNumber(latestReorg.height)})
+                  </Link>
+                </>
+              ) : null}
             </p>
           </>
         )}

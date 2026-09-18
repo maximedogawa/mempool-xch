@@ -130,7 +130,7 @@ describe("createLiveStream", () => {
     stream.start();
     await Promise.resolve();
     const s1 = FakeSocket.instances[0]!;
-    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction");
+    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard");
     expect(stream.status).toBe("connecting");
     s1.open();
     expect(stream.status).toBe("live");
@@ -152,5 +152,18 @@ describe("createLiveStream", () => {
     expect(timers.pending()).toContain(30_000);
     stream.stop();
     expect(FakeSocket.instances.length).toBe(2);
+  });
+});
+
+describe("parseCoinsetMessage: reorg and netspace", () => {
+  test("reorg frames carry both peaks and the depth", () => {
+    expect(
+      parseCoinsetMessage('{"message":{"type":"reorg","data":{"id":"reorg_81","detected_at_ms":1789680142516,"old_peak_height":9306355,"old_peak_hash":"aa","new_peak_height":9306354,"new_peak_hash":"bb","reorg_depth":1}}}')
+    ).toEqual({ type: "reorg", oldPeakHeight: 9306355, newPeakHeight: 9306354, depth: 1, detectedAtMs: 1789680142516 });
+  });
+  test("netspace dashboard frames keep the byte count exact; other dashboard kinds are ignored", () => {
+    expect(parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"3631225713031519604","difficulty":2272}}}')).toEqual({ type: "netspace", bytes: 3631225713031519604n, difficulty: 2272 });
+    expect(parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"live","tx_count":462}}}')).toBeNull();
+    expect(parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"nope"}}}')).toBeNull();
   });
 });

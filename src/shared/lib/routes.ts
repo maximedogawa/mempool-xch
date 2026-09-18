@@ -31,6 +31,7 @@ export const routes = {
   coin: (id: string) => detail("coin", id),
   cat: (assetId: string) => detail("cat", assetId),
   nft: (nftId: string) => detail("nft", nftId),
+  offer: (offerId: string) => detail("offer", offerId),
   nftHome: () => page("nfts"),
   nftCollections: () => page("nfts/collections"),
   nftActivity: () => page("nfts/activity"),

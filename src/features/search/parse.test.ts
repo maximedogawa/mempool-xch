@@ -28,6 +28,11 @@ describe("parseSearchInput", () => {
     expect(parseSearchInput("abcd").kind).toBe("invalid");
     expect(parseSearchInput("").kind).toBe("invalid");
   });
+  test("a pasted offer file is explained, not searched", () => {
+    const target = parseSearchInput("offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nl");
+    expect(target.kind).toBe("invalid");
+    expect(target.kind === "invalid" ? target.reason : "").toMatch(/offer file/);
+  });
   test("free text that matches no known shape is a name search, not an error", () => {
     expect(parseSearchInput("hello world")).toEqual({ kind: "text", value: "hello world" });
     expect(parseSearchInput("Chia Friends")).toEqual({ kind: "text", value: "Chia Friends" });

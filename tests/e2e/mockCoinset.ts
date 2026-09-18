@@ -10,6 +10,10 @@ import poolClaimSelfTx from "../../src/test-utils/fixtures/pool_claim_self_tx.js
 import poolClaimTx from "../../src/test-utils/fixtures/pool_claim_tx.json";
 import xchBalance from "../../src/test-utils/fixtures/xch_balance.json";
 import catBalances from "../../src/test-utils/fixtures/cat_balances.json";
+import offerState from "../../src/test-utils/fixtures/offer_state.json";
+import offersByCat from "../../src/test-utils/fixtures/offers_by_cat.json";
+import rawTxXch from "../../src/test-utils/fixtures/raw_tx_xch.json";
+import reorgs from "../../src/test-utils/fixtures/reorgs.json";
 
 const NOW = Date.now();
 
@@ -56,6 +60,9 @@ const json = (route: Route, body: unknown, status = 200) =>
   route.fulfill({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
 
 export const TX_ID = blockTransactions.transactions[0]!.id;
+/** The recorded confirmed DBX-for-XCH offer (offer_state.json). */
+export const OFFER_ID = offerState.offer_id;
+export const OFFER_CAT_ASSET_ID = offersByCat.asset_id;
 export const TX_BLOCK_HEIGHT = 9295514;
 export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef";
 
@@ -334,6 +341,29 @@ export async function answerNodeMethod(route: Route) {
         return json(route, { launcher_id: body.launcher_id, singleton_type: null, coin_record: null, success: true });
       case "get_latest_nft_coin_by_nft_id":
         return json(route, { nft_coin_record: null, success: true });
+      case "get_offer": {
+        const id = String(body.offer_id ?? "").replace(/^0x/, "");
+        return id === OFFER_ID ? json(route, offerState) : json(route, { success: false, error: `Key not found: offer_state/${id}` });
+      }
+      case "get_offers_by_p2":
+      case "get_offers_by_cat_asset_id":
+      case "get_offers_by_nft_id": {
+        // The recorded page holds two open DBX offers; every other status answers empty.
+        const offers = body.status === "open" ? offersByCat.offers : [];
+        return json(route, { ...offersByCat, offers, truncated: false, next_cursor: undefined, status: body.status });
+      }
+      case "get_clawback_coins_by_receiver":
+        return json(route, {
+          p2: body.p2,
+          clawbacks: String(body.p2).replace(/^0x/, "") === P2 ? [{ coin_id: `0x${hash(0xc1a)}`, receiver_p2: `0x${P2}`, sender_p2: `0x${hash(0x5e)}`, seconds: 86400, amount: "250000000000", asset_kind: "xch", asset_id: null, revocable: true }] : [],
+          success: true,
+        });
+      case "get_reorgs":
+        return json(route, reorgs);
+      case "get_raw_transaction_by_id": {
+        const id = String(body.tx_id ?? "").replace(/^0x/, "");
+        return id === TX_ID ? json(route, rawTxXch) : json(route, { success: false, error: "Transaction not found" });
+      }
       case "get_connections":
         // Coinset's public gateway does not expose this (confirmed live: 404); only the mocked
         // custom node answers it, matching real behaviour.

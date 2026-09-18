@@ -80,8 +80,20 @@ export const API_GROUPS: readonly ApiGroup[] = [
       indexed("get_latest_nft_coin_by_nft_id", "The current unspent coin of an NFT.", '{ "nft_id": "nft1…" }'),
     ],
   },
+  {
+    title: "Offers, clawbacks and reorgs (indexed, Coinset only)",
+    endpoints: [
+      indexed("get_offer", "Lifecycle state of one offer by id: both sides, makers, the taking or cancelling transaction.", '{ "offer_id": "0x…" }'),
+      indexed("get_offers_by_p2", "Offers made from a puzzle hash, one lifecycle status per call.", '{ "p2": "0x…", "status": "open", "limit": 25 }'),
+      indexed("get_offers_by_cat_asset_id", "Offers that offer or request a CAT.", '{ "asset_id": "0x…", "status": "open", "filter": "all" }'),
+      indexed("get_offers_by_nft_id", "Offers that offer or request an NFT.", '{ "nft_id": "nft1…", "status": "confirmed" }'),
+      indexed("get_clawback_coins_by_receiver", "Clawback coins sent to a puzzle hash, with timelock and whether the sender can still revoke.", '{ "p2": "0x…" }'),
+      indexed("get_reorgs", "Chain reorganisations Coinset detected, newest first.", '{ "limit": 20 }'),
+      indexed("get_raw_transaction_by_id", "Mempool-style item (coin spends, additions, removals) of a bundle even after it left the mempool.", '{ "tx_id": "0x…" }'),
+    ],
+  },
 ];
 
 export const RPC_BASE = "https://api.coinset.org";
 export const RPC_BASE_TESTNET = "https://testnet11.api.coinset.org";
-export const WS_URL = "wss://api.coinset.org/ws?events=peak,transaction";
+export const WS_URL = "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard";

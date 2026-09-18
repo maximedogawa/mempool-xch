@@ -35,6 +35,12 @@ export function parseSearchInput(raw: string): SearchTarget {
     if (decoded?.prefix === "nft") return { kind: "nft", nftId: lower, launcherId: decoded.hash };
     return { kind: "invalid", reason: "That looks like an NFT id but its checksum is wrong." };
   }
+  if (lower.startsWith("offer1")) {
+    return {
+      kind: "invalid",
+      reason: "That is an offer file, not an id. Its id only exists once the offer is published: upload it on Dexie, then search the offer id shown there or the address that made it.",
+    };
+  }
   if (lower.startsWith("did:chia:1")) {
     const decoded = decodeBech32m(lower);
     if (decoded?.prefix === "did:chia:") return { kind: "did", didId: lower, launcherId: decoded.hash };

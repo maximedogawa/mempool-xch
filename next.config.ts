@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
             { source: "/coin/:id", destination: "/coin?id=:id" },
             { source: "/cat/:id", destination: "/cat?id=:id" },
             { source: "/nft/:id", destination: "/nft?id=:id" },
+            { source: "/offer/:id", destination: "/offer?id=:id" },
           ];
         },
         async headers() {

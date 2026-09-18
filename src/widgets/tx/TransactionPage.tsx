@@ -8,20 +8,21 @@ import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { feePerCost, formatAmount, formatCat, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { hexToUtf8IfText, shortId } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime, formatDuration, formatEta } from "@/shared/lib/format/time";
+import { classifyMempoolItem } from "@/shared/lib/mempool/classify";
 import { bundleAssets } from "@/shared/lib/mempool/compact";
 import { findProjectedPosition } from "@/shared/lib/mempool/packing";
 import { useBlockPool } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { stringifyJsonSafe } from "@/shared/lib/rpc/json";
-import type { AssetAmounts, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
+import type { AssetAmounts, RawTransaction, TxSummary, TxSummaryEvent } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, CatRef, EmptyState, Hash, Skeleton, StatTile, StatusBadge, SummaryKindBadge, Tooltip } from "@/shared/ui";
 import { useBlock } from "@/widgets/block/useBlock";
 import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
-import { useTransaction } from "./useTransaction";
+import { useRawTransaction, useTransaction } from "./useTransaction";
 import { costVerdict, waitedSeconds } from "./verdict";
 
 function RawJson({ label, value }: { label: string; value: unknown }) {
@@ -207,6 +208,8 @@ export function TransactionPage({ id }: { id: string | null }) {
   const confirmedHeight = tx.data && tx.data.status !== "pending" && tx.data.status !== "not_found" ? tx.data.summary.confirmedHeight : null;
   const confirmedBlock = useBlock(confirmedHeight !== null ? String(confirmedHeight) : "");
   const farmedBy = useBlockPool(confirmedBlock.data?.record);
+  const settled = !!tx.data && (tx.data.status === "confirmed" || tx.data.status === "removed");
+  const raw = useRawTransaction(id, settled);
 
   if (!id) {
     return <EmptyState title="No transaction id" description="Open a transaction from the dashboard or paste an id into the search box." />;
@@ -376,9 +379,41 @@ export function TransactionPage({ id }: { id: string | null }) {
           <FlowDiagram flow={flow} fee={summary.feeMojos} />
         </CardBody>
       </Card>
+      {raw.data ? <CoinSpends raw={raw.data} /> : null}
       <Memos memos={collectMemos(summary.events)} />
       <RawJson label="Transaction summary" value={{ ...summary, events: summary.events.map((e) => e.raw) }} />
+      {raw.data ? <RawJson label="Spend bundle" value={{ source: raw.data.source, spend_bundle_name: raw.data.item.name, fee: raw.data.item.fee, cost: raw.data.item.cost, spend_bundle: raw.data.item.spendBundle, additions: raw.data.item.additions, removals: raw.data.item.removals }} /> : null}
     </div>
+  );
+}
+
+/**
+ * Coin-level view of a settled bundle from get_raw_transaction_by_id: the exact coins spent
+ * and created, which the semantic summary above folds into per-participant flows.
+ */
+function CoinSpends({ raw }: { raw: RawTransaction }) {
+  const { item, source } = raw;
+  const { kind, assetIds } = classifyMempoolItem(item);
+  const flow = flowFromCoins(item.removals, item.additions, kind, assetIds);
+  return (
+    <Card>
+      <CardHeader
+        title={`Coin spends (${item.spendBundle.coinSpends.length})`}
+        action={
+          <span className="inline-flex items-center gap-2 text-[11px] text-fg-faint">
+            <AssetBadge kind={kind} assetId={assetIds[0]} />
+            {source === "inferred" ? <Tooltip text="Coinset never saw this bundle in the mempool; the spends are rebuilt from the block it landed in, so fee and cost are what the block records." /> : null}
+          </span>
+        }
+      />
+      <CardBody className="flex flex-col gap-2">
+        <p className="text-xs text-fg-faint">
+          {item.removals.length} coin{item.removals.length === 1 ? "" : "s"} spent → {item.additions.length} created · {formatCost(item.cost)} cost · spends <AssetAmount assets={bundleAssets(item)} kind={kind} full />
+          {source === "inferred" ? " · rebuilt from the block" : " · as seen in the mempool"}
+        </p>
+        <FlowDiagram flow={flow} fee={item.fee} />
+      </CardBody>
+    </Card>
   );
 }
 
