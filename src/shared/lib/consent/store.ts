@@ -41,7 +41,10 @@ interface PrivacyNavigator {
 }
 
 /** Do Not Track ("1" or "yes") or Global Privacy Control. */
-export function hasRefusalSignal(nav: PrivacyNavigator | null | undefined, win?: { doNotTrack?: string | null }): boolean {
+export function hasRefusalSignal(
+  nav: PrivacyNavigator | null | undefined,
+  win?: { doNotTrack?: string | null }
+): boolean {
   if (!nav) return false;
   if (nav.globalPrivacyControl === true) return true;
   const dnt = nav.doNotTrack ?? win?.doNotTrack;
@@ -54,7 +57,11 @@ export function parseConsent(raw: string | null, now: number): ConsentRecord | n
     const value = JSON.parse(raw) as Partial<ConsentRecord>;
     if (typeof value.decidedAt !== "number" || !Number.isFinite(value.decidedAt)) return null;
     if (value.decidedAt > now || now - value.decidedAt >= CONSENT_TTL_MS) return null;
-    return { analytics: value.analytics === true, advertising: value.advertising === true, decidedAt: value.decidedAt };
+    return {
+      analytics: value.analytics === true,
+      advertising: value.advertising === true,
+      decidedAt: value.decidedAt,
+    };
   } catch {
     return null;
   }
@@ -78,7 +85,10 @@ export interface ConsentStore {
   subscribe: (listener: Listener) => () => void;
 }
 
-export function createConsentStore(storage: Storage | null, options: { signal: boolean; now?: () => number }): ConsentStore {
+export function createConsentStore(
+  storage: Storage | null,
+  options: { signal: boolean; now?: () => number }
+): ConsentStore {
   const now = options.now ?? Date.now;
   let record: ConsentRecord | null = null;
   try {
@@ -91,11 +101,16 @@ export function createConsentStore(storage: Storage | null, options: { signal: b
   return {
     get: () => {
       // Expire while the tab stays open, too.
-      if (state.record && now() - state.record.decidedAt >= CONSENT_TTL_MS) state = resolveConsent(null, options.signal);
+      if (state.record && now() - state.record.decidedAt >= CONSENT_TTL_MS)
+        state = resolveConsent(null, options.signal);
       return state;
     },
     save: (choice) => {
-      const next: ConsentRecord = { analytics: choice.analytics === true, advertising: choice.advertising === true, decidedAt: now() };
+      const next: ConsentRecord = {
+        analytics: choice.analytics === true,
+        advertising: choice.advertising === true,
+        decidedAt: now(),
+      };
       try {
         storage?.setItem(CONSENT_KEY, JSON.stringify(next));
       } catch {
@@ -123,7 +138,9 @@ export function getConsentStore(): ConsentStore {
     } catch {
       storage = null;
     }
-    const signal = inBrowser && hasRefusalSignal(navigator as PrivacyNavigator, window as { doNotTrack?: string | null });
+    const signal =
+      inBrowser &&
+      hasRefusalSignal(navigator as PrivacyNavigator, window as { doNotTrack?: string | null });
     browserStore = createConsentStore(storage, { signal });
   }
   return browserStore;

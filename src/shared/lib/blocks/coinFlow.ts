@@ -18,7 +18,8 @@ export interface CoinFlow {
   ephemeral: ReadonlySet<string>;
 }
 
-const byAmountDesc = (a: CoinRecord, b: CoinRecord) => (a.coin.amount === b.coin.amount ? 0 : a.coin.amount > b.coin.amount ? -1 : 1);
+const byAmountDesc = (a: CoinRecord, b: CoinRecord) =>
+  a.coin.amount === b.coin.amount ? 0 : a.coin.amount > b.coin.amount ? -1 : 1;
 
 /**
  * Link every created coin to the coin whose spend created it: a child's parent_coin_info is the

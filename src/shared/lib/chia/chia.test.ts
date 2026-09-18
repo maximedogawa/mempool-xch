@@ -60,7 +60,9 @@ describe("hex", () => {
     expect(normaliseId32("abcd")).toBeNull();
   });
   test("shortId", () => {
-    expect(shortId("0x124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd")).toBe("124ef3da…c450dd");
+    expect(shortId("0x124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd")).toBe(
+      "124ef3da…c450dd"
+    );
     expect(shortId("abc")).toBe("abc");
   });
   test("memo decoding", () => {

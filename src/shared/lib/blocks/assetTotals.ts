@@ -19,7 +19,16 @@ export interface BlockAssetTotals extends CompactAssets {
   partial: boolean;
 }
 
-export const EMPTY_TOTALS: BlockAssetTotals = { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0, source: "coinset", count: 0, partial: false };
+export const EMPTY_TOTALS: BlockAssetTotals = {
+  xch: "0",
+  cats: [],
+  nfts: 0,
+  dids: 0,
+  singletons: 0,
+  source: "coinset",
+  count: 0,
+  partial: false,
+};
 
 export function assetTotalsFromSummaries(txs: TxSummary[], partial = false): BlockAssetTotals {
   let xch = 0n;
@@ -39,7 +48,8 @@ export function assetTotalsFromSummaries(txs: TxSummary[], partial = false): Blo
       });
       // Mints have no receiving participant flow for the new asset in every schema version.
       const minted = (e.raw as { minted?: { asset_type?: string; asset_id?: string } }).minted;
-      if (minted?.asset_type === "nft" && minted.asset_id) nfts.add(minted.asset_id.replace(/^0x/, ""));
+      if (minted?.asset_type === "nft" && minted.asset_id)
+        nfts.add(minted.asset_id.replace(/^0x/, ""));
     })
   );
   return {
@@ -62,7 +72,11 @@ export function assetTotalsFromSpends(spends: CoinSpend[]): BlockAssetTotals {
   let singletons = 0;
   spends.forEach((spend) => {
     const c = classifyCoinSpend(spend);
-    if (c.kind === "cat") cats.set(c.assetId ?? "unknown", (cats.get(c.assetId ?? "unknown") ?? 0n) + spend.coin.amount);
+    if (c.kind === "cat")
+      cats.set(
+        c.assetId ?? "unknown",
+        (cats.get(c.assetId ?? "unknown") ?? 0n) + spend.coin.amount
+      );
     else if (c.kind === "nft") nfts += 1;
     else if (c.kind === "did") dids += 1;
     else if (c.kind === "singleton" || c.kind === "pool") singletons += 1;

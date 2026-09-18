@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { launcherIdToDidId, launcherIdToNftId, puzzleHashToAddress } from "@/shared/lib/chia/address";
+import {
+  launcherIdToDidId,
+  launcherIdToNftId,
+  puzzleHashToAddress,
+} from "@/shared/lib/chia/address";
 import { parseSearchInput } from "./parse";
 
 const ph = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
@@ -12,14 +16,28 @@ describe("parseSearchInput", () => {
   test("addresses on both networks", () => {
     const xch = puzzleHashToAddress(ph, "xch");
     const txch = puzzleHashToAddress(ph, "txch");
-    expect(parseSearchInput(xch.toUpperCase())).toMatchObject({ kind: "address", puzzleHash: ph, prefix: "xch" });
-    expect(parseSearchInput(txch)).toMatchObject({ kind: "address", puzzleHash: ph, prefix: "txch" });
+    expect(parseSearchInput(xch.toUpperCase())).toMatchObject({
+      kind: "address",
+      puzzleHash: ph,
+      prefix: "xch",
+    });
+    expect(parseSearchInput(txch)).toMatchObject({
+      kind: "address",
+      puzzleHash: ph,
+      prefix: "txch",
+    });
     expect(parseSearchInput(`${xch.slice(0, -2)}zz`).kind).toBe("invalid");
   });
   test("nft and did ids", () => {
     const launcher = "ab".repeat(32);
-    expect(parseSearchInput(launcherIdToNftId(launcher))).toMatchObject({ kind: "nft", launcherId: launcher });
-    expect(parseSearchInput(launcherIdToDidId(launcher))).toMatchObject({ kind: "did", launcherId: launcher });
+    expect(parseSearchInput(launcherIdToNftId(launcher))).toMatchObject({
+      kind: "nft",
+      launcherId: launcher,
+    });
+    expect(parseSearchInput(launcherIdToDidId(launcher))).toMatchObject({
+      kind: "did",
+      launcherId: launcher,
+    });
     expect(parseSearchInput("nft1broken").kind).toBe("invalid");
   });
   test("32-byte hex is ambiguous", () => {
@@ -27,6 +45,13 @@ describe("parseSearchInput", () => {
     expect(parseSearchInput(ph.toUpperCase())).toEqual({ kind: "hex32", hex: ph });
     expect(parseSearchInput("abcd").kind).toBe("invalid");
     expect(parseSearchInput("").kind).toBe("invalid");
+  });
+  test("a pasted offer file is explained, not searched", () => {
+    const target = parseSearchInput(
+      "offer1qqr83wcuu2rykcmqvpsxygqqemhmlaekcenaz02ma6hs5w600dhjlvfjn477nl"
+    );
+    expect(target.kind).toBe("invalid");
+    expect(target.kind === "invalid" ? target.reason : "").toMatch(/offer file/);
   });
   test("free text that matches no known shape is a name search, not an error", () => {
     expect(parseSearchInput("hello world")).toEqual({ kind: "text", value: "hello world" });

@@ -227,3 +227,91 @@ export interface PeerConnection {
   peakHeight: number | null;
   creationTimeS: number | null;
 }
+
+/* ---- Coinset offers, clawbacks, reorgs, raw transactions ---- */
+
+export type OfferStatus =
+  "open" | "pending" | "confirmed" | "cancel_pending" | "cancelled" | "expired";
+export const OFFER_STATUSES: readonly OfferStatus[] = [
+  "open",
+  "pending",
+  "confirmed",
+  "cancel_pending",
+  "cancelled",
+  "expired",
+];
+
+export interface OfferSide {
+  xch: Mojos;
+  cats: { assetId: string; amount: Mojos }[];
+  nfts: string[];
+}
+
+/** Parsed offer state as Coinset indexes it; the offer file itself is never returned. */
+export interface OfferState {
+  offerId: string;
+  status: OfferStatus;
+  firstSeenMs: number;
+  lastUpdatedMs: number;
+  makerP2s: string[];
+  offered: OfferSide;
+  requested: OfferSide;
+  feeMojos: Mojos;
+  expiresBeforeHeight: number | null;
+  expiresBeforeTimeMs: number | null;
+  pendingTxId: string | null;
+  confirmedTxId: string | null;
+  confirmedHeight: number | null;
+  confirmedAtMs: number | null;
+  cancelledByTxId: string | null;
+  cancelledHeight: number | null;
+  cancelledAtMs: number | null;
+  expiredAtHeight: number | null;
+}
+
+export interface OfferList {
+  offers: OfferState[];
+  truncated: boolean;
+  nextCursor: string | null;
+}
+
+export interface ClawbackCoin {
+  coinId: string;
+  receiverP2: string;
+  senderP2: string;
+  /** Timelock in seconds after which the receiver can claim (before it the sender can claw back). */
+  seconds: number;
+  amount: Mojos;
+  assetKind: "xch" | "cat" | "nft";
+  assetId: string | null;
+  /** True while the sender can still claw the coin back. */
+  revocable: boolean;
+}
+
+export interface ClawbackList {
+  clawbacks: ClawbackCoin[];
+  truncated: boolean;
+  nextCursor: string | null;
+}
+
+export interface ReorgEvent {
+  id: string;
+  detectedAtMs: number;
+  oldPeakHeight: number;
+  oldPeakHash: string;
+  newPeakHeight: number;
+  newPeakHash: string;
+  depth: number;
+}
+
+export interface ReorgList {
+  reorgs: ReorgEvent[];
+  truncated: boolean;
+  nextCursor: string | null;
+}
+
+/** get_raw_transaction_by_id: a mempool-style item for a bundle that may have left the mempool. */
+export interface RawTransaction {
+  source: "mempool" | "inferred";
+  item: MempoolItem;
+}

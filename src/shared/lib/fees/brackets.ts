@@ -41,7 +41,9 @@ export interface BracketCount {
 }
 
 /** One row per RATE_BRACKETS entry, in order, zero-filled for empty brackets. */
-export function bracketDistribution(items: readonly { feeRate: number; cost: number }[]): BracketCount[] {
+export function bracketDistribution(
+  items: readonly { feeRate: number; cost: number }[]
+): BracketCount[] {
   const rows = RATE_BRACKETS.map((bracket) => ({ bracket, count: 0, cost: 0 }));
   for (const item of items) {
     const row = rows[RATE_BRACKETS.indexOf(bracketFor(item.feeRate))]!;

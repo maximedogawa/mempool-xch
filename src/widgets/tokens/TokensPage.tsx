@@ -10,7 +10,19 @@ import type { TokenActivitySample } from "@/shared/lib/tokens/activity";
 import type { TokenInfo } from "@/shared/api/tokenList";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
-import { Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Hash,
+  Skeleton,
+  Table,
+  Td,
+  Th,
+  Tr,
+} from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { RECENT_SAMPLE, useTokenActivity } from "./useTokenActivity";
 import { SCAN_LIMIT, useTokenScan } from "./useTokenScan";
@@ -27,7 +39,13 @@ const SORTS: readonly { id: SortMode; label: string }[] = [
   { id: "newest", label: "Newest" },
 ];
 
-function ActivityCells({ sample, loading }: { sample: TokenActivitySample | null; loading: boolean }) {
+function ActivityCells({
+  sample,
+  loading,
+}: {
+  sample: TokenActivitySample | null;
+  loading: boolean;
+}) {
   if (loading && !sample) {
     return (
       <>
@@ -62,9 +80,15 @@ function ActivityCells({ sample, loading }: { sample: TokenActivitySample | null
         {formatNumber(sample.sampledSpends)}
         {sample.capped ? "+" : ""}
       </Td>
-      <Td className="tabular hidden text-right md:table-cell">{sample.sampledVolume > 0n ? `${formatAmount(sample.sampledVolume, "cat")}+` : "—"}</Td>
-      <Td className="hidden text-xs text-fg-muted lg:table-cell">{sample.firstSeenMs ? formatDateTime(sample.firstSeenMs) : "—"}</Td>
-      <Td className="hidden text-xs text-fg-muted lg:table-cell">{sample.lastSeenMs ? formatAge(sample.lastSeenMs) : "—"}</Td>
+      <Td className="tabular hidden text-right md:table-cell">
+        {sample.sampledVolume > 0n ? `${formatAmount(sample.sampledVolume, "cat")}+` : "—"}
+      </Td>
+      <Td className="hidden text-xs text-fg-muted lg:table-cell">
+        {sample.firstSeenMs ? formatDateTime(sample.firstSeenMs) : "—"}
+      </Td>
+      <Td className="hidden text-xs text-fg-muted lg:table-cell">
+        {sample.lastSeenMs ? formatAge(sample.lastSeenMs) : "—"}
+      </Td>
     </>
   );
 }
@@ -74,7 +98,10 @@ function NameRow({ token }: { token: TokenInfo }) {
   return (
     <Tr>
       <Td>
-        <a href={routes.cat(token.assetId)} className="flex min-w-0 items-center gap-2 text-fg hover:text-accent">
+        <a
+          href={routes.cat(token.assetId)}
+          className="flex min-w-0 items-center gap-2 text-fg hover:text-accent"
+        >
           <AssetIcon kind="cat" assetId={token.assetId} size={22} />
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-medium">{token.name}</span>
@@ -94,7 +121,10 @@ function ScannedRow({ token, sample }: { token: TokenInfo; sample: TokenActivity
   return (
     <Tr>
       <Td>
-        <a href={routes.cat(token.assetId)} className="flex min-w-0 items-center gap-2 text-fg hover:text-accent">
+        <a
+          href={routes.cat(token.assetId)}
+          className="flex min-w-0 items-center gap-2 text-fg hover:text-accent"
+        >
           <AssetIcon kind="cat" assetId={token.assetId} size={22} />
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-medium">{token.name}</span>
@@ -118,10 +148,21 @@ export function TokensPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
-  const allTokens = useMemo(() => Object.values(tokens.data ?? {}).sort((a, b) => a.name.localeCompare(b.name)), [tokens.data]);
+  const allTokens = useMemo(
+    () => Object.values(tokens.data ?? {}).sort((a, b) => a.name.localeCompare(b.name)),
+    [tokens.data]
+  );
   const q = search.trim().toLowerCase();
   const filtered = useMemo(
-    () => (q ? allTokens.filter((t) => t.name.toLowerCase().includes(q) || t.symbol.toLowerCase().includes(q) || t.assetId.includes(q)) : allTokens),
+    () =>
+      q
+        ? allTokens.filter(
+            (t) =>
+              t.name.toLowerCase().includes(q) ||
+              t.symbol.toLowerCase().includes(q) ||
+              t.assetId.includes(q)
+          )
+        : allTokens,
     [allTokens, q]
   );
 
@@ -200,7 +241,9 @@ export function TokensPage() {
                   }}
                   className={cn(
                     "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                    sort === opt.id ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+                    sort === opt.id
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border bg-bg text-fg-muted hover:text-fg"
                   )}
                 >
                   {opt.label}
@@ -212,18 +255,16 @@ export function TokensPage() {
           {needsScan ? (
             <div className="flex flex-wrap items-center gap-3 rounded-sm border border-border bg-bg p-3 text-sm">
               <p className="text-fg-muted">
-                Sorting by {SORTS.find((s) => s.id === sort)?.label.toLowerCase()} needs each token&apos;s activity, fetched on request. Scans up to{" "}
-                {formatNumber(Math.min(SCAN_LIMIT, filtered.length))} of the {formatNumber(filtered.length)} tokens currently listed
-                {filtered.length > SCAN_LIMIT ? " (search to narrow the list for an exact scan)" : ""}.
+                Sorting by {SORTS.find((s) => s.id === sort)?.label.toLowerCase()} needs each
+                token&apos;s activity, fetched on request. Scans up to{" "}
+                {formatNumber(Math.min(SCAN_LIMIT, filtered.length))} of the{" "}
+                {formatNumber(filtered.length)} tokens currently listed
+                {filtered.length > SCAN_LIMIT
+                  ? " (search to narrow the list for an exact scan)"
+                  : ""}
+                .
               </p>
-              <Button
-                size="sm"
-                onClick={() =>
-                  scan.scan(
-                    filtered.map((t) => t.assetId),
-                  )
-                }
-              >
+              <Button size="sm" onClick={() => scan.scan(filtered.map((t) => t.assetId))}>
                 Scan tokens
               </Button>
             </div>
@@ -235,14 +276,28 @@ export function TokensPage() {
                   Scanning… {formatNumber(scan.done)} of {formatNumber(scan.total)}
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label="Scan progress" aria-valuemin={0} aria-valuemax={scan.total} aria-valuenow={scan.done}>
-                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${scan.total > 0 ? (scan.done / scan.total) * 100 : 0}%` }} />
+              <div
+                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2"
+                role="progressbar"
+                aria-label="Scan progress"
+                aria-valuemin={0}
+                aria-valuemax={scan.total}
+                aria-valuenow={scan.done}
+              >
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${scan.total > 0 ? (scan.done / scan.total) * 100 : 0}%` }}
+                />
               </div>
             </div>
           ) : null}
 
           {tokens.error ? (
-            <EmptyState tone="danger" title="Could not load the token registry" description={String((tokens.error as Error).message)} />
+            <EmptyState
+              tone="danger"
+              title="Could not load the token registry"
+              description={String((tokens.error as Error).message)}
+            />
           ) : tokens.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 10 }, (_, i) => (
@@ -250,7 +305,9 @@ export function TokensPage() {
               ))}
             </div>
           ) : ordered.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-faint">No token matches &quot;{search}&quot;.</p>
+            <p className="py-6 text-center text-sm text-fg-faint">
+              No token matches &quot;{search}&quot;.
+            </p>
           ) : (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tokens">
               <Table>
@@ -266,7 +323,15 @@ export function TokensPage() {
                 </thead>
                 <tbody>
                   {visible.map((t) =>
-                    sort === "name" ? <NameRow key={t.assetId} token={t} /> : <ScannedRow key={t.assetId} token={t} sample={scan.results.get(t.assetId) ?? null} />
+                    sort === "name" ? (
+                      <NameRow key={t.assetId} token={t} />
+                    ) : (
+                      <ScannedRow
+                        key={t.assetId}
+                        token={t}
+                        sample={scan.results.get(t.assetId) ?? null}
+                      />
+                    )
                   )}
                 </tbody>
               </Table>
@@ -276,13 +341,23 @@ export function TokensPage() {
           {ordered.length > PAGE ? (
             <div className="flex items-center justify-between gap-2 text-xs text-fg-faint">
               <span>
-                {formatNumber(clampedPage * PAGE + 1)}–{formatNumber(Math.min(ordered.length, (clampedPage + 1) * PAGE))} of {formatNumber(ordered.length)}
+                {formatNumber(clampedPage * PAGE + 1)}–
+                {formatNumber(Math.min(ordered.length, (clampedPage + 1) * PAGE))} of{" "}
+                {formatNumber(ordered.length)}
               </span>
               <div className="flex gap-2">
-                <Button size="sm" disabled={clampedPage === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                <Button
+                  size="sm"
+                  disabled={clampedPage === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
                   Previous
                 </Button>
-                <Button size="sm" disabled={clampedPage >= pageCount - 1} onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}>
+                <Button
+                  size="sm"
+                  disabled={clampedPage >= pageCount - 1}
+                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                >
                   Next
                 </Button>
               </div>

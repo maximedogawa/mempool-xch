@@ -17,7 +17,11 @@ export function Tooltip({
 }) {
   return (
     <span className={cn("group relative inline-flex", className)}>
-      <button type="button" aria-label={text} className="inline-flex cursor-help items-center rounded-sm border-0 bg-transparent p-0 text-fg-faint">
+      <button
+        type="button"
+        aria-label={text}
+        className="inline-flex cursor-help items-center rounded-sm border-0 bg-transparent p-0 text-fg-faint"
+      >
         {children ?? <Info size={13} aria-hidden="true" />}
       </button>
       <span

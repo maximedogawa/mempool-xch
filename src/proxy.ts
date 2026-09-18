@@ -14,7 +14,10 @@ import { join, resolve } from "node:path";
  * resolve a runtime path, so it would copy the whole repository into .next/standalone (and the
  * Docker image). The snapshot is not traced output anyway; the Dockerfile copies it in.
  */
-const SNAPSHOT_DIR = resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot");
+const SNAPSHOT_DIR = resolve(
+  /*turbopackIgnore: true*/ process.cwd(),
+  process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot"
+);
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -33,8 +36,13 @@ let servable: ReadonlySet<string> | undefined;
 function servablePaths(): ReadonlySet<string> {
   if (servable) return servable;
   try {
-    const manifest = JSON.parse(readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, "sage-manifest.json"), "utf8")) as { files?: { path: string }[] };
-    const paths = new Set<string>(["sage-manifest.json", ...(manifest.files ?? []).map((f) => f.path)]);
+    const manifest = JSON.parse(
+      readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, "sage-manifest.json"), "utf8")
+    ) as { files?: { path: string }[] };
+    const paths = new Set<string>([
+      "sage-manifest.json",
+      ...(manifest.files ?? []).map((f) => f.path),
+    ]);
     servable = paths;
     return paths;
   } catch {
@@ -48,7 +56,10 @@ export function proxy(request: NextRequest) {
   try {
     const body = readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, path));
     const dot = path.lastIndexOf(".");
-    const type = dot === -1 ? "application/octet-stream" : (MIME[path.slice(dot)] ?? "application/octet-stream");
+    const type =
+      dot === -1
+        ? "application/octet-stream"
+        : (MIME[path.slice(dot)] ?? "application/octet-stream");
     return new NextResponse(body, {
       status: 200,
       headers: {
@@ -63,5 +74,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/sage-manifest.json", "/((?!api/|up$).*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))"],
+  matcher: [
+    "/sage-manifest.json",
+    "/((?!api/|up$).*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))",
+  ],
 };

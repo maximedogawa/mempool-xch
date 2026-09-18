@@ -6,7 +6,9 @@ test.describe("fees", () => {
     await mockCoinset(page);
   });
 
-  test("shows the node estimate, rate distribution and transfer-cost table, consistent with the fixture", async ({ page }) => {
+  test("shows the node estimate, rate distribution and transfer-cost table, consistent with the fixture", async ({
+    page,
+  }) => {
     await page.goto("/fees");
     await expect(page.getByRole("heading", { level: 1, name: "Fees" })).toBeVisible();
 
@@ -21,10 +23,25 @@ test.describe("fees", () => {
 
     const distribution = page.getByRole("region", { name: "Rate distribution" });
     const bracketLabels = distribution.locator("tbody td:first-child");
-    await expect(bracketLabels).toHaveText(["0", "0-1", "1-3", "3-5", "5-10", "10-25", "25-50", "50+"]);
+    await expect(bracketLabels).toHaveText([
+      "0",
+      "0-1",
+      "1-3",
+      "3-5",
+      "5-10",
+      "10-25",
+      "25-50",
+      "50+",
+    ]);
 
     const costs = page.getByRole("region", { name: "What a transfer costs" });
-    for (const label of ["Plain transfer", "Transfer with 3 inputs", "Send a CAT", "Transfer an NFT", "Accept an offer"]) {
+    for (const label of [
+      "Plain transfer",
+      "Transfer with 3 inputs",
+      "Send a CAT",
+      "Transfer an NFT",
+      "Accept an offer",
+    ]) {
       await expect(costs.getByText(label)).toBeVisible();
     }
 

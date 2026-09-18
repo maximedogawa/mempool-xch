@@ -34,16 +34,37 @@ export function deriveAddressFlow(tx: TxSummary, p2: string): AddressFlow {
       }
       touched = true;
       xch += participant.received.xch - participant.sent.xch;
-      participant.received.cats.forEach((c) => cats.set(c.assetId, (cats.get(c.assetId) ?? 0n) + c.amount));
-      participant.sent.cats.forEach((c) => cats.set(c.assetId, (cats.get(c.assetId) ?? 0n) - c.amount));
+      participant.received.cats.forEach((c) =>
+        cats.set(c.assetId, (cats.get(c.assetId) ?? 0n) + c.amount)
+      );
+      participant.sent.cats.forEach((c) =>
+        cats.set(c.assetId, (cats.get(c.assetId) ?? 0n) - c.amount)
+      );
       participant.received.nfts.forEach((n) => nftsIn.add(n));
       participant.sent.nfts.forEach((n) => nftsOut.add(n));
     });
   });
 
-  const catList = [...cats.entries()].filter(([, v]) => v !== 0n).map(([assetId, amount]) => ({ assetId, amount }));
+  const catList = [...cats.entries()]
+    .filter(([, v]) => v !== 0n)
+    .map(([assetId, amount]) => ({ assetId, amount }));
   const gained = xch > 0n || catList.some((c) => c.amount > 0n) || nftsIn.size > 0;
   const lost = xch < 0n || catList.some((c) => c.amount < 0n) || nftsOut.size > 0;
-  const direction: FlowDirection = !touched ? "none" : gained && !lost ? "in" : lost && !gained ? "out" : gained && lost ? "self" : "self";
-  return { direction, xch, cats: catList, nftsIn: [...nftsIn], nftsOut: [...nftsOut], counterparties: [...counterparties] };
+  const direction: FlowDirection = !touched
+    ? "none"
+    : gained && !lost
+      ? "in"
+      : lost && !gained
+        ? "out"
+        : gained && lost
+          ? "self"
+          : "self";
+  return {
+    direction,
+    xch,
+    cats: catList,
+    nftsIn: [...nftsIn],
+    nftsOut: [...nftsOut],
+    counterparties: [...counterparties],
+  };
 }

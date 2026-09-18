@@ -58,8 +58,11 @@ export function usePoolShare(): PoolShareResult {
       const end = bucketedPeak! + 1;
       const start = Math.max(0, end - POOL_SHARE_WINDOW);
       const chunks: { start: number; end: number }[] = [];
-      for (let s = start; s < end; s += CHUNK) chunks.push({ start: s, end: Math.min(end, s + CHUNK) });
-      const pages = await Promise.all(chunks.map((c) => limiter(() => client.getBlockRecords(c.start, c.end, signal))));
+      for (let s = start; s < end; s += CHUNK)
+        chunks.push({ start: s, end: Math.min(end, s + CHUNK) });
+      const pages = await Promise.all(
+        chunks.map((c) => limiter(() => client.getBlockRecords(c.start, c.end, signal)))
+      );
       return { records: pages.flat(), windowStart: start, windowEnd: end - 1 };
     },
   });
@@ -67,7 +70,10 @@ export function usePoolShare(): PoolShareResult {
   const records = query.data?.records;
   const claims = usePoolClaims();
   const payouts = useMemo(() => (records ? payoutsToResolve(records) : []), [records]);
-  const [failed, setFailed] = useState<{ payouts: readonly string[]; count: number }>({ payouts, count: 0 });
+  const [failed, setFailed] = useState<{ payouts: readonly string[]; count: number }>({
+    payouts,
+    count: 0,
+  });
 
   useEffect(() => {
     if (!client.hasIndexed || payouts.length === 0) return;
@@ -97,7 +103,8 @@ export function usePoolShare(): PoolShareResult {
     const timer = setInterval(flush, FLUSH_MS);
     void resolveClaims({
       payouts: todo,
-      fetchLatestTransaction: async (payout, signal) => (await client.getTransactionsByP2(payout, { limit: 1 }, signal)).transactions[0] ?? null,
+      fetchLatestTransaction: async (payout, signal) =>
+        (await client.getTransactionsByP2(payout, { limit: 1 }, signal)).transactions[0] ?? null,
       onResolved: (resolved) => resolved.forEach((claim, hash) => buffer.set(hash, claim)),
       onFailed: () => {
         failures += 1;
@@ -116,7 +123,10 @@ export function usePoolShare(): PoolShareResult {
     };
   }, [client, endpoints.network, payouts]);
 
-  const share = useMemo(() => (records ? groupPoolShare(records, claims) : null), [records, claims]);
+  const share = useMemo(
+    () => (records ? groupPoolShare(records, claims) : null),
+    [records, claims]
+  );
   const unresolved = client.hasIndexed ? payouts.filter((p) => !claims.has(p)).length : 0;
   const failedCount = failed.payouts === payouts ? failed.count : 0;
 

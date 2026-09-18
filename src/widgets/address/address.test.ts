@@ -35,7 +35,14 @@ describe("deriveAddressFlow", () => {
             {
               p2: sender,
               sent: { xch: 0n, cats: [{ assetId: "aa", amount: 5n }], nfts: ["n1"] },
-              received: { xch: 0n, cats: [{ assetId: "aa", amount: 2n }, { assetId: "bb", amount: 7n }], nfts: ["n2"] },
+              received: {
+                xch: 0n,
+                cats: [
+                  { assetId: "aa", amount: 2n },
+                  { assetId: "bb", amount: 7n },
+                ],
+                nfts: ["n2"],
+              },
             },
           ],
         },
@@ -55,11 +62,23 @@ describe("deriveAddressFlow", () => {
 describe("resolveAddressId", () => {
   test("address, puzzle hash and did", () => {
     const xch = puzzleHashToAddress(sender, "xch");
-    expect(resolveAddressId(xch, "xch")).toEqual({ kind: "address", puzzleHash: sender, address: xch, didId: null });
+    expect(resolveAddressId(xch, "xch")).toEqual({
+      kind: "address",
+      puzzleHash: sender,
+      address: xch,
+      didId: null,
+    });
     expect(resolveAddressId(puzzleHashToAddress(sender, "txch"), "xch")?.address).toBe(xch);
-    expect(resolveAddressId(`0x${sender.toUpperCase()}`, "txch")?.address).toBe(puzzleHashToAddress(sender, "txch"));
+    expect(resolveAddressId(`0x${sender.toUpperCase()}`, "txch")?.address).toBe(
+      puzzleHashToAddress(sender, "txch")
+    );
     const did = launcherIdToDidId(sender);
-    expect(resolveAddressId(did, "xch")).toEqual({ kind: "did", puzzleHash: sender, address: null, didId: did });
+    expect(resolveAddressId(did, "xch")).toEqual({
+      kind: "did",
+      puzzleHash: sender,
+      address: null,
+      didId: did,
+    });
     expect(resolveAddressId("nonsense", "xch")).toBeNull();
     expect(resolveAddressId("", "xch")).toBeNull();
   });

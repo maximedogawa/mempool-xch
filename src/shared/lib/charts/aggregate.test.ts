@@ -2,7 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { aggregateBlockWindow, blockWindowSeries } from "./aggregate";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 
-function record(height: number, opts: { timestamp?: number | null; fees?: bigint | null } = {}): BlockRecord {
+function record(
+  height: number,
+  opts: { timestamp?: number | null; fees?: bigint | null } = {}
+): BlockRecord {
   return {
     height,
     headerHash: `hash${height}`,
@@ -34,7 +37,11 @@ describe("aggregateBlockWindow", () => {
   });
   test("mixed tx and non-tx blocks: fee average, share, blocks/hour only count what applies", () => {
     // 3 blocks over 36s: heights 0 (tx, fee 10), 1 (non-tx), 2 (tx, fee 30)
-    const records = [record(0, { timestamp: 1000, fees: 10n }), record(1, { timestamp: null }), record(2, { timestamp: 1036, fees: 30n })];
+    const records = [
+      record(0, { timestamp: 1000, fees: 10n }),
+      record(1, { timestamp: null }),
+      record(2, { timestamp: 1036, fees: 30n }),
+    ];
     const stats = aggregateBlockWindow(records)!;
     expect(stats.avgFeeMojos).toBe(20); // (10+30)/2, non-tx block excluded
     expect(stats.shareOfTxBlocks).toBeCloseTo(2 / 3, 6);

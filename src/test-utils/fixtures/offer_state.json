@@ -1,0 +1,30 @@
+{
+  "offer_id": "e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5",
+  "state": {
+    "confirmed_at_ms": 1789715545000,
+    "confirmed_header_hash": "597f229ab45c8f14db88fbb2a6fc6f3fd4f304498157eeb66fb0ce92ad864332",
+    "confirmed_height": 9308382,
+    "confirmed_tx_id": "27c9fe216b056e231d35bf0466920ec102516ce4fe1f01e6868073ab9a0d55d5",
+    "fee_mojos": 0,
+    "first_seen_ms": 1789531226749,
+    "last_updated_ms": 1789715603813,
+    "maker_p2s": [
+      "bacd0883be47be1d6b8b0237521f4fade83683911aeacd63633df615b4a984db",
+      "13c18e70a72866599a454d98e53725d80a1d4d313929883503edda96b501a656",
+      "ce1b20d0c36782ffbdb7769929fc85c73b22b31d68a76d5640a533864acc0461",
+      "34bdc157e727d759ba178c0a51576d1fb156a32e9cf2f78fcbb59f88594c9fcc"
+    ],
+    "offer_id": "e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5",
+    "offered_cat_asset_ids": ["db1a9020d48d9d4ad22631b66ab4b9ebd3637ef7758ad38881348c5d24c38f20"],
+    "offered_cat_mojos": {
+      "db1a9020d48d9d4ad22631b66ab4b9ebd3637ef7758ad38881348c5d24c38f20": 5000000
+    },
+    "offered_nft_ids": [],
+    "offered_xch_mojos": 0,
+    "pending_p2s": [],
+    "requested_cat_asset_ids": [],
+    "requested_nft_ids": [],
+    "requested_xch_mojos": 60000000000000,
+    "status": "confirmed"
+  }
+}

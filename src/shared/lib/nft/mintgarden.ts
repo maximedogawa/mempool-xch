@@ -80,8 +80,18 @@ export async function fetchCollections(
 }
 
 export type NftEventKind = "mint" | "transfer" | "trade" | "burn";
-const EVENT_TYPE_TO_KIND: Record<number, NftEventKind> = { 0: "mint", 1: "transfer", 2: "trade", 3: "burn" };
-const KIND_TO_EVENT_TYPE: Record<NftEventKind, number> = { mint: 0, transfer: 1, trade: 2, burn: 3 };
+const EVENT_TYPE_TO_KIND: Record<number, NftEventKind> = {
+  0: "mint",
+  1: "transfer",
+  2: "trade",
+  3: "burn",
+};
+const KIND_TO_EVENT_TYPE: Record<NftEventKind, number> = {
+  mint: 0,
+  transfer: 1,
+  trade: 2,
+  burn: 3,
+};
 
 export interface NftEvent {
   nftId: string;
@@ -139,7 +149,10 @@ export async function fetchNftEvents(
     if (!response.ok) return { events: [], next: null };
     const body = obj(await response.json());
     const items = Array.isArray(body.items) ? body.items : [];
-    return { events: items.map(normaliseEvent).filter((e): e is NftEvent => e !== null), next: str(body.next) };
+    return {
+      events: items.map(normaliseEvent).filter((e): e is NftEvent => e !== null),
+      next: str(body.next),
+    };
   } catch {
     return { events: [], next: null };
   }
@@ -163,7 +176,9 @@ function normaliseOffer(raw: unknown): NftOffer {
     id: str(r.id) ?? "",
     offerFile: str(r.offer) ?? "",
     priceXch: num(r.price),
-    requested: requested.map(obj).map((a) => ({ code: str(a.code) ?? str(a.id) ?? "?", amount: num(a.amount) ?? 0 })),
+    requested: requested
+      .map(obj)
+      .map((a) => ({ code: str(a.code) ?? str(a.id) ?? "?", amount: num(a.amount) ?? 0 })),
     dateFound: dateFound ? Date.parse(dateFound) : null,
     dateExpiry: dateExpiry ? Date.parse(dateExpiry) : null,
   };
@@ -184,7 +199,10 @@ export function mintGardenThumbnailUrl(nftId: string): string {
 }
 
 /** Fallback when the thumbnail redirect 404s (NFT not indexed by MintGarden): the full record's own image candidates. */
-export async function fetchNftImageUrls(nftId: string, fetchImpl: FetchLike = fetch): Promise<string[]> {
+export async function fetchNftImageUrls(
+  nftId: string,
+  fetchImpl: FetchLike = fetch
+): Promise<string[]> {
   try {
     const response = await fetchImpl(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
     if (!response.ok) return [];
@@ -197,13 +215,20 @@ export async function fetchNftImageUrls(nftId: string, fetchImpl: FetchLike = fe
 }
 
 /** Open (status 0 = active) sell offers for `nftId`, cheapest first — Dexie is the offer index. */
-export async function fetchNftOffers(nftId: string, fetchImpl: FetchLike = fetch): Promise<NftOffer[]> {
+export async function fetchNftOffers(
+  nftId: string,
+  fetchImpl: FetchLike = fetch
+): Promise<NftOffer[]> {
   try {
-    const response = await fetchImpl(`${DEXIE_API}/offers?offered=${encodeURIComponent(nftId)}&status=0&page_size=20`);
+    const response = await fetchImpl(
+      `${DEXIE_API}/offers?offered=${encodeURIComponent(nftId)}&status=0&page_size=20`
+    );
     if (!response.ok) return [];
     const body = obj(await response.json());
     const offers = Array.isArray(body.offers) ? body.offers : [];
-    return offers.map(normaliseOffer).sort((a, b) => (a.priceXch ?? Infinity) - (b.priceXch ?? Infinity));
+    return offers
+      .map(normaliseOffer)
+      .sort((a, b) => (a.priceXch ?? Infinity) - (b.priceXch ?? Infinity));
   } catch {
     return [];
   }
@@ -235,11 +260,16 @@ const EMPTY_SEARCH: NftSearchResults = { nfts: [], collections: [] };
  * as every other function in this file, so the search box falls back to its "not recognised"
  * state rather than showing an error for what is an additive, best-effort lookup.
  */
-export async function searchMintGarden(query: string, fetchImpl: FetchLike = fetch): Promise<NftSearchResults> {
+export async function searchMintGarden(
+  query: string,
+  fetchImpl: FetchLike = fetch
+): Promise<NftSearchResults> {
   const trimmed = query.trim();
   if (!trimmed) return EMPTY_SEARCH;
   try {
-    const response = await fetchImpl(`${MINTGARDEN_API}/search?query=${encodeURIComponent(trimmed)}`);
+    const response = await fetchImpl(
+      `${MINTGARDEN_API}/search?query=${encodeURIComponent(trimmed)}`
+    );
     if (!response.ok) return EMPTY_SEARCH;
     const body = obj(await response.json());
     const nfts = Array.isArray(body.nfts) ? body.nfts : [];
@@ -247,11 +277,19 @@ export async function searchMintGarden(query: string, fetchImpl: FetchLike = fet
     return {
       nfts: nfts
         .map(obj)
-        .map((n) => ({ nftId: str(n.encoded_id) ?? "", name: str(n.name), thumbnailUrl: str(n.thumbnail_uri) }))
+        .map((n) => ({
+          nftId: str(n.encoded_id) ?? "",
+          name: str(n.name),
+          thumbnailUrl: str(n.thumbnail_uri),
+        }))
         .filter((n) => n.nftId),
       collections: collections
         .map(obj)
-        .map((c) => ({ id: str(c.id) ?? "", name: str(c.name), thumbnailUrl: str(c.thumbnail_uri) }))
+        .map((c) => ({
+          id: str(c.id) ?? "",
+          name: str(c.name),
+          thumbnailUrl: str(c.thumbnail_uri),
+        }))
         .filter((c) => c.id),
     };
   } catch {

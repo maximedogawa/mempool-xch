@@ -28,8 +28,12 @@ describe("per-asset bundle totals against Coinset summaries", () => {
     const assets = bundleAssets(item);
     const coinset = sentTotals(normaliseTxSummary(summaryCat.transaction));
     expect(assets.cats.length).toBe(1);
-    expect(assets.cats[0]!.assetId).toBe("00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5");
-    expect(BigInt(assets.cats[0]!.amount)).toBe(coinset.cats.get("00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5") ?? -1n);
+    expect(assets.cats[0]!.assetId).toBe(
+      "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5"
+    );
+    expect(BigInt(assets.cats[0]!.amount)).toBe(
+      coinset.cats.get("00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5") ?? -1n
+    );
     expect(BigInt(assets.xch)).toBe(coinset.xch);
     const primary = primaryAsset(assets, "cat");
     expect(primary.kind).toBe("cat");
@@ -53,8 +57,15 @@ describe("per-asset bundle totals against Coinset summaries", () => {
     expect(kinds).toContain("nft");
     const assets = bundleAssets(item);
     expect(assets.nfts).toBeGreaterThanOrEqual(1);
-    const nftMojos = item.spendBundle.coinSpends.filter((s) => classifyCoinSpend(s).kind === "nft").reduce((a, s) => a + s.coin.amount, 0n);
-    expect(BigInt(assets.xch) + nftMojos).toBe(item.removals.reduce((a, c) => a + c.amount, 0n) - item.spendBundle.coinSpends.filter((s) => ["did", "singleton", "cat"].includes(classifyCoinSpend(s).kind)).reduce((a, s) => a + s.coin.amount, 0n));
+    const nftMojos = item.spendBundle.coinSpends
+      .filter((s) => classifyCoinSpend(s).kind === "nft")
+      .reduce((a, s) => a + s.coin.amount, 0n);
+    expect(BigInt(assets.xch) + nftMojos).toBe(
+      item.removals.reduce((a, c) => a + c.amount, 0n) -
+        item.spendBundle.coinSpends
+          .filter((s) => ["did", "singleton", "cat"].includes(classifyCoinSpend(s).kind))
+          .reduce((a, s) => a + s.coin.amount, 0n)
+    );
     expect(primaryAsset(assets, "nft").kind).toBe("nft");
     expect(formatPrimaryAsset(primaryAsset(assets, "nft"))).toMatch(/^\d+ NFTs?$/);
   });

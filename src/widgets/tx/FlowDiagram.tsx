@@ -16,10 +16,18 @@ function CoinRow({ coin, share }: { coin: FlowCoin; share: number }) {
   const owner = coin.custodyP2 || coin.puzzleHash;
   const address = safeAddress(owner, networkConfig.addressPrefix);
   const amount =
-    coin.kind === "cat" ? `${formatCat(coin.amount)} CAT` : coin.kind === "nft" || coin.kind === "did" || coin.kind === "singleton" ? `${coin.amount.toString()} mojo` : formatAmount(coin.amount);
+    coin.kind === "cat"
+      ? `${formatCat(coin.amount)} CAT`
+      : coin.kind === "nft" || coin.kind === "did" || coin.kind === "singleton"
+        ? `${coin.amount.toString()} mojo`
+        : formatAmount(coin.amount);
   return (
     <li className="relative flex flex-col gap-1 overflow-hidden rounded-sm border border-border bg-bg px-3 py-2">
-      <div className="pointer-events-none absolute inset-y-0 left-0 bg-primary/10" style={{ width: `${Math.round(share * 100)}%` }} aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 bg-primary/10"
+        style={{ width: `${Math.round(share * 100)}%` }}
+        aria-hidden="true"
+      />
       <div className="relative flex items-center justify-between gap-2">
         <Hash value={address ?? owner} href={routes.address(address ?? owner)} head={10} tail={6} />
         <span className="tabular shrink-0 text-sm font-semibold">{amount}</span>
@@ -28,7 +36,12 @@ function CoinRow({ coin, share }: { coin: FlowCoin; share: number }) {
         <span className="inline-flex items-center gap-1.5">
           <AssetBadge kind={coin.kind} assetId={coin.assetId} />
           {coin.assetId ? (
-            <Hash value={coin.assetId} href={coin.kind === "cat" ? routes.cat(coin.assetId) : routes.nft(coin.assetId)} head={6} tail={4} />
+            <Hash
+              value={coin.assetId}
+              href={coin.kind === "cat" ? routes.cat(coin.assetId) : routes.nft(coin.assetId)}
+              head={6}
+              tail={4}
+            />
           ) : null}
         </span>
         {coin.coinId ? (
@@ -65,7 +78,9 @@ function Column({ title, coins, total }: { title: string; coins: FlowCoin[]; tot
         <span className="tabular text-xs text-fg-faint">{formatAmount(total)}</span>
       </div>
       {coins.length === 0 ? (
-        <p className="rounded-sm border border-dashed border-border px-3 py-4 text-center text-xs text-fg-faint">None</p>
+        <p className="rounded-sm border border-dashed border-border px-3 py-4 text-center text-xs text-fg-faint">
+          None
+        </p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {shown.map((c, i) => (
@@ -73,7 +88,11 @@ function Column({ title, coins, total }: { title: string; coins: FlowCoin[]; tot
           ))}
         </ul>
       )}
-      {coins.length > shown.length ? <p className="text-xs text-fg-faint">…and {coins.length - shown.length} more (see raw JSON).</p> : null}
+      {coins.length > shown.length ? (
+        <p className="text-xs text-fg-faint">
+          …and {coins.length - shown.length} more (see raw JSON).
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -90,7 +109,9 @@ export function FlowDiagram({ flow, fee }: { flow: Flow; fee: bigint }) {
       </div>
       <Column title="Outputs · additions" coins={flow.outputs} total={flow.totalOut} />
       <p className="sr-only">
-        {flow.inputs.length} inputs totalling {formatAmount(flow.totalIn)} flow into {flow.outputs.length} outputs totalling {formatAmount(flow.totalOut)}; fee {formatAmount(fee)}. Input {shortId(flow.inputs[0]?.coinId ?? "")}.
+        {flow.inputs.length} inputs totalling {formatAmount(flow.totalIn)} flow into{" "}
+        {flow.outputs.length} outputs totalling {formatAmount(flow.totalOut)}; fee{" "}
+        {formatAmount(fee)}. Input {shortId(flow.inputs[0]?.coinId ?? "")}.
       </p>
     </div>
   );

@@ -50,7 +50,9 @@ export interface BlockPool {
  * Who farmed one block (block and transaction pages). Unlike usePoolLookup this looks the payout
  * address's claim up when the browser has not seen it yet: one indexed call, then cached.
  */
-export function useBlockPool(record: Pick<BlockRecord, "poolPuzzleHash" | "farmerPuzzleHash"> | undefined): BlockPool {
+export function useBlockPool(
+  record: Pick<BlockRecord, "poolPuzzleHash" | "farmerPuzzleHash"> | undefined
+): BlockPool {
   const { client, endpoints } = useSettings();
   const claims = usePoolClaims();
   const payout = record?.poolPuzzleHash ?? null;

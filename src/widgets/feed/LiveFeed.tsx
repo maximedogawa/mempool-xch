@@ -9,7 +9,16 @@ import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
-import { AssetAmount, AssetBadge, Card, CardBody, CardHeader, Hash, Skeleton, YoursChip } from "@/shared/ui";
+import {
+  AssetAmount,
+  AssetBadge,
+  Card,
+  CardBody,
+  CardHeader,
+  Hash,
+  Skeleton,
+  YoursChip,
+} from "@/shared/ui";
 
 const FEED_CAP = 50;
 
@@ -29,7 +38,9 @@ export function LiveTransactions() {
   const frozen = useRef<typeof rows>([]);
   useTicker(10_000);
   const rows = useMemo(() => {
-    const items = [...(summary.data?.items ?? [])].sort((a, b) => b.firstSeen - a.firstSeen).slice(0, FEED_CAP);
+    const items = [...(summary.data?.items ?? [])]
+      .sort((a, b) => b.firstSeen - a.firstSeen)
+      .slice(0, FEED_CAP);
     return items;
   }, [summary.data]);
   if (!paused) frozen.current = rows;
@@ -46,7 +57,11 @@ export function LiveTransactions() {
         title={
           <span className="inline-flex items-center gap-2">
             Latest transactions
-            {paused ? <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] normal-case tracking-normal text-fg-faint">paused</span> : null}
+            {paused ? (
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] normal-case tracking-normal text-fg-faint">
+                paused
+              </span>
+            ) : null}
           </span>
         }
         action={
@@ -74,15 +89,37 @@ export function LiveTransactions() {
           ) : (
             <ul className="divide-y divide-border/60" aria-live="polite" aria-relevant="additions">
               {shown.map((item) => (
-                <li key={item.id} className={cn("flex items-center gap-3 py-2 text-sm", fresh.has(item.id) && "animate-row-in")}>
+                <li
+                  key={item.id}
+                  className={cn(
+                    "flex items-center gap-3 py-2 text-sm",
+                    fresh.has(item.id) && "animate-row-in"
+                  )}
+                >
                   <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} />
                   {mine.has(item.id) ? <YoursChip /> : null}
                   <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
-                  <AssetAmount assets={item.assets} kind={item.kind} className="ml-auto hidden text-fg-muted sm:inline" />
-                  <span className="tabular w-20 text-right text-fg-muted" title={`${formatCost(item.cost)} cost`}>
-                    {BigInt(item.fee) === 0n ? <span className="text-fg-faint">0 fee</span> : `${formatFeeRate(item.feeRate)} m/c`}
+                  <AssetAmount
+                    assets={item.assets}
+                    kind={item.kind}
+                    className="ml-auto hidden text-fg-muted sm:inline"
+                  />
+                  <span
+                    className="tabular w-20 text-right text-fg-muted"
+                    title={`${formatCost(item.cost)} cost`}
+                  >
+                    {BigInt(item.fee) === 0n ? (
+                      <span className="text-fg-faint">0 fee</span>
+                    ) : (
+                      `${formatFeeRate(item.feeRate)} m/c`
+                    )}
                   </span>
-                  <span className="tabular w-14 text-right text-xs text-fg-faint" title="First observed by the mempoolxch.space server (not the network's first-seen time)">{formatAge(item.firstSeen)}</span>
+                  <span
+                    className="tabular w-14 text-right text-xs text-fg-faint"
+                    title="First observed by the mempoolxch.space server (not the network's first-seen time)"
+                  >
+                    {formatAge(item.firstSeen)}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -119,19 +156,33 @@ export function LatestBlocks() {
           <ul className="divide-y divide-border/60">
             {blocks.map((b) => (
               <li key={b.height} className="flex items-center gap-3 py-2 text-sm">
-                <Link href={routes.block(b.height)} className="tabular font-semibold text-accent hover:underline">
+                <Link
+                  href={routes.block(b.height)}
+                  className="tabular font-semibold text-accent hover:underline"
+                >
                   {formatNumber(b.height)}
                 </Link>
                 {b.isTransactionBlock ? (
-                  <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">tx block</span>
+                  <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                    tx block
+                  </span>
                 ) : (
-                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-fg-faint">no tx</span>
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-fg-faint">
+                    no tx
+                  </span>
                 )}
-                <span className="tabular ml-auto text-fg-muted">{b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : "—"}</span>
-                <span className="mono hidden w-24 truncate text-xs text-fg-faint md:inline" title={b.farmerPuzzleHash}>
+                <span className="tabular ml-auto text-fg-muted">
+                  {b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : "—"}
+                </span>
+                <span
+                  className="mono hidden w-24 truncate text-xs text-fg-faint md:inline"
+                  title={b.farmerPuzzleHash}
+                >
                   {b.farmerPuzzleHash.slice(0, 10)}…
                 </span>
-                <span className="tabular w-16 text-right text-xs text-fg-faint">{b.timestamp ? formatAge(b.timestamp * 1000) : ""}</span>
+                <span className="tabular w-16 text-right text-xs text-fg-faint">
+                  {b.timestamp ? formatAge(b.timestamp * 1000) : ""}
+                </span>
               </li>
             ))}
           </ul>

@@ -33,12 +33,36 @@ export interface PendingStatus {
   blocksAhead: number;
 }
 
-export function describePending(txId: string, items: CompactMempoolItem[] | undefined, blocks: ProjectedBlock[]): PendingStatus {
+export function describePending(
+  txId: string,
+  items: CompactMempoolItem[] | undefined,
+  blocks: ProjectedBlock[]
+): PendingStatus {
   const id = txId.toLowerCase().replace(/^0x/, "");
   const item = items?.find((i) => i.id === id);
-  if (!item) return { phase: "broadcast", blockIndex: null, position: null, blockSize: null, etaSeconds: null, feeRate: null, band: null, blocksAhead: blocks.length };
+  if (!item)
+    return {
+      phase: "broadcast",
+      blockIndex: null,
+      position: null,
+      blockSize: null,
+      etaSeconds: null,
+      feeRate: null,
+      band: null,
+      blocksAhead: blocks.length,
+    };
   const found = findProjectedPosition(blocks, id);
-  if (!found) return { phase: "waiting", blockIndex: null, position: null, blockSize: null, etaSeconds: null, feeRate: item.feeRate, band: feeBandFor(item.feeRate), blocksAhead: blocks.length };
+  if (!found)
+    return {
+      phase: "waiting",
+      blockIndex: null,
+      position: null,
+      blockSize: null,
+      etaSeconds: null,
+      feeRate: item.feeRate,
+      band: feeBandFor(item.feeRate),
+      blocksAhead: blocks.length,
+    };
   return {
     phase: "queued",
     blockIndex: found.block.index,
@@ -59,7 +83,11 @@ export interface TrackedState {
 export const EMPTY_TRACKED: TrackedState = { seen: {} };
 
 /** Fold the wallet's current pending ids in; returns the ids that were pending before and are not now. */
-export function trackPending(state: TrackedState, pendingIds: string[], now: number): { state: TrackedState; left: string[] } {
+export function trackPending(
+  state: TrackedState,
+  pendingIds: string[],
+  now: number
+): { state: TrackedState; left: string[] } {
   const current = new Set(pendingIds.map((i) => i.toLowerCase()));
   const seen: Record<string, number> = {};
   const left: string[] = [];
@@ -80,7 +108,9 @@ export function pendingLine(s: PendingStatus): string {
     case "waiting":
       return "In the mempool, behind the projected blocks";
     case "queued":
-      return s.blockIndex === 0 ? `Next block · position ${s.position} of ${s.blockSize}` : `Projected block ${(s.blockIndex ?? 0) + 1} · position ${s.position} of ${s.blockSize}`;
+      return s.blockIndex === 0
+        ? `Next block · position ${s.position} of ${s.blockSize}`
+        : `Projected block ${(s.blockIndex ?? 0) + 1} · position ${s.position} of ${s.blockSize}`;
     case "confirmed":
       return "Confirmed";
     case "gone":

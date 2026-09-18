@@ -8,12 +8,16 @@ test.describe("docs", () => {
 
   test("has a Why mempoolxch.space section linking the competitor matrix", async ({ page }) => {
     await page.goto("/docs");
-    await expect(page.getByRole("heading", { level: 2, name: "Why mempoolxch.space" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Why mempoolxch.space" })
+    ).toBeVisible();
     const link = page.getByRole("link", { name: "competitor matrix" });
     await expect(link).toHaveAttribute("href", /architecture\/competitors\.md/);
   });
 
-  test("the live-updates answer describes the current client-direct channels only", async ({ page }) => {
+  test("the live-updates answer describes the current client-direct channels only", async ({
+    page,
+  }) => {
     await page.goto("/docs#channels");
     const section = page.locator("#channels");
     await expect(section.getByText("Coinset socket", { exact: true })).toBeVisible();

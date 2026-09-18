@@ -25,7 +25,12 @@ function CandidateLabel({ match }: { match: SearchMatch }) {
   if (match.kind === "nft" || match.kind === "collection") {
     return (
       <span className="inline-flex items-center gap-1.5 font-medium">
-        <AssetImage urls={match.thumbnailUrl ? [match.thumbnailUrl] : []} alt="" className="h-4 w-4 shrink-0" rounded="rounded-sm" />
+        <AssetImage
+          urls={match.thumbnailUrl ? [match.thumbnailUrl] : []}
+          alt=""
+          className="h-4 w-4 shrink-0"
+          rounded="rounded-sm"
+        />
         {match.label}
       </span>
     );
@@ -58,7 +63,9 @@ export function SearchBox({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      const typing = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      const typing =
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
       if (event.key === "/" && !typing) {
         event.preventDefault();
         inputRef.current?.focus();
@@ -107,7 +114,9 @@ export function SearchBox({
       try {
         const matches = await resolveText(target.value);
         if (matches.length === 0) {
-          setError(`No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id or a CAT asset id.`);
+          setError(
+            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id or a CAT asset id.`
+          );
         } else {
           setCandidates(matches);
         }
@@ -127,7 +136,12 @@ export function SearchBox({
   };
 
   return (
-    <form ref={formRef} role="search" onSubmit={submit} className={cn("relative w-full", className)}>
+    <form
+      ref={formRef}
+      role="search"
+      onSubmit={submit}
+      className={cn("relative w-full", className)}
+    >
       <label htmlFor="global-search" className="sr-only">
         Search transactions, blocks, addresses, coins and assets
       </label>
@@ -135,7 +149,10 @@ export function SearchBox({
         <Search
           size={size === "lg" ? 18 : 16}
           aria-hidden="true"
-          className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-fg-muted", size === "lg" ? "left-4" : "left-3")}
+          className={cn(
+            "pointer-events-none absolute top-1/2 -translate-y-1/2 text-fg-muted",
+            size === "lg" ? "left-4" : "left-3"
+          )}
         />
         <input
           ref={inputRef}
@@ -158,21 +175,42 @@ export function SearchBox({
           }}
           onFocus={() => onFocusChange?.(true)}
           onBlur={handleBlur}
-          placeholder={size === "lg" ? "Search tx, block, address, coin, CAT or NFT…" : "Search tx id, block, address, coin, CAT or NFT…"}
+          placeholder={
+            size === "lg"
+              ? "Search tx, block, address, coin, CAT or NFT…"
+              : "Search tx id, block, address, coin, CAT or NFT…"
+          }
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "global-search-error" : undefined}
           className={cn(
             "w-full border bg-surface text-fg shadow-sm transition-colors placeholder:text-fg-faint focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none",
-            size === "lg" ? "h-11 rounded-full border-border-strong pl-11 pr-20 text-[15px]" : "h-10 rounded-md border-border pl-9 pr-16 text-sm"
+            size === "lg"
+              ? "h-11 rounded-full border-border-strong pl-11 pr-20 text-[15px]"
+              : "h-10 rounded-md border-border pl-9 pr-16 text-sm"
           )}
         />
-        <div className={cn("absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center", size === "lg" ? "gap-1" : "gap-1")}>
+        <div
+          className={cn(
+            "absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center",
+            size === "lg" ? "gap-1" : "gap-1"
+          )}
+        >
           {value ? (
-            <button type="button" onClick={clear} aria-label="Clear search" className="rounded-full p-1.5 text-fg-faint hover:bg-surface-2 hover:text-fg">
+            <button
+              type="button"
+              onClick={clear}
+              aria-label="Clear search"
+              className="rounded-full p-1.5 text-fg-faint hover:bg-surface-2 hover:text-fg"
+            >
               <X size={size === "lg" ? 16 : 14} aria-hidden="true" />
             </button>
           ) : (
-            <kbd className={cn("hidden rounded-full border border-border-strong bg-surface-2 text-fg-muted sm:inline", size === "lg" ? "px-2.5 py-1 text-xs" : "px-1.5 py-0.5 text-[10px]")}>
+            <kbd
+              className={cn(
+                "hidden rounded-full border border-border-strong bg-surface-2 text-fg-muted sm:inline",
+                size === "lg" ? "px-2.5 py-1 text-xs" : "px-1.5 py-0.5 text-[10px]"
+              )}
+            >
               /
             </kbd>
           )}
@@ -196,7 +234,11 @@ export function SearchBox({
         </div>
       </div>
       {error ? (
-        <p id="global-search-error" role="alert" className="absolute left-0 right-0 top-full z-30 mt-1 rounded-sm border border-danger/40 bg-bg-elevated px-3 py-2 text-xs text-danger shadow-card">
+        <p
+          id="global-search-error"
+          role="alert"
+          className="absolute left-0 right-0 top-full z-30 mt-1 rounded-sm border border-danger/40 bg-bg-elevated px-3 py-2 text-xs text-danger shadow-card"
+        >
           {error}
         </p>
       ) : null}

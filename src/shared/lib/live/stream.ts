@@ -7,9 +7,33 @@ export type LiveStatus = "connecting" | "live" | "polling" | "offline";
 
 export type LiveEvent =
   | { type: "peak"; height: number; tx: boolean }
-  | { type: "transaction"; ids: string[]; status: "pending" | "confirmed" | "removed"; height: number | null }
+  | {
+      type: "transaction";
+      ids: string[];
+      status: "pending" | "confirmed" | "removed";
+      height: number | null;
+    }
   | { type: "status"; status: LiveStatus }
-  | { type: "mempool"; size: number };
+  | { type: "mempool"; size: number }
+  /** Coinset detected a chain reorganisation (old peak rolled back to the new one). */
+  | {
+      type: "reorg";
+      oldPeakHeight: number;
+      newPeakHeight: number;
+      depth: number;
+      detectedAtMs: number;
+    }
+  /** Coinset's periodic netspace estimate (dashboard event, kind "netspace"). */
+  | { type: "netspace"; bytes: bigint; difficulty: number }
+  /** A Chia Vault recovery step seen by Coinset (events=vault). */
+  | {
+      type: "vault";
+      vaultId: string;
+      action: string;
+      status: string;
+      txId: string | null;
+      at: number;
+    };
 
 export type LiveTransport = "websocket" | "polling";
 
@@ -62,10 +86,53 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
     return { type: "peak", height, tx: Boolean(data.tx) };
   }
   if (message.type === "transaction") {
-    const ids = Array.isArray(data.ids) ? data.ids.map((id) => String(id).replace(/^0x/, "").toLowerCase()) : [];
-    const status = data.status === "confirmed" || data.status === "removed" ? data.status : "pending";
+    const ids = Array.isArray(data.ids)
+      ? data.ids.map((id) => String(id).replace(/^0x/, "").toLowerCase())
+      : [];
+    const status =
+      data.status === "confirmed" || data.status === "removed" ? data.status : "pending";
     const height = typeof data.height === "number" ? data.height : null;
     return { type: "transaction", ids, status, height };
+  }
+  if (message.type === "reorg") {
+    const oldPeakHeight = Number(data.old_peak_height);
+    const newPeakHeight = Number(data.new_peak_height);
+    if (!Number.isFinite(oldPeakHeight) || !Number.isFinite(newPeakHeight)) return null;
+    const depth = Number.isFinite(Number(data.reorg_depth))
+      ? Number(data.reorg_depth)
+      : Math.max(0, oldPeakHeight - newPeakHeight);
+    return {
+      type: "reorg",
+      oldPeakHeight,
+      newPeakHeight,
+      depth,
+      detectedAtMs: Number(data.detected_at_ms) || Date.now(),
+    };
+  }
+  if (message.type === "vault") {
+    const vaultId = String(data.vault_id ?? data.launcher_id ?? "")
+      .replace(/^0x/, "")
+      .toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(vaultId)) return null;
+    const txId =
+      typeof data.tx_id === "string" && data.tx_id
+        ? data.tx_id.replace(/^0x/, "").toLowerCase()
+        : null;
+    return {
+      type: "vault",
+      vaultId,
+      action: String(data.action ?? data.vault_action ?? "unknown"),
+      status: String(data.status ?? data.tx_status ?? "pending"),
+      txId,
+      at: Date.now(),
+    };
+  }
+  if (message.type === "dashboard" && data.kind === "netspace") {
+    // bytes arrives as a decimal string well beyond 2^53; keep it exact.
+    const raw =
+      typeof data.bytes === "string" || typeof data.bytes === "number" ? String(data.bytes) : "";
+    if (!/^\d+$/.test(raw)) return null;
+    return { type: "netspace", bytes: BigInt(raw), difficulty: Number(data.difficulty) || 0 };
   }
   return null;
 }
@@ -78,7 +145,8 @@ export function backoffDelay(attempt: number): number {
 }
 
 export function createLiveStream(options: LiveStreamOptions): LiveStream {
-  const setT = options.setTimeoutImpl ?? ((fn: () => void, ms: number): TimerId => setTimeout(fn, ms));
+  const setT =
+    options.setTimeoutImpl ?? ((fn: () => void, ms: number): TimerId => setTimeout(fn, ms));
   const clearT = options.clearTimeoutImpl ?? ((id: TimerId) => clearTimeout(id));
   const pollInterval = options.pollIntervalMs ?? 5_000;
   const maxWsFailures = options.maxWsFailures ?? 3;
@@ -141,7 +209,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     setStatus("connecting");
     let ws: WebSocket;
     try {
-      ws = new WS(`${options.wsUrl}?events=peak,transaction`);
+      ws = new WS(`${options.wsUrl}?events=peak,transaction,reorg,dashboard,vault`);
     } catch {
       onSocketFailure();
       return;

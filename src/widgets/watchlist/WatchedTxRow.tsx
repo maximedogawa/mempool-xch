@@ -31,7 +31,11 @@ export function WatchedTxRow({
   useEffect(() => {
     const status = tx.data?.status;
     if (!status) return;
-    if (prevStatus.current === "pending" && status === "confirmed" && tx.data?.status === "confirmed") {
+    if (
+      prevStatus.current === "pending" &&
+      status === "confirmed" &&
+      tx.data?.status === "confirmed"
+    ) {
       onConfirmed(item, tx.data.summary.confirmedHeight);
     }
     prevStatus.current = status;
@@ -46,7 +50,9 @@ export function WatchedTxRow({
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <Hash value={item.id} href={routes.tx(item.id)} head={8} tail={6} className="font-medium" />
         {status === "pending" ? (
-          <span className="text-xs text-fg-muted">{pendingLine(describePending(item.id, projectedItems, projectedBlocks))}</span>
+          <span className="text-xs text-fg-muted">
+            {pendingLine(describePending(item.id, projectedItems, projectedBlocks))}
+          </span>
         ) : status === "confirmed" && view?.status === "confirmed" ? (
           <span className="inline-flex items-center gap-1 text-xs text-primary">
             <CheckCircle2 size={12} aria-hidden="true" />
@@ -55,7 +61,10 @@ export function WatchedTxRow({
               <>
                 {" "}
                 in block{" "}
-                <Link href={routes.block(view.summary.confirmedHeight)} className="font-semibold hover:underline">
+                <Link
+                  href={routes.block(view.summary.confirmedHeight)}
+                  className="font-semibold hover:underline"
+                >
                   {formatNumber(view.summary.confirmedHeight)}
                 </Link>
               </>
@@ -72,7 +81,12 @@ export function WatchedTxRow({
           <span className="text-xs text-fg-faint">Loading…</span>
         )}
       </div>
-      <button type="button" onClick={onRemove} aria-label={`Stop watching ${item.label}`} className="rounded-sm p-1 text-fg-faint hover:text-fg">
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Stop watching ${item.label}`}
+        className="rounded-sm p-1 text-fg-faint hover:text-fg"
+      >
         <X size={14} aria-hidden="true" />
       </button>
     </li>

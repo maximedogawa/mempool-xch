@@ -28,7 +28,11 @@ function tx(confirmedAtMs: number, receipts: { assetId: string; amount: bigint }
         memos: [],
         raw: {},
         participants: [
-          { p2: "p1", sent: { xch: 0n, cats: [], nfts: [] }, received: { xch: 0n, cats: receipts, nfts: [] } },
+          {
+            p2: "p1",
+            sent: { xch: 0n, cats: [], nfts: [] },
+            received: { xch: 0n, cats: receipts, nfts: [] },
+          },
         ],
       },
     ],
@@ -54,7 +58,10 @@ describe("catAmountMoved", () => {
 
 describe("summariseRecentActivity", () => {
   test("last seen is the newest (first) record of a desc-ordered page", () => {
-    const recent = [tx(3000, [{ assetId: ASSET_A, amount: 10n }]), tx(2000, [{ assetId: ASSET_A, amount: 5n }])];
+    const recent = [
+      tx(3000, [{ assetId: ASSET_A, amount: 10n }]),
+      tx(2000, [{ assetId: ASSET_A, amount: 5n }]),
+    ];
     const result = summariseRecentActivity(ASSET_A, recent, false);
     expect(result.lastSeenMs).toBe(3000);
     expect(result.sampledSpends).toBe(2);

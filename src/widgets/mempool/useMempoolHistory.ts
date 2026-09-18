@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMempoolSummary } from "@/shared/api/hooks";
-import { appendSample, loadHistory, sampleFromSummary, saveHistory, type MempoolSample } from "@/shared/lib/mempool/history";
+import {
+  appendSample,
+  loadHistory,
+  sampleFromSummary,
+  saveHistory,
+  type MempoolSample,
+} from "@/shared/lib/mempool/history";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 /** Collects one sample per summary refresh into a rolling, persisted window. */

@@ -7,7 +7,15 @@
  */
 import { capabilities, getSage } from "./bridge";
 
-export const WALLET_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions", "wallet.get_transactions", "wallet.get_coins", "wallet.get_coins_by_ids", "wallet.check_address", "wallet.get_xch_usd_price"] as const;
+export const WALLET_CAPABILITIES = [
+  "wallet.get_sync_status",
+  "wallet.get_pending_transactions",
+  "wallet.get_transactions",
+  "wallet.get_coins",
+  "wallet.get_coins_by_ids",
+  "wallet.check_address",
+  "wallet.get_xch_usd_price",
+] as const;
 
 export interface WalletCoinRef {
   coinId: string;
@@ -87,10 +95,15 @@ function coinRef(raw: unknown): WalletCoinRef {
 }
 
 /** Capabilities the overview needs; each is requested at most once per session. */
-const OVERVIEW_CAPABILITIES = ["wallet.get_sync_status", "wallet.get_pending_transactions"] as const;
+const OVERVIEW_CAPABILITIES = [
+  "wallet.get_sync_status",
+  "wallet.get_pending_transactions",
+] as const;
 
 async function ensureAll(caps: readonly string[]): Promise<string[]> {
-  const results = await Promise.all(caps.map(async (c) => ((await capabilities.ensure(c)) ? c : null)));
+  const results = await Promise.all(
+    caps.map(async (c) => ((await capabilities.ensure(c)) ? c : null))
+  );
   return results.filter((c): c is string => c !== null);
 }
 
@@ -100,9 +113,17 @@ export async function fetchWalletPending(): Promise<WalletTx[] | null> {
   if (!client || !(await capabilities.ensure("wallet.get_pending_transactions"))) return null;
   const res = await client.wallet.getPendingTransactions().catch(() => null);
   if (!res) return null;
-  return (asRaw(res).transactions as unknown[] | undefined ?? []).map((t) => {
+  return ((asRaw(res).transactions as unknown[] | undefined) ?? []).map((t) => {
     const r = asRaw(t);
-    return { id: str(r.transaction_id)?.replace(/^0x/, "") ?? null, height: null, timestamp: num(r.submitted_at), fee: big(r.fee), spent: (r.spent as unknown[] | undefined ?? []).map(coinRef), created: (r.created as unknown[] | undefined ?? []).map(coinRef), pending: true };
+    return {
+      id: str(r.transaction_id)?.replace(/^0x/, "") ?? null,
+      height: null,
+      timestamp: num(r.submitted_at),
+      fee: big(r.fee),
+      spent: ((r.spent as unknown[] | undefined) ?? []).map(coinRef),
+      created: ((r.created as unknown[] | undefined) ?? []).map(coinRef),
+      pending: true,
+    };
   });
 }
 
@@ -111,8 +132,12 @@ export async function fetchWalletOverview(): Promise<WalletOverview | null> {
   if (!client) return null;
   await ensureAll(OVERVIEW_CAPABILITIES);
   const has = (c: string) => capabilities.has(c);
-  const status = has("wallet.get_sync_status") ? await client.wallet.getSyncStatus().catch(() => null) : null;
-  const pendingRes = has("wallet.get_pending_transactions") ? await client.wallet.getPendingTransactions().catch(() => null) : null;
+  const status = has("wallet.get_sync_status")
+    ? await client.wallet.getSyncStatus().catch(() => null)
+    : null;
+  const pendingRes = has("wallet.get_pending_transactions")
+    ? await client.wallet.getPendingTransactions().catch(() => null)
+    : null;
   const txRes = null;
   const coinsRes = null;
   const s = asRaw(status);
@@ -124,18 +149,40 @@ export async function fetchWalletOverview(): Promise<WalletOverview | null> {
     precision: num(unit.precision) ?? 12,
     syncedCoins: num(s.synced_coins) ?? 0,
     totalCoins: num(s.total_coins) ?? 0,
-    pending: (asRaw(pendingRes).transactions as unknown[] | undefined ?? []).map((t) => {
+    pending: ((asRaw(pendingRes).transactions as unknown[] | undefined) ?? []).map((t) => {
       const r = asRaw(t);
-      return { id: str(r.transaction_id)?.replace(/^0x/, "") ?? null, height: null, timestamp: num(r.submitted_at), fee: big(r.fee), spent: (r.spent as unknown[] | undefined ?? []).map(coinRef), created: (r.created as unknown[] | undefined ?? []).map(coinRef), pending: true };
+      return {
+        id: str(r.transaction_id)?.replace(/^0x/, "") ?? null,
+        height: null,
+        timestamp: num(r.submitted_at),
+        fee: big(r.fee),
+        spent: ((r.spent as unknown[] | undefined) ?? []).map(coinRef),
+        created: ((r.created as unknown[] | undefined) ?? []).map(coinRef),
+        pending: true,
+      };
     }),
-    recent: (asRaw(txRes).transactions as unknown[] | undefined ?? []).map((t) => {
+    recent: ((asRaw(txRes).transactions as unknown[] | undefined) ?? []).map((t) => {
       const r = asRaw(t);
-      return { id: null, height: num(r.height), timestamp: num(r.timestamp), fee: null, spent: (r.spent as unknown[] | undefined ?? []).map(coinRef), created: (r.created as unknown[] | undefined ?? []).map(coinRef), pending: false };
+      return {
+        id: null,
+        height: num(r.height),
+        timestamp: num(r.timestamp),
+        fee: null,
+        spent: ((r.spent as unknown[] | undefined) ?? []).map(coinRef),
+        created: ((r.created as unknown[] | undefined) ?? []).map(coinRef),
+        pending: false,
+      };
     }),
     totalTransactions: num(asRaw(txRes).total) ?? 0,
-    coins: (asRaw(coinsRes).coins as unknown[] | undefined ?? []).map((c) => {
+    coins: ((asRaw(coinsRes).coins as unknown[] | undefined) ?? []).map((c) => {
       const r = asRaw(c);
-      return { coinId: String(r.coin_id ?? "").replace(/^0x/, ""), address: str(r.address) ?? "", amount: big(r.amount), createdHeight: num(r.created_height), spentHeight: num(r.spent_height) };
+      return {
+        coinId: String(r.coin_id ?? "").replace(/^0x/, ""),
+        address: str(r.address) ?? "",
+        amount: big(r.amount),
+        createdHeight: num(r.created_height),
+        spentHeight: num(r.spent_height),
+      };
     }),
     totalCoinCount: num(asRaw(coinsRes).total) ?? 0,
     granted: capabilities.snapshot().granted,
@@ -161,10 +208,18 @@ export async function fetchWalletCoin(coinId: string): Promise<WalletCoin | null
   const client = await getSage();
   if (!client || !(await capabilities.ensure("wallet.get_coins_by_ids"))) return null;
   try {
-    const result = await client.wallet.getCoinsByIds({ coin_ids: [`0x${coinId.replace(/^0x/, "")}`] });
-    const raw = asRaw((asRaw(result).coins as unknown[] | undefined ?? [])[0]);
+    const result = await client.wallet.getCoinsByIds({
+      coin_ids: [`0x${coinId.replace(/^0x/, "")}`],
+    });
+    const raw = asRaw(((asRaw(result).coins as unknown[] | undefined) ?? [])[0]);
     if (!raw.coin_id) return null;
-    return { coinId: String(raw.coin_id).replace(/^0x/, ""), address: str(raw.address) ?? "", amount: big(raw.amount), createdHeight: num(raw.created_height), spentHeight: num(raw.spent_height) };
+    return {
+      coinId: String(raw.coin_id).replace(/^0x/, ""),
+      address: str(raw.address) ?? "",
+      amount: big(raw.amount),
+      createdHeight: num(raw.created_height),
+      spentHeight: num(raw.spent_height),
+    };
   } catch {
     return null;
   }
@@ -188,7 +243,10 @@ export async function fetchXchUsdPrice(): Promise<number | null> {
  * Ask Sage to whitelist a custom chain endpoint so the app may call it from inside the
  * wallet (Sage only whitelists https and wss hosts). Returns granted / refused / not-in-sage.
  */
-export async function requestEndpointWhitelist(url: string, networkId: string): Promise<"granted" | "refused" | "unsupported" | "not-in-sage"> {
+export async function requestEndpointWhitelist(
+  url: string,
+  networkId: string
+): Promise<"granted" | "refused" | "unsupported" | "not-in-sage"> {
   const client = await getSage();
   if (!client) return "not-in-sage";
   let parsed: URL;
@@ -199,7 +257,10 @@ export async function requestEndpointWhitelist(url: string, networkId: string): 
   }
   if (parsed.protocol !== "https:") return "unsupported";
   try {
-    const result = await client.app.requestNetworkWhitelistGrant({ entry: { scheme: "https", host: parsed.host }, networkId });
+    const result = await client.app.requestNetworkWhitelistGrant({
+      entry: { scheme: "https", host: parsed.host },
+      networkId,
+    });
     return (result as { granted?: boolean }).granted ? "granted" : "refused";
   } catch {
     return "refused";
@@ -227,31 +288,56 @@ function toWalletTx(raw: unknown): WalletTx {
     height: num(r.height),
     timestamp: num(r.timestamp),
     fee: r.fee === undefined ? null : big(r.fee),
-    spent: (r.spent as unknown[] | undefined ?? []).map(coinRef),
-    created: (r.created as unknown[] | undefined ?? []).map(coinRef),
+    spent: ((r.spent as unknown[] | undefined) ?? []).map(coinRef),
+    created: ((r.created as unknown[] | undefined) ?? []).map(coinRef),
     pending: false,
   };
 }
 
 function toWalletCoin(raw: unknown): WalletCoin {
   const r = asRaw(raw);
-  return { coinId: String(r.coin_id ?? "").replace(/^0x/, ""), address: str(r.address) ?? "", amount: big(r.amount), createdHeight: num(r.created_height), spentHeight: num(r.spent_height) };
+  return {
+    coinId: String(r.coin_id ?? "").replace(/^0x/, ""),
+    address: str(r.address) ?? "",
+    amount: big(r.amount),
+    createdHeight: num(r.created_height),
+    spentHeight: num(r.spent_height),
+  };
 }
 
 /** One page of the wallet's confirmed transactions, newest first. */
-export async function fetchWalletTransactionsPage(offset: number, limit = 25): Promise<WalletTxPage> {
+export async function fetchWalletTransactionsPage(
+  offset: number,
+  limit = 25
+): Promise<WalletTxPage> {
   const client = await getSage();
-  if (!client || !(await capabilities.ensure("wallet.get_transactions"))) return { items: [], total: 0, offset };
-  const res = asRaw(await client.wallet.getTransactions({ offset, limit, ascending: false, find_value: null }).catch(() => null));
-  return { items: (res.transactions as unknown[] | undefined ?? []).map(toWalletTx), total: num(res.total) ?? 0, offset };
+  if (!client || !(await capabilities.ensure("wallet.get_transactions")))
+    return { items: [], total: 0, offset };
+  const res = asRaw(
+    await client.wallet
+      .getTransactions({ offset, limit, ascending: false, find_value: null })
+      .catch(() => null)
+  );
+  return {
+    items: ((res.transactions as unknown[] | undefined) ?? []).map(toWalletTx),
+    total: num(res.total) ?? 0,
+    offset,
+  };
 }
 
 /** One page of the wallet's coins, newest first. */
 export async function fetchWalletCoinsPage(offset: number, limit = 50): Promise<WalletCoinPage> {
   const client = await getSage();
-  if (!client || !(await capabilities.ensure("wallet.get_coins"))) return { items: [], total: 0, offset };
-  const res = asRaw(await client.wallet.getCoins({ offset, limit, ascending: false } as never).catch(() => null));
-  return { items: (res.coins as unknown[] | undefined ?? []).map(toWalletCoin), total: num(res.total) ?? 0, offset };
+  if (!client || !(await capabilities.ensure("wallet.get_coins")))
+    return { items: [], total: 0, offset };
+  const res = asRaw(
+    await client.wallet.getCoins({ offset, limit, ascending: false } as never).catch(() => null)
+  );
+  return {
+    items: ((res.coins as unknown[] | undefined) ?? []).map(toWalletCoin),
+    total: num(res.total) ?? 0,
+    offset,
+  };
 }
 
 export interface WalletAsset {
@@ -277,13 +363,29 @@ function kindOfRef(ref: WalletCoinRef): WalletAsset["kind"] {
 /** Distinct assets seen in the loaded history (XCH first, then by activity), pure and testable. */
 export function deriveAssets(txs: WalletTx[]): WalletAsset[] {
   const map = new Map<string, WalletAsset>();
-  map.set("xch", { kind: "xch", assetId: null, name: "Chia", ticker: "XCH", precision: 12, iconUrl: null, txCount: 0 });
+  map.set("xch", {
+    kind: "xch",
+    assetId: null,
+    name: "Chia",
+    ticker: "XCH",
+    precision: 12,
+    iconUrl: null,
+    txCount: 0,
+  });
   txs.forEach((tx) => {
     const seen = new Set<string>();
     [...tx.spent, ...tx.created].forEach((ref) => {
       const kind = kindOfRef(ref);
       const key = kind === "xch" ? "xch" : `${kind}:${ref.assetId ?? "?"}`;
-      const existing = map.get(key) ?? { kind, assetId: kind === "xch" ? null : ref.assetId, name: ref.assetName, ticker: ref.ticker, precision: ref.precision, iconUrl: ref.iconUrl, txCount: 0 };
+      const existing = map.get(key) ?? {
+        kind,
+        assetId: kind === "xch" ? null : ref.assetId,
+        name: ref.assetName,
+        ticker: ref.ticker,
+        precision: ref.precision,
+        iconUrl: ref.iconUrl,
+        txCount: 0,
+      };
       if (!existing.name && ref.assetName) existing.name = ref.assetName;
       if (!existing.ticker && ref.ticker) existing.ticker = ref.ticker;
       if (!existing.iconUrl && ref.iconUrl) existing.iconUrl = ref.iconUrl;
@@ -294,7 +396,9 @@ export function deriveAssets(txs: WalletTx[]): WalletAsset[] {
       map.set(key, existing);
     });
   });
-  return [...map.values()].sort((a, b) => (a.kind === "xch" ? -1 : b.kind === "xch" ? 1 : b.txCount - a.txCount));
+  return [...map.values()].sort((a, b) =>
+    a.kind === "xch" ? -1 : b.kind === "xch" ? 1 : b.txCount - a.txCount
+  );
 }
 
 export interface WalletAssetBalance {
@@ -304,12 +408,23 @@ export interface WalletAssetBalance {
 }
 
 /** Balance of one asset from the wallet (XCH when assetId is null). */
-export async function fetchAssetBalance(kind: WalletAsset["kind"], assetId: string | null): Promise<WalletAssetBalance | null> {
+export async function fetchAssetBalance(
+  kind: WalletAsset["kind"],
+  assetId: string | null
+): Promise<WalletAssetBalance | null> {
   const client = await getSage();
   if (!client || !(await capabilities.ensure("wallet.get_asset_balance"))) return null;
   try {
-    const res = asRaw(await client.wallet.getAssetBalance(kind === "xch" ? {} : { type: kind, assetId: assetId ? `0x${assetId}` : null }));
-    return { confirmed: big(res.confirmed), spendable: big(res.spendable), coins: num(res.spendableCoinCount) ?? 0 };
+    const res = asRaw(
+      await client.wallet.getAssetBalance(
+        kind === "xch" ? {} : { type: kind, assetId: assetId ? `0x${assetId}` : null }
+      )
+    );
+    return {
+      confirmed: big(res.confirmed),
+      spendable: big(res.spendable),
+      coins: num(res.spendableCoinCount) ?? 0,
+    };
   } catch {
     return null;
   }

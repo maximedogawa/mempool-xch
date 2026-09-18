@@ -12,7 +12,9 @@ test.describe("api reference", () => {
     await expect(page.getByText("get_blockchain_state", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Show example" }).first().click();
-    await expect(page.getByText(/curl -s -X POST https:\/\/api\.coinset\.org/).first()).toBeVisible();
+    await expect(
+      page.getByText(/curl -s -X POST https:\/\/api\.coinset\.org/).first()
+    ).toBeVisible();
   });
 
   test("is reachable from the footer and the Help page", async ({ page }) => {

@@ -3,7 +3,18 @@ import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import type { TxSummaryKind } from "@/shared/lib/rpc/types";
 
-type Tone = "neutral" | "primary" | "info" | "warning" | "danger" | "xch" | "cat" | "nft" | "did" | "offer" | "unknown";
+type Tone =
+  | "neutral"
+  | "primary"
+  | "info"
+  | "warning"
+  | "danger"
+  | "xch"
+  | "cat"
+  | "nft"
+  | "did"
+  | "offer"
+  | "unknown";
 
 const TONES: Record<Tone, string> = {
   neutral: "bg-surface-2 text-fg-muted border-border",
@@ -15,11 +26,16 @@ const TONES: Record<Tone, string> = {
   cat: "bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-kind-cat border-transparent",
   nft: "bg-[color-mix(in_srgb,var(--kind-nft)_15%,transparent)] text-kind-nft border-transparent",
   did: "bg-[color-mix(in_srgb,var(--kind-did)_15%,transparent)] text-kind-did border-transparent",
-  offer: "bg-[color-mix(in_srgb,var(--kind-offer)_15%,transparent)] text-kind-offer border-transparent",
+  offer:
+    "bg-[color-mix(in_srgb,var(--kind-offer)_15%,transparent)] text-kind-offer border-transparent",
   unknown: "bg-surface-2 text-fg-faint border-border",
 };
 
-export function Badge({ tone = "neutral", className, ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
+export function Badge({
+  tone = "neutral",
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
   return (
     <span
       className={cn(
@@ -74,7 +90,11 @@ export function SummaryKindBadge({ kind, className }: { kind: TxSummaryKind; cla
   );
 }
 
-export function StatusBadge({ status }: { status: "pending" | "confirmed" | "removed" | "unknown" }) {
+export function StatusBadge({
+  status,
+}: {
+  status: "pending" | "confirmed" | "removed" | "unknown";
+}) {
   const map = {
     pending: { label: "Pending", tone: "warning" as Tone },
     confirmed: { label: "Confirmed", tone: "primary" as Tone },

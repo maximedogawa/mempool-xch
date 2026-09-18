@@ -18,9 +18,20 @@ export interface CostVerdict {
 
 /** Plain-language read of what this transaction paid, for a reader who does not know CLVM cost. */
 export function costVerdict(feeMojos: Mojos, cost: number, blockMaxCost: number): CostVerdict {
-  if (cost <= 0) return { label: "No cost recorded", detail: "This summary was inferred from the chain, so cost and fee rate are not available." };
+  if (cost <= 0)
+    return {
+      label: "No cost recorded",
+      detail: "This summary was inferred from the chain, so cost and fee rate are not available.",
+    };
   const share = blockMaxCost > 0 ? cost / blockMaxCost : 0;
   const shareText = `${formatPercent(share, share < 0.01 ? 2 : 1)} of a block`;
-  if (feeMojos === 0n) return { label: "No fee paid", detail: `Used ${shareText}; the farmer included it for free, or it was small enough to fit anyway.` };
-  return { label: `${formatFeeRate(feePerCost(feeMojos, cost))} mojo/cost`, detail: `Used ${shareText} of the block for this fee rate.` };
+  if (feeMojos === 0n)
+    return {
+      label: "No fee paid",
+      detail: `Used ${shareText}; the farmer included it for free, or it was small enough to fit anyway.`,
+    };
+  return {
+    label: `${formatFeeRate(feePerCost(feeMojos, cost))} mojo/cost`,
+    detail: `Used ${shareText} of the block for this fee rate.`,
+  };
 }

@@ -1,10 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { backoffDelay, createLiveStream, parseCoinsetMessage, type LiveEvent, type TimerId } from "./stream";
+import {
+  backoffDelay,
+  createLiveStream,
+  parseCoinsetMessage,
+  type LiveEvent,
+  type TimerId,
+} from "./stream";
 
 describe("parseCoinsetMessage", () => {
   test("peak and transaction envelopes", () => {
     expect(
-      parseCoinsetMessage('{"network":"mainnet","seq":1,"message":{"type":"peak","data":{"height":9295535,"tx":false}}}')
+      parseCoinsetMessage(
+        '{"network":"mainnet","seq":1,"message":{"type":"peak","data":{"height":9295535,"tx":false}}}'
+      )
     ).toEqual({ type: "peak", height: 9295535, tx: false });
     expect(
       parseCoinsetMessage(
@@ -130,14 +138,19 @@ describe("createLiveStream", () => {
     stream.start();
     await Promise.resolve();
     const s1 = FakeSocket.instances[0]!;
-    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction");
+    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault");
     expect(stream.status).toBe("connecting");
     s1.open();
     expect(stream.status).toBe("live");
     s1.message({ message: { type: "peak", data: { height: 42, tx: true } } });
     s1.message({ message: { type: "transaction", data: { ids: ["ab"], status: "pending" } } });
     expect(events).toContainEqual({ type: "peak", height: 42, tx: true });
-    expect(events).toContainEqual({ type: "transaction", ids: ["ab"], status: "pending", height: null });
+    expect(events).toContainEqual({
+      type: "transaction",
+      ids: ["ab"],
+      status: "pending",
+      height: null,
+    });
 
     // First drop: reconnect after 1 s.
     s1.drop();
@@ -152,5 +165,56 @@ describe("createLiveStream", () => {
     expect(timers.pending()).toContain(30_000);
     stream.stop();
     expect(FakeSocket.instances.length).toBe(2);
+  });
+});
+
+describe("parseCoinsetMessage: reorg and netspace", () => {
+  test("reorg frames carry both peaks and the depth", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"reorg","data":{"id":"reorg_81","detected_at_ms":1789680142516,"old_peak_height":9306355,"old_peak_hash":"aa","new_peak_height":9306354,"new_peak_hash":"bb","reorg_depth":1}}}'
+      )
+    ).toEqual({
+      type: "reorg",
+      oldPeakHeight: 9306355,
+      newPeakHeight: 9306354,
+      depth: 1,
+      detectedAtMs: 1789680142516,
+    });
+  });
+  test("netspace dashboard frames keep the byte count exact; other dashboard kinds are ignored", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"3631225713031519604","difficulty":2272}}}'
+      )
+    ).toEqual({ type: "netspace", bytes: 3631225713031519604n, difficulty: 2272 });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"live","tx_count":462}}}')
+    ).toBeNull();
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"nope"}}}'
+      )
+    ).toBeNull();
+  });
+});
+
+describe("parseCoinsetMessage: vault", () => {
+  test("recovery steps carry the vault id, action, status and tx", () => {
+    const event = parseCoinsetMessage(
+      `{"message":{"type":"vault","data":{"vault_id":"0x${"ab".repeat(
+        32
+      )}","action":"initiate_recovery","status":"pending","tx_id":"0x${"cd".repeat(32)}"}}}`
+    );
+    expect(event).toMatchObject({
+      type: "vault",
+      vaultId: "ab".repeat(32),
+      action: "initiate_recovery",
+      status: "pending",
+      txId: "cd".repeat(32),
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"vault","data":{"vault_id":"nope"}}}')
+    ).toBeNull();
   });
 });

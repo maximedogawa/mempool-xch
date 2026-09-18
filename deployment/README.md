@@ -4,8 +4,8 @@ mempoolxch.space ships as a single Docker image that [ONCE](https://github.com/b
 from GitHub Container Registry and keeps updated. ONCE owns TLS, the reverse proxy and the
 container lifecycle, so there is no nginx or deploy script to maintain here.
 
-| What | Image | Hostname (example) |
-| --- | --- | --- |
+| What          | Image                                     | Hostname (example) |
+| ------------- | ----------------------------------------- | ------------------ |
 | App (Next.js) | `ghcr.io/maximedogawa/mempool-xch:latest` | `mempoolxch.space` |
 
 ## The contract
@@ -37,11 +37,11 @@ pushes to `:latest` is picked up automatically. `once list` shows what is deploy
 CI (`.github/workflows/build-app.yml`) builds and pushes the image on every published GitHub
 release and on `workflow_dispatch`. Build args:
 
-| Arg | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_APP_VERSION` | Shown in the footer |
-| `NEXT_PUBLIC_COMMIT_SHA` | Shown in the footer |
-| `NEXT_PUBLIC_APP_URL` | Public origin, used for the Sage install URL and the summary API in the snapshot |
+| Arg                       | Purpose                                                                          |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_VERSION` | Shown in the footer                                                              |
+| `NEXT_PUBLIC_COMMIT_SHA`  | Shown in the footer                                                              |
+| `NEXT_PUBLIC_APP_URL`     | Public origin, used for the Sage install URL and the summary API in the snapshot |
 
 Locally:
 

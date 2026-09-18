@@ -34,7 +34,12 @@ export function ProjectedBlocks({
   }
   if (blocks.length === 0) {
     return (
-      <BlockCube fill={0} gradient="" variant="empty" ariaLabel="Mempool is empty: the next block will carry no transactions">
+      <BlockCube
+        fill={0}
+        gradient=""
+        variant="empty"
+        ariaLabel="Mempool is empty: the next block will carry no transactions"
+      >
         <span className="text-xs text-fg-faint">Empty</span>
         <span className="text-[11px] text-fg-faint">mempool</span>
       </BlockCube>
@@ -42,14 +47,19 @@ export function ProjectedBlocks({
   }
   // Row-reversed so the next block sits against the divider and the scroll starts there.
   return (
-    <ul className="flex min-w-max flex-row-reverse items-end gap-4" aria-label="Projected next blocks">
+    <ul
+      className="flex min-w-max flex-row-reverse items-end gap-4"
+      aria-label="Projected next blocks"
+    >
       {blocks.map((block) => {
         const zero = block.maxFeeRate === 0;
         const yours = mine.size ? block.items.filter((i) => mine.has(i.id)).length : 0;
         const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles${yours ? `, ${yours} of yours` : ""}, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
           <li key={block.index} className="flex flex-col items-center gap-1">
-            <span className="tabular h-4 text-xs font-semibold text-fg-muted">{block.index === 0 ? "Next block" : `+${block.index}`}</span>
+            <span className="tabular h-4 text-xs font-semibold text-fg-muted">
+              {block.index === 0 ? "Next block" : `+${block.index}`}
+            </span>
             <BlockCube
               fill={block.fill}
               gradient={feeGradient(block.minFeeRate, block.maxFeeRate)}
@@ -61,13 +71,30 @@ export function ProjectedBlocks({
               selected={selected === block.index}
               size={CUBE}
             >
-              <span className="tabular text-[15px] font-bold leading-tight">~{zero ? "0" : formatFeeRate(block.medianFeeRate)} <span className="text-[10px] font-medium text-fg/70">mojo/cost</span></span>
-              <span className="tabular text-[10px] font-medium text-warning/90">{zero ? "0 fee" : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}</span>
-              <span className="tabular mt-1.5 text-[13px] font-semibold">{formatAmount(block.totalFee)}</span>
-              <span className="tabular text-[11px] text-fg/80">{block.items.length} tx · {formatCost(block.totalCost)}</span>
-              {yours ? <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">{yours} yours</span> : null}
+              <span className="tabular text-[15px] font-bold leading-tight">
+                ~{zero ? "0" : formatFeeRate(block.medianFeeRate)}{" "}
+                <span className="text-[10px] font-medium text-fg/70">mojo/cost</span>
+              </span>
+              <span className="tabular text-[10px] font-medium text-warning/90">
+                {zero
+                  ? "0 fee"
+                  : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}
+              </span>
+              <span className="tabular mt-1.5 text-[13px] font-semibold">
+                {formatAmount(block.totalFee)}
+              </span>
+              <span className="tabular text-[11px] text-fg/80">
+                {block.items.length} tx · {formatCost(block.totalCost)}
+              </span>
+              {yours ? (
+                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">
+                  {yours} yours
+                </span>
+              ) : null}
             </BlockCube>
-            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">In {formatEta(block.etaSeconds)}</span>
+            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">
+              In {formatEta(block.etaSeconds)}
+            </span>
           </li>
         );
       })}

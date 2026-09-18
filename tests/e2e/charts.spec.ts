@@ -6,28 +6,30 @@ test.describe("charts", () => {
     await mockCoinset(page);
   });
 
-  test("every series is listed, real or greyed with a note, each with a definition", async ({ page }) => {
+  test("only series with a data source are listed, each with a definition", async ({ page }) => {
     await page.goto("/charts");
     await expect(page.getByRole("heading", { level: 1, name: "Charts" })).toBeVisible();
 
-    // Market and Coin set are always unavailable today (no verified source); still listed with a note.
-    await expect(page.getByRole("heading", { name: "XCH price (USD)" })).toBeVisible();
-    await expect(page.getByText(/No verified public price-history endpoint/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Unspent coins" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Active puzzle hashes" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Coin age" })).toBeVisible();
-    await expect(page.getByText(/no aggregate endpoint for this/).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fees per transaction block" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Netspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Blocks per hour", exact: true })).toBeVisible();
 
-    // Cost/spends per transaction block are a sampling-cost tradeoff, not a provider limit.
-    await expect(page.getByRole("heading", { name: "Cost per transaction block" })).toBeVisible();
-    await expect(page.getByText(/Not sampled at chart scale/).first()).toBeVisible();
+    // Series without a provider (price history, coin-set aggregates, per-block cost) stay
+    // hidden until TASK-083 gives them one: no greyed cards, no "not available" notes.
+    await expect(page.getByRole("heading", { name: "XCH price (USD)" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Unspent coins" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Cost per transaction block" })).toHaveCount(0);
+    await expect(page.getByText(/no aggregate endpoint for this/)).toHaveCount(0);
+    await expect(page.getByText(/Not sampled at chart scale/)).toHaveCount(0);
 
-    // Every chart, real or greyed, carries its definition and technical note.
+    // Every shown chart carries its definition and technical note.
     const definitions = page.getByText("Definition & technical note");
-    expect(await definitions.count()).toBeGreaterThanOrEqual(15);
+    expect(await definitions.count()).toBe(9);
   });
 
-  test("range, smoothing and scale controls are keyboard-accessible radiogroups", async ({ page }) => {
+  test("range, smoothing and scale controls are keyboard-accessible radiogroups", async ({
+    page,
+  }) => {
     await page.goto("/charts");
     const rangeGroup = page.getByRole("radiogroup", { name: "Range", exact: true });
     const day = rangeGroup.getByRole("radio", { name: "24h" });
@@ -47,7 +49,9 @@ test.describe("charts", () => {
     await expect(log).toHaveAttribute("aria-checked", "true");
   });
 
-  test("mempool charts read the existing 2h browser sample, unavailable outside it", async ({ page }) => {
+  test("mempool charts read the existing 2h browser sample, unavailable outside it", async ({
+    page,
+  }) => {
     await page.goto("/charts");
     await expect(page.getByRole("heading", { name: "Cost used" })).toBeVisible();
     // Freshly loaded in this test, the 2h sampler has under two points yet: shows the note.

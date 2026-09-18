@@ -27,12 +27,18 @@ export function aggregateBlockWindow(records: BlockRecord[]): BlockWindowStats |
   const maxT = Math.max(...times);
   const t = ((minT + maxT) / 2) * 1000;
   const spanSeconds = Math.max(1, maxT - minT);
-  const txBlocks = records.filter((r) => r.isTransactionBlock && r.timestamp !== null).sort((a, b) => a.timestamp! - b.timestamp!);
-  const avgFeeMojos = txBlocks.length > 0 ? txBlocks.reduce((s, r) => s + Number(r.fees ?? 0n), 0) / txBlocks.length : 0;
+  const txBlocks = records
+    .filter((r) => r.isTransactionBlock && r.timestamp !== null)
+    .sort((a, b) => a.timestamp! - b.timestamp!);
+  const avgFeeMojos =
+    txBlocks.length > 0
+      ? txBlocks.reduce((s, r) => s + Number(r.fees ?? 0n), 0) / txBlocks.length
+      : 0;
   let avgSecondsBetweenTxBlocks: number | null = null;
   if (txBlocks.length >= 2) {
     const gaps: number[] = [];
-    for (let i = 1; i < txBlocks.length; i += 1) gaps.push(txBlocks[i]!.timestamp! - txBlocks[i - 1]!.timestamp!);
+    for (let i = 1; i < txBlocks.length; i += 1)
+      gaps.push(txBlocks[i]!.timestamp! - txBlocks[i - 1]!.timestamp!);
     avgSecondsBetweenTxBlocks = gaps.reduce((a, b) => a + b, 0) / gaps.length;
   }
   return {
@@ -60,6 +66,8 @@ export function blockWindowSeries(windows: BlockRecord[][]): BlockSeries {
     txBlocksPerHour: stats.map((s) => ({ t: s.t, v: s.txBlocksPerHour })),
     blocksPerHour: stats.map((s) => ({ t: s.t, v: s.blocksPerHour })),
     shareOfTxBlocks: stats.map((s) => ({ t: s.t, v: s.shareOfTxBlocks })),
-    timeBetweenTxBlocks: stats.filter((s) => s.avgSecondsBetweenTxBlocks !== null).map((s) => ({ t: s.t, v: s.avgSecondsBetweenTxBlocks! })),
+    timeBetweenTxBlocks: stats
+      .filter((s) => s.avgSecondsBetweenTxBlocks !== null)
+      .map((s) => ({ t: s.t, v: s.avgSecondsBetweenTxBlocks! })),
   };
 }

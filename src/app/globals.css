@@ -14,6 +14,7 @@
   --surface-2: #232842;
   --surface-hover: #2a3050;
   --border: #2c3350;
+  --map-land: #2f3757;
   --border-strong: #3b4468;
 
   --fg: #e8ebf5;
@@ -67,6 +68,7 @@
   --surface-2: #eef1f8;
   --surface-hover: #e4e8f3;
   --border: #d9deec;
+  --map-land: #c9d0e3;
   --border-strong: #b9c1d9;
   --fg: #10142a;
   --fg-muted: #4d5674;
@@ -206,7 +208,9 @@ a {
 
 /* Capacity bar: eased fill, travelling sheen */
 .capacity-fill {
-  transition: width 900ms cubic-bezier(0.2, 0.8, 0.2, 1), background 600ms ease;
+  transition:
+    width 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 600ms ease;
 }
 
 @keyframes sheen {
@@ -257,12 +261,22 @@ a {
 
 /* Page flair: soft green glow at the top, gradient hairline under the header */
 body {
-  background-image: radial-gradient(1200px 420px at 50% -120px, rgba(94, 206, 123, 0.12), transparent 70%);
+  background-image: radial-gradient(
+    1200px 420px at 50% -120px,
+    rgba(94, 206, 123, 0.12),
+    transparent 70%
+  );
   background-repeat: no-repeat;
 }
 
 .header-hairline {
-  background: linear-gradient(90deg, transparent, var(--primary) 30%, var(--accent) 70%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--primary) 30%,
+    var(--accent) 70%,
+    transparent
+  );
   opacity: 0.55;
 }
 
@@ -308,8 +322,65 @@ body {
   transform-origin: center;
 }
 
+/* Next-block goggles: the fill line and the empty capacity above it move with the treemap. */
+.goggles-glide {
+  transition:
+    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    fill 300ms ease;
+}
+
+/* A bundle that just arrived: bright ring that fades out, then only the fresh count remains. */
+@keyframes fresh-ring {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+.treemap-fresh-ring {
+  animation: fresh-ring 3s ease-out both;
+  opacity: 0.35;
+}
+
+/* Network map: a live event ripples out of an observed node (transform and opacity only). */
+@keyframes map-pulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.map-pulse {
+  animation: map-pulse 1.5s ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.map-node {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-node:focus-visible circle:first-child {
+  stroke: var(--primary);
+  stroke-width: 1.5;
+}
+
 .card-lift {
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .card-lift:hover {

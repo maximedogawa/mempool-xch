@@ -8,7 +8,9 @@ export function notificationsSupported(): boolean {
   return typeof window !== "undefined" && "Notification" in window;
 }
 
-export async function requestNotificationPermission(): Promise<NotificationPermission | "unsupported"> {
+export async function requestNotificationPermission(): Promise<
+  NotificationPermission | "unsupported"
+> {
   if (!notificationsSupported()) return "unsupported";
   try {
     return await Notification.requestPermission();
@@ -21,7 +23,10 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 export function sendNotification(title: string, body?: string): void {
   if (!notificationsSupported() || Notification.permission !== "granted") return;
   try {
-    new Notification(title, body ? { body, icon: "/icons/icon-192.png" } : { icon: "/icons/icon-192.png" });
+    new Notification(
+      title,
+      body ? { body, icon: "/icons/icon-192.png" } : { icon: "/icons/icon-192.png" }
+    );
   } catch {
     // Some browsers (mobile Safari, in-app webviews) throw even when the API is present.
   }

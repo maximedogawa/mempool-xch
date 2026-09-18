@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { smoothingById, smoothSeries, type SmoothingId, type Point } from "@/shared/lib/charts/smoothing";
+import {
+  smoothingById,
+  smoothSeries,
+  type SmoothingId,
+  type Point,
+} from "@/shared/lib/charts/smoothing";
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
 import { LineChart } from "@/shared/ui/charts/LineChart";
 import type { ScaleId } from "./ChartControls";
@@ -43,21 +48,33 @@ export function ChartCard({
   smoothing: SmoothingId;
   scale: ScaleId;
 }) {
-  const smoothed = useMemo(() => (points ? smoothSeries(points, smoothingById(smoothing).window) : null), [points, smoothing]);
+  const smoothed = useMemo(
+    () => (points ? smoothSeries(points, smoothingById(smoothing).window) : null),
+    [points, smoothing]
+  );
   const stats = smoothed ? summarise(smoothed) : null;
   return (
     <Card className={unavailable ? "opacity-70" : undefined}>
       <CardHeader title={spec.title} />
       <CardBody className="flex flex-col gap-3">
         {unavailable ? (
-          <div role="note" className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-fg-faint">
+          <div
+            role="note"
+            className="rounded-sm border border-dashed border-border px-3 py-8 text-center text-sm text-fg-faint"
+          >
             {unavailable}
           </div>
         ) : loading ? (
           <Skeleton className="h-[200px]" />
         ) : smoothed && smoothed.length >= 2 ? (
           <>
-            <LineChart points={smoothed} scale={scale} formatValue={spec.formatValue} formatTime={spec.formatTime} ariaLabel={spec.title} />
+            <LineChart
+              points={smoothed}
+              scale={scale}
+              formatValue={spec.formatValue}
+              formatTime={spec.formatTime}
+              ariaLabel={spec.title}
+            />
             {stats ? (
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                 <StatTile label="Latest" value={spec.formatValue(stats.latest)} />
@@ -68,10 +85,14 @@ export function ChartCard({
             ) : null}
           </>
         ) : (
-          <div className="flex h-[200px] items-center justify-center text-sm text-fg-faint">Not enough data yet.</div>
+          <div className="flex h-[200px] items-center justify-center text-sm text-fg-faint">
+            Not enough data yet.
+          </div>
         )}
         <details className="text-xs text-fg-faint">
-          <summary className="cursor-pointer select-none font-medium text-fg-muted">Definition &amp; technical note</summary>
+          <summary className="cursor-pointer select-none font-medium text-fg-muted">
+            Definition &amp; technical note
+          </summary>
           <p className="mt-1">{spec.definition}</p>
           <p className="mt-1">{spec.technical}</p>
         </details>

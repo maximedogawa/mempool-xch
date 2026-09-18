@@ -39,6 +39,7 @@ export function feeRateToGradientPosition(feeRate: number): number {
 export function feeGradient(minFeeRate: number, maxFeeRate: number): string {
   const a = feeBandFor(minFeeRate).cssVar;
   const b = feeBandFor(maxFeeRate).cssVar;
-  if (a === b) return `linear-gradient(160deg, var(${b}) 0%, color-mix(in srgb, var(${b}) 70%, #000) 100%)`;
+  if (a === b)
+    return `linear-gradient(160deg, var(${b}) 0%, color-mix(in srgb, var(${b}) 70%, #000) 100%)`;
   return `linear-gradient(160deg, var(${b}) 0%, var(${a}) 100%)`;
 }

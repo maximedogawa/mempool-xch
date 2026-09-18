@@ -8,17 +8,33 @@ import { ChartCard, type ChartSpec } from "@/widgets/charts/ChartCard";
 import { ChartControls, type ChartControlsState } from "@/widgets/charts/ChartControls";
 import { useBlocksChartSeries } from "@/widgets/charts/useChartSeries";
 import { transferCostEstimates } from "./transferCosts";
-import { useFeeEstimateTargets, useRateBracketDistribution, TARGET_TIMES_S, FEES_PAGE_REFERENCE_COST } from "./useFeesPageData";
+import {
+  useFeeEstimateTargets,
+  useRateBracketDistribution,
+  TARGET_TIMES_S,
+  FEES_PAGE_REFERENCE_COST,
+} from "./useFeesPageData";
 
-const TARGET_LABELS: Record<number, string> = { 60: "1 min", 120: "2 min", 300: "5 min", 600: "10 min", 1800: "30 min" };
+const TARGET_LABELS: Record<number, string> = {
+  60: "1 min",
+  120: "2 min",
+  300: "5 min",
+  600: "10 min",
+  1800: "30 min",
+};
 
 function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => string {
-  if (range === "6h" || range === "24h") return (t) => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  if (range === "6h" || range === "24h")
+    return (t) => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   return (t) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
 export function FeesPage() {
-  const [controls, setControls] = useState<ChartControlsState>({ range: "24h", smoothing: "smooth", scale: "linear" });
+  const [controls, setControls] = useState<ChartControlsState>({
+    range: "24h",
+    smoothing: "smooth",
+    scale: "linear",
+  });
   const estimate = useFeeEstimateTargets();
   const distribution = useRateBracketDistribution();
   const blocks = useBlocksChartSeries(controls.range);
@@ -50,23 +66,40 @@ export function FeesPage() {
                   key={target}
                   label={`Within ${TARGET_LABELS[target]}`}
                   value={mojos !== undefined ? formatAmount(mojos) : "…"}
-                  sub={mojos !== undefined ? `${formatFeeRate(Number(mojos) / FEES_PAGE_REFERENCE_COST)} mojo/cost` : undefined}
+                  sub={
+                    mojos !== undefined
+                      ? `${formatFeeRate(Number(mojos) / FEES_PAGE_REFERENCE_COST)} mojo/cost`
+                      : undefined
+                  }
                 />
               );
             })}
           </div>
           <p className="text-xs text-fg-faint">
-            get_fee_estimate at {formatCost(FEES_PAGE_REFERENCE_COST)} cost. USD conversion is not shown: no verified public price-history endpoint exists
-            yet (same gap as the Market chart on /charts).
+            get_fee_estimate at {formatCost(FEES_PAGE_REFERENCE_COST)} cost. USD conversion is not
+            shown: no verified public price-history endpoint exists yet (same gap as the Market
+            chart on /charts).
           </p>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader title="Rate distribution" action={<span className="text-xs text-fg-faint">{formatNumber(totalItems)} pending bundles</span>} />
+        <CardHeader
+          title="Rate distribution"
+          action={
+            <span className="text-xs text-fg-faint">
+              {formatNumber(totalItems)} pending bundles
+            </span>
+          }
+        />
         <CardBody>
           {distribution.rows ? (
-            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Rate distribution">
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Rate distribution"
+            >
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
                   <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
@@ -80,7 +113,9 @@ export function FeesPage() {
                     <tr key={row.bracket.id} className="border-t border-border/60">
                       <td className="py-1.5 pr-3 font-medium text-fg">{row.bracket.label}</td>
                       <td className="tabular py-1.5 pr-3">{formatNumber(row.count)}</td>
-                      <td className="tabular py-1.5">{row.count > 0 ? formatCost(row.cost) : "—"}</td>
+                      <td className="tabular py-1.5">
+                        {row.count > 0 ? formatCost(row.cost) : "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -93,9 +128,21 @@ export function FeesPage() {
       </Card>
 
       <Card>
-        <CardHeader title="What a transfer costs" action={<span className="text-xs text-fg-faint">at the current rate, {formatFeeRate(currentRate)} mojo/cost</span>} />
+        <CardHeader
+          title="What a transfer costs"
+          action={
+            <span className="text-xs text-fg-faint">
+              at the current rate, {formatFeeRate(currentRate)} mojo/cost
+            </span>
+          }
+        />
         <CardBody>
-          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="What a transfer costs">
+          <div
+            className="overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-label="What a transfer costs"
+          >
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead>
                 <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
@@ -109,7 +156,9 @@ export function FeesPage() {
                   <tr key={row.id} className="border-t border-border/60">
                     <td className="py-1.5 pr-3 font-medium text-fg">{row.label}</td>
                     <td className="tabular py-1.5 pr-3 text-fg-faint">{formatCost(row.cost)}</td>
-                    <td className="tabular py-1.5">{formatAmount(BigInt(Math.round(row.feeMojos)))}</td>
+                    <td className="tabular py-1.5">
+                      {formatAmount(BigInt(Math.round(row.feeMojos)))}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -125,7 +174,8 @@ export function FeesPage() {
             {
               title: "Fees per transaction block",
               definition: "Average total fees paid in a transaction block.",
-              technical: "Averaged per sampling window from get_block_records (block_record.fees); bounded number of windows regardless of range.",
+              technical:
+                "Averaged per sampling window from get_block_records (block_record.fees); bounded number of windows regardless of range.",
               formatValue: (v) => formatAmount(BigInt(Math.max(0, Math.round(v)))),
               formatTime,
             } satisfies ChartSpec
@@ -140,7 +190,8 @@ export function FeesPage() {
             {
               title: "Median fee rate",
               definition: "The middle fee rate among transactions in a block, over time.",
-              technical: "Not sampled at chart scale: needs each block's per-transaction costs (an indexed fetch per block), too heavy to sample across a range without a server-side cache.",
+              technical:
+                "Not sampled at chart scale: needs each block's per-transaction costs (an indexed fetch per block), too heavy to sample across a range without a server-side cache.",
               formatValue: (v) => formatFeeRate(v),
               formatTime,
             } satisfies ChartSpec
@@ -151,7 +202,10 @@ export function FeesPage() {
           scale={controls.scale}
         />
       </div>
-      <p className="text-xs text-fg-faint">Rates shown elsewhere — the mempool feed, transaction and block pages — are exact per-item figures, not sampled.</p>
+      <p className="text-xs text-fg-faint">
+        Rates shown elsewhere — the mempool feed, transaction and block pages — are exact per-item
+        figures, not sampled.
+      </p>
     </div>
   );
 }

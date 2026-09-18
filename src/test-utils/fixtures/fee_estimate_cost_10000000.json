@@ -1,1 +1,18 @@
-{"current_fee_rate": 0.3736876890037907, "estimates": [3736876, 3411, 3411], "fee_rate_last_block": 0.0, "fees_last_block": 0, "full_node_synced": true, "last_block_cost": 10586664788, "last_peak_timestamp": 1789537673, "last_tx_block_height": 9298726, "mempool_fees": 100000000, "mempool_max_size": 110000000000, "mempool_size": 107890242866, "node_time_utc": 1789537708, "num_spends": 109, "peak_height": 9298727, "success": true, "target_times": [60, 300, 600]}
+{
+  "current_fee_rate": 0.3736876890037907,
+  "estimates": [3736876, 3411, 3411],
+  "fee_rate_last_block": 0.0,
+  "fees_last_block": 0,
+  "full_node_synced": true,
+  "last_block_cost": 10586664788,
+  "last_peak_timestamp": 1789537673,
+  "last_tx_block_height": 9298726,
+  "mempool_fees": 100000000,
+  "mempool_max_size": 110000000000,
+  "mempool_size": 107890242866,
+  "node_time_utc": 1789537708,
+  "num_spends": 109,
+  "peak_height": 9298727,
+  "success": true,
+  "target_times": [60, 300, 600]
+}

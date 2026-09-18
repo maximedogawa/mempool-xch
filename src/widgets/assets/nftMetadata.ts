@@ -23,7 +23,8 @@ export interface NftMetadata {
 type Raw = Record<string, unknown>;
 const obj = (v: unknown): Raw => (v && typeof v === "object" ? (v as Raw) : {});
 const str = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v : null);
-const arr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+const arr = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 const hex = (v: unknown): string | null => {
   const s = str(v);
   return s ? s.toLowerCase().replace(/^0x/, "") : null;
@@ -36,10 +37,14 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
   const collection = obj(meta.collection);
   const owner = obj(r.owner_address);
   const creator = obj(r.creator_address);
-  const images = [str(data.thumbnail_uri), str(data.preview_uri), ...arr(data.data_uris)].filter((u): u is string => !!u && /^https?:\/\//.test(u));
-  const description = collection.attributes && Array.isArray(collection.attributes)
-    ? (collection.attributes.map(obj).find((a) => a.type === "description")?.value as string | undefined) ?? null
-    : null;
+  const images = [str(data.thumbnail_uri), str(data.preview_uri), ...arr(data.data_uris)].filter(
+    (u): u is string => !!u && /^https?:\/\//.test(u)
+  );
+  const description =
+    collection.attributes && Array.isArray(collection.attributes)
+      ? ((collection.attributes.map(obj).find((a) => a.type === "description")?.value as
+          string | undefined) ?? null)
+      : null;
   const royalty = r.royalty_percentage;
   return {
     name: str(meta.name) ?? str(r.name),
@@ -55,7 +60,10 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
   };
 }
 
-export async function fetchNftMetadata(nftId: string, fetchImpl: typeof fetch = fetch): Promise<NftMetadata | null> {
+export async function fetchNftMetadata(
+  nftId: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<NftMetadata | null> {
   try {
     const response = await fetchImpl(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
     if (!response.ok) return null;

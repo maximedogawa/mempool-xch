@@ -5,7 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useBlockchainState } from "@/shared/api/hooks";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { blockWindowSeries } from "@/shared/lib/charts/aggregate";
-import { bucketHeight, heightWindows, oldestHeightForRange, rangeById, type RangeId } from "@/shared/lib/charts/range";
+import {
+  bucketHeight,
+  heightWindows,
+  oldestHeightForRange,
+  rangeById,
+  type RangeId,
+} from "@/shared/lib/charts/range";
 import type { Point } from "@/shared/lib/charts/smoothing";
 import { createLimiter } from "@/shared/lib/limit";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
@@ -33,23 +39,36 @@ export function useChartBlockWindows(range: RangeId) {
     queryFn: async ({ signal }): Promise<BlockRecord[][]> => {
       const oldest = oldestHeightForRange(peak!, rangeDef, averageBlockTime);
       const windows = heightWindows(peak!, oldest, rangeDef.windows);
-      return Promise.all(windows.map((w) => windowsLimit(() => client.getBlockRecords(w.start, w.end, signal))));
+      return Promise.all(
+        windows.map((w) => windowsLimit(() => client.getBlockRecords(w.start, w.end, signal)))
+      );
     },
   });
 }
 
 export function useBlocksChartSeries(range: RangeId) {
   const windows = useChartBlockWindows(range);
-  const series = useMemo(() => (windows.data ? blockWindowSeries(windows.data) : null), [windows.data]);
+  const series = useMemo(
+    () => (windows.data ? blockWindowSeries(windows.data) : null),
+    [windows.data]
+  );
   return { series, isLoading: windows.isLoading, error: windows.error };
 }
 
 export function useNetworkChartSeries(range: RangeId) {
   const { client, endpoints, hydrated } = useSettings();
   const windows = useChartBlockWindows(range);
-  const blocksPerHour = useMemo(() => (windows.data ? blockWindowSeries(windows.data).blocksPerHour : []), [windows.data]);
+  const blocksPerHour = useMemo(
+    () => (windows.data ? blockWindowSeries(windows.data).blocksPerHour : []),
+    [windows.data]
+  );
   const netspace = useQuery({
-    queryKey: [...queryKeys.chainRoot(endpoints.network), "chartNetspace", range, windows.dataUpdatedAt],
+    queryKey: [
+      ...queryKeys.chainRoot(endpoints.network),
+      "chartNetspace",
+      range,
+      windows.dataUpdatedAt,
+    ],
     enabled: hydrated && !!windows.data && windows.data.length > 0,
     staleTime: 60_000,
     queryFn: async ({ signal }): Promise<Point[]> => {
@@ -78,7 +97,12 @@ export function useNetworkChartSeries(range: RangeId) {
       return results.filter((r): r is Point => r !== null).sort((a, b) => a.t - b.t);
     },
   });
-  return { netspace: netspace.data ?? [], blocksPerHour, isLoading: windows.isLoading || netspace.isLoading, error: windows.error ?? netspace.error };
+  return {
+    netspace: netspace.data ?? [],
+    blocksPerHour,
+    isLoading: windows.isLoading || netspace.isLoading,
+    error: windows.error ?? netspace.error,
+  };
 }
 
 export interface MempoolChartSeries {
@@ -96,7 +120,14 @@ export function useMempoolChartSeries(range: RangeId): MempoolChartSeries {
   const { history, startedAt } = useMempoolHistory();
   return useMemo(() => {
     const available = range === "6h" || range === "24h"; // sampling window is 2h; both show what there is
-    if (!available || history.length < 2) return { costUsed: [], waitingBundles: [], totalFees: [], available: false, windowStartedAt: startedAt };
+    if (!available || history.length < 2)
+      return {
+        costUsed: [],
+        waitingBundles: [],
+        totalFees: [],
+        available: false,
+        windowStartedAt: startedAt,
+      };
     return {
       costUsed: history.map((s) => ({ t: s.t, v: s.bands.reduce((a, b) => a + b, 0) })),
       waitingBundles: history.map((s) => ({ t: s.t, v: s.count })),

@@ -12,7 +12,17 @@ export interface CoinSemantics {
   rest: [string, string][];
 }
 
-const KNOWN = new Set(["coin_id", "outer_puzzle_type", "custody_puzzle_type", "custody_p2", "asset_id", "classification", "type", "kind", "launcher_id"]);
+const KNOWN = new Set([
+  "coin_id",
+  "outer_puzzle_type",
+  "custody_puzzle_type",
+  "custody_p2",
+  "asset_id",
+  "classification",
+  "type",
+  "kind",
+  "launcher_id",
+]);
 
 export function kindFromSemantics(type: string | null): TxKindHint {
   const t = (type ?? "").toLowerCase();
@@ -26,7 +36,8 @@ export function kindFromSemantics(type: string | null): TxKindHint {
 
 export function readSemantics(raw: Record<string, unknown> | null): CoinSemantics | null {
   if (!raw) return null;
-  const str = (k: string) => (typeof raw[k] === "string" && raw[k] ? (raw[k] as string).replace(/^0x/, "") : null);
+  const str = (k: string) =>
+    typeof raw[k] === "string" && raw[k] ? (raw[k] as string).replace(/^0x/, "") : null;
   const outer = str("outer_puzzle_type") ?? str("type") ?? str("kind");
   const rest = Object.entries(raw)
     .filter(([k, v]) => !KNOWN.has(k) && v !== null && v !== undefined && typeof v !== "object")

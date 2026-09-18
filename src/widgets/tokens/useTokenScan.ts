@@ -24,7 +24,12 @@ export interface TokenScanState {
  * across hundreds of known CATs never turns into an unbounded fan-out.
  */
 export function useTokenScan(client: RpcClient) {
-  const [state, setState] = useState<TokenScanState>({ results: new Map(), scanning: false, done: 0, total: 0 });
+  const [state, setState] = useState<TokenScanState>({
+    results: new Map(),
+    scanning: false,
+    done: 0,
+    total: 0,
+  });
   const runId = useRef(0);
 
   const scan = useCallback(
@@ -44,14 +49,22 @@ export function useTokenScan(client: RpcClient) {
             try {
               const [firstPage, recentPage] = await Promise.all([
                 client.getTransactionsByCatAssetId(assetId, { limit: 1, order: "asc" }),
-                client.getTransactionsByCatAssetId(assetId, { limit: RECENT_SAMPLE, order: "desc" }),
+                client.getTransactionsByCatAssetId(assetId, {
+                  limit: RECENT_SAMPLE,
+                  order: "desc",
+                }),
               ]);
               const sample: TokenActivitySample = {
                 firstSeenMs: firstPage.transactions[0]?.confirmedAtMs ?? null,
-                ...summariseRecentActivity(assetId, recentPage.transactions, recentPage.nextCursor !== null),
+                ...summariseRecentActivity(
+                  assetId,
+                  recentPage.transactions,
+                  recentPage.nextCursor !== null
+                ),
               };
               done += 1;
-              if (runId.current === id) setState((s) => ({ ...s, results: new Map(s.results).set(assetId, sample), done }));
+              if (runId.current === id)
+                setState((s) => ({ ...s, results: new Map(s.results).set(assetId, sample), done }));
             } catch {
               done += 1;
               if (runId.current === id) setState((s) => ({ ...s, done }));

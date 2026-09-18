@@ -6,7 +6,14 @@ test.describe("live @live", () => {
 
   test("dashboard loads live data", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible({ timeout: 45_000 });
-    await expect(page.getByRole("status").filter({ hasText: /Live|Polling/ }).first()).toBeVisible({ timeout: 45_000 });
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 45_000 });
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: /Live|Polling/ })
+        .first()
+    ).toBeVisible({ timeout: 45_000 });
   });
 });
