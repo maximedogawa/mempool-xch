@@ -10,6 +10,13 @@ import { ChartControls, type ChartControlsState } from "./ChartControls";
 import { ChartCard, type ChartSpec } from "./ChartCard";
 import { useBlocksChartSeries, useMempoolChartSeries, useNetworkChartSeries } from "./useChartSeries";
 
+/**
+ * Series that no provider answers today are kept here (spec, note and placement) but not
+ * rendered: a page of greyed-out cards reads as broken. Flip this to preview them, or delete
+ * the flag once each has a data source (backlog TASK-083).
+ */
+const SHOW_PLANNED_CHARTS = false;
+
 function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => string {
   if (range === "6h" || range === "24h") return (t) => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   return (t) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
@@ -50,7 +57,7 @@ export function ChartsPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Charts</h1>
           <Tooltip
-            text={`Series built on request from ${endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server; a series a provider cannot answer is shown greyed with a note instead of guessed at.`}
+            text={`Series built on request from ${endpoints.isCoinset ? "Coinset" : "your configured endpoint"} — nothing is stored on our server. Series no provider can answer yet are not listed.`}
             placement="bottom"
           />
         </div>
@@ -58,15 +65,17 @@ export function ChartsPage() {
 
       <ChartControls value={controls} onChange={setControls} />
 
-      <Section title="Market">
-        <ChartCard
-          spec={spec("XCH price (USD)", "The XCH/USD spot price over time.", "Would come from Dexie's price data.", (v) => `$${v.toFixed(4)}`)}
-          points={null}
-          unavailable="No verified public price-history endpoint yet. The Sage wallet shows a live spot price in the header when connected; this chart needs history, which Dexie does not publish a documented endpoint for today."
-          smoothing={controls.smoothing}
-          scale={controls.scale}
-        />
-      </Section>
+      {SHOW_PLANNED_CHARTS ? (
+        <Section title="Market">
+          <ChartCard
+            spec={spec("XCH price (USD)", "The XCH/USD spot price over time.", "Would come from Dexie's price data.", (v) => `$${v.toFixed(4)}`)}
+            points={null}
+            unavailable="No verified public price-history endpoint yet. The Sage wallet shows a live spot price in the header when connected; this chart needs history, which Dexie does not publish a documented endpoint for today."
+            smoothing={controls.smoothing}
+            scale={controls.scale}
+          />
+        </Section>
+      ) : null}
 
       <Section title="Mempool">
         <ChartCard
@@ -90,13 +99,15 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        <ChartCard
-          spec={spec("Median fee rate", "The middle fee rate among pending spend bundles.", "Not tracked by the browser sampler yet (it keeps totals per fee band, not the full distribution).", (v) => v.toFixed(3))}
-          points={null}
-          unavailable="Not sampled yet: the mempool history keeps totals per fee band, not enough to recover a median."
-          smoothing={controls.smoothing}
-          scale={controls.scale}
-        />
+        {SHOW_PLANNED_CHARTS ? (
+          <ChartCard
+            spec={spec("Median fee rate", "The middle fee rate among pending spend bundles.", "Not tracked by the browser sampler yet (it keeps totals per fee band, not the full distribution).", (v) => v.toFixed(3))}
+            points={null}
+            unavailable="Not sampled yet: the mempool history keeps totals per fee band, not enough to recover a median."
+            smoothing={controls.smoothing}
+            scale={controls.scale}
+          />
+        ) : null}
       </Section>
 
       <Section title="Blocks">
@@ -107,18 +118,20 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        <ChartCard
-          spec={spec(
-            "Cost per transaction block",
-            "Average CLVM cost used in a transaction block.",
-            "Not sampled at chart scale: exact cost needs a full get_block fetch per block, too heavy to sample across a range without a server-side cache. See a block's own page for its exact cost.",
-            formatCost
-          )}
-          points={null}
-          unavailable="Not sampled at chart scale — needs one full-block fetch per block. See a block's own page for its exact cost."
-          smoothing={controls.smoothing}
-          scale={controls.scale}
-        />
+        {SHOW_PLANNED_CHARTS ? (
+          <ChartCard
+            spec={spec(
+              "Cost per transaction block",
+              "Average CLVM cost used in a transaction block.",
+              "Not sampled at chart scale: exact cost needs a full get_block fetch per block, too heavy to sample across a range without a server-side cache. See a block's own page for its exact cost.",
+              formatCost
+            )}
+            points={null}
+            unavailable="Not sampled at chart scale — needs one full-block fetch per block. See a block's own page for its exact cost."
+            smoothing={controls.smoothing}
+            scale={controls.scale}
+          />
+        ) : null}
         <ChartCard
           spec={spec("Transaction blocks per hour", "How many blocks in the window carried transactions.", "Counted per sampling window from get_block_records.", (v) => v.toFixed(1))}
           points={blocks.series?.txBlocksPerHour ?? null}
@@ -126,18 +139,20 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        <ChartCard
-          spec={spec(
-            "Spends per transaction block",
-            "Average number of coins spent in a transaction block.",
-            "Not sampled at chart scale: needs a per-block indexed or additions/removals fetch, too heavy to sample across a range without a server-side cache. See a block's own page for its spends.",
-            (v) => v.toFixed(0)
-          )}
-          points={null}
-          unavailable="Not sampled at chart scale — needs a per-block fetch. See a block's own page for its spends."
-          smoothing={controls.smoothing}
-          scale={controls.scale}
-        />
+        {SHOW_PLANNED_CHARTS ? (
+          <ChartCard
+            spec={spec(
+              "Spends per transaction block",
+              "Average number of coins spent in a transaction block.",
+              "Not sampled at chart scale: needs a per-block indexed or additions/removals fetch, too heavy to sample across a range without a server-side cache. See a block's own page for its spends.",
+              (v) => v.toFixed(0)
+            )}
+            points={null}
+            unavailable="Not sampled at chart scale — needs a per-block fetch. See a block's own page for its spends."
+            smoothing={controls.smoothing}
+            scale={controls.scale}
+          />
+        ) : null}
         <ChartCard
           spec={spec("Share of transaction blocks", "Transaction blocks as a share of all blocks (roughly a third).", "Counted per sampling window from get_block_records.", (v) => formatPercent(v, 1))}
           points={blocks.series?.shareOfTxBlocks ?? null}
@@ -163,18 +178,20 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        <ChartCard
-          spec={spec(
-            "Difficulty",
-            "The node's current proof-of-space difficulty target.",
-            "No verified way to recover historical difficulty from get_block_records; get_blockchain_state only reports the current value.",
-            (v) => formatNumber(v)
-          )}
-          points={null}
-          unavailable="Not derivable from available endpoints without unverified math — a wrong number here would be worse than none. get_blockchain_state shows the current value on Settings."
-          smoothing={controls.smoothing}
-          scale={controls.scale}
-        />
+        {SHOW_PLANNED_CHARTS ? (
+          <ChartCard
+            spec={spec(
+              "Difficulty",
+              "The node's current proof-of-space difficulty target.",
+              "No verified way to recover historical difficulty from get_block_records; get_blockchain_state only reports the current value.",
+              (v) => formatNumber(v)
+            )}
+            points={null}
+            unavailable="Not derivable from available endpoints without unverified math — a wrong number here would be worse than none. get_blockchain_state shows the current value on Settings."
+            smoothing={controls.smoothing}
+            scale={controls.scale}
+          />
+        ) : null}
         <ChartCard
           spec={spec("Blocks per hour", "All blocks (transaction and non-transaction) per hour.", "Counted per sampling window from get_block_records.", (v) => v.toFixed(1))}
           points={network.blocksPerHour}
@@ -184,11 +201,13 @@ export function ChartsPage() {
         />
       </Section>
 
-      <Section title="Coin set">
-        <ChartCard spec={spec("Unspent coins", "Total coins not yet spent.", "Would need a Coinset aggregate endpoint.", formatNumber)} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
-        <ChartCard spec={spec("Active puzzle hashes", "Distinct puzzle hashes holding coins.", "Would need a Coinset aggregate endpoint.", formatNumber)} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
-        <ChartCard spec={spec("Coin age", "Average age of unspent coins.", "Would need a Coinset aggregate endpoint.", (v) => formatDuration(v))} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
-      </Section>
+      {SHOW_PLANNED_CHARTS ? (
+        <Section title="Coin set">
+          <ChartCard spec={spec("Unspent coins", "Total coins not yet spent.", "Would need a Coinset aggregate endpoint.", formatNumber)} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
+          <ChartCard spec={spec("Active puzzle hashes", "Distinct puzzle hashes holding coins.", "Would need a Coinset aggregate endpoint.", formatNumber)} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
+          <ChartCard spec={spec("Coin age", "Average age of unspent coins.", "Would need a Coinset aggregate endpoint.", (v) => formatDuration(v))} points={null} unavailable={NO_COINSET} smoothing={controls.smoothing} scale={controls.scale} />
+        </Section>
+      ) : null}
     </div>
   );
 }
