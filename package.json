@@ -28,7 +28,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changelog": "bun run scripts/changelog/generate.ts",
-    "map:land": "bun run scripts/map/generate-land-dots.ts"
+    "map:land": "bun run scripts/map/generate-land-dots.ts",
+    "arcade": "bun run scripts/arcade/fetch-games.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
