@@ -5,6 +5,9 @@
       "version": "unreleased",
       "date": null,
       "changes": [
+        "Lint the embeds as plain browser scripts",
+        "Embeds: block queue, fee cards, mempool occupancy and transaction status, plus an SVG badge",
+        "Learn section, prefarm tracker, status page and changelog",
         "Coinset parity: offers, clawbacks, reorgs, netspace and raw transactions",
         "Network map: scan the Chia seeders from the browser and place nodes on a world map",
         "Charts: hide series without a data source; next-block goggles redesign"

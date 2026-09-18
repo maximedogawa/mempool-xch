@@ -59,6 +59,15 @@ first, and the matching detailed guide before lifecycle actions (`task-creation`
 `task-execution`, `task-finalization`). Never edit the markdown files under
 `../mempool-xch-backlog/.backlog/` by hand; use the CLI. Milestones define delivery order.
 
+## Branches and releases
+
+One feature branch per backlog task (`feat/task-NNN-short-name`, `chore/...` for housekeeping),
+merged into `testing` with `--no-ff` so each task stays a visible unit in the history; never
+commit task work straight onto `testing` or `main`. Keep commits scoped to the task: the
+changelog page is generated from commit subjects between version tags (`bun run changelog`),
+so a subject should read as a release note line. Bump `version` in both `package.json` and
+`sage-manifest.json` together; tag releases as `X.Y.Z`.
+
 ## Reference project
 
 `../../pengui/pengui` (with `pengui-backlog` and `pengui-wiki`) is the sibling Chia app by the same
