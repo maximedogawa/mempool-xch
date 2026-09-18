@@ -35,7 +35,8 @@ test.describe("arcade", () => {
     await expect(page.getByRole("link", { name: "potpotato.xyz" })).toBeVisible();
   });
 
-  test("Arcade sits in the More menu", async ({ page }) => {
+  test("Arcade sits in the More menu", async ({ page, isMobile }) => {
+    test.skip(isMobile, "the More menu is part of the desktop navigation");
     await mockCoinset(page);
     await page.goto("/");
     await page.getByRole("button", { name: "More", exact: true }).click();

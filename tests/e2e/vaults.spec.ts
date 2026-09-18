@@ -2,14 +2,22 @@ import { expect, test } from "@playwright/test";
 import { mockCoinset, mockCustomNode, VAULT_ADDRESS, VAULT_LAUNCHER } from "./mockCoinset";
 
 test.describe("vaults", () => {
-  test("Vaults menu opens the prefarm vaults and the Chia Vaults lookup", async ({ page }) => {
+  test("Vaults menu opens the prefarm vaults and the Chia Vaults lookup", async ({
+    page,
+    isMobile,
+  }) => {
     await mockCoinset(page);
-    await page.goto("/");
-    await page
-      .getByRole("navigation", { name: "Primary" })
-      .getByRole("link", { name: "Vaults" })
-      .click();
-    await expect(page).toHaveURL(/\/vaults$/);
+    if (isMobile) {
+      // The primary navigation is collapsed on phones; the page itself is what matters here.
+      await page.goto("/vaults");
+    } else {
+      await page.goto("/");
+      await page
+        .getByRole("navigation", { name: "Primary" })
+        .getByRole("link", { name: "Vaults" })
+        .click();
+      await expect(page).toHaveURL(/\/vaults$/);
+    }
     await expect(page.getByRole("heading", { level: 1, name: "Prefarm tracker" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Chia Vaults" })).toBeVisible();
 
