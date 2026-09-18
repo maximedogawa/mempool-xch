@@ -10,7 +10,7 @@
 import { TRUSTED_IMAGE_HOSTS } from "../../src/shared/lib/trustedImage";
 import { whitelistForNetwork, type SageManifest } from "./manifestSchema";
 
-export function buildAppCsp(whitelist: string[] = [], opts: { scriptSrcExtra?: string[]; prefetchSrc?: boolean } = {}): string {
+export function buildAppCsp(whitelist: string[] = [], opts: { scriptSrcExtra?: string[]; prefetchSrc?: boolean; frameAncestors?: string } = {}): string {
   const connectSrc = ["'self'", ...whitelist].join(" ");
   const imgSrc = ["'self'", "blob:", "data:", ...whitelist.filter((e) => e.startsWith("https://"))].join(" ");
   const scriptSrc = ["'self'", "'wasm-unsafe-eval'", ...(opts.scriptSrcExtra ?? [])].join(" ");
@@ -32,7 +32,7 @@ export function buildAppCsp(whitelist: string[] = [], opts: { scriptSrcExtra?: s
     "worker-src 'self'",
     "base-uri 'none'",
     "form-action 'none'",
-    "frame-ancestors 'self'",
+    `frame-ancestors ${opts.frameAncestors ?? "'self'"}`,
   ].join("; ");
 }
 
@@ -63,8 +63,17 @@ export function buildAppCspForManifest(manifest: SageManifest, networkId = "main
  *    has no dangerouslySetInnerHTML anywhere (verified 2026-09-17), so there's no known sink for
  *    it to matter against today.
  */
-export function buildHostedAppCsp(): string {
+export function buildHostedAppCsp(opts: { frameAncestors?: string } = {}): string {
   const localNode = ["http://localhost:*", "http://127.0.0.1:*", "ws://localhost:*", "ws://127.0.0.1:*"];
   const imageHosts = [...TRUSTED_IMAGE_HOSTS].map((host) => `https://${host}`);
-  return buildAppCsp(["https:", "wss:", ...localNode, ...imageHosts], { scriptSrcExtra: ["'unsafe-inline'"], prefetchSrc: false });
+  return buildAppCsp(["https:", "wss:", ...localNode, ...imageHosts], { scriptSrcExtra: ["'unsafe-inline'"], prefetchSrc: false, frameAncestors: opts.frameAncestors });
+}
+
+/**
+ * The embeds under /embed are meant to be iframed by other sites, so they alone allow any
+ * frame ancestor; the rest of the app keeps 'self'. Next applies the later header entry when
+ * two match, which is why next.config.ts lists the /embed rule after the catch-all.
+ */
+export function buildEmbedCsp(): string {
+  return buildHostedAppCsp({ frameAncestors: "*" });
 }

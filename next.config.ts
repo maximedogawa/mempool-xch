@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 import { execSync } from "node:child_process";
-import { buildHostedAppCsp } from "./scripts/sage/csp";
+import { buildEmbedCsp, buildHostedAppCsp } from "./scripts/sage/csp";
 import packageJson from "./package.json";
 
 function getCommitSha(): string {
@@ -67,6 +67,11 @@ const nextConfig: NextConfig = {
                   value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=(), interest-cohort=()",
                 },
               ],
+            },
+            {
+              // Embeds may be framed anywhere (see buildEmbedCsp); listed after the catch-all so it wins.
+              source: "/embed/:path*",
+              headers: [{ key: "Content-Security-Policy", value: buildEmbedCsp() }],
             },
             {
               source: "/:all*(svg|jpg|png|webp|avif|ico|woff|woff2)",

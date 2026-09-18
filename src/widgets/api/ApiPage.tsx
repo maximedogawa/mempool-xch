@@ -34,6 +34,80 @@ function EndpointRow({ endpoint }: { endpoint: ApiEndpoint }) {
   );
 }
 
+const SITE = "https://mempoolxch.space";
+
+const EMBEDS: { id: string; title: string; what: string; path: string; height: number }[] = [
+  { id: "blocks", title: "Block queue", what: "The projected next blocks and the last three transaction blocks.", path: "/embed/blocks.html", height: 120 },
+  { id: "fees", title: "Fee cards", what: "The node's fee estimate for next block, ~5 and ~10 minutes.", path: "/embed/fees.html", height: 130 },
+  { id: "mempool", title: "Mempool occupancy", what: "Bundles waiting, cost used of the node's capacity, total fees.", path: "/embed/mempool.html", height: 150 },
+  { id: "tx", title: "Transaction status", what: "Pending, confirmed or removed for one transaction id.", path: "/embed/tx.html?id=<tx id>", height: 90 },
+];
+
+function snippet(e: (typeof EMBEDS)[number], theme: "dark" | "light"): string {
+  const sep = e.path.includes("?") ? "&" : "?";
+  return `<iframe src="${SITE}${e.path}${sep}theme=${theme}" width="100%" height="${e.height}" style="border:0;border-radius:10px" loading="lazy" title="${e.title} · mempoolxch.space"></iframe>`;
+}
+
+/** Copy-paste widgets: static pages under /embed that read Coinset from the visitor's browser. */
+function Embeds() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const badge = `![Chia tx status](${SITE}/api/badge/tx/<tx id>.svg)`;
+  return (
+    <Card>
+      <CardHeader
+        title="Embeds and badges"
+        action={
+          <div role="group" aria-label="Embed theme" className="inline-flex overflow-hidden rounded-full border border-border">
+            {(["dark", "light"] as const).map((t) => (
+              <button key={t} type="button" aria-pressed={theme === t} onClick={() => setTheme(t)} className={theme === t ? "bg-surface-2 px-2.5 py-0.5 text-[11px] font-semibold text-fg" : "px-2.5 py-0.5 text-[11px] font-semibold text-fg-muted hover:text-fg"}>
+                {t}
+              </button>
+            ))}
+          </div>
+        }
+      />
+      <CardBody className="flex flex-col gap-4 text-sm text-fg-muted">
+        <p>
+          Drop-in widgets for pools, wallets and community sites. Each is a small static page (under 15 KB of script, no framework) that fetches Coinset
+          directly from the visitor&apos;s browser, so nothing about your visitors reaches us. <span className="mono">?theme=dark|light</span> picks the
+          colours, <span className="mono">&amp;network=testnet11</span> switches network. They may be framed from any origin.
+        </p>
+        <ul className="flex flex-col gap-3">
+          {EMBEDS.map((e) => (
+            <li key={e.id} className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <span className="font-semibold text-fg">{e.title}</span>
+                <span className="text-xs">{e.what}</span>
+                <a href={`${e.path.replace("<tx id>", "0".repeat(64))}${e.path.includes("?") ? "&" : "?"}theme=${theme}`} target="_blank" rel="noreferrer" className="text-xs text-accent hover:underline">
+                  preview
+                </a>
+              </div>
+              <div className="flex items-start gap-2">
+                <pre tabIndex={0} className="mono w-full overflow-x-auto rounded-sm border border-border bg-bg p-3 text-xs leading-relaxed text-fg-muted" data-testid={`embed-snippet-${e.id}`}>
+                  {snippet(e, theme)}
+                </pre>
+                <CopyButton value={snippet(e, theme)} />
+              </div>
+            </li>
+          ))}
+          <li className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="font-semibold text-fg">SVG badge</span>
+              <span className="text-xs">A shields-style image for READMEs and pages that cannot run scripts; served by mempoolxch.space, cached for a minute.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <pre tabIndex={0} className="mono w-full overflow-x-auto rounded-sm border border-border bg-bg p-3 text-xs leading-relaxed text-fg-muted" data-testid="embed-snippet-badge">
+                {badge}
+              </pre>
+              <CopyButton value={badge} />
+            </div>
+          </li>
+        </ul>
+      </CardBody>
+    </Card>
+  );
+}
+
 export function ApiPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -98,6 +172,8 @@ export function ApiPage() {
           </p>
         </CardBody>
       </Card>
+
+      <Embeds />
 
       <Card>
         <CardHeader title="Rate limits and fair use" />

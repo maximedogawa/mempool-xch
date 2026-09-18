@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 // The CSP builder lives with the Sage scripts it was written for; bun's test root is src/, so its test lives here.
-import { buildAppCsp, buildHostedAppCsp } from "../../../scripts/sage/csp";
+import { buildAppCsp, buildEmbedCsp, buildHostedAppCsp } from "../../../scripts/sage/csp";
 
 const sources = (csp: string, name: string) => (csp.split("; ").find((d) => d.startsWith(`${name} `)) ?? "").split(" ").slice(1);
 
@@ -30,5 +30,13 @@ describe("hosted app CSP", () => {
     const sage = buildAppCsp(["https://api.coinset.org"]);
     expect(sources(sage, "script-src")).toEqual(["'self'", "'wasm-unsafe-eval'"]);
     expect(sage).toContain("prefetch-src 'none'");
+  });
+});
+
+describe("buildEmbedCsp", () => {
+  test("only the embeds allow any frame ancestor; everything else is unchanged", () => {
+    const embed = buildEmbedCsp();
+    expect(embed).toContain("frame-ancestors *");
+    expect(embed.replace("frame-ancestors *", "frame-ancestors 'self'")).toBe(buildHostedAppCsp());
   });
 });
