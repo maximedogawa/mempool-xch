@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { useTokenList } from "@/shared/api/useTokenList";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
@@ -101,6 +101,10 @@ export function NextBlockGoggles() {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => setNow(Date.now()), [next]);
+  // Everything in the first snapshot was already waiting when this tab opened: only bundles
+  // observed after it count as arrivals.
+  const baseline = useRef<number | null>(null);
+  if (summary && baseline.current === null) baseline.current = summary.generatedAt;
 
   const fillHeight = next ? Math.round(H * Math.max(0.16, next.fill)) : 0;
   const top = H - fillHeight;
@@ -122,7 +126,7 @@ export function NextBlockGoggles() {
     });
     return acc;
   }, [next]);
-  const isFresh = (item: CompactMempoolItem) => now - item.firstSeen < FRESH_MS;
+  const isFresh = (item: CompactMempoolItem) => baseline.current !== null && item.firstSeen > baseline.current && now - item.firstSeen < FRESH_MS;
   const freshCount = next ? next.items.filter(isFresh).length : 0;
   const yoursCount = next ? next.items.filter((i) => mine.has(i.id)).length : 0;
 
@@ -215,7 +219,7 @@ export function NextBlockGoggles() {
                 </Chip>
                 {FEE_BANDS.filter((b) => (perBand[b.id] ?? 0) > 0).map((b) => (
                   <Chip key={b.id} active={fee === b.id} onClick={() => setFee(b.id)} title={`${b.label} mojo per cost`} swatch={`var(${b.cssVar})`}>
-                    {b.label} <span className="tabular font-normal text-fg-muted">{perBand[b.id]}</span>
+                    {b.id === "zero" ? "0 fee" : `${b.label} m/c`} <span className="tabular font-normal text-fg-muted">{perBand[b.id]}</span>
                   </Chip>
                 ))}
               </div>

@@ -14,6 +14,7 @@
   --surface-2: #232842;
   --surface-hover: #2a3050;
   --border: #2c3350;
+  --map-land: #2f3757;
   --border-strong: #3b4468;
 
   --fg: #e8ebf5;
@@ -67,6 +68,7 @@
   --surface-2: #eef1f8;
   --surface-hover: #e4e8f3;
   --border: #d9deec;
+  --map-land: #c9d0e3;
   --border-strong: #b9c1d9;
   --fg: #10142a;
   --fg-muted: #4d5674;
@@ -332,6 +334,34 @@ body {
 .treemap-fresh-ring {
   animation: fresh-ring 3s ease-out both;
   opacity: 0.35;
+}
+
+/* Network map: a live event ripples out of an observed node (transform and opacity only). */
+@keyframes map-pulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.map-pulse {
+  animation: map-pulse 1.5s ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.map-node {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-node:focus-visible circle:first-child {
+  stroke: var(--primary);
+  stroke-width: 1.5;
 }
 
 .card-lift {

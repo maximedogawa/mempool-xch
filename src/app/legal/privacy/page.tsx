@@ -84,6 +84,11 @@ export default function PrivacyPage() {
             unless you enter a different node below.
           </li>
           <li>A full node you enter in Settings: all chain data then comes from there instead of Coinset.</li>
+          <li>
+            Only while the Network map page is open: Cloudflare DNS (cloudflare-dns.com, with dns.google as a fallback) answers DNS queries for the Chia
+            introducers, and GeoJS (get.geojs.io) estimates the location of the node addresses those answers contain. Only node addresses are sent for
+            lookup, never yours; the addresses learnt are kept in your browser&apos;s local storage for a week.
+          </li>
         </List>
         <p>
           Legal basis: Art. 6(1)(f) GDPR; the legitimate interest is showing the blockchain content you request. Some of these providers may process data

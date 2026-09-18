@@ -12,7 +12,7 @@ test.describe("charts", () => {
 
     await expect(page.getByRole("heading", { name: "Fees per transaction block" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Netspace" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Blocks per hour" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Blocks per hour", exact: true })).toBeVisible();
 
     // Series without a provider (price history, coin-set aggregates, per-block cost) stay
     // hidden until TASK-083 gives them one: no greyed cards, no "not available" notes.

@@ -23,7 +23,10 @@
           "https://icons.dexie.space",
           "https://api.mintgarden.io",
           "https://assets.mainnet.mintgarden.io",
-          "https://ipfs.mintgarden.io"
+          "https://ipfs.mintgarden.io",
+          "https://cloudflare-dns.com",
+          "https://dns.google",
+          "https://get.geojs.io"
         ],
         "optional": []
       },
