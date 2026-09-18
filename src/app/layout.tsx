@@ -5,6 +5,7 @@ import { AppShell } from "@/widgets/shell/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mempoolxch.space"),
   title: { default: "mempoolxch.space · Chia mempool explorer", template: "%s · mempoolxch.space" },
   description: "A mempool.space-style explorer for the Chia (XCH) network",
   applicationName: "mempoolxch.space",
