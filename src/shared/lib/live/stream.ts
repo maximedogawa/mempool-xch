@@ -24,7 +24,16 @@ export type LiveEvent =
       detectedAtMs: number;
     }
   /** Coinset's periodic netspace estimate (dashboard event, kind "netspace"). */
-  | { type: "netspace"; bytes: bigint; difficulty: number };
+  | { type: "netspace"; bytes: bigint; difficulty: number }
+  /** A Chia Vault recovery step seen by Coinset (events=vault). */
+  | {
+      type: "vault";
+      vaultId: string;
+      action: string;
+      status: string;
+      txId: string | null;
+      at: number;
+    };
 
 export type LiveTransport = "websocket" | "polling";
 
@@ -98,6 +107,24 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
       newPeakHeight,
       depth,
       detectedAtMs: Number(data.detected_at_ms) || Date.now(),
+    };
+  }
+  if (message.type === "vault") {
+    const vaultId = String(data.vault_id ?? data.launcher_id ?? "")
+      .replace(/^0x/, "")
+      .toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(vaultId)) return null;
+    const txId =
+      typeof data.tx_id === "string" && data.tx_id
+        ? data.tx_id.replace(/^0x/, "").toLowerCase()
+        : null;
+    return {
+      type: "vault",
+      vaultId,
+      action: String(data.action ?? data.vault_action ?? "unknown"),
+      status: String(data.status ?? data.tx_status ?? "pending"),
+      txId,
+      at: Date.now(),
     };
   }
   if (message.type === "dashboard" && data.kind === "netspace") {
@@ -182,7 +209,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     setStatus("connecting");
     let ws: WebSocket;
     try {
-      ws = new WS(`${options.wsUrl}?events=peak,transaction,reorg,dashboard`);
+      ws = new WS(`${options.wsUrl}?events=peak,transaction,reorg,dashboard,vault`);
     } catch {
       onSocketFailure();
       return;

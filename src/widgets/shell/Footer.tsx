@@ -57,8 +57,8 @@ export function Footer() {
           <Link href={routes.map()} className="hover:text-fg">
             Network
           </Link>
-          <Link href={routes.prefarm()} className="hover:text-fg">
-            Prefarm
+          <Link href={routes.vaults()} className="hover:text-fg">
+            Vaults
           </Link>
           <Link href={routes.status()} className="hover:text-fg">
             Status

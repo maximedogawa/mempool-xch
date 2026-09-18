@@ -4,39 +4,7 @@ import { mockCoinset, mockDexie, P2, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinse
 import { mockDexieOffers, mockMintGarden, NFT_ID } from "./mockMintGarden";
 import { mockNodeScan } from "./mockNodeScan";
 
-const ROUTES = [
-  "/",
-  "/blocks",
-  "/pools",
-  "/tokens",
-  "/mempool",
-  "/charts",
-  "/fees",
-  "/settings",
-  "/docs",
-  "/api",
-  "/map",
-  "/wallet",
-  "/nfts",
-  "/nfts/collections",
-  "/nfts/activity",
-  "/nfts/mints",
-  `/nft/${NFT_ID}`,
-  `/block/${TX_BLOCK_HEIGHT}`,
-  `/tx/${TX_ID}`,
-  `/address/${P2}`,
-  "/legal/terms",
-  "/legal/notice",
-  "/legal/privacy",
-  "/legal/cookies",
-  "/learn",
-  "/learn/what-is-the-mempool",
-  "/learn/questions",
-  "/prefarm",
-  "/status",
-  "/changelog",
-  "/offer/e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5",
-];
+const ROUTES = ["/", "/blocks", "/pools", "/tokens", "/mempool", "/charts", "/fees", "/settings", "/docs", "/api", "/map", "/wallet", "/nfts", "/nfts/collections", "/nfts/activity", "/nfts/mints", `/nft/${NFT_ID}`, `/block/${TX_BLOCK_HEIGHT}`, `/tx/${TX_ID}`, `/address/${P2}`, "/legal/terms", "/legal/notice", "/legal/privacy", "/legal/cookies", "/learn", "/learn/what-is-the-mempool", "/learn/questions", "/prefarm", "/vaults", "/status", "/changelog", "/offer/e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5"];
 
 test.describe("accessibility", () => {
   test.beforeEach(async ({ page }) => {

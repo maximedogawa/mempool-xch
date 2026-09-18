@@ -138,7 +138,7 @@ describe("createLiveStream", () => {
     stream.start();
     await Promise.resolve();
     const s1 = FakeSocket.instances[0]!;
-    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard");
+    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault");
     expect(stream.status).toBe("connecting");
     s1.open();
     expect(stream.status).toBe("live");
@@ -195,6 +195,28 @@ describe("parseCoinsetMessage: reorg and netspace", () => {
       parseCoinsetMessage(
         '{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"nope"}}}'
       )
+    ).toBeNull();
+  });
+});
+
+describe("parseCoinsetMessage: vault", () => {
+  test("recovery steps carry the vault id, action, status and tx", () => {
+    const event = parseCoinsetMessage(
+      '{"message":{"type":"vault","data":{"vault_id":"0x' +
+        "ab".repeat(32) +
+        '","action":"initiate_recovery","status":"pending","tx_id":"0x' +
+        "cd".repeat(32) +
+        '"}}}'
+    );
+    expect(event).toMatchObject({
+      type: "vault",
+      vaultId: "ab".repeat(32),
+      action: "initiate_recovery",
+      status: "pending",
+      txId: "cd".repeat(32),
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"vault","data":{"vault_id":"nope"}}}')
     ).toBeNull();
   });
 });

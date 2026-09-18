@@ -35,6 +35,11 @@ const PRIMARY: NavItem[] = [
   },
   { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
   { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
+  {
+    href: routes.vaults(),
+    label: "Vaults",
+    match: (p) => p.startsWith("/vaults") || p.startsWith("/prefarm"),
+  },
 ];
 
 const MORE: NavItem[] = [

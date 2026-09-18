@@ -25,11 +25,13 @@ export function mockSummary() {
     cost: item.cost,
     feeRate: (item.fee + i * 1_000_000) / item.cost,
     spends: item.spend_bundle.coin_spends.length,
-    additions: item.additions.slice(0, 4).map((c) => ({
-      ph: c.puzzle_hash.slice(2),
-      amount: String(c.amount),
-      parent: c.parent_coin_info.slice(2),
-    })),
+    additions: item.additions
+      .slice(0, 4)
+      .map((c) => ({
+        ph: c.puzzle_hash.slice(2),
+        amount: String(c.amount),
+        parent: c.parent_coin_info.slice(2),
+      })),
     removals: item.removals.map((c) => ({
       ph: c.puzzle_hash.slice(2),
       amount: String(c.amount),
@@ -282,6 +284,15 @@ const PREFARM_SINGLETONS: Record<string, { puzzleHash: string; amount: bigint }>
 const PREFARM_COINS: Record<string, bigint> = Object.fromEntries(
   Object.values(PREFARM_SINGLETONS).map((v) => [v.puzzleHash, v.amount])
 );
+/** The example Chia Vault on the vaults page: launcher, singleton coin and the p2 address holding its funds. */
+export const VAULT_LAUNCHER = "a4860e521551d49691d6985eb1b88dde44e38c5f7ac1ce39f3a33c4371005201";
+export const VAULT_ADDRESS = "xch1lv34uumcyg892zrv35rhrx87hu5nx87em7zcag5nc2vjecupkdzspc9xn6";
+PREFARM_SINGLETONS[VAULT_LAUNCHER] = {
+  puzzleHash: "e2d2aaf0fe5cbaefc92438c6a4ca1ec3b8568388b550234ac77f77d4a7948b68",
+  amount: 1n,
+};
+PREFARM_COINS["fb235e7378220e55086c8d077198febf29331fd9df858ea293c2992ce381b345"] =
+  41_991_000_000_000_000n;
 
 /** A real pending mempool item's id (mempool_items.json's first entry), reused for the watchlist. */
 export const WATCHED_PENDING_TX_ID =
