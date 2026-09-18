@@ -14,6 +14,7 @@ import offerState from "../../src/test-utils/fixtures/offer_state.json";
 import offersByCat from "../../src/test-utils/fixtures/offers_by_cat.json";
 import rawTxXch from "../../src/test-utils/fixtures/raw_tx_xch.json";
 import reorgs from "../../src/test-utils/fixtures/reorgs.json";
+import arcade from "../../src/shared/config/arcade.json";
 
 const NOW = Date.now();
 
@@ -259,6 +260,8 @@ export function blockCoinFlow() {
   };
 }
 export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4";
+/** When the mocked potato snatch happened: an hour before the test run. */
+export const POTATO_TAKEN_AT = Math.floor(NOW / 1000) - 3_600;
 
 /** Mocked prefarm custody vaults (src/shared/lib/prefarm/vaults.ts): the singleton coin sits at the first address of each. */
 const PREFARM_SINGLETONS: Record<string, { puzzleHash: string; amount: bigint }> = {
@@ -442,8 +445,34 @@ export async function answerNodeMethod(route: Route) {
         success: true,
       });
     }
+    case "get_coin_records_by_parent_ids": {
+      // One fresh Pot Potato snatch on top of the committed snapshot tip, taken an hour ago.
+      const parents = (Array.isArray(body.parent_ids) ? body.parent_ids : []).map((p) =>
+        String(p).replace(/^0x/, "")
+      );
+      if (parents.includes(arcade.potato.coinId)) {
+        const child = {
+          parent_coin_info: `0x${arcade.potato.coinId}`,
+          puzzle_hash: `0x${hash(0x9074)}`,
+          amount: Number(BigInt(arcade.potato.amount) + 1_000_000_000_000n),
+        };
+        return json(route, {
+          coin_records: [
+            {
+              coin: child,
+              coinbase: false,
+              confirmed_block_index: arcade.potato.height + 5_000,
+              spent: false,
+              spent_block_index: 0,
+              timestamp: POTATO_TAKEN_AT,
+            },
+          ],
+          success: true,
+        });
+      }
+      return json(route, { coin_records: [], success: true });
+    }
     case "get_coin_records_by_hint":
-    case "get_coin_records_by_parent_ids":
     case "get_coin_records_by_names":
       return json(route, { coin_records: [], success: true });
     case "get_xch_balance_by_p2":

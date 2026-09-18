@@ -51,6 +51,10 @@ const nextConfig: NextConfig = {
             { source: "/cat/:id", destination: "/cat?id=:id" },
             { source: "/nft/:id", destination: "/nft?id=:id" },
             { source: "/offer/:id", destination: "/offer?id=:id" },
+            // The arcade21 tracker answers JSON without CORS headers; this plain pass-through
+            // (no code, no cache) lets the Arcade page read rooms live in the hosted build. The
+            // static Sage export has no rewrites and shows the committed snapshot instead.
+            { source: "/api/arcade/:path*", destination: "https://arcade21games.com/:path*" },
           ];
         },
         async headers() {

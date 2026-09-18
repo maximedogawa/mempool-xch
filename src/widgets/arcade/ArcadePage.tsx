@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import arcade from "@/shared/config/arcade.json";
-import { formatNumber } from "@/shared/lib/chia/amounts";
+import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
+import { formatAge } from "@/shared/lib/format/time";
 import { Badge, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { PotPotatoCard } from "./PotPotatoCard";
+import {
+  ROOMS_LIVE,
+  ROOMS_REFRESH_MS,
+  useArcadeRooms,
+  type ArcadeRoom,
+  type RoomPhase,
+} from "./useArcadeRooms";
 
 interface Game {
   id: string;
@@ -27,12 +36,6 @@ interface Game {
   active: boolean;
   stats: { totalPlays?: number; activePlayers?: number } | null;
 }
-
-const POTATO = {
-  name: "Pot Potato",
-  url: "https://potpotato.xyz",
-  blurb: "Hold it if you dare: a hot-potato game where the pot moves on chain.",
-};
 
 /** The manifest icon as an image, never as inline markup: a data: SVG in an <img> cannot run script. */
 function GameIcon({ game }: { game: Game }) {
@@ -125,11 +128,6 @@ function GameCard({ game }: { game: Game }) {
             Play
           </ExternalLink>
         ) : null}
-        {game.repository ? (
-          <ExternalLink href={game.repository} className="text-accent hover:underline">
-            Source
-          </ExternalLink>
-        ) : null}
         {game.homepage ? (
           <ExternalLink href={game.homepage} className="text-accent hover:underline">
             Homepage
@@ -140,107 +138,222 @@ function GameCard({ game }: { game: Game }) {
   );
 }
 
+const PHASES: RoomPhase[] = ["waiting", "playing", "closed"];
+const PHASE_TITLE: Record<RoomPhase, string> = {
+  waiting: "Waiting for an opponent",
+  playing: "In game",
+  closed: "Closed",
+};
+
+function matchesRoom(room: ArcadeRoom, needle: string): boolean {
+  if (!needle) return true;
+  const q = needle.toLowerCase();
+  return (
+    (room.gameName ?? "").toLowerCase().includes(q) ||
+    room.players.some((p) => p.toLowerCase().includes(q)) ||
+    room.id.toLowerCase().includes(q) ||
+    room.status.toLowerCase().includes(q)
+  );
+}
+
+function RoomRow({ room }: { room: ArcadeRoom }) {
+  return (
+    <li className="flex flex-col gap-0.5 py-1.5 text-xs">
+      <span className="flex items-center justify-between gap-2">
+        <span className="truncate font-medium text-fg">{room.gameName ?? "Table"}</span>
+        {room.joinUrl && room.phase !== "closed" ? (
+          <ExternalLink href={room.joinUrl} className="shrink-0 text-accent hover:underline">
+            {room.joinable ? "join" : "watch"}
+          </ExternalLink>
+        ) : null}
+      </span>
+      <span className="flex flex-wrap items-center gap-x-2 text-fg-muted">
+        <span>{room.players.length > 0 ? room.players.join(" vs ") : "no players yet"}</span>
+        {room.online > 0 ? <span className="text-primary">{room.online} online</span> : null}
+        {room.wagerMojos !== null ? <span>{formatAmount(room.wagerMojos)} wager</span> : null}
+        {room.gamesPlayed > 0 ? (
+          <span>
+            {formatNumber(room.gamesPlayed)} game{room.gamesPlayed === 1 ? "" : "s"}
+          </span>
+        ) : null}
+        {room.updatedAt ? <span className="text-fg-faint">{formatAge(room.updatedAt)}</span> : null}
+      </span>
+    </li>
+  );
+}
+
 /**
- * Games built on Chia, as registered on the arcade21 tracker: a build-time snapshot
- * (bun run arcade) because the tracker's JSON carries no CORS header, so a browser cannot
- * read it live and this app runs no proxy. Rooms are summarised from the same snapshot.
+ * Live rooms from the tracker (hosted build), searchable, one accordion section per phase;
+ * the snapshot summary when there are no rewrites (Sage export) or the tracker is down.
+ */
+function RoomsCard() {
+  const rooms = useArcadeRooms();
+  const [needle, setNeedle] = useState("");
+  const snapshot = arcade.rooms.byStatus as Record<string, number>;
+  const view = rooms.data;
+  const filtered = (view?.rooms ?? []).filter((r) => matchesRoom(r, needle.trim()));
+  return (
+    <Card className="lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
+      <CardHeader
+        title="Game rooms"
+        action={
+          <span className="flex items-center gap-1.5 text-[11px] text-fg-faint">
+            <span
+              className={cn(
+                "inline-block h-2 w-2 rounded-full",
+                view ? "bg-primary" : "bg-fg-faint"
+              )}
+              aria-hidden="true"
+            />
+            {view
+              ? `live · ${ROOMS_REFRESH_MS / 1000} s`
+              : rooms.isLoading && ROOMS_LIVE
+                ? "loading…"
+                : `snapshot ${arcade.snapshotAt}`}
+          </span>
+        }
+      />
+      <CardBody className="flex flex-col gap-2">
+        {view ? (
+          <>
+            <input
+              type="search"
+              value={needle}
+              onChange={(e) => setNeedle(e.target.value)}
+              placeholder="Search game or player"
+              aria-label="Search rooms"
+              className="w-full rounded-sm border border-border bg-bg px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
+            />
+            {PHASES.map((phase) => {
+              const list = filtered.filter((r) => r.phase === phase);
+              return (
+                <details
+                  key={phase}
+                  open={phase !== "closed"}
+                  className="group rounded-sm border border-border bg-bg"
+                  data-testid={`rooms-${phase}`}
+                >
+                  <summary className="flex cursor-pointer select-none items-center justify-between gap-2 px-2.5 py-1.5 text-xs font-medium text-fg">
+                    <span>
+                      {PHASE_TITLE[phase]}
+                      <span
+                        className="ml-1.5 tabular text-fg-muted"
+                        data-testid={`rooms-${phase}-count`}
+                      >
+                        {formatNumber(list.length)}
+                        {needle.trim() ? ` of ${formatNumber(view.counts[phase])}` : ""}
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="text-fg-faint transition-transform group-open:rotate-180"
+                    >
+                      ⌄
+                    </span>
+                  </summary>
+                  {list.length === 0 ? (
+                    <p className="px-2.5 pb-2 text-xs text-fg-faint">
+                      {needle.trim() ? "No match." : "None right now."}
+                    </p>
+                  ) : (
+                    <ul
+                      className="flex flex-col divide-y divide-border/60 px-2.5 pb-1"
+                      aria-label={PHASE_TITLE[phase]}
+                    >
+                      {list.slice(0, 20).map((room) => (
+                        <RoomRow key={room.id} room={room} />
+                      ))}
+                    </ul>
+                  )}
+                </details>
+              );
+            })}
+          </>
+        ) : (
+          <p className="text-xs text-fg-muted">
+            <span className="tabular font-semibold text-fg">
+              {formatNumber(arcade.rooms.total)}
+            </span>{" "}
+            rooms announced on the tracker
+            {Object.keys(snapshot).length > 0
+              ? ` (${Object.entries(snapshot)
+                  .map(([status, n]) => `${formatNumber(n)} ${status}`)
+                  .join(", ")})`
+              : ""}
+            .
+          </p>
+        )}
+        <ExternalLink
+          href={arcade.tracker.roomsUrl}
+          className="text-[11px] text-accent hover:underline"
+        >
+          Open the arcade
+        </ExternalLink>
+      </CardBody>
+    </Card>
+  );
+}
+
+/**
+ * Pot Potato on top (the only clock on the site that counts down), then the games registered
+ * on the arcade21 tracker (snapshot, bun run arcade) and the live rooms.
  */
 export function ArcadePage() {
   const games = arcade.games as Game[];
   const [genre, setGenre] = useState<string>("all");
   const genres = [...new Set(games.map((g) => g.genre).filter((g): g is string => !!g))].sort();
   const shown = games.filter((g) => genre === "all" || g.genre === genre);
-  const rooms = arcade.rooms.byStatus as Record<string, number>;
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Arcade</h1>
-          <Tooltip
-            text="Games built with Chia's gaming protocol: two players lock a stake in a state channel on chain, play off chain with cryptographic fairness (mental poker for cards), and settle the result back on chain. The catalogue comes from the arcade21 tracker."
-            placement="bottom"
-          />
-        </div>
-        <p className="text-sm text-fg-muted">
-          {formatNumber(games.length)} games registered on the{" "}
-          <ExternalLink href={arcade.tracker.url} className="text-accent hover:underline">
-            {arcade.tracker.name} tracker
-          </ExternalLink>{" "}
-          as of {arcade.snapshotAt}. Playing needs a Chia wallet with the gaming protocol; each game
-          opens on the tracker&apos;s own site.
-        </p>
+      <header className="flex items-center gap-2">
+        <h1 className="text-lg font-semibold">Arcade</h1>
+        <Tooltip
+          text="Games built with Chia's gaming protocol: two players lock a stake in a state channel on chain, play off chain with cryptographic fairness (mental poker for cards), and settle the result back on chain. Playing needs a Chia wallet with the gaming protocol; each game opens on the tracker's own site."
+          placement="bottom"
+        />
       </header>
 
-      <div role="group" aria-label="Filter by genre" className="flex flex-wrap gap-1">
-        {["all", ...genres].map((g) => (
-          <button
-            key={g}
-            type="button"
-            aria-pressed={genre === g}
-            onClick={() => setGenre(g)}
-            className={cn(
-              "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize transition-colors",
-              genre === g
-                ? "border-primary bg-primary-soft text-primary"
-                : "border-border text-fg-muted hover:text-fg"
-            )}
-          >
-            {g}
-          </button>
-        ))}
-      </div>
+      <PotPotatoCard />
 
-      <ul className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-label="Games">
-        {shown.map((g) => (
-          <GameCard key={g.id} game={g} />
-        ))}
-      </ul>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader
-            title="Game rooms"
-            action={<span className="text-xs text-fg-faint">snapshot {arcade.snapshotAt}</span>}
-          />
-          <CardBody className="flex flex-col gap-2 text-sm text-fg-muted">
-            <p>
-              <span className="tabular font-semibold text-fg">
-                {formatNumber(arcade.rooms.total)}
-              </span>{" "}
-              rooms announced on the tracker
-              {Object.keys(rooms).length > 0
-                ? ` (${Object.entries(rooms)
-                    .map(([status, n]) => `${formatNumber(n)} ${status}`)
-                    .join(", ")})`
-                : ""}
-              .
-            </p>
-            <p className="text-xs text-fg-faint">
-              Live rooms cannot be read from your browser: the tracker answers without CORS headers
-              and this site runs no proxy. Open{" "}
-              <ExternalLink href={arcade.tracker.roomsUrl} className="text-accent hover:underline">
-                the arcade
-              </ExternalLink>{" "}
-              to see who is waiting for an opponent right now.
-            </p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardHeader title={POTATO.name} />
-          <CardBody className="flex flex-col gap-2 text-sm text-fg-muted">
-            <p>{POTATO.blurb}</p>
-            <ExternalLink href={POTATO.url} className="text-xs text-accent hover:underline">
-              {POTATO.url.replace("https://", "")}
-            </ExternalLink>
-          </CardBody>
-        </Card>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">Games</h2>
+            <div role="group" aria-label="Filter by genre" className="flex flex-wrap gap-1">
+              {["all", ...genres].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  aria-pressed={genre === g}
+                  onClick={() => setGenre(g)}
+                  className={cn(
+                    "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize transition-colors",
+                    genre === g
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-border text-fg-muted hover:text-fg"
+                  )}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label="Games">
+            {shown.map((g) => (
+              <GameCard key={g.id} game={g} />
+            ))}
+          </ul>
+        </section>
+        <RoomsCard />
       </div>
 
       <p className="text-xs text-fg-faint">
-        Games are listed as their developers registered them on the tracker; mempoolxch.space does
-        not review them and stakes are real XCH. Refresh the catalogue with{" "}
-        <span className="mono">bun run arcade</span>.
+        Games are listed as their developers registered them on the{" "}
+        <ExternalLink href={arcade.tracker.url} className="text-accent hover:underline">
+          {arcade.tracker.name} tracker
+        </ExternalLink>
+        ; mempoolxch.space does not review them and stakes are real XCH.
       </p>
     </div>
   );
