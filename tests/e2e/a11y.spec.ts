@@ -33,6 +33,7 @@ const ROUTES = [
   "/learn/what-is-the-mempool",
   "/learn/questions",
   "/prefarm",
+  "/vaults",
   "/status",
   "/changelog",
   "/offer/e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5",

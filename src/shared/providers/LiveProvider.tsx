@@ -33,6 +33,8 @@ export interface LiveContextValue {
   netspace: { bytes: bigint; difficulty: number; at: number } | null;
   /** Most recent reorg seen on this connection; null until one happens. */
   lastReorg: Extract<LiveEvent, { type: "reorg" }> | null;
+  /** Most recent Chia Vault recovery event on this connection. */
+  lastVault: Extract<LiveEvent, { type: "vault" }> | null;
 }
 
 const LiveContext = createContext<LiveContextValue | null>(null);
@@ -67,6 +69,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const [lastTxEvent, setLastTxEvent] = useState<LiveContextValue["lastTxEvent"]>(null);
   const [netspace, setNetspace] = useState<LiveContextValue["netspace"]>(null);
   const [lastReorg, setLastReorg] = useState<LiveContextValue["lastReorg"]>(null);
+  const [lastVault, setLastVault] = useState<LiveContextValue["lastVault"]>(null);
   const network = endpoints.network;
   const peakRef = useRef<number | null>(null);
 
@@ -84,6 +87,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     setLastTxEvent(null);
     setNetspace(null);
     setLastReorg(null);
+    setLastVault(null);
     setStatus("connecting");
     // Only the families that change with a new peak: state, fees and the recent window.
     // Per-block data (records by hash, transactions, asset totals) is immutable and keyed by
@@ -136,6 +140,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           invalidateMempool();
         } else if (event.type === "netspace") {
           setNetspace({ bytes: event.bytes, difficulty: event.difficulty, at: Date.now() });
+        } else if (event.type === "vault") {
+          setLastVault(event);
         } else if (event.type === "reorg") {
           setLastReorg(event);
           // The rolled-back blocks are gone: everything keyed on the recent chain is stale.
@@ -160,8 +166,19 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       lastTxEvent,
       netspace,
       lastReorg,
+      lastVault,
     }),
-    [status, transport, lastEventAt, peakHeight, txBatch, lastTxEvent, netspace, lastReorg]
+    [
+      status,
+      transport,
+      lastEventAt,
+      peakHeight,
+      txBatch,
+      lastTxEvent,
+      netspace,
+      lastReorg,
+      lastVault,
+    ]
   );
   return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
 }

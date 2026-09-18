@@ -240,4 +240,4 @@ export const API_GROUPS: readonly ApiGroup[] = [
 
 export const RPC_BASE = "https://api.coinset.org";
 export const RPC_BASE_TESTNET = "https://testnet11.api.coinset.org";
-export const WS_URL = "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard";
+export const WS_URL = "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault";

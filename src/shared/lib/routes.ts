@@ -50,6 +50,7 @@ export const routes = {
   learn: () => page("learn"),
   learnArticle: (slug: string) => page(`learn/${slug}`),
   prefarm: () => page("prefarm"),
+  vaults: () => page("vaults"),
   status: () => page("status"),
   changelog: () => page("changelog"),
   legalTerms: () => page("legal/terms"),
