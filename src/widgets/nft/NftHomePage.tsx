@@ -16,8 +16,10 @@ export function NftHomePage() {
   const activity = useNftEvents(undefined, 8);
   const mints = useNftEvents(["mint"], 6);
 
-  const totalVolume30d = collections.data?.collections.reduce((sum, c) => sum + (c.volumeXch ?? 0), 0) ?? 0;
-  const totalTrades30d = collections.data?.collections.reduce((sum, c) => sum + (c.tradeCount ?? 0), 0) ?? 0;
+  const totalVolume30d =
+    collections.data?.collections.reduce((sum, c) => sum + (c.volumeXch ?? 0), 0) ?? 0;
+  const totalTrades30d =
+    collections.data?.collections.reduce((sum, c) => sum + (c.tradeCount ?? 0), 0) ?? 0;
   const activityEvents = activity.data?.pages.flatMap((p) => p.events) ?? [];
   const mintEvents = mints.data?.pages.flatMap((p) => p.events) ?? [];
 
@@ -25,7 +27,10 @@ export function NftHomePage() {
     <div className="flex flex-col gap-6">
       <header
         className="flex flex-col gap-2 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6"
-        style={{ backgroundImage: "radial-gradient(900px 260px at 20% -10%, rgba(214,140,245,0.14), transparent 70%), radial-gradient(700px 240px at 90% 10%, rgba(94,206,123,0.12), transparent 70%)" }}
+        style={{
+          backgroundImage:
+            "radial-gradient(900px 260px at 20% -10%, rgba(214,140,245,0.14), transparent 70%), radial-gradient(700px 240px at 90% 10%, rgba(94,206,123,0.12), transparent 70%)",
+        }}
       >
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold tracking-tight">
@@ -39,17 +44,49 @@ export function NftHomePage() {
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Top collections, 30d volume" value={collections.data ? formatXchDecimal(totalVolume30d) : <Skeleton className="h-6 w-20" />} hint="Sum of the 6 busiest collections' 30-day trade volume." />
-        <StatTile label="Trades, top collections" value={collections.data ? formatNumber(totalTrades30d) : <Skeleton className="h-6 w-16" />} />
-        <StatTile label="Recent activity" value={activity.data ? formatNumber(activityEvents.length) : <Skeleton className="h-6 w-12" />} sub="events shown below" />
-        <StatTile label="Recent mints" value={mints.data ? formatNumber(mintEvents.length) : <Skeleton className="h-6 w-12" />} sub="mints shown below" />
+        <StatTile
+          label="Top collections, 30d volume"
+          value={
+            collections.data ? formatXchDecimal(totalVolume30d) : <Skeleton className="h-6 w-20" />
+          }
+          hint="Sum of the 6 busiest collections' 30-day trade volume."
+        />
+        <StatTile
+          label="Trades, top collections"
+          value={
+            collections.data ? formatNumber(totalTrades30d) : <Skeleton className="h-6 w-16" />
+          }
+        />
+        <StatTile
+          label="Recent activity"
+          value={
+            activity.data ? formatNumber(activityEvents.length) : <Skeleton className="h-6 w-12" />
+          }
+          sub="events shown below"
+        />
+        <StatTile
+          label="Recent mints"
+          value={mints.data ? formatNumber(mintEvents.length) : <Skeleton className="h-6 w-12" />}
+          sub="mints shown below"
+        />
       </div>
 
       <Card>
-        <CardHeader title="Collections in the spotlight" action={<Link href={routes.nftCollections()} className="text-xs text-accent hover:underline">All collections →</Link>} />
+        <CardHeader
+          title="Collections in the spotlight"
+          action={
+            <Link href={routes.nftCollections()} className="text-xs text-accent hover:underline">
+              All collections →
+            </Link>
+          }
+        />
         <CardBody>
           {collections.error ? (
-            <EmptyState tone="danger" title="Could not load collections" description="MintGarden did not answer." />
+            <EmptyState
+              tone="danger"
+              title="Could not load collections"
+              description="MintGarden did not answer."
+            />
           ) : collections.isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {Array.from({ length: 6 }, (_, i) => (
@@ -72,10 +109,19 @@ export function NftHomePage() {
                     rounded=""
                     className="absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-110"
                   />
-                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
+                  />
                   <div className="relative z-10 flex flex-col gap-0.5 p-2.5">
-                    <span className="truncate text-sm font-semibold text-white">{c.name ?? "Untitled"}</span>
-                    <span className="tabular text-[11px] font-medium text-white/75">{c.floorPriceXch !== null ? `${formatXchDecimal(c.floorPriceXch)} floor` : "no floor"}</span>
+                    <span className="truncate text-sm font-semibold text-white">
+                      {c.name ?? "Untitled"}
+                    </span>
+                    <span className="tabular text-[11px] font-medium text-white/75">
+                      {c.floorPriceXch !== null
+                        ? `${formatXchDecimal(c.floorPriceXch)} floor`
+                        : "no floor"}
+                    </span>
                   </div>
                 </a>
               ))}
@@ -88,10 +134,21 @@ export function NftHomePage() {
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Recent activity" action={<Link href={routes.nftActivity()} className="text-xs text-accent hover:underline">All activity →</Link>} />
+          <CardHeader
+            title="Recent activity"
+            action={
+              <Link href={routes.nftActivity()} className="text-xs text-accent hover:underline">
+                All activity →
+              </Link>
+            }
+          />
           <CardBody>
             {activity.error ? (
-              <EmptyState tone="danger" title="Could not load activity" description="MintGarden did not answer." />
+              <EmptyState
+                tone="danger"
+                title="Could not load activity"
+                description="MintGarden did not answer."
+              />
             ) : activity.isLoading ? (
               <div className="flex flex-col gap-2">
                 {Array.from({ length: 4 }, (_, i) => (
@@ -110,10 +167,21 @@ export function NftHomePage() {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="New mints" action={<Link href={routes.nftMints()} className="text-xs text-accent hover:underline">All mints →</Link>} />
+          <CardHeader
+            title="New mints"
+            action={
+              <Link href={routes.nftMints()} className="text-xs text-accent hover:underline">
+                All mints →
+              </Link>
+            }
+          />
           <CardBody>
             {mints.error ? (
-              <EmptyState tone="danger" title="Could not load mints" description="MintGarden did not answer." />
+              <EmptyState
+                tone="danger"
+                title="Could not load mints"
+                description="MintGarden did not answer."
+              />
             ) : mints.isLoading ? (
               <div className="flex flex-col gap-2">
                 {Array.from({ length: 4 }, (_, i) => (
@@ -133,7 +201,8 @@ export function NftHomePage() {
         </Card>
       </div>
       <p className="text-xs text-fg-faint">
-        Have an NFT id or a launcher id? Search it above, or open <span className="mono">/nft/&lt;id&gt;</span> directly.
+        Have an NFT id or a launcher id? Search it above, or open{" "}
+        <span className="mono">/nft/&lt;id&gt;</span> directly.
       </p>
     </div>
   );

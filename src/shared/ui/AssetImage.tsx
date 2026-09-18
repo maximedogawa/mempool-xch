@@ -12,21 +12,44 @@ import { isTrustedImageUrl } from "@/shared/lib/trustedImage";
  *: these URLs come from Dexie/MintGarden data, including NFT metadata an NFT's
  * creator fully controls.
  */
-export function AssetImage({ urls, alt, className, rounded = "rounded-card", style }: { urls: string[]; alt: string; className?: string; rounded?: string; style?: CSSProperties }) {
+export function AssetImage({
+  urls,
+  alt,
+  className,
+  rounded = "rounded-card",
+  style,
+}: {
+  urls: string[];
+  alt: string;
+  className?: string;
+  rounded?: string;
+  style?: CSSProperties;
+}) {
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const trusted = urls.filter(isTrustedImageUrl);
   const src = trusted[index];
   if (!src) {
     return (
-      <div role="img" aria-label={`${alt} (no image)`} style={style} className={cn("flex items-center justify-center bg-surface-2 text-fg-faint", rounded, className)}>
+      <div
+        role="img"
+        aria-label={`${alt} (no image)`}
+        style={style}
+        className={cn(
+          "flex items-center justify-center bg-surface-2 text-fg-faint",
+          rounded,
+          className
+        )}
+      >
         <ImageOff size={28} aria-hidden="true" />
       </div>
     );
   }
   return (
     <div style={style} className={cn("relative overflow-hidden bg-surface-2", rounded, className)}>
-      {!loaded ? <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-surface-2" /> : null}
+      {!loaded ? (
+        <div aria-hidden="true" className="absolute inset-0 animate-pulse bg-surface-2" />
+      ) : null}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -38,7 +61,10 @@ export function AssetImage({ urls, alt, className, rounded = "rounded-card", sty
           setLoaded(false);
           setIndex((i) => i + 1);
         }}
-        className={cn("h-full w-full object-cover transition-opacity", loaded ? "opacity-100" : "opacity-0")}
+        className={cn(
+          "h-full w-full object-cover transition-opacity",
+          loaded ? "opacity-100" : "opacity-0"
+        )}
       />
     </div>
   );

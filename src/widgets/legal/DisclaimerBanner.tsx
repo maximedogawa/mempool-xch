@@ -15,7 +15,11 @@ export function DisclaimerBanner() {
   const { dismissed } = useSyncExternalStore(store.subscribe, store.get, serverSnapshot);
   if (dismissed) return null;
   return (
-    <div role="note" aria-label="Disclaimer" className="border-b border-border-strong bg-bg-elevated">
+    <div
+      role="note"
+      aria-label="Disclaimer"
+      className="border-b border-border-strong bg-bg-elevated"
+    >
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-xs text-fg-muted">
         <p className="min-w-[240px] flex-1">
           Alpha software, still changing a lot. Not financial advice — verify in your own wallet.{" "}

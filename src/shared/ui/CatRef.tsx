@@ -35,13 +35,22 @@ export function CatRef({
   const label = token?.symbol ?? `CAT ${shortId(id, 4, 4)}`;
   const title = token ? `${token.name} (${token.symbol}) · 0x${id}` : `Unknown CAT · 0x${id}`;
   return (
-    <Link href={routes.cat(id)} title={title} className={cn("inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap hover:underline", className)}>
+    <Link
+      href={routes.cat(id)}
+      title={title}
+      className={cn(
+        "inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap hover:underline",
+        className
+      )}
+    >
       <AssetIcon kind="cat" assetId={id} iconUrl={iconUrl} size={size} />
       <span className="tabular">
         {amountText ? `${amountText} ` : ""}
         <span className="font-medium">{label}</span>
       </span>
-      {showId && token ? <span className="mono text-xs text-fg-faint">{shortId(id, 6, 4)}</span> : null}
+      {showId && token ? (
+        <span className="mono text-xs text-fg-faint">{shortId(id, 6, 4)}</span>
+      ) : null}
     </Link>
   );
 }

@@ -5,7 +5,9 @@ import { receivesForP2 } from "./activity";
 const P2_A = "a".repeat(64);
 const P2_B = "b".repeat(64);
 
-function tx(participants: { p2: string; receivedXch?: bigint; receivedCat?: bigint; receivedNft?: string[] }[]): TxSummary {
+function tx(
+  participants: { p2: string; receivedXch?: bigint; receivedCat?: bigint; receivedNft?: string[] }[]
+): TxSummary {
   return {
     id: "id",
     source: "inferred",
@@ -30,7 +32,11 @@ function tx(participants: { p2: string; receivedXch?: bigint; receivedCat?: bigi
         participants: participants.map((p) => ({
           p2: p.p2,
           sent: { xch: 0n, cats: [], nfts: [] },
-          received: { xch: p.receivedXch ?? 0n, cats: p.receivedCat ? [{ assetId: "x", amount: p.receivedCat }] : [], nfts: p.receivedNft ?? [] },
+          received: {
+            xch: p.receivedXch ?? 0n,
+            cats: p.receivedCat ? [{ assetId: "x", amount: p.receivedCat }] : [],
+            nfts: p.receivedNft ?? [],
+          },
         })),
       },
     ],
@@ -53,6 +59,8 @@ describe("receivesForP2", () => {
   });
 
   test("matches case-insensitively and with a 0x prefix", () => {
-    expect(receivesForP2(tx([{ p2: P2_A, receivedXch: 1n }]), `0x${P2_A.toUpperCase()}`)).toBe(true);
+    expect(receivesForP2(tx([{ p2: P2_A, receivedXch: 1n }]), `0x${P2_A.toUpperCase()}`)).toBe(
+      true
+    );
   });
 });

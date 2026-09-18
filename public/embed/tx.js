@@ -27,9 +27,22 @@
     ]).then(function (res) {
       var item = res[0] && res[0].mempool_item;
       var tx = res[1] && res[1].transaction;
-      if (tx && tx.status === "confirmed") return set("confirmed", "Confirmed", "in block #" + Number(tx.confirmed_height).toLocaleString("en-US") + (tx.confirmed_at_ms ? " · " + E.age(tx.confirmed_at_ms) : ""));
-      if (item) return set("pending", "Pending", "in the mempool · " + E.cost(item.cost) + " cost · fee " + E.xch(item.fee));
-      if (tx && tx.status === "removed") return set("removed", "Removed", "left the mempool without confirming");
+      if (tx && tx.status === "confirmed")
+        return set(
+          "confirmed",
+          "Confirmed",
+          "in block #" +
+            Number(tx.confirmed_height).toLocaleString("en-US") +
+            (tx.confirmed_at_ms ? " · " + E.age(tx.confirmed_at_ms) : "")
+        );
+      if (item)
+        return set(
+          "pending",
+          "Pending",
+          "in the mempool · " + E.cost(item.cost) + " cost · fee " + E.xch(item.fee)
+        );
+      if (tx && tx.status === "removed")
+        return set("removed", "Removed", "left the mempool without confirming");
       if (tx) return set("pending", "Pending", "seen by Coinset");
       set("unknown", "Not found", "no pending or confirmed transaction with this id");
     });

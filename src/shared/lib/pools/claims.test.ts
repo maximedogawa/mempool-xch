@@ -24,7 +24,10 @@ describe("claimsFromTransaction", () => {
   });
 
   test("a self-pooling PlotNFT's claim is flagged as such", () => {
-    expect(claimsFromTransaction(selfClaimTx).get(SELF_PAYOUT)).toEqual({ target: SELF_TARGET, selfPooled: true });
+    expect(claimsFromTransaction(selfClaimTx).get(SELF_PAYOUT)).toEqual({
+      target: SELF_TARGET,
+      selfPooled: true,
+    });
   });
 
   test("an ambiguous destination is not a claim", () => {
@@ -32,7 +35,9 @@ describe("claimsFromTransaction", () => {
     const reward = event.outputs.find((o) => o.puzzleHash === SPACEFARMERS_TARGET)!;
     const tx: TxSummary = {
       ...poolClaimTx,
-      events: [{ ...event, outputs: [...event.outputs, { ...reward, puzzleHash: "f".repeat(64) }] }],
+      events: [
+        { ...event, outputs: [...event.outputs, { ...reward, puzzleHash: "f".repeat(64) }] },
+      ],
     };
     expect(claimsFromTransaction(tx).size).toBe(0);
   });
@@ -44,7 +49,10 @@ describe("claimsFromTransaction", () => {
 });
 
 describe("resolveClaims", () => {
-  const run = async (payouts: string[], fetchLatestTransaction: (payout: string) => Promise<TxSummary | null>) => {
+  const run = async (
+    payouts: string[],
+    fetchLatestTransaction: (payout: string) => Promise<TxSummary | null>
+  ) => {
     const resolved = new Map<string, PoolClaim>();
     const failed: string[] = [];
     await resolveClaims({
@@ -66,7 +74,12 @@ describe("resolveClaims", () => {
       ...poolClaimTx,
       events: [
         poolClaimTx.events[0]!,
-        { ...poolClaimTx.events[0]!, inputs: poolClaimTx.events[0]!.inputs.map((i) => (i.puzzleHash === FARMER_PAYOUT ? { ...i, puzzleHash: bystander } : i)) },
+        {
+          ...poolClaimTx.events[0]!,
+          inputs: poolClaimTx.events[0]!.inputs.map((i) =>
+            i.puzzleHash === FARMER_PAYOUT ? { ...i, puzzleHash: bystander } : i
+          ),
+        },
       ],
     };
     const { resolved } = await run([FARMER_PAYOUT, bystander], async (payout) => {
@@ -79,7 +92,9 @@ describe("resolveClaims", () => {
 
   test("no transaction, or one that is not a claim, settles the address as unclaimed", async () => {
     const wallet = "c".repeat(64);
-    const { resolved } = await run([SELF_PAYOUT, wallet], async (payout) => (payout === wallet ? poolClaimTx : null));
+    const { resolved } = await run([SELF_PAYOUT, wallet], async (payout) =>
+      payout === wallet ? poolClaimTx : null
+    );
     expect(resolved.get(SELF_PAYOUT)).toEqual({ target: null, selfPooled: false });
     expect(resolved.get(wallet)).toEqual({ target: null, selfPooled: false });
   });

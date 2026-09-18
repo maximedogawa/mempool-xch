@@ -26,7 +26,11 @@ describe("settings store", () => {
     expect(JSON.parse(storage.data.get(STORAGE_KEY)!).theme).toBe("light");
     const reloaded = createSettingsStore(storage);
     expect(reloaded.get().network).toBe("testnet11");
-    reloaded.set({ network: "bogus" as never, recentBlocks: 999, endpoints: { mainnet: { rpcUrl: " " } } as never });
+    reloaded.set({
+      network: "bogus" as never,
+      recentBlocks: 999,
+      endpoints: { mainnet: { rpcUrl: " " } } as never,
+    });
     expect(reloaded.get().network).toBe("mainnet");
     expect(reloaded.get().recentBlocks).toBe(8);
     expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.coinset.org");
@@ -58,6 +62,8 @@ describe("resolveEndpoints", () => {
     expect(r.rpcUrl).toBe("http://localhost:8555");
     expect(r.indexedUrl).toBeNull();
     expect(r.wsUrl).toBeNull();
-    expect(resolveEndpoints(DEFAULT_SETTINGS, "testnet11").wsUrl).toBe("wss://testnet11.api.coinset.org/ws");
+    expect(resolveEndpoints(DEFAULT_SETTINGS, "testnet11").wsUrl).toBe(
+      "wss://testnet11.api.coinset.org/ws"
+    );
   });
 });

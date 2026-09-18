@@ -30,7 +30,11 @@ export function useAsset(assetId: string | null | undefined): TokenInfo | undefi
 export function AssetRegistryLoader() {
   const queryClient = useQueryClient();
   useEffect(() => {
-    void queryClient.prefetchQuery({ queryKey: TOKEN_QUERY_KEY, queryFn: () => fetchTokenMap(), staleTime: Infinity });
+    void queryClient.prefetchQuery({
+      queryKey: TOKEN_QUERY_KEY,
+      queryFn: () => fetchTokenMap(),
+      staleTime: Infinity,
+    });
   }, [queryClient]);
   return null;
 }

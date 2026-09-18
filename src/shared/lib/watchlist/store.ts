@@ -30,12 +30,22 @@ function sanitise(raw: unknown): WatchItem[] {
   for (const entry of raw) {
     if (!entry || typeof entry !== "object") continue;
     const e = entry as Partial<WatchItem>;
-    if ((e.kind !== "address" && e.kind !== "tx") || typeof e.id !== "string" || typeof e.label !== "string") continue;
+    if (
+      (e.kind !== "address" && e.kind !== "tx") ||
+      typeof e.id !== "string" ||
+      typeof e.label !== "string"
+    )
+      continue;
     const id = normaliseId(e.id);
     const key = `${e.kind}:${id}`;
     if (!id || seen.has(key)) continue;
     seen.add(key);
-    items.push({ kind: e.kind, id, label: e.label, addedAt: typeof e.addedAt === "number" ? e.addedAt : Date.now() });
+    items.push({
+      kind: e.kind,
+      id,
+      label: e.label,
+      addedAt: typeof e.addedAt === "number" ? e.addedAt : Date.now(),
+    });
     if (items.length >= MAX_ITEMS) break;
   }
   return items;
@@ -51,7 +61,9 @@ export interface WatchlistStore {
   subscribe: (listener: Listener) => () => void;
 }
 
-export function createWatchlistStore(storage: Pick<Storage, "getItem" | "setItem"> | null): WatchlistStore {
+export function createWatchlistStore(
+  storage: Pick<Storage, "getItem" | "setItem"> | null
+): WatchlistStore {
   let current: WatchItem[] = [];
   const listeners = new Set<Listener>();
   try {
@@ -73,7 +85,9 @@ export function createWatchlistStore(storage: Pick<Storage, "getItem" | "setItem
     add: (item) => {
       const id = normaliseId(item.id);
       if (!id || current.some((i) => i.kind === item.kind && i.id === id)) return;
-      current = [...current, { kind: item.kind, id, label: item.label, addedAt: Date.now() }].slice(-MAX_ITEMS);
+      current = [...current, { kind: item.kind, id, label: item.label, addedAt: Date.now() }].slice(
+        -MAX_ITEMS
+      );
       persist();
       emit();
     },

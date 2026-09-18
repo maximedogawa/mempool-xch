@@ -35,7 +35,10 @@ const mempoolSyncs = new Map<NetworkId, MempoolItemSync>();
 function getMempoolSync(network: NetworkId, client: RpcClient): MempoolItemSync {
   let sync = mempoolSyncs.get(network);
   if (!sync) {
-    sync = createMempoolItemSync({ getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s), getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s) });
+    sync = createMempoolItemSync({
+      getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s),
+      getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s),
+    });
     mempoolSyncs.set(network, sync);
   }
   return sync;
@@ -48,7 +51,10 @@ export function useMempoolSummary() {
     queryKey: queryKeys.mempoolSummary(endpoints.network, "browser"),
     enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
-      const [state, entries] = await Promise.all([client.getBlockchainState(signal), getMempoolSync(endpoints.network, client).sync(signal)]);
+      const [state, entries] = await Promise.all([
+        client.getBlockchainState(signal),
+        getMempoolSync(endpoints.network, client).sync(signal),
+      ]);
       const now = Date.now();
       const compact = entries.map(({ item, firstSeen }) => compactMempoolItem(item, firstSeen));
       // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost).
@@ -60,7 +66,9 @@ export function useMempoolSummary() {
         state: {
           peakHeight: state.peak.height,
           peakHash: state.peak.headerHash,
-          lastTxBlockHeight: state.peak.isTransactionBlock ? state.peak.height : state.peak.prevTransactionBlockHeight,
+          lastTxBlockHeight: state.peak.isTransactionBlock
+            ? state.peak.height
+            : state.peak.prevTransactionBlockHeight,
           mempoolSize: state.mempoolSize,
           mempoolCost: state.mempoolCost,
           mempoolMaxTotalCost: state.mempoolMaxTotalCost,
@@ -80,7 +88,12 @@ export function useMempoolSummary() {
   });
 }
 
-export function useProjectedBlocks(maxBlocks = 8): { blocks: ProjectedBlock[]; summary: MempoolSummary | undefined; isLoading: boolean; error: unknown } {
+export function useProjectedBlocks(maxBlocks = 8): {
+  blocks: ProjectedBlock[];
+  summary: MempoolSummary | undefined;
+  isLoading: boolean;
+  error: unknown;
+} {
   const query = useMempoolSummary();
   const blocks = useMemo(() => {
     if (!query.data) return [];

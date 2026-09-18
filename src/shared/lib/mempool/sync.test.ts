@@ -3,7 +3,14 @@ import { createMempoolItemSync } from "./sync";
 import type { MempoolItem } from "@/shared/lib/rpc/types";
 
 function fakeItem(name: string): MempoolItem {
-  return { name, fee: 0n, cost: 1, additions: [], removals: [], spendBundle: { coinSpends: [], aggregatedSignature: "" } };
+  return {
+    name,
+    fee: 0n,
+    cost: 1,
+    additions: [],
+    removals: [],
+    spendBundle: { coinSpends: [], aggregatedSignature: "" },
+  };
 }
 
 describe("createMempoolItemSync", () => {

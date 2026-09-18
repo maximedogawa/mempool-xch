@@ -19,13 +19,20 @@ export function safeAssets(assets: CompactAssets | undefined | null): CompactAss
   return assets && Array.isArray(assets.cats) ? assets : EMPTY;
 }
 
-export function primaryAsset(input: CompactAssets | undefined | null, fallbackKind: TxKindHint = "xch"): PrimaryAsset {
+export function primaryAsset(
+  input: CompactAssets | undefined | null,
+  fallbackKind: TxKindHint = "xch"
+): PrimaryAsset {
   const assets = safeAssets(input);
   const cats = [...assets.cats].sort((a, b) => (BigInt(b.amount) > BigInt(a.amount) ? 1 : -1));
   if (cats[0]) return { kind: "cat", assetId: cats[0].assetId, amount: BigInt(cats[0].amount) };
   if (assets.nfts > 0) return { kind: "nft", amount: BigInt(assets.nfts) };
   if (assets.dids > 0) return { kind: "did", amount: BigInt(assets.dids) };
-  if (assets.singletons > 0) return { kind: fallbackKind === "pool" ? "pool" : "singleton", amount: BigInt(assets.singletons) };
+  if (assets.singletons > 0)
+    return {
+      kind: fallbackKind === "pool" ? "pool" : "singleton",
+      amount: BigInt(assets.singletons),
+    };
   return { kind: fallbackKind === "offer" ? "offer" : "xch", amount: BigInt(assets.xch) };
 }
 
@@ -48,13 +55,19 @@ export function formatPrimaryAsset(asset: PrimaryAsset, ticker?: string | null):
 }
 
 /** Short multi-asset summary, e.g. "1.234 SBX + 0.0104 XCH" or "1 NFT + 0.00001 XCH". */
-export function formatAssets(input: CompactAssets | undefined | null, tickers: Record<string, string | undefined> = {}): string {
+export function formatAssets(
+  input: CompactAssets | undefined | null,
+  tickers: Record<string, string | undefined> = {}
+): string {
   const assets = safeAssets(input);
   const parts: string[] = [];
-  assets.cats.forEach((c) => parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`));
+  assets.cats.forEach((c) =>
+    parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`)
+  );
   if (assets.nfts) parts.push(`${assets.nfts} NFT${assets.nfts === 1 ? "" : "s"}`);
   if (assets.dids) parts.push(`${assets.dids} DID${assets.dids === 1 ? "" : "s"}`);
-  if (assets.singletons) parts.push(`${assets.singletons} singleton${assets.singletons === 1 ? "" : "s"}`);
+  if (assets.singletons)
+    parts.push(`${assets.singletons} singleton${assets.singletons === 1 ? "" : "s"}`);
   if (BigInt(assets.xch) > 0n || parts.length === 0) parts.push(formatAmount(BigInt(assets.xch)));
   return parts.join(" + ");
 }

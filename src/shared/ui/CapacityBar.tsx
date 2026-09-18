@@ -39,7 +39,10 @@ export function CapacityBar({
       {!compact ? (
         <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           <span>{label}</span>
-          <span className={cn("tabular text-xs normal-case tracking-normal", text)} title={`${formatCost(used)} of ${formatCost(max)} cost`}>
+          <span
+            className={cn("tabular text-xs normal-case tracking-normal", text)}
+            title={`${formatCost(used)} of ${formatCost(max)} cost`}
+          >
             {formatPercent(ratio)} · {(ratio * segments).toFixed(1)}/{segments} blocks
           </span>
         </div>
@@ -51,7 +54,10 @@ export function CapacityBar({
         aria-valuemax={max}
         aria-valuenow={Math.round(used)}
         aria-valuetext={`${formatCost(used)} of ${formatCost(max)} cost, ${formatPercent(ratio)}`}
-        className={cn("relative w-full overflow-hidden rounded-full border border-border bg-bg", compact ? "h-2.5" : "h-3.5")}
+        className={cn(
+          "relative w-full overflow-hidden rounded-full border border-border bg-bg",
+          compact ? "h-2.5" : "h-3.5"
+        )}
       >
         <div
           className="capacity-fill absolute inset-y-0 left-0 rounded-full"

@@ -51,7 +51,9 @@ export async function fetchSageTheme(): Promise<"light" | "dark" | null> {
   }
 }
 
-export async function listenSageTheme(handler: (theme: "light" | "dark") => void): Promise<() => void> {
+export async function listenSageTheme(
+  handler: (theme: "light" | "dark") => void
+): Promise<() => void> {
   const client = await getSage();
   if (!client) return () => {};
   try {
@@ -90,7 +92,8 @@ export async function openExternalUrl(url: string): Promise<boolean> {
     return true;
   }
   const client = await getSage();
-  const environment = client?.environment as unknown as { openExternalUrl?: (input: { url: string }) => Promise<unknown> } | undefined;
+  const environment = client?.environment as unknown as
+    { openExternalUrl?: (input: { url: string }) => Promise<unknown> } | undefined;
   if (!environment?.openExternalUrl) return false;
   try {
     await environment.openExternalUrl({ url });

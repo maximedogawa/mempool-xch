@@ -25,11 +25,33 @@ export function mockSummary() {
     cost: item.cost,
     feeRate: (item.fee + i * 1_000_000) / item.cost,
     spends: item.spend_bundle.coin_spends.length,
-    additions: item.additions.slice(0, 4).map((c) => ({ ph: c.puzzle_hash.slice(2), amount: String(c.amount), parent: c.parent_coin_info.slice(2) })),
-    removals: item.removals.map((c) => ({ ph: c.puzzle_hash.slice(2), amount: String(c.amount), parent: c.parent_coin_info.slice(2) })),
+    additions: item.additions.slice(0, 4).map((c) => ({
+      ph: c.puzzle_hash.slice(2),
+      amount: String(c.amount),
+      parent: c.parent_coin_info.slice(2),
+    })),
+    removals: item.removals.map((c) => ({
+      ph: c.puzzle_hash.slice(2),
+      amount: String(c.amount),
+      parent: c.parent_coin_info.slice(2),
+    })),
     additionCount: item.additions.length,
     removalCount: item.removals.length,
-    assets: { xch: String(item.removals.reduce((s, c) => s + c.amount, 0)), cats: i === 1 ? [{ assetId: "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5", amount: "1234" }] : [], nfts: 0, dids: 0, singletons: 0 },
+    assets: {
+      xch: String(item.removals.reduce((s, c) => s + c.amount, 0)),
+      cats:
+        i === 1
+          ? [
+              {
+                assetId: "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5",
+                amount: "1234",
+              },
+            ]
+          : [],
+      nfts: 0,
+      dids: 0,
+      singletons: 0,
+    },
     firstSeen: NOW - (i + 1) * 30_000,
     kind: i === 1 ? "cat" : "xch",
     assetIds: [],
@@ -57,7 +79,12 @@ export function mockSummary() {
 }
 
 const json = (route: Route, body: unknown, status = 200) =>
-  route.fulfill({ status, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
+  route.fulfill({
+    status,
+    contentType: "application/json",
+    headers: { "access-control-allow-origin": "*" },
+    body: JSON.stringify(body),
+  });
 
 export const TX_ID = blockTransactions.transactions[0]!.id;
 /** The recorded confirmed DBX-for-XCH offer (offer_state.json). */
@@ -69,7 +96,8 @@ export const TX_BLOCK_HASH = "7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694
 const hash = (n: number) => n.toString(16).padStart(64, "0");
 
 /** Registry-known fixed payout hash (H9.com): named without any claim lookup. */
-export const NAMED_POOL_PUZZLE_HASH = "4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba";
+export const NAMED_POOL_PUZZLE_HASH =
+  "4bc6435b409bcbabe53870dae0f03755f6aabb4594c5915ec983acf12a5d1fba";
 /** Two PlotNFT farmers (farmer reward elsewhere) whose mocked claims both go to Spacefarmers.io's target. */
 export const PLOT_NFT_PUZZLE_HASHES = [hash(0xa001), hash(0xa002)];
 /** A solo farmer paying both shares to one address: never looked up, stays "Unknown". */
@@ -84,7 +112,9 @@ const SELF_POOLED_PAYOUT = "ab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee168
 function poolClaimFor(p2: string) {
   if (p2 === SELF_POOLED_PAYOUT) return poolClaimSelfTx.transaction;
   if (!PLOT_NFT_PUZZLE_HASHES.includes(p2)) return null;
-  return JSON.parse(JSON.stringify(poolClaimTx.transaction).replaceAll(CLAIM_FIXTURE_PAYOUT, p2)) as unknown;
+  return JSON.parse(
+    JSON.stringify(poolClaimTx.transaction).replaceAll(CLAIM_FIXTURE_PAYOUT, p2)
+  ) as unknown;
 }
 
 /** A block record shaped like Coinset's raw response, farmed by `poolPuzzleHash` at `height`. */
@@ -157,7 +187,17 @@ function syntheticCatTx(index: number, confirmedAtMs: number, assetId: string, a
       {
         type: "Transfer",
         fee_mojos: "0",
-        participants: [{ p2: `0x${hash(1)}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "0", cats: [{ asset_id: `0x${assetId}`, amount: String(amount) }], nfts: [] } }],
+        participants: [
+          {
+            p2: `0x${hash(1)}`,
+            sent: { xch: "0", cats: [], nfts: [] },
+            received: {
+              xch: "0",
+              cats: [{ asset_id: `0x${assetId}`, amount: String(amount) }],
+              nfts: [],
+            },
+          },
+        ],
         inputs: [],
         outputs: [],
         memos: [],
@@ -170,13 +210,31 @@ function syntheticCatTx(index: number, confirmedAtMs: number, assetId: string, a
 function syntheticCatActivity(assetId: string) {
   const seed = TOKEN_ACTIVITY_SEED[assetId];
   if (!seed) return [];
-  return Array.from({ length: seed.count }, (_, i) => syntheticCatTx(i, NOW - i * 3_600_000, assetId, seed.amountEach));
+  return Array.from({ length: seed.count }, (_, i) =>
+    syntheticCatTx(i, NOW - i * 3_600_000, assetId, seed.amountEach)
+  );
 }
 
-function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { coinbase?: boolean; spent?: boolean } = {}) {
-  const coin = { parent_coin_info: `0x${parent}`, puzzle_hash: `0x${puzzleHash}`, amount: Number(amount) };
+function coinRecord(
+  parent: string,
+  puzzleHash: string,
+  amount: bigint,
+  opts: { coinbase?: boolean; spent?: boolean } = {}
+) {
+  const coin = {
+    parent_coin_info: `0x${parent}`,
+    puzzle_hash: `0x${puzzleHash}`,
+    amount: Number(amount),
+  };
   const name = coinName({ parentCoinInfo: parent, puzzleHash, amount });
-  const record = { coin, coinbase: opts.coinbase ?? false, confirmed_block_index: TX_BLOCK_HEIGHT, spent: opts.spent ?? false, spent_block_index: opts.spent ? TX_BLOCK_HEIGHT : 0, timestamp: 1_789_000_000 };
+  const record = {
+    coin,
+    coinbase: opts.coinbase ?? false,
+    confirmed_block_index: TX_BLOCK_HEIGHT,
+    spent: opts.spent ?? false,
+    spent_block_index: opts.spent ? TX_BLOCK_HEIGHT : 0,
+    timestamp: 1_789_000_000,
+  };
   return { name, record };
 }
 
@@ -188,7 +246,9 @@ function coinRecord(parent: string, puzzleHash: string, amount: bigint, opts: { 
 export function blockCoinFlow() {
   const big = coinRecord(hash(0xa1), hash(0xb1), 5_000_000_000_000n, { spent: true });
   const small = coinRecord(hash(0xa2), hash(0xb2), 300_000_000n, { spent: true });
-  const children = Array.from({ length: 12 }, (_, i) => coinRecord(big.name, hash(0xc0 + i), BigInt(400_000_000_000 - i)));
+  const children = Array.from({ length: 12 }, (_, i) =>
+    coinRecord(big.name, hash(0xc0 + i), BigInt(400_000_000_000 - i))
+  );
   const ephemeral = coinRecord(small.name, hash(0xd1), 299_000_000n, { spent: true });
   const grandchild = coinRecord(ephemeral.name, hash(0xd2), 299_000_000n);
   const reward = coinRecord(hash(0xe1), P2, 875_000_000_000n, { coinbase: true });
@@ -202,15 +262,30 @@ export const P2 = "9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907
 
 /** Mocked prefarm custody vaults (src/shared/lib/prefarm/vaults.ts): the singleton coin sits at the first address of each. */
 const PREFARM_SINGLETONS: Record<string, { puzzleHash: string; amount: bigint }> = {
-  "6c77dce3c3bab525dab7883e8ad513a8f3ff127e872009b12836cbb1c8f26647": { puzzleHash: "21810d9384937e833ab004915603e0653705005933df43ea7cd56320677be8dd", amount: 2_437_500_000_000_000_000n },
-  "355042db2e191d9176c25d3e059524265653549cee0fc65c4ed235d58bf8e659": { puzzleHash: "94dfb96a8c234e3ed624f4fa1686af5e5de65a90aa6cc8513402ebb848508278", amount: 8_375_000_000_000_000_000n },
-  d76ef7df8cfab2d8514f58e72fd12f2e7f5ada69db6eb5be90f084cfa37a29a2: { puzzleHash: "5071e05aba59fb65b60df4205d070b685ea8ea19376c9835900653c0109ffc6e", amount: 650_000_000_000_000_000n },
-  a26cb54f7b9e8f38e2ee903880468ba262f5a1b39fe123c88053b14fac66ad10: { puzzleHash: "3dc2fea720de193d7a8d006664dede4210ec065debefcc5697e73c55dbbd51db", amount: 42_500_000_000_000_000n },
+  "6c77dce3c3bab525dab7883e8ad513a8f3ff127e872009b12836cbb1c8f26647": {
+    puzzleHash: "21810d9384937e833ab004915603e0653705005933df43ea7cd56320677be8dd",
+    amount: 2_437_500_000_000_000_000n,
+  },
+  "355042db2e191d9176c25d3e059524265653549cee0fc65c4ed235d58bf8e659": {
+    puzzleHash: "94dfb96a8c234e3ed624f4fa1686af5e5de65a90aa6cc8513402ebb848508278",
+    amount: 8_375_000_000_000_000_000n,
+  },
+  d76ef7df8cfab2d8514f58e72fd12f2e7f5ada69db6eb5be90f084cfa37a29a2: {
+    puzzleHash: "5071e05aba59fb65b60df4205d070b685ea8ea19376c9835900653c0109ffc6e",
+    amount: 650_000_000_000_000_000n,
+  },
+  a26cb54f7b9e8f38e2ee903880468ba262f5a1b39fe123c88053b14fac66ad10: {
+    puzzleHash: "3dc2fea720de193d7a8d006664dede4210ec065debefcc5697e73c55dbbd51db",
+    amount: 42_500_000_000_000_000n,
+  },
 };
-const PREFARM_COINS: Record<string, bigint> = Object.fromEntries(Object.values(PREFARM_SINGLETONS).map((v) => [v.puzzleHash, v.amount]));
+const PREFARM_COINS: Record<string, bigint> = Object.fromEntries(
+  Object.values(PREFARM_SINGLETONS).map((v) => [v.puzzleHash, v.amount])
+);
 
 /** A real pending mempool item's id (mempool_items.json's first entry), reused for the watchlist. */
-export const WATCHED_PENDING_TX_ID = "124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd";
+export const WATCHED_PENDING_TX_ID =
+  "124ef3da229ff0ea200bbaed36fd8d31b00db2378f3226977cb2cc93c1c450dd";
 
 function watchedPendingTx() {
   return {
@@ -229,7 +304,13 @@ function watchedPendingTx() {
       {
         type: "Transfer",
         fee_mojos: "0",
-        participants: [{ p2: `0x${P2}`, sent: { xch: "0", cats: [], nfts: [] }, received: { xch: "500000000", cats: [], nfts: [] } }],
+        participants: [
+          {
+            p2: `0x${P2}`,
+            sent: { xch: "0", cats: [], nfts: [] },
+            received: { xch: "500000000", cats: [], nfts: [] },
+          },
+        ],
         inputs: [],
         outputs: [],
         memos: [],
@@ -240,174 +321,295 @@ function watchedPendingTx() {
 
 /** Route handler answering full-node RPC (and Coinset indexed) methods from the fixtures. */
 export async function answerNodeMethod(route: Route) {
-    const url = new URL(route.request().url());
-    const method = url.pathname.slice(1);
-    let body: Record<string, unknown> = {};
-    try {
-      body = JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>;
-    } catch {
-      body = {};
+  const url = new URL(route.request().url());
+  const method = url.pathname.slice(1);
+  let body: Record<string, unknown> = {};
+  try {
+    body = JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>;
+  } catch {
+    body = {};
+  }
+  const records = blockRecords.block_records;
+  switch (method) {
+    case "get_blockchain_state":
+      return json(route, blockchainState);
+    case "get_all_mempool_tx_ids":
+      return json(route, { tx_ids: Object.keys(mempoolItems.mempool_items), success: true });
+    case "get_all_mempool_items":
+      return json(route, mempoolItems);
+    case "get_mempool_item_by_tx_id": {
+      const id = String(body.tx_id ?? "").replace(/^0x/, "");
+      const item = Object.values(mempoolItems.mempool_items).find(
+        (i) => i.spend_bundle_name.slice(2) === id
+      );
+      return json(
+        route,
+        item
+          ? { mempool_item: item, success: true }
+          : { success: false, error: `Tx id ${id} not in mempool` }
+      );
     }
-    const records = blockRecords.block_records;
-    switch (method) {
-      case "get_blockchain_state":
-        return json(route, blockchainState);
-      case "get_all_mempool_tx_ids":
-        return json(route, { tx_ids: Object.keys(mempoolItems.mempool_items), success: true });
-      case "get_all_mempool_items":
-        return json(route, mempoolItems);
-      case "get_mempool_item_by_tx_id": {
-        const id = String(body.tx_id ?? "").replace(/^0x/, "");
-        const item = Object.values(mempoolItems.mempool_items).find((i) => i.spend_bundle_name.slice(2) === id);
-        return json(route, item ? { mempool_item: item, success: true } : { success: false, error: `Tx id ${id} not in mempool` });
-      }
-      case "get_mempool_items_by_coin_name":
-        return json(route, { mempool_items: [], success: true });
-      case "get_fee_estimate":
-        return json(route, feeEstimate);
-      case "get_block_records": {
-        const start = Number(body.start ?? 0);
-        const end = Number(body.end ?? 0);
-        const real = records.filter((r) => r.height >= start && r.height < end);
-        if (real.length > 0) return json(route, { block_records: real, success: true });
-        // A wide, fixture-uncovered range is the pools page's chunked scan over its 4,608-block window.
-        if (end - start >= 500) return json(route, { block_records: syntheticPoolWindow(start, end), success: true });
-        return json(route, { block_records: [], success: true });
-      }
-      case "get_network_space":
-        return json(route, { space: 2_500_000_000_000_000_000, success: true });
-      case "get_block_record_by_height": {
-        const rec = records.find((r) => r.height === Number(body.height));
-        return json(route, rec ? { block_record: rec, success: true } : { success: false, error: "Block height not found" });
-      }
-      case "get_block_record": {
-        const rec = records.find((r) => r.header_hash === body.header_hash);
-        return json(route, rec ? { block_record: rec, success: true } : { success: false, error: "Block not found" });
-      }
-      case "get_block": {
-        const rec = records.find((r) => r.header_hash === body.header_hash);
-        if (!rec) return json(route, { success: false, error: "Block not found" });
-        const block = JSON.parse(JSON.stringify(fullBlock.block)) as Record<string, unknown>;
-        (block.reward_chain_block as Record<string, unknown>).height = rec.height;
-        if (rec.timestamp === null) {
-          block.foliage_transaction_block = null;
-          block.transactions_info = null;
-        } else {
-          (block.foliage_transaction_block as Record<string, unknown>).timestamp = rec.timestamp;
-          (block.transactions_info as Record<string, unknown>).fees = rec.fees;
-          (block.transactions_info as Record<string, unknown>).cost = rec.fees ? 80587336 : 0;
-          if (rec.fees) (block.transactions_info as Record<string, unknown>).generator_root = `0x${"74".repeat(32)}`;
-        }
-        return json(route, { block, success: true });
-      }
-      case "get_block_spends":
-        return json(route, { block_spends: [], success: true });
-      case "get_additions_and_removals":
-        return json(route, String(body.header_hash).replace(/^0x/, "") === TX_BLOCK_HASH ? blockCoinFlow() : { additions: [], removals: [], success: true });
-      case "get_block_transactions":
-        return json(route, Number(body.height) === TX_BLOCK_HEIGHT ? blockTransactions : { transactions: [], success: true });
-      case "get_transaction": {
-        const id = String(body.tx_id ?? "").replace(/^0x/, "");
-        return json(route, { transaction: id === TX_ID ? blockTransactions.transactions[0] : null, success: true });
-      }
-      case "get_coin_record_by_name":
-        return json(route, { success: false, error: "Coin record not found" });
-      case "get_coin_records_by_puzzle_hash": {
-        // The prefarm vaults' addresses hold coins; every other puzzle hash is empty.
-        const ph = String(body.puzzle_hash ?? "").replace(/^0x/, "");
-        const held = PREFARM_COINS[ph];
-        return json(route, { coin_records: held ? [coinRecord(hash(0x9f), ph, held).record] : [], success: true });
-      }
-      case "get_coin_records_by_hint":
-      case "get_coin_records_by_parent_ids":
-      case "get_coin_records_by_names":
-        return json(route, { coin_records: [], success: true });
-      case "get_xch_balance_by_p2":
-        return json(route, xchBalance);
-      case "get_cat_balances_by_p2":
-        return json(route, catBalances);
-      case "get_nft_balance_by_p2":
-        return json(route, { p2: `0x${P2}`, confirmed_balance: "2", locked_balance: "0", pending_balance: "0", pending_locked_balance: "0", success: true });
-      case "get_transactions_by_p2": {
-        const claim = poolClaimFor(String(body.p2 ?? "").replace(/^0x/, "").toLowerCase());
-        return json(route, claim ? { transactions: [claim], success: true } : blockTransactions);
-      }
-      case "get_pending_transactions_by_p2": {
-        const p2 = String(body.p2 ?? "").replace(/^0x/, "").toLowerCase();
-        // A real pending mempool item's id, so the watchlist's queue position lines up with the
-        // compact mempool summary (mockSummary) rather than showing "not seen in the mempool yet".
-        if (p2 === P2) return json(route, { transactions: [watchedPendingTx()], success: true });
-        return json(route, { transactions: [], success: true });
-      }
-      case "get_transactions_by_cat_asset_id": {
-        const assetId = String(body.asset_id ?? "").replace(/^0x/, "").toLowerCase();
-        const all = syntheticCatActivity(assetId);
-        const ordered = body.order === "asc" ? [...all].reverse() : all;
-        const limit = Number(body.limit ?? 50);
-        return json(route, { transactions: ordered.slice(0, limit), truncated: ordered.length > limit, next_cursor: ordered.length > limit ? "more" : null, success: true });
-      }
-      case "get_transactions_by_nft_id":
-      case "get_transactions_by_coin_name":
-        return json(route, { transactions: [], success: true });
-      case "get_coin_details":
-        return json(route, { success: false, error: "not found" }, 404);
-      case "get_singleton_info": {
-        const launcher = String(body.launcher_id ?? "").replace(/^0x/, "");
-        const vault = PREFARM_SINGLETONS[launcher];
-        return json(route, {
-          launcher_id: body.launcher_id,
-          singleton_type: vault ? "singleton" : null,
-          coin_record: vault ? { coin: { parent_coin_info: `0x${hash(0x9f)}`, puzzle_hash: `0x${vault.puzzleHash}`, amount: Number(vault.amount) }, confirmed_block_index: 8_969_947, spent: false, spent_block_index: 0, coinbase: false, timestamp: 1_789_000_000 } : null,
-          success: true,
-        });
-      }
-      case "get_latest_nft_coin_by_nft_id":
-        return json(route, { nft_coin_record: null, success: true });
-      case "get_offer": {
-        const id = String(body.offer_id ?? "").replace(/^0x/, "");
-        return id === OFFER_ID ? json(route, offerState) : json(route, { success: false, error: `Key not found: offer_state/${id}` });
-      }
-      case "get_offers_by_p2":
-      case "get_offers_by_cat_asset_id":
-      case "get_offers_by_nft_id": {
-        // The recorded page holds two open DBX offers; every other status answers empty.
-        const offers = body.status === "open" ? offersByCat.offers : [];
-        return json(route, { ...offersByCat, offers, truncated: false, next_cursor: undefined, status: body.status });
-      }
-      case "get_clawback_coins_by_receiver":
-        return json(route, {
-          p2: body.p2,
-          clawbacks: String(body.p2).replace(/^0x/, "") === P2 ? [{ coin_id: `0x${hash(0xc1a)}`, receiver_p2: `0x${P2}`, sender_p2: `0x${hash(0x5e)}`, seconds: 86400, amount: "250000000000", asset_kind: "xch", asset_id: null, revocable: true }] : [],
-          success: true,
-        });
-      case "get_reorgs":
-        return json(route, reorgs);
-      case "get_raw_transaction_by_id": {
-        const id = String(body.tx_id ?? "").replace(/^0x/, "");
-        return id === TX_ID ? json(route, rawTxXch) : json(route, { success: false, error: "Transaction not found" });
-      }
-      case "get_connections":
-        // Coinset's public gateway does not expose this (confirmed live: 404); only the mocked
-        // custom node answers it, matching real behaviour.
-        return url.host === "node.example.test:8556"
-          ? json(route, {
-              connections: [
-                { node_id: `0x${hash(1)}`, peer_host: "203.0.113.10", peer_port: 8444, type: 0, bytes_read: 204800, bytes_written: 51200, peak_height: 9300000, creation_time: 1_757_000_000 },
-                { node_id: `0x${hash(2)}`, peer_host: "203.0.113.20", peer_port: 8444, type: 0, bytes_read: 1024, bytes_written: 2048, peak_height: 9299998, creation_time: 1_757_001_000 },
-                { node_id: `0x${hash(3)}`, peer_host: "198.51.100.5", peer_port: 8447, type: 5, bytes_read: 500, bytes_written: 500, peak_height: null, creation_time: 1_757_002_000 },
-              ],
-              success: true,
-            })
-          : json(route, { success: false, error: "unknown method" }, 404);
-      default:
-        return json(route, { success: false, error: `unmocked method ${method}` }, 404);
+    case "get_mempool_items_by_coin_name":
+      return json(route, { mempool_items: [], success: true });
+    case "get_fee_estimate":
+      return json(route, feeEstimate);
+    case "get_block_records": {
+      const start = Number(body.start ?? 0);
+      const end = Number(body.end ?? 0);
+      const real = records.filter((r) => r.height >= start && r.height < end);
+      if (real.length > 0) return json(route, { block_records: real, success: true });
+      // A wide, fixture-uncovered range is the pools page's chunked scan over its 4,608-block window.
+      if (end - start >= 500)
+        return json(route, { block_records: syntheticPoolWindow(start, end), success: true });
+      return json(route, { block_records: [], success: true });
     }
+    case "get_network_space":
+      return json(route, { space: 2_500_000_000_000_000_000, success: true });
+    case "get_block_record_by_height": {
+      const rec = records.find((r) => r.height === Number(body.height));
+      return json(
+        route,
+        rec
+          ? { block_record: rec, success: true }
+          : { success: false, error: "Block height not found" }
+      );
+    }
+    case "get_block_record": {
+      const rec = records.find((r) => r.header_hash === body.header_hash);
+      return json(
+        route,
+        rec ? { block_record: rec, success: true } : { success: false, error: "Block not found" }
+      );
+    }
+    case "get_block": {
+      const rec = records.find((r) => r.header_hash === body.header_hash);
+      if (!rec) return json(route, { success: false, error: "Block not found" });
+      const block = JSON.parse(JSON.stringify(fullBlock.block)) as Record<string, unknown>;
+      (block.reward_chain_block as Record<string, unknown>).height = rec.height;
+      if (rec.timestamp === null) {
+        block.foliage_transaction_block = null;
+        block.transactions_info = null;
+      } else {
+        (block.foliage_transaction_block as Record<string, unknown>).timestamp = rec.timestamp;
+        (block.transactions_info as Record<string, unknown>).fees = rec.fees;
+        (block.transactions_info as Record<string, unknown>).cost = rec.fees ? 80587336 : 0;
+        if (rec.fees)
+          (block.transactions_info as Record<string, unknown>).generator_root =
+            `0x${"74".repeat(32)}`;
+      }
+      return json(route, { block, success: true });
+    }
+    case "get_block_spends":
+      return json(route, { block_spends: [], success: true });
+    case "get_additions_and_removals":
+      return json(
+        route,
+        String(body.header_hash).replace(/^0x/, "") === TX_BLOCK_HASH
+          ? blockCoinFlow()
+          : { additions: [], removals: [], success: true }
+      );
+    case "get_block_transactions":
+      return json(
+        route,
+        Number(body.height) === TX_BLOCK_HEIGHT
+          ? blockTransactions
+          : { transactions: [], success: true }
+      );
+    case "get_transaction": {
+      const id = String(body.tx_id ?? "").replace(/^0x/, "");
+      return json(route, {
+        transaction: id === TX_ID ? blockTransactions.transactions[0] : null,
+        success: true,
+      });
+    }
+    case "get_coin_record_by_name":
+      return json(route, { success: false, error: "Coin record not found" });
+    case "get_coin_records_by_puzzle_hash": {
+      // The prefarm vaults' addresses hold coins; every other puzzle hash is empty.
+      const ph = String(body.puzzle_hash ?? "").replace(/^0x/, "");
+      const held = PREFARM_COINS[ph];
+      return json(route, {
+        coin_records: held ? [coinRecord(hash(0x9f), ph, held).record] : [],
+        success: true,
+      });
+    }
+    case "get_coin_records_by_hint":
+    case "get_coin_records_by_parent_ids":
+    case "get_coin_records_by_names":
+      return json(route, { coin_records: [], success: true });
+    case "get_xch_balance_by_p2":
+      return json(route, xchBalance);
+    case "get_cat_balances_by_p2":
+      return json(route, catBalances);
+    case "get_nft_balance_by_p2":
+      return json(route, {
+        p2: `0x${P2}`,
+        confirmed_balance: "2",
+        locked_balance: "0",
+        pending_balance: "0",
+        pending_locked_balance: "0",
+        success: true,
+      });
+    case "get_transactions_by_p2": {
+      const claim = poolClaimFor(
+        String(body.p2 ?? "")
+          .replace(/^0x/, "")
+          .toLowerCase()
+      );
+      return json(route, claim ? { transactions: [claim], success: true } : blockTransactions);
+    }
+    case "get_pending_transactions_by_p2": {
+      const p2 = String(body.p2 ?? "")
+        .replace(/^0x/, "")
+        .toLowerCase();
+      // A real pending mempool item's id, so the watchlist's queue position lines up with the
+      // compact mempool summary (mockSummary) rather than showing "not seen in the mempool yet".
+      if (p2 === P2) return json(route, { transactions: [watchedPendingTx()], success: true });
+      return json(route, { transactions: [], success: true });
+    }
+    case "get_transactions_by_cat_asset_id": {
+      const assetId = String(body.asset_id ?? "")
+        .replace(/^0x/, "")
+        .toLowerCase();
+      const all = syntheticCatActivity(assetId);
+      const ordered = body.order === "asc" ? [...all].reverse() : all;
+      const limit = Number(body.limit ?? 50);
+      return json(route, {
+        transactions: ordered.slice(0, limit),
+        truncated: ordered.length > limit,
+        next_cursor: ordered.length > limit ? "more" : null,
+        success: true,
+      });
+    }
+    case "get_transactions_by_nft_id":
+    case "get_transactions_by_coin_name":
+      return json(route, { transactions: [], success: true });
+    case "get_coin_details":
+      return json(route, { success: false, error: "not found" }, 404);
+    case "get_singleton_info": {
+      const launcher = String(body.launcher_id ?? "").replace(/^0x/, "");
+      const vault = PREFARM_SINGLETONS[launcher];
+      return json(route, {
+        launcher_id: body.launcher_id,
+        singleton_type: vault ? "singleton" : null,
+        coin_record: vault
+          ? {
+              coin: {
+                parent_coin_info: `0x${hash(0x9f)}`,
+                puzzle_hash: `0x${vault.puzzleHash}`,
+                amount: Number(vault.amount),
+              },
+              confirmed_block_index: 8_969_947,
+              spent: false,
+              spent_block_index: 0,
+              coinbase: false,
+              timestamp: 1_789_000_000,
+            }
+          : null,
+        success: true,
+      });
+    }
+    case "get_latest_nft_coin_by_nft_id":
+      return json(route, { nft_coin_record: null, success: true });
+    case "get_offer": {
+      const id = String(body.offer_id ?? "").replace(/^0x/, "");
+      return id === OFFER_ID
+        ? json(route, offerState)
+        : json(route, { success: false, error: `Key not found: offer_state/${id}` });
+    }
+    case "get_offers_by_p2":
+    case "get_offers_by_cat_asset_id":
+    case "get_offers_by_nft_id": {
+      // The recorded page holds two open DBX offers; every other status answers empty.
+      const offers = body.status === "open" ? offersByCat.offers : [];
+      return json(route, {
+        ...offersByCat,
+        offers,
+        truncated: false,
+        next_cursor: undefined,
+        status: body.status,
+      });
+    }
+    case "get_clawback_coins_by_receiver":
+      return json(route, {
+        p2: body.p2,
+        clawbacks:
+          String(body.p2).replace(/^0x/, "") === P2
+            ? [
+                {
+                  coin_id: `0x${hash(0xc1a)}`,
+                  receiver_p2: `0x${P2}`,
+                  sender_p2: `0x${hash(0x5e)}`,
+                  seconds: 86400,
+                  amount: "250000000000",
+                  asset_kind: "xch",
+                  asset_id: null,
+                  revocable: true,
+                },
+              ]
+            : [],
+        success: true,
+      });
+    case "get_reorgs":
+      return json(route, reorgs);
+    case "get_raw_transaction_by_id": {
+      const id = String(body.tx_id ?? "").replace(/^0x/, "");
+      return id === TX_ID
+        ? json(route, rawTxXch)
+        : json(route, { success: false, error: "Transaction not found" });
+    }
+    case "get_connections":
+      // Coinset's public gateway does not expose this (confirmed live: 404); only the mocked
+      // custom node answers it, matching real behaviour.
+      return url.host === "node.example.test:8556"
+        ? json(route, {
+            connections: [
+              {
+                node_id: `0x${hash(1)}`,
+                peer_host: "203.0.113.10",
+                peer_port: 8444,
+                type: 0,
+                bytes_read: 204800,
+                bytes_written: 51200,
+                peak_height: 9300000,
+                creation_time: 1_757_000_000,
+              },
+              {
+                node_id: `0x${hash(2)}`,
+                peer_host: "203.0.113.20",
+                peer_port: 8444,
+                type: 0,
+                bytes_read: 1024,
+                bytes_written: 2048,
+                peak_height: 9299998,
+                creation_time: 1_757_001_000,
+              },
+              {
+                node_id: `0x${hash(3)}`,
+                peer_host: "198.51.100.5",
+                peer_port: 8447,
+                type: 5,
+                bytes_read: 500,
+                bytes_written: 500,
+                peak_height: null,
+                creation_time: 1_757_002_000,
+              },
+            ],
+            success: true,
+          })
+        : json(route, { success: false, error: "unknown method" }, 404);
+    default:
+      return json(route, { success: false, error: `unmocked method ${method}` }, 404);
+  }
 }
 
 /** Record a "Reject all" decision so the consent panel does not cover controls under test. */
 export async function seedConsent(page: Page) {
   await page.addInitScript(() => {
-    window.localStorage.setItem("mempool-xch:consent:v1", JSON.stringify({ analytics: false, advertising: false, decidedAt: Date.now() }));
+    window.localStorage.setItem(
+      "mempool-xch:consent:v1",
+      JSON.stringify({ analytics: false, advertising: false, decidedAt: Date.now() })
+    );
   });
 }
 
@@ -421,8 +623,18 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
 
 /** Intercepts the Dexie CAT registry with a small fixed set (the tokens page). */
 export async function mockDexie(page: Page) {
-  await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) => json(route, { success: true, count: DEXIE_ASSETS.length, page: 1, page_size: 100, assets: DEXIE_ASSETS }));
-  await page.route(/https:\/\/icons\.dexie\.space\/.*/, (route) => route.fulfill({ status: 404, body: "" }));
+  await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) =>
+    json(route, {
+      success: true,
+      count: DEXIE_ASSETS.length,
+      page: 1,
+      page_size: 100,
+      assets: DEXIE_ASSETS,
+    })
+  );
+  await page.route(/https:\/\/icons\.dexie\.space\/.*/, (route) =>
+    route.fulfill({ status: 404, body: "" })
+  );
 }
 
 export const CUSTOM_NODE_URL = "https://node.example.test:8556";
@@ -433,10 +645,20 @@ export async function mockCustomNode(page: Page) {
   await page.addInitScript((rpcUrl) => {
     window.localStorage.setItem(
       "mempool-xch:settings:v1",
-      JSON.stringify({ network: "mainnet", endpoints: { mainnet: { rpcUrl }, testnet11: { rpcUrl: "https://testnet11.api.coinset.org" } }, theme: "dark", recentBlocks: 8 })
+      JSON.stringify({
+        network: "mainnet",
+        endpoints: {
+          mainnet: { rpcUrl },
+          testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+        },
+        theme: "dark",
+        recentBlocks: 8,
+      })
     );
   }, CUSTOM_NODE_URL);
   await page.route(/https:\/\/node\.example\.test:8556\/.*/, answerNodeMethod);
   // Anything that still goes to Coinset is a bug: answer 599 so the test can see it.
-  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => route.fulfill({ status: 599, body: "must not be called with a custom node" }));
+  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) =>
+    route.fulfill({ status: 599, body: "must not be called with a custom node" })
+  );
 }

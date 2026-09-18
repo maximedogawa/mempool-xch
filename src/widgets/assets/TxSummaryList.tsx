@@ -7,7 +7,15 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
-import { Button, CatRef, EmptyState, Hash, Skeleton, StatusBadge, SummaryKindBadge } from "@/shared/ui";
+import {
+  Button,
+  CatRef,
+  EmptyState,
+  Hash,
+  Skeleton,
+  StatusBadge,
+  SummaryKindBadge,
+} from "@/shared/ui";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
 import type { TokenMap } from "@/shared/api/tokenList";
 
@@ -25,8 +33,10 @@ export interface TxSummaryListProps {
 }
 
 function Direction({ dir }: { dir: "in" | "out" | "self" | "none" }) {
-  if (dir === "in") return <ArrowDownLeft size={14} className="text-primary" aria-label="incoming" />;
-  if (dir === "out") return <ArrowUpRight size={14} className="text-danger" aria-label="outgoing" />;
+  if (dir === "in")
+    return <ArrowDownLeft size={14} className="text-primary" aria-label="incoming" />;
+  if (dir === "out")
+    return <ArrowUpRight size={14} className="text-danger" aria-label="outgoing" />;
   if (dir === "self") return <Repeat size={14} className="text-fg-faint" aria-label="self" />;
   return null;
 }
@@ -36,7 +46,16 @@ function signed(amount: bigint, format: (v: bigint) => string): string {
   return `${amount > 0n ? "+" : amount < 0n ? "−" : ""}${format(abs)}`;
 }
 
-export function TxSummaryList({ transactions, loading, error, viewedP2, emptyText, hasMore, onLoadMore, loadingMore }: TxSummaryListProps) {
+export function TxSummaryList({
+  transactions,
+  loading,
+  error,
+  viewedP2,
+  emptyText,
+  hasMore,
+  onLoadMore,
+  loadingMore,
+}: TxSummaryListProps) {
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -47,7 +66,13 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, emptyTex
     );
   }
   if (error && transactions.length === 0) {
-    return <EmptyState tone="danger" title="Could not load transactions" description={error instanceof Error ? error.message : String(error)} />;
+    return (
+      <EmptyState
+        tone="danger"
+        title="Could not load transactions"
+        description={error instanceof Error ? error.message : String(error)}
+      />
+    );
   }
   if (transactions.length === 0) return <EmptyState title={emptyText} />;
   return (
@@ -66,22 +91,46 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, emptyTex
                 {flow ? (
                   <>
                     {flow.xch !== 0n ? (
-                      <span className={cn("tabular font-medium", flow.xch > 0n ? "text-primary" : "text-danger")}>{signed(flow.xch, formatAmount)}</span>
+                      <span
+                        className={cn(
+                          "tabular font-medium",
+                          flow.xch > 0n ? "text-primary" : "text-danger"
+                        )}
+                      >
+                        {signed(flow.xch, formatAmount)}
+                      </span>
                     ) : null}
                     {flow.cats.map((c) => (
-                      <CatRef key={c.assetId} assetId={c.assetId} amountText={signed(c.amount, formatCat)} size={14} className={cn("text-xs", c.amount > 0n ? "text-primary" : "text-danger")} />
+                      <CatRef
+                        key={c.assetId}
+                        assetId={c.assetId}
+                        amountText={signed(c.amount, formatCat)}
+                        size={14}
+                        className={cn("text-xs", c.amount > 0n ? "text-primary" : "text-danger")}
+                      />
                     ))}
                     {flow.nftsIn.map((n) => (
-                      <Link key={n} href={routes.nft(n)} className="text-xs text-primary hover:underline">
+                      <Link
+                        key={n}
+                        href={routes.nft(n)}
+                        className="text-xs text-primary hover:underline"
+                      >
                         +1 NFT {n.slice(0, 8)}…
                       </Link>
                     ))}
                     {flow.nftsOut.map((n) => (
-                      <Link key={n} href={routes.nft(n)} className="text-xs text-danger hover:underline">
+                      <Link
+                        key={n}
+                        href={routes.nft(n)}
+                        className="text-xs text-danger hover:underline"
+                      >
                         −1 NFT {n.slice(0, 8)}…
                       </Link>
                     ))}
-                    {flow.xch === 0n && flow.cats.length === 0 && flow.nftsIn.length === 0 && flow.nftsOut.length === 0 ? (
+                    {flow.xch === 0n &&
+                    flow.cats.length === 0 &&
+                    flow.nftsIn.length === 0 &&
+                    flow.nftsOut.length === 0 ? (
                       <span className="text-xs text-fg-faint">no net change</span>
                     ) : null}
                   </>
@@ -104,7 +153,13 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, emptyTex
         })}
       </ul>
       {hasMore && onLoadMore ? (
-        <Button variant="secondary" size="sm" onClick={onLoadMore} disabled={loadingMore} className="self-center">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onLoadMore}
+          disabled={loadingMore}
+          className="self-center"
+        >
           {loadingMore ? "Loading…" : "Load more"}
         </Button>
       ) : null}

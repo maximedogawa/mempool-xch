@@ -11,13 +11,17 @@ test.describe("learn, prefarm, status and changelog", () => {
     await mockNodeScan(page);
   });
 
-  test("learn index lists six articles and each article opens with previous/next links", async ({ page }) => {
+  test("learn index lists six articles and each article opens with previous/next links", async ({
+    page,
+  }) => {
     await page.goto("/learn");
     await expect(page.getByRole("heading", { level: 1, name: "Learn" })).toBeVisible();
     const list = page.getByRole("list").filter({ hasText: "What is Chia?" });
     await expect(list.getByRole("link")).toHaveCount(6);
     await page.getByRole("link", { name: /What is the mempool\?/ }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "What is the mempool?" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "What is the mempool?" })
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: "Offers and trading →" })).toBeVisible();
     await expect(page.getByRole("link", { name: "← Farming and plotting" })).toBeVisible();
     await page.goto("/learn/questions");
@@ -44,7 +48,9 @@ test.describe("learn, prefarm, status and changelog", () => {
     await expect(page.getByTestId("status-chia-dns-introducers")).toHaveText("Operational");
     await expect(page.getByTestId("status-geojs")).toHaveText("Operational");
     // MintGarden's collections endpoint is not mocked here: the check must fail closed, not hang.
-    await expect(page.getByTestId("status-mintgarden")).not.toHaveText("Checking", { timeout: 15_000 });
+    await expect(page.getByTestId("status-mintgarden")).not.toHaveText("Checking", {
+      timeout: 15_000,
+    });
     await expect(page.getByRole("button", { name: "Check again" })).toBeVisible();
   });
 

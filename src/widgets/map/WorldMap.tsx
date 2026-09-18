@@ -56,17 +56,43 @@ export function WorldMap({
     });
     return segments.join("");
   }, []);
-  const positions = useMemo(() => new Map(clusters.map((c) => [c.key, project(c.lon, c.lat)])), [clusters]);
+  const positions = useMemo(
+    () => new Map(clusters.map((c) => [c.key, project(c.lon, c.lat)])),
+    [clusters]
+  );
   const total = clusters.reduce((s, c) => s + c.nodes.length, 0);
 
   return (
-    <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} role="group" aria-label={`World map of ${formatNumber(total)} observed Chia nodes in ${clusters.length} places`} className="block h-auto w-full select-none">
-      <path d={land} fill="none" stroke="var(--map-land)" strokeWidth={DOT_SIZE} strokeLinecap="round" strokeDasharray={`0 ${DOT_STEP.toFixed(2)}`} />
+    <svg
+      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+      role="group"
+      aria-label={`World map of ${formatNumber(total)} observed Chia nodes in ${clusters.length} places`}
+      className="block h-auto w-full select-none"
+    >
+      <path
+        d={land}
+        fill="none"
+        stroke="var(--map-land)"
+        strokeWidth={DOT_SIZE}
+        strokeLinecap="round"
+        strokeDasharray={`0 ${DOT_STEP.toFixed(2)}`}
+      />
       <g>
         {pulses.map((p) => {
           const pos = positions.get(p.clusterKey);
           if (!pos) return null;
-          return <circle key={p.id} className="map-pulse" cx={pos.x} cy={pos.y} r={6} fill="none" stroke={p.kind === "block" ? "var(--warning)" : "var(--primary)"} strokeWidth={1.5} />;
+          return (
+            <circle
+              key={p.id}
+              className="map-pulse"
+              cx={pos.x}
+              cy={pos.y}
+              r={6}
+              fill="none"
+              stroke={p.kind === "block" ? "var(--warning)" : "var(--primary)"}
+              strokeWidth={1.5}
+            />
+          );
         })}
       </g>
       <g>
@@ -75,9 +101,33 @@ export function WorldMap({
           const r = markerRadius(c.nodes.length);
           const active = hovered === c.key;
           return (
-            <g key={c.key} className="map-node" onMouseEnter={() => onHover(c.key)} onMouseLeave={() => onHover(null)} onFocus={() => onHover(c.key)} onBlur={() => onHover(null)} tabIndex={0} role="img" aria-label={`${c.label}: ${c.nodes.length} node${c.nodes.length === 1 ? "" : "s"}`}>
-              <circle cx={pos.x} cy={pos.y} r={r + 3} fill="var(--primary)" fillOpacity={active ? 0.35 : 0.14} />
-              <circle cx={pos.x} cy={pos.y} r={r} fill="var(--primary)" fillOpacity={0.9} stroke="var(--bg)" strokeWidth={1} />
+            <g
+              key={c.key}
+              className="map-node"
+              onMouseEnter={() => onHover(c.key)}
+              onMouseLeave={() => onHover(null)}
+              onFocus={() => onHover(c.key)}
+              onBlur={() => onHover(null)}
+              tabIndex={0}
+              role="img"
+              aria-label={`${c.label}: ${c.nodes.length} node${c.nodes.length === 1 ? "" : "s"}`}
+            >
+              <circle
+                cx={pos.x}
+                cy={pos.y}
+                r={r + 3}
+                fill="var(--primary)"
+                fillOpacity={active ? 0.35 : 0.14}
+              />
+              <circle
+                cx={pos.x}
+                cy={pos.y}
+                r={r}
+                fill="var(--primary)"
+                fillOpacity={0.9}
+                stroke="var(--bg)"
+                strokeWidth={1}
+              />
             </g>
           );
         })}
@@ -87,7 +137,14 @@ export function WorldMap({
           const pos = project(p.lon, p.lat);
           return (
             <g key={p.host} role="img" aria-label={`Connected peer ${p.host} near ${p.label}`}>
-              <circle cx={pos.x} cy={pos.y} r={7} fill="none" stroke="var(--kind-offer)" strokeWidth={1.5} />
+              <circle
+                cx={pos.x}
+                cy={pos.y}
+                r={7}
+                fill="none"
+                stroke="var(--kind-offer)"
+                strokeWidth={1.5}
+              />
               <circle cx={pos.x} cy={pos.y} r={3} fill="var(--kind-offer)" />
             </g>
           );

@@ -2,7 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { GEO_BATCH_SIZE, lookupGeo, parseGeoRows } from "./geo";
 import { LAND_COLS, LAND_ROWS, LAND_RUNS } from "./landDots";
 import { cellCenter, MAP_HEIGHT, MAP_WIDTH, project } from "./projection";
-import { applyGeo, clusterNodes, countByCountry, emptyRegistry, MAX_AGE_MS, MAX_NODES, mergeObserved, parseRegistry, pendingGeo } from "./registry";
+import {
+  applyGeo,
+  clusterNodes,
+  countByCountry,
+  emptyRegistry,
+  MAX_AGE_MS,
+  MAX_NODES,
+  mergeObserved,
+  parseRegistry,
+  pendingGeo,
+} from "./registry";
 import { isPublicIp, parseDohAnswer, resolveSeeder } from "./seeders";
 
 const doh = {
@@ -23,16 +33,33 @@ describe("seeders", () => {
   });
 
   test("private, loopback and link-local ranges are not nodes", () => {
-    for (const ip of ["10.1.2.3", "192.168.0.1", "172.16.4.4", "127.0.0.1", "169.254.1.1", "100.64.0.1", "224.0.0.1", "::1", "fe80::1", "fd00::1"]) expect(isPublicIp(ip)).toBe(false);
-    for (const ip of ["88.27.59.9", "172.15.0.1", "8.8.8.8", "2a02:8109:1::1"]) expect(isPublicIp(ip)).toBe(true);
+    for (const ip of [
+      "10.1.2.3",
+      "192.168.0.1",
+      "172.16.4.4",
+      "127.0.0.1",
+      "169.254.1.1",
+      "100.64.0.1",
+      "224.0.0.1",
+      "::1",
+      "fe80::1",
+      "fd00::1",
+    ])
+      expect(isPublicIp(ip)).toBe(false);
+    for (const ip of ["88.27.59.9", "172.15.0.1", "8.8.8.8", "2a02:8109:1::1"])
+      expect(isPublicIp(ip)).toBe(true);
   });
 
   test("falls back to the second DoH endpoint when the first fails", async () => {
     const calls: string[] = [];
     const fetchImpl = async (url: string) => {
       calls.push(url);
-      if (url.startsWith("https://cloudflare-dns.com")) return new Response("nope", { status: 502 });
-      return new Response(JSON.stringify(doh), { status: 200, headers: { "content-type": "application/json" } });
+      if (url.startsWith("https://cloudflare-dns.com"))
+        return new Response("nope", { status: 502 });
+      return new Response(JSON.stringify(doh), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     };
     expect(await resolveSeeder("dns-introducer.chia.net", "A", fetchImpl)).toEqual(["88.27.59.9"]);
     expect(calls).toHaveLength(2);
@@ -43,11 +70,25 @@ describe("seeders", () => {
 describe("geo", () => {
   test("parses GeoJS rows and marks unplaceable ones as null", () => {
     const rows = parseGeoRows([
-      { ip: "8.8.8.8", country: "United States", country_code: "US", latitude: "37.751", longitude: "-97.822", organization_name: "Google LLC" },
+      {
+        ip: "8.8.8.8",
+        country: "United States",
+        country_code: "US",
+        latitude: "37.751",
+        longitude: "-97.822",
+        organization_name: "Google LLC",
+      },
       { ip: "1.1.1.1", latitude: "nil", longitude: "nil" },
       { nope: true },
     ]);
-    expect(rows.get("8.8.8.8")).toEqual({ countryCode: "US", country: "United States", city: null, lat: 37.751, lon: -97.822, org: "Google LLC" });
+    expect(rows.get("8.8.8.8")).toEqual({
+      countryCode: "US",
+      country: "United States",
+      city: null,
+      lat: 37.751,
+      lon: -97.822,
+      org: "Google LLC",
+    });
     expect(rows.get("1.1.1.1")).toBeNull();
     expect(rows.size).toBe(2);
   });
@@ -57,7 +98,9 @@ describe("geo", () => {
     let url = "";
     const fetchImpl = async (u: string) => {
       url = u;
-      return new Response(JSON.stringify([{ ip: "8.8.0.1", country_code: "US", latitude: 1, longitude: 2 }]));
+      return new Response(
+        JSON.stringify([{ ip: "8.8.0.1", country_code: "US", latitude: 1, longitude: 2 }])
+      );
     };
     const result = await lookupGeo(ips, fetchImpl);
     expect(url.split(",").length).toBe(GEO_BATCH_SIZE);
@@ -69,20 +112,37 @@ describe("geo", () => {
 });
 
 describe("registry", () => {
-  const geo = (countryCode: string, lat: number, lon: number, city: string | null = null) => ({ countryCode, country: countryCode === "DE" ? "Germany" : "United States", city, lat, lon, org: null });
+  const geo = (countryCode: string, lat: number, lon: number, city: string | null = null) => ({
+    countryCode,
+    country: countryCode === "DE" ? "Germany" : "United States",
+    city,
+    lat,
+    lon,
+    org: null,
+  });
 
   test("merging records first and last seen, hit counts and which addresses are new", () => {
     const first = mergeObserved(emptyRegistry(), ["1.1.1.1", "2.2.2.2"], 1_000);
     expect(first.added).toEqual(["1.1.1.1", "2.2.2.2"]);
     const second = mergeObserved(first.registry, ["2.2.2.2", "3.3.3.3"], 2_000);
     expect(second.added).toEqual(["3.3.3.3"]);
-    expect(second.registry.nodes["2.2.2.2"]).toEqual({ ip: "2.2.2.2", firstSeen: 1_000, lastSeen: 2_000, hits: 2 });
+    expect(second.registry.nodes["2.2.2.2"]).toEqual({
+      ip: "2.2.2.2",
+      firstSeen: 1_000,
+      lastSeen: 2_000,
+      hits: 2,
+    });
     expect(second.registry.nodes["1.1.1.1"]?.hits).toBe(1);
   });
 
   test("evicts the least recently seen nodes beyond the cap", () => {
     let registry = emptyRegistry();
-    for (let i = 0; i < MAX_NODES + 10; i += 1) registry = mergeObserved(registry, [`10.${i >> 16}.${(i >> 8) & 255}.${i & 255}`.replace(/^10\./, "11.")], i).registry;
+    for (let i = 0; i < MAX_NODES + 10; i += 1)
+      registry = mergeObserved(
+        registry,
+        [`10.${i >> 16}.${(i >> 8) & 255}.${i & 255}`.replace(/^10\./, "11.")],
+        i
+      ).registry;
     expect(Object.keys(registry.nodes)).toHaveLength(MAX_NODES);
     expect(registry.nodes["11.0.0.0"]).toBeUndefined();
     expect(registry.nodes["11.0.0.10"]).toBeDefined();
@@ -90,8 +150,16 @@ describe("registry", () => {
 
   test("parsing drops stale nodes and garbage; round-trips the rest", () => {
     const now = 10 * MAX_AGE_MS;
-    const registry = applyGeo(mergeObserved(emptyRegistry(), ["1.1.1.1"], now).registry, new Map([["1.1.1.1", geo("DE", 52.5, 13.4, "Berlin")]]));
-    registry.nodes["9.9.9.9"] = { ip: "9.9.9.9", firstSeen: 0, lastSeen: now - MAX_AGE_MS - 1, hits: 1 };
+    const registry = applyGeo(
+      mergeObserved(emptyRegistry(), ["1.1.1.1"], now).registry,
+      new Map([["1.1.1.1", geo("DE", 52.5, 13.4, "Berlin")]])
+    );
+    registry.nodes["9.9.9.9"] = {
+      ip: "9.9.9.9",
+      firstSeen: 0,
+      lastSeen: now - MAX_AGE_MS - 1,
+      hits: 1,
+    };
     const parsed = parseRegistry(JSON.stringify(registry), now);
     expect(Object.keys(parsed.nodes)).toEqual(["1.1.1.1"]);
     expect(parsed.nodes["1.1.1.1"]?.geo?.city).toBe("Berlin");
@@ -109,7 +177,11 @@ describe("registry", () => {
   });
 
   test("countries and clusters", () => {
-    let registry = mergeObserved(emptyRegistry(), ["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"], 1).registry;
+    let registry = mergeObserved(
+      emptyRegistry(),
+      ["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
+      1
+    ).registry;
     registry = applyGeo(
       registry,
       new Map([
@@ -145,7 +217,8 @@ describe("projection and land dots", () => {
       const col = Math.floor(((lon + 180) / 360) * LAND_COLS);
       const row = Math.floor(((84 - lat) / 140) * LAND_ROWS);
       const runs = LAND_RUNS[row] ?? [];
-      for (let i = 0; i < runs.length; i += 2) if (col >= runs[i]! && col < runs[i]! + runs[i + 1]!) return true;
+      for (let i = 0; i < runs.length; i += 2)
+        if (col >= runs[i]! && col < runs[i]! + runs[i + 1]!) return true;
       return false;
     };
     expect(isLand(13.4, 52.5)).toBe(true);

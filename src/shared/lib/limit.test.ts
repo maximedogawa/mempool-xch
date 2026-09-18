@@ -24,7 +24,11 @@ describe("createLimiter", () => {
 
   test("a failing job releases its slot", async () => {
     const limit = createLimiter(1);
-    await expect(limit(async () => { throw new Error("boom"); })).rejects.toThrow("boom");
+    await expect(
+      limit(async () => {
+        throw new Error("boom");
+      })
+    ).rejects.toThrow("boom");
     expect(await limit(async () => "ok")).toBe("ok");
   });
 });

@@ -11,7 +11,12 @@ import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Tooltip } from "@/shared/ui/Tooltip";
 
-const LABEL = { live: "Live", polling: "Polling", connecting: "Connecting", offline: "Offline" } as const;
+const LABEL = {
+  live: "Live",
+  polling: "Polling",
+  connecting: "Connecting",
+  offline: "Offline",
+} as const;
 
 /**
  * Connection pill: a pulsing green ring while the WebSocket stream is live, a sweeping radar
@@ -29,11 +34,21 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     return () => clearInterval(id);
   }, []);
   const age = lastEventAt ? formatAge(lastEventAt) : "no data yet";
-  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset });
-  const hint = status === "connecting" ? `Connecting: ${channel.name}…` : `${channel.name}: ${channel.detail} Last update ${age}.`;
+  const channel = describeChannel({
+    status,
+    transport,
+    rpcUrl: endpoints.rpcUrl,
+    wsUrl: endpoints.wsUrl,
+    isCoinset: endpoints.isCoinset,
+  });
+  const hint =
+    status === "connecting"
+      ? `Connecting: ${channel.name}…`
+      : `${channel.name}: ${channel.detail} Last update ${age}.`;
   const styles = {
     live: "border-primary/40 bg-primary-soft text-primary",
-    polling: "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning",
+    polling:
+      "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning",
     connecting: "border-border bg-surface text-fg-muted",
     offline: "border-danger/40 bg-danger-soft text-danger",
   }[status];
@@ -42,9 +57,16 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
       <span
         role="status"
         aria-live="polite"
-        className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2 text-xs font-semibold sm:gap-2 sm:px-2.5", styles, compact && "px-2")}
+        className={cn(
+          "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2 text-xs font-semibold sm:gap-2 sm:px-2.5",
+          styles,
+          compact && "px-2"
+        )}
       >
-        <span className="relative inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center" aria-hidden="true">
+        <span
+          className="relative inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center"
+          aria-hidden="true"
+        >
           {status === "live" ? <span className="live-ring absolute inset-0 rounded-full" /> : null}
           {status === "polling" ? (
             <Radar size={14} className="animate-radar absolute -inset-0.5 h-3.5 w-3.5" />
@@ -57,13 +79,19 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
           )}
         </span>
         {!compact ? <span className="whitespace-nowrap">{LABEL[status]}</span> : null}
-        {!compact && status === "live" ? <Zap size={12} aria-hidden="true" className="-ml-1 hidden md:inline" /> : null}
+        {!compact && status === "live" ? (
+          <Zap size={12} aria-hidden="true" className="-ml-1 hidden md:inline" />
+        ) : null}
         {!compact && peak !== null ? (
           <span className="tabular hidden items-center gap-1 border-l border-current/30 pl-2 font-medium text-fg md:inline-flex">
             <span className="text-fg-faint">▲</span> {formatNumber(peak)}
           </span>
         ) : null}
-        {!compact && lastEventAt ? <span className="tabular hidden min-w-[6ch] text-right font-normal text-fg-faint lg:inline-block">{age}</span> : null}
+        {!compact && lastEventAt ? (
+          <span className="tabular hidden min-w-[6ch] text-right font-normal text-fg-faint lg:inline-block">
+            {age}
+          </span>
+        ) : null}
         <span className="sr-only">{`${LABEL[status]} via ${channel.name}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
       </span>
     </Tooltip>

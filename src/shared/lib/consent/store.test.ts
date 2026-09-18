@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { CONSENT_KEY, CONSENT_TTL_MS, createConsentStore, hasRefusalSignal, parseConsent, resolveConsent } from "./store";
+import {
+  CONSENT_KEY,
+  CONSENT_TTL_MS,
+  createConsentStore,
+  hasRefusalSignal,
+  parseConsent,
+  resolveConsent,
+} from "./store";
 
 function memoryStorage(initial: Record<string, string> = {}) {
   const data = new Map(Object.entries(initial));
@@ -17,7 +24,12 @@ describe("consent store", () => {
   test("undecided until saved, then persisted and notified", () => {
     const storage = memoryStorage();
     const store = createConsentStore(storage, { signal: false, now: () => T0 });
-    expect(store.get()).toMatchObject({ record: null, undecided: true, analytics: false, advertising: false });
+    expect(store.get()).toMatchObject({
+      record: null,
+      undecided: true,
+      analytics: false,
+      advertising: false,
+    });
     let notified = 0;
     store.subscribe(() => {
       notified += 1;
@@ -25,7 +37,11 @@ describe("consent store", () => {
     store.save({ analytics: true, advertising: false });
     expect(notified).toBe(1);
     expect(store.get()).toMatchObject({ undecided: false, analytics: true, advertising: false });
-    expect(JSON.parse(storage.data.get(CONSENT_KEY)!)).toEqual({ analytics: true, advertising: false, decidedAt: T0 });
+    expect(JSON.parse(storage.data.get(CONSENT_KEY)!)).toEqual({
+      analytics: true,
+      advertising: false,
+      decidedAt: T0,
+    });
     const reloaded = createConsentStore(storage, { signal: false, now: () => T0 + 1000 });
     expect(reloaded.get()).toMatchObject({ undecided: false, analytics: true });
   });
@@ -35,7 +51,10 @@ describe("consent store", () => {
     expect(parseConsent(record, T0 + CONSENT_TTL_MS - 1)).not.toBeNull();
     expect(parseConsent(record, T0 + CONSENT_TTL_MS)).toBeNull();
     let clock = T0;
-    const store = createConsentStore(memoryStorage({ [CONSENT_KEY]: record }), { signal: false, now: () => clock });
+    const store = createConsentStore(memoryStorage({ [CONSENT_KEY]: record }), {
+      signal: false,
+      now: () => clock,
+    });
     expect(store.get().analytics).toBe(true);
     clock = T0 + CONSENT_TTL_MS;
     expect(store.get()).toMatchObject({ undecided: true, analytics: false, advertising: false });
@@ -44,8 +63,12 @@ describe("consent store", () => {
   test("rejects malformed or future-dated records", () => {
     expect(parseConsent("not json", T0)).toBeNull();
     expect(parseConsent(JSON.stringify({ analytics: true }), T0)).toBeNull();
-    expect(parseConsent(JSON.stringify({ analytics: true, decidedAt: T0 + 60_000 }), T0)).toBeNull();
-    expect(parseConsent(JSON.stringify({ analytics: "yes", advertising: 1, decidedAt: T0 }), T0)).toEqual({ analytics: false, advertising: false, decidedAt: T0 });
+    expect(
+      parseConsent(JSON.stringify({ analytics: true, decidedAt: T0 + 60_000 }), T0)
+    ).toBeNull();
+    expect(
+      parseConsent(JSON.stringify({ analytics: "yes", advertising: 1, decidedAt: T0 }), T0)
+    ).toEqual({ analytics: false, advertising: false, decidedAt: T0 });
   });
 
   test("Do Not Track and Global Privacy Control count as refusal and suppress the banner", () => {
@@ -55,7 +78,11 @@ describe("consent store", () => {
     expect(hasRefusalSignal({ doNotTrack: "0", globalPrivacyControl: false })).toBe(false);
     expect(hasRefusalSignal(undefined)).toBe(false);
     const accepted = { analytics: true, advertising: true, decidedAt: T0 };
-    expect(resolveConsent(null, true)).toMatchObject({ undecided: false, analytics: false, advertising: false });
+    expect(resolveConsent(null, true)).toMatchObject({
+      undecided: false,
+      analytics: false,
+      advertising: false,
+    });
     expect(resolveConsent(accepted, true)).toMatchObject({ analytics: false, advertising: false });
   });
 

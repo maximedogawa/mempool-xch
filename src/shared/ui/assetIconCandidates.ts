@@ -19,6 +19,11 @@ export function catIconCandidates(opts: {
 }
 
 /** The direct MintGarden thumbnail redirect, then the full record's own image candidates (fetched only once the thumbnail fails). */
-export function nftIconCandidates(opts: { thumbnailUrl: string | null; fallbackImageUrls: string[] }): string[] {
-  return [opts.thumbnailUrl, ...opts.fallbackImageUrls].filter((u): u is string => !!u && isTrustedImageUrl(u));
+export function nftIconCandidates(opts: {
+  thumbnailUrl: string | null;
+  fallbackImageUrls: string[];
+}): string[] {
+  return [opts.thumbnailUrl, ...opts.fallbackImageUrls].filter(
+    (u): u is string => !!u && isTrustedImageUrl(u)
+  );
 }

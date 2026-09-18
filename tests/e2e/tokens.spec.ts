@@ -24,7 +24,9 @@ test.describe("tokens", () => {
     await expect(page).toHaveURL(/\/cat\//);
   });
 
-  test("scanning by most active ranks the busy token first and marks it capped", async ({ page }) => {
+  test("scanning by most active ranks the busy token first and marks it capped", async ({
+    page,
+  }) => {
     await page.goto("/tokens");
     const sortGroup = page.getByRole("radiogroup", { name: "Sort" });
     await sortGroup.getByRole("radio", { name: "Most active" }).click();

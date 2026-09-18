@@ -12,7 +12,9 @@ const MIN_GAP_MS = 400;
 
 function context(): Ctx | null {
   if (typeof window === "undefined") return null;
-  const Impl = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Impl =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Impl) return null;
   if (!ctx) {
     try {

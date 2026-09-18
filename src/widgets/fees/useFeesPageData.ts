@@ -14,14 +14,23 @@ export const FEES_PAGE_REFERENCE_COST = 11_000_000;
 export function useFeeEstimateTargets() {
   const { client, endpoints, hydrated } = useSettings();
   return useQuery({
-    queryKey: [...queryKeys.fee(endpoints.network), "targets", FEES_PAGE_REFERENCE_COST, ...TARGET_TIMES_S],
+    queryKey: [
+      ...queryKeys.fee(endpoints.network),
+      "targets",
+      FEES_PAGE_REFERENCE_COST,
+      ...TARGET_TIMES_S,
+    ],
     enabled: hydrated,
-    queryFn: ({ signal }) => client.getFeeEstimate(FEES_PAGE_REFERENCE_COST, [...TARGET_TIMES_S], signal),
+    queryFn: ({ signal }) =>
+      client.getFeeEstimate(FEES_PAGE_REFERENCE_COST, [...TARGET_TIMES_S], signal),
     refetchInterval: 45_000,
   });
 }
 
 export function useRateBracketDistribution() {
   const summary = useMempoolSummary();
-  return { rows: summary.data ? bracketDistribution(summary.data.items) : null, isLoading: summary.isLoading };
+  return {
+    rows: summary.data ? bracketDistribution(summary.data.items) : null,
+    isLoading: summary.isLoading,
+  };
 }

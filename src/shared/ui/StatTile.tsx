@@ -24,12 +24,19 @@ export function StatTile({
     danger: "text-danger",
   }[tone];
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface px-4 py-3", className)}>
+    <div
+      className={cn(
+        "flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface px-4 py-3",
+        className
+      )}
+    >
       <div className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
         <span className="truncate">{label}</span>
         {hint ? <Tooltip text={hint} /> : null}
       </div>
-      <div className={cn("tabular truncate text-lg font-semibold leading-tight", valueTone)}>{value}</div>
+      <div className={cn("tabular truncate text-lg font-semibold leading-tight", valueTone)}>
+        {value}
+      </div>
       {sub ? <div className="truncate text-xs text-fg-faint">{sub}</div> : null}
     </div>
   );

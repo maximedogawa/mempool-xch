@@ -8,9 +8,21 @@ import { useConsent } from "@/shared/providers/ConsentProvider";
 import { Button } from "@/shared/ui/Button";
 
 const CATEGORIES: { id: "necessary" | ConsentCategory; label: string; detail: string }[] = [
-  { id: "necessary", label: "Strictly necessary", detail: "Your settings, caches and this choice, kept in your browser. Always on." },
-  { id: "analytics", label: "Analytics", detail: "Anonymous usage statistics. Not used at the moment." },
-  { id: "advertising", label: "Advertising", detail: "Ads and ad measurement. Not used at the moment." },
+  {
+    id: "necessary",
+    label: "Strictly necessary",
+    detail: "Your settings, caches and this choice, kept in your browser. Always on.",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    detail: "Anonymous usage statistics. Not used at the moment.",
+  },
+  {
+    id: "advertising",
+    label: "Advertising",
+    detail: "Ads and ad measurement. Not used at the moment.",
+  },
 ];
 
 /**
@@ -25,7 +37,10 @@ export function ConsentBanner() {
 
 function ConsentPanel() {
   const { analytics, advertising, signal, undecided, save, closeSettings } = useConsent();
-  const [choice, setChoice] = useState<Record<ConsentCategory, boolean>>({ analytics, advertising });
+  const [choice, setChoice] = useState<Record<ConsentCategory, boolean>>({
+    analytics,
+    advertising,
+  });
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // Opened on request from the footer: move focus into the panel. On a first visit leave focus alone.
@@ -45,11 +60,17 @@ function ConsentPanel() {
     >
       <div className="mx-auto flex max-h-[70dvh] max-w-[1280px] flex-col gap-3 overflow-y-auto px-4 py-4 text-sm">
         <div>
-          <h2 id="consent-title" ref={headingRef} tabIndex={-1} className="font-semibold text-fg outline-none">
+          <h2
+            id="consent-title"
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-semibold text-fg outline-none"
+          >
             Cookies and local storage
           </h2>
           <p className="mt-1 text-fg-muted">
-            This site keeps only what it needs to work in your browser. Nothing for analytics or advertising loads unless you allow it here.{" "}
+            This site keeps only what it needs to work in your browser. Nothing for analytics or
+            advertising loads unless you allow it here.{" "}
             <Link href={routes.legalCookies()} className="text-accent hover:underline">
               Cookie policy
             </Link>
@@ -59,7 +80,10 @@ function ConsentPanel() {
             </Link>
           </p>
           {signal ? (
-            <p className="mt-1 text-fg-muted">Your browser sends a Do Not Track or Global Privacy Control signal, so analytics and advertising stay off.</p>
+            <p className="mt-1 text-fg-muted">
+              Your browser sends a Do Not Track or Global Privacy Control signal, so analytics and
+              advertising stay off.
+            </p>
           ) : null}
         </div>
         <fieldset className="flex flex-col gap-2 sm:flex-row sm:gap-6">
@@ -95,7 +119,12 @@ function ConsentPanel() {
           <Button size="sm" onClick={() => save(choice)}>
             Save my choice
           </Button>
-          <Button size="sm" variant="primary" disabled={signal} onClick={() => save({ analytics: true, advertising: true })}>
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={signal}
+            onClick={() => save({ analytics: true, advertising: true })}
+          >
             Accept all
           </Button>
           {!undecided ? (

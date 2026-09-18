@@ -9,7 +9,9 @@ test.describe("watchlist", () => {
     await mockCoinset(page);
   });
 
-  test("adds a transaction and an address, shows their status, and persists across reloads", async ({ page }) => {
+  test("adds a transaction and an address, shows their status, and persists across reloads", async ({
+    page,
+  }) => {
     await page.goto("/");
     const panel = page.getByRole("region", { name: "Watchlist" });
     await expect(panel.getByText("Nothing watched yet.")).toBeVisible();
@@ -21,21 +23,31 @@ test.describe("watchlist", () => {
 
     await page.getByLabel("Add an address or transaction id to your watchlist").fill(P2_ADDRESS);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
-    await expect(panel.getByRole("link", { name: new RegExp(P2_ADDRESS.slice(0, 10)) })).toBeVisible();
-    await expect(panel.getByRole("link", { name: new RegExp(WATCHED_PENDING_TX_ID.slice(0, 6)) })).toBeVisible();
+    await expect(
+      panel.getByRole("link", { name: new RegExp(P2_ADDRESS.slice(0, 10)) })
+    ).toBeVisible();
+    await expect(
+      panel.getByRole("link", { name: new RegExp(WATCHED_PENDING_TX_ID.slice(0, 6)) })
+    ).toBeVisible();
 
     await page.reload();
-    await expect(page.getByRole("region", { name: "Watchlist" }).getByText("Confirmed")).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Watchlist" }).getByText("Confirmed")
+    ).toBeVisible();
   });
 
   test("rejects invalid input", async ({ page }) => {
     await page.goto("/");
     await page.getByLabel("Add an address or transaction id to your watchlist").fill("not an id");
     await page.getByRole("button", { name: "Watch", exact: true }).click();
-    await expect(page.locator("#watchlist-add-error")).toContainText("Paste an address or a 64-character transaction id.");
+    await expect(page.locator("#watchlist-add-error")).toContainText(
+      "Paste an address or a 64-character transaction id."
+    );
   });
 
-  test("the Watch button on a transaction page adds it, and removing it clears the panel", async ({ page }) => {
+  test("the Watch button on a transaction page adds it, and removing it clears the panel", async ({
+    page,
+  }) => {
     await page.goto(`/tx/${TX_ID}`);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
     await expect(page.getByRole("button", { name: "Watching" })).toBeVisible();

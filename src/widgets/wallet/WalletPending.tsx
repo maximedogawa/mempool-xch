@@ -13,7 +13,14 @@ import { fetchWalletPending, type WalletCoinRef, type WalletTx } from "@/shared/
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { walletPendingKey } from "@/shared/lib/sage/usePendingIds";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
-import { describePending, EMPTY_TRACKED, pendingLine, trackPending, type PendingStatus, type TrackedState } from "@/shared/lib/wallet/pendingTracker";
+import {
+  describePending,
+  EMPTY_TRACKED,
+  pendingLine,
+  trackPending,
+  type PendingStatus,
+  type TrackedState,
+} from "@/shared/lib/wallet/pendingTracker";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -43,7 +50,11 @@ function MiniQueue({ status }: { status: PendingStatus }) {
             key={i}
             className={cn(
               "inline-block h-3 w-3 rounded-[3px] border transition-colors",
-              active ? "animate-pulse border-primary bg-primary shadow-[0_0_8px_var(--primary)]" : beyond ? "border-warning/60 bg-[color-mix(in_srgb,var(--warning)_35%,transparent)]" : "border-border bg-surface-2"
+              active
+                ? "animate-pulse border-primary bg-primary shadow-[0_0_8px_var(--primary)]"
+                : beyond
+                  ? "border-warning/60 bg-[color-mix(in_srgb,var(--warning)_35%,transparent)]"
+                  : "border-border bg-surface-2"
             )}
           />
         );
@@ -72,42 +83,106 @@ function StatusLine({ status, confirmed }: { status: PendingStatus; confirmed: C
       </span>
     );
   }
-  const tone = status.phase === "broadcast" ? "text-warning" : status.phase === "waiting" ? "text-fg-muted" : "text-fg";
+  const tone =
+    status.phase === "broadcast"
+      ? "text-warning"
+      : status.phase === "waiting"
+        ? "text-fg-muted"
+        : "text-fg";
   return (
     <span className={cn("inline-flex flex-wrap items-center gap-x-2 gap-y-1", tone)}>
-      {status.phase === "broadcast" ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <MiniQueue status={status} />}
+      {status.phase === "broadcast" ? (
+        <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+      ) : (
+        <MiniQueue status={status} />
+      )}
       <span>{pendingLine(status)}</span>
-      {status.etaSeconds !== null ? <span className="text-fg-faint">· {formatEta(status.etaSeconds)}</span> : null}
+      {status.etaSeconds !== null ? (
+        <span className="text-fg-faint">· {formatEta(status.etaSeconds)}</span>
+      ) : null}
       {status.feeRate !== null ? (
         <span className="text-fg-faint">
           · {formatFeeRate(status.feeRate)}
-          {status.band ? <span className="ml-1 rounded-full px-1.5 text-[10px] font-semibold uppercase" style={{ background: `color-mix(in srgb, var(${status.band.cssVar}) 25%, transparent)` }}>{status.band.label}</span> : null}
+          {status.band ? (
+            <span
+              className="ml-1 rounded-full px-1.5 text-[10px] font-semibold uppercase"
+              style={{
+                background: `color-mix(in srgb, var(${status.band.cssVar}) 25%, transparent)`,
+              }}
+            >
+              {status.band.label}
+            </span>
+          ) : null}
         </span>
       ) : null}
     </span>
   );
 }
 
-function PendingRow({ tx, walletAddress, status, confirmed }: { tx: WalletTx; walletAddress: string | null; status: PendingStatus; confirmed: Confirmed | null }) {
+function PendingRow({
+  tx,
+  walletAddress,
+  status,
+  confirmed,
+}: {
+  tx: WalletTx;
+  walletAddress: string | null;
+  status: PendingStatus;
+  confirmed: Confirmed | null;
+}) {
   const mine = (ref: WalletCoinRef) => ref.address === walletAddress || ref.address === null;
   const received = tx.created.filter(mine);
   const sent = tx.spent.filter(mine);
   const primary = sent[0] ?? received[0];
   return (
-    <li className={cn("flex flex-wrap items-center gap-3 py-3 text-sm transition-colors", confirmed ? "rounded-sm bg-primary-soft/40 px-2" : "")}>
-      <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full", confirmed ? "bg-primary-soft" : "bg-surface-2")}>
-        {primary ? <AssetIcon kind={kindOf(primary)} assetId={primary.assetId ?? undefined} iconUrl={primary.iconUrl} size={22} /> : <Wallet size={18} aria-hidden="true" />}
+    <li
+      className={cn(
+        "flex flex-wrap items-center gap-3 py-3 text-sm transition-colors",
+        confirmed ? "rounded-sm bg-primary-soft/40 px-2" : ""
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+          confirmed ? "bg-primary-soft" : "bg-surface-2"
+        )}
+      >
+        {primary ? (
+          <AssetIcon
+            kind={kindOf(primary)}
+            assetId={primary.assetId ?? undefined}
+            iconUrl={primary.iconUrl}
+            size={22}
+          />
+        ) : (
+          <Wallet size={18} aria-hidden="true" />
+        )}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate font-medium">
-          {sent.length && !received.length ? "Sent" : received.length && !sent.length ? "Received" : "Transaction"}
+          {sent.length && !received.length
+            ? "Sent"
+            : received.length && !sent.length
+              ? "Received"
+              : "Transaction"}
           {tx.id ? (
             <>
               {" "}
-              <Hash value={tx.id} href={routes.tx(tx.id)} head={6} tail={4} className="font-normal" />
+              <Hash
+                value={tx.id}
+                href={routes.tx(tx.id)}
+                head={6}
+                tail={4}
+                className="font-normal"
+              />
             </>
           ) : null}
-          {tx.timestamp ? <span className="font-normal text-fg-faint"> · submitted {formatAge(tx.timestamp * 1000)}</span> : null}
+          {tx.timestamp ? (
+            <span className="font-normal text-fg-faint">
+              {" "}
+              · submitted {formatAge(tx.timestamp * 1000)}
+            </span>
+          ) : null}
         </span>
         <span className="text-xs">
           <StatusLine status={status} confirmed={confirmed} />
@@ -138,7 +213,12 @@ export function WalletPending() {
   const capability = useSageCapability("wallet.get_pending_transactions");
   const projected = useProjectedBlocks(8);
   const queryKey = useMemo(() => walletPendingKey(endpoints.network), [endpoints.network]);
-  const pending = useQuery({ queryKey, enabled: inSage, queryFn: fetchWalletPending, refetchInterval: 10_000 });
+  const pending = useQuery({
+    queryKey,
+    enabled: inSage,
+    queryFn: fetchWalletPending,
+    refetchInterval: 10_000,
+  });
   const trackedRef = useRef<TrackedState>(EMPTY_TRACKED);
   const knownRef = useRef(new Map<string, WalletTx>());
   const notifiedRef = useRef(new Set<string>());
@@ -154,7 +234,10 @@ export function WalletPending() {
     (id: string, height: number | null) => {
       if (notifiedRef.current.has(id)) return;
       notifiedRef.current.add(id);
-      setConfirmed((prev) => ({ ...prev, [id]: { height, at: Date.now(), tx: knownRef.current.get(id) ?? null } }));
+      setConfirmed((prev) => ({
+        ...prev,
+        [id]: { height, at: Date.now(), tx: knownRef.current.get(id) ?? null },
+      }));
       if (settings.sounds) void playCoinChime(0.5);
     },
     [settings.sounds]
@@ -196,7 +279,9 @@ export function WalletPending() {
       tick((n) => n + 1);
       setConfirmed((prev) => {
         const now = Date.now();
-        const kept = Object.fromEntries(Object.entries(prev).filter(([, c]) => now - c.at < KEEP_CONFIRMED_MS));
+        const kept = Object.fromEntries(
+          Object.entries(prev).filter(([, c]) => now - c.at < KEEP_CONFIRMED_MS)
+        );
         return Object.keys(kept).length === Object.keys(prev).length ? prev : kept;
       });
     }, 10_000);
@@ -218,7 +303,9 @@ export function WalletPending() {
     .map(([id, c]) => ({ id, c }))
     .sort((a, b) => b.c.at - a.c.at);
   const items = projected.summary?.items;
-  const title = rows.length ? `Your transactions in flight · ${rows.length}` : "Your transactions in flight";
+  const title = rows.length
+    ? `Your transactions in flight · ${rows.length}`
+    : "Your transactions in flight";
 
   return (
     <Card>
@@ -230,11 +317,19 @@ export function WalletPending() {
               type="button"
               onClick={toggleSound}
               aria-pressed={settings.sounds}
-              aria-label={settings.sounds ? "Mute the confirmation chime" : "Play a chime when a transaction confirms"}
+              aria-label={
+                settings.sounds
+                  ? "Mute the confirmation chime"
+                  : "Play a chime when a transaction confirms"
+              }
               title={settings.sounds ? "Chime on when a transaction confirms" : "Chime off"}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
             >
-              {settings.sounds ? <Volume2 size={14} aria-hidden="true" /> : <VolumeX size={14} aria-hidden="true" />}
+              {settings.sounds ? (
+                <Volume2 size={14} aria-hidden="true" />
+              ) : (
+                <VolumeX size={14} aria-hidden="true" />
+              )}
             </button>
             <Link href={routes.wallet()} className="text-xs text-accent hover:underline">
               Wallet
@@ -251,14 +346,32 @@ export function WalletPending() {
             </Button>
           </div>
         ) : rows.length === 0 && confirmedRows.length === 0 ? (
-          <p className="py-2 text-center text-sm text-fg-faint">{pending.isLoading ? "Reading the wallet…" : "Nothing in flight. New sends show up here with their place in the queue."}</p>
+          <p className="py-2 text-center text-sm text-fg-faint">
+            {pending.isLoading
+              ? "Reading the wallet…"
+              : "Nothing in flight. New sends show up here with their place in the queue."}
+          </p>
         ) : (
           <ul className="divide-y divide-border/60">
             {rows.map((tx, i) => (
-              <PendingRow key={tx.id ?? i} tx={tx} walletAddress={walletAddress} status={describePending(tx.id ?? "", items, projected.blocks)} confirmed={null} />
+              <PendingRow
+                key={tx.id ?? i}
+                tx={tx}
+                walletAddress={walletAddress}
+                status={describePending(tx.id ?? "", items, projected.blocks)}
+                confirmed={null}
+              />
             ))}
             {confirmedRows.map(({ id, c }) =>
-              c.tx ? <PendingRow key={id} tx={c.tx} walletAddress={walletAddress} status={describePending(id, items, projected.blocks)} confirmed={c} /> : null
+              c.tx ? (
+                <PendingRow
+                  key={id}
+                  tx={c.tx}
+                  walletAddress={walletAddress}
+                  status={describePending(id, items, projected.blocks)}
+                  confirmed={c}
+                />
+              ) : null
             )}
           </ul>
         )}

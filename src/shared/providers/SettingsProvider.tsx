@@ -1,7 +1,21 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
-import { DEFAULT_SETTINGS, getSettingsStore, resolveEndpoints, type ResolvedEndpoints, type Settings } from "@/shared/lib/settings/store";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import {
+  DEFAULT_SETTINGS,
+  getSettingsStore,
+  resolveEndpoints,
+  type ResolvedEndpoints,
+  type Settings,
+} from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
 import { RpcError } from "@/shared/lib/rpc/errors";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
@@ -47,7 +61,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       createRpcClient({
         rpcUrl: endpoints.rpcUrl,
         indexedUrl: endpoints.indexedUrl,
-        fetchImpl: (input, init) => (hydratedRef.current ? fetch(input, init) : Promise.reject(new RpcError("aborted", "hydration", "Settings not hydrated yet"))),
+        fetchImpl: (input, init) =>
+          hydratedRef.current
+            ? fetch(input, init)
+            : Promise.reject(new RpcError("aborted", "hydration", "Settings not hydrated yet")),
       }),
     [endpoints.rpcUrl, endpoints.indexedUrl]
   );

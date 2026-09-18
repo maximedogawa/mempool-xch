@@ -33,14 +33,18 @@ function main() {
     .filter((t) => /^\d+\.\d+\.\d+$/.test(t));
   const releases: Release[] = [];
   const unreleased = tags[0] ? subjects(`${tags[0]}..HEAD`) : subjects("HEAD");
-  if (unreleased.length > 0) releases.push({ version: "unreleased", date: null, changes: unreleased });
+  if (unreleased.length > 0)
+    releases.push({ version: "unreleased", date: null, changes: unreleased });
   tags.forEach((tag, i) => {
     const prev = tags[i + 1];
     const date = git(`log -1 --format=%cs ${tag}`);
     releases.push({ version: tag, date, changes: subjects(prev ? `${prev}..${tag}` : tag) });
   });
   const target = join(import.meta.dir, "../../src/shared/config/changelog.json");
-  writeFileSync(target, `${JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), releases }, null, 2)}\n`);
+  writeFileSync(
+    target,
+    `${JSON.stringify({ generatedAt: new Date().toISOString().slice(0, 10), releases }, null, 2)}\n`
+  );
   console.log(`wrote ${target}: ${releases.length} entries`);
 }
 

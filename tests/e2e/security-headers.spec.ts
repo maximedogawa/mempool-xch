@@ -14,7 +14,9 @@ test.describe("security headers", () => {
     await mockDexieOffers(page);
   });
 
-  test("the dashboard response carries CSP, Referrer-Policy, X-Content-Type-Options and Permissions-Policy", async ({ page }) => {
+  test("the dashboard response carries CSP, Referrer-Policy, X-Content-Type-Options and Permissions-Policy", async ({
+    page,
+  }) => {
     const response = await page.goto("/");
     const headers = response!.headers();
     expect(headers["content-security-policy"]).toContain("default-src 'self'");
@@ -25,10 +27,13 @@ test.describe("security headers", () => {
     expect(headers["permissions-policy"]).toContain("geolocation=()");
   });
 
-  test("no CSP violations while navigating the dashboard, an NFT page and the pools page", async ({ page }) => {
+  test("no CSP violations while navigating the dashboard, an NFT page and the pools page", async ({
+    page,
+  }) => {
     const violations: string[] = [];
     page.on("console", (msg) => {
-      if (msg.type() === "error" && /content security policy/i.test(msg.text())) violations.push(msg.text());
+      if (msg.type() === "error" && /content security policy/i.test(msg.text()))
+        violations.push(msg.text());
     });
     await page.goto("/");
     await expect(page.getByText("Transaction fees")).toBeVisible();

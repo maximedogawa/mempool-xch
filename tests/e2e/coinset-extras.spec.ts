@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { mockCoinset, mockCustomNode, OFFER_CAT_ASSET_ID, OFFER_ID, P2, TX_ID } from "./mockCoinset";
+import {
+  mockCoinset,
+  mockCustomNode,
+  OFFER_CAT_ASSET_ID,
+  OFFER_ID,
+  P2,
+  TX_ID,
+} from "./mockCoinset";
 
 test.describe("Coinset offers, clawbacks, reorgs and raw transactions", () => {
   test("offer page shows state, both sides, maker and settlement", async ({ page }) => {
@@ -42,7 +49,10 @@ test.describe("Coinset offers, clawbacks, reorgs and raw transactions", () => {
     const list = page.getByTestId("offers-list");
     await expect(list.getByRole("link", { name: "details" })).toHaveCount(2);
     await expect(list.getByText("40 XCH")).toBeVisible();
-    await page.getByRole("group", { name: "Offer status" }).getByRole("button", { name: "Cancelled" }).click();
+    await page
+      .getByRole("group", { name: "Offer status" })
+      .getByRole("button", { name: "Cancelled" })
+      .click();
     await expect(page.getByText("No cancelled offers indexed for this asset.")).toBeVisible();
   });
 
@@ -52,7 +62,9 @@ test.describe("Coinset offers, clawbacks, reorgs and raw transactions", () => {
     await expect(page.getByRole("heading", { name: "Clawback coins" })).toBeVisible();
     await expect(page.getByText("sender can claw back")).toBeVisible();
     await expect(page.getByText("24h 0m", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Offers made from this address" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Offers made from this address" })
+    ).toBeVisible();
   });
 
   test("confirmed transaction shows its coin spends from the raw item", async ({ page }) => {
@@ -63,7 +75,9 @@ test.describe("Coinset offers, clawbacks, reorgs and raw transactions", () => {
     await expect(page.getByRole("button", { name: /Show raw JSON/ })).toHaveCount(2);
   });
 
-  test("dashboard shows netspace and the last reorg; blocks page lists reorg history", async ({ page }) => {
+  test("dashboard shows netspace and the last reorg; blocks page lists reorg history", async ({
+    page,
+  }) => {
     await mockCoinset(page);
     await page.goto("/");
     await expect(page.getByTestId("netspace")).not.toHaveText("…");
@@ -79,7 +93,9 @@ test.describe("Coinset offers, clawbacks, reorgs and raw transactions", () => {
     await page.goto(`/address/${P2}`);
     await expect(page.getByRole("heading", { name: "Address" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Clawback coins" })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Offers made from this address" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Offers made from this address" })).toHaveCount(
+      0
+    );
     await page.goto("/blocks");
     await expect(page.getByRole("heading", { name: "Reorg history" })).toHaveCount(0);
     await page.goto(`/offer/${OFFER_ID}`);

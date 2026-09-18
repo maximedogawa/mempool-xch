@@ -18,12 +18,33 @@ import { BlockCoinFlow } from "./BlockCoinFlow";
 import { BlockCoins } from "./BlockCoins";
 import { BlockTransactions } from "./BlockTransactions";
 import { AssetsMoved } from "./AssetsMoved";
-import { parseBlockId, useBlock, useBlockAssetTotals, useBlockCoins, useNextTransactionBlock } from "./useBlock";
+import {
+  parseBlockId,
+  useBlock,
+  useBlockAssetTotals,
+  useBlockCoins,
+  useNextTransactionBlock,
+} from "./useBlock";
 
-function Row({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+function Row({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={cn("grid grid-cols-1 gap-1 border-b border-border/60 py-2 text-sm sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-3", className)}>
-      <dt className="text-xs font-medium uppercase tracking-wider text-fg-muted sm:pt-0.5">{label}</dt>
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-1 border-b border-border/60 py-2 text-sm sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-3",
+        className
+      )}
+    >
+      <dt className="text-xs font-medium uppercase tracking-wider text-fg-muted sm:pt-0.5">
+        {label}
+      </dt>
       <dd className="min-w-0 break-all">{children}</dd>
     </div>
   );
@@ -46,13 +67,26 @@ export function BlockDetails({ id }: { id: string }) {
   const totals = useBlockAssetTotals(record?.height ?? null, record?.headerHash ?? null, isTx);
 
   if (!parsed) {
-    return <EmptyState tone="danger" title="Invalid block id" description="Use a block height (e.g. 9295514) or a 64-character header hash." />;
+    return (
+      <EmptyState
+        tone="danger"
+        title="Invalid block id"
+        description="Use a block height (e.g. 9295514) or a 64-character header hash."
+      />
+    );
   }
   if (query.error) {
     return isNotFound(query.error) ? (
-      <EmptyState title="Block not found" description={`No block matches ${id} on ${networkConfig.label}.`} />
+      <EmptyState
+        title="Block not found"
+        description={`No block matches ${id} on ${networkConfig.label}.`}
+      />
     ) : (
-      <EmptyState tone="danger" title="Could not load the block" description={String((query.error as Error).message)} />
+      <EmptyState
+        tone="danger"
+        title="Could not load the block"
+        description={String((query.error as Error).message)}
+      />
     );
   }
   if (!record || !block) {
@@ -69,7 +103,9 @@ export function BlockDetails({ id }: { id: string }) {
   const pool = puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix);
   const nextDisabled = peak !== null && record.height >= peak;
   const poolEntry = farmedBy.entry;
-  const claimTarget = farmedBy.claim?.target ? puzzleHashToAddress(farmedBy.claim.target, networkConfig.addressPrefix) : null;
+  const claimTarget = farmedBy.claim?.target
+    ? puzzleHashToAddress(farmedBy.claim.target, networkConfig.addressPrefix)
+    : null;
   const reward = blockReward(record.height);
 
   return (
@@ -79,21 +115,31 @@ export function BlockDetails({ id }: { id: string }) {
           <span>
             Block <span className="tabular">{formatNumber(record.height)}</span>
           </span>
-          {isTx ? <Badge tone="primary">Transaction block</Badge> : <Badge tone="neutral">No transactions</Badge>}
+          {isTx ? (
+            <Badge tone="primary">Transaction block</Badge>
+          ) : (
+            <Badge tone="neutral">No transactions</Badge>
+          )}
           {peak !== null && record.height === peak ? <Badge tone="info">Peak</Badge> : null}
         </h1>
         <nav aria-label="Block navigation" className="flex gap-2">
           <Link
             href={routes.block(Math.max(0, record.height - 1))}
             aria-disabled={record.height === 0}
-            className={cn("inline-flex h-9 items-center gap-1 rounded-sm border border-border px-3 text-sm hover:bg-surface-2", record.height === 0 && "pointer-events-none opacity-50")}
+            className={cn(
+              "inline-flex h-9 items-center gap-1 rounded-sm border border-border px-3 text-sm hover:bg-surface-2",
+              record.height === 0 && "pointer-events-none opacity-50"
+            )}
           >
             <ChevronLeft size={16} aria-hidden="true" /> Previous
           </Link>
           <Link
             href={routes.block(record.height + 1)}
             aria-disabled={nextDisabled}
-            className={cn("inline-flex h-9 items-center gap-1 rounded-sm border border-border px-3 text-sm hover:bg-surface-2", nextDisabled && "pointer-events-none opacity-50")}
+            className={cn(
+              "inline-flex h-9 items-center gap-1 rounded-sm border border-border px-3 text-sm hover:bg-surface-2",
+              nextDisabled && "pointer-events-none opacity-50"
+            )}
           >
             Next <ChevronRight size={16} aria-hidden="true" />
           </Link>
@@ -112,7 +158,8 @@ export function BlockDetails({ id }: { id: string }) {
             <Row label="Timestamp">
               {block.timestamp ? (
                 <>
-                  {formatDateTime(block.timestamp * 1000)} <span className="text-fg-faint">({formatAge(block.timestamp * 1000)})</span>
+                  {formatDateTime(block.timestamp * 1000)}{" "}
+                  <span className="text-fg-faint">({formatAge(block.timestamp * 1000)})</span>
                 </>
               ) : (
                 <span className="text-fg-faint">Non-transaction blocks carry no timestamp</span>
@@ -126,7 +173,12 @@ export function BlockDetails({ id }: { id: string }) {
             </Row>
             <Row label="Signage point">
               <span className="tabular">{record.signagePointIndex} of 64</span>
-              {record.overflow ? <span className="text-fg-faint"> (overflow block, infused in the next sub-slot)</span> : null}
+              {record.overflow ? (
+                <span className="text-fg-faint">
+                  {" "}
+                  (overflow block, infused in the next sub-slot)
+                </span>
+              ) : null}
             </Row>
             <Row label="Deficit">
               <span className="tabular">{record.deficit}</span>
@@ -136,7 +188,10 @@ export function BlockDetails({ id }: { id: string }) {
               <Hash value={record.prevHash} href={routes.block(record.prevHash)} />
             </Row>
             <Row label="Previous transaction block">
-              <Link href={routes.block(record.prevTransactionBlockHeight)} className="tabular text-accent hover:underline">
+              <Link
+                href={routes.block(record.prevTransactionBlockHeight)}
+                className="tabular text-accent hover:underline"
+              >
                 {formatNumber(record.prevTransactionBlockHeight)}
               </Link>
             </Row>
@@ -144,22 +199,40 @@ export function BlockDetails({ id }: { id: string }) {
               <div className="flex flex-col gap-1">
                 <span data-testid="farmed-by">
                   {poolEntry ? (
-                    <a href={poolEntry.url} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
+                    <a
+                      href={poolEntry.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-accent hover:underline"
+                    >
                       {poolEntry.name}
                     </a>
                   ) : claimTarget ? (
                     <span className="text-fg-muted">
-                      {farmedBy.claim?.selfPooled ? "Self-pooling farmer (PlotNFT)" : "Unnamed pool"}, rewards claimed to{" "}
-                      <Hash value={claimTarget} href={routes.address(claimTarget)} head={8} tail={6} />
+                      {farmedBy.claim?.selfPooled
+                        ? "Self-pooling farmer (PlotNFT)"
+                        : "Unnamed pool"}
+                      , rewards claimed to{" "}
+                      <Hash
+                        value={claimTarget}
+                        href={routes.address(claimTarget)}
+                        head={8}
+                        tail={6}
+                      />
                     </span>
                   ) : farmedBy.bothShares ? (
-                    <span className="text-fg-muted">Unidentified; pool and farmer rewards go to the same address</span>
+                    <span className="text-fg-muted">
+                      Unidentified; pool and farmer rewards go to the same address
+                    </span>
                   ) : (
-                    <span className="text-fg-muted">Unidentified; the pool reward has not been claimed yet</span>
+                    <span className="text-fg-muted">
+                      Unidentified; the pool reward has not been claimed yet
+                    </span>
                   )}
                 </span>
                 <span className="text-xs text-fg-faint">
-                  Pool payout address <Hash value={pool} href={routes.address(pool)} head={12} tail={8} copy />
+                  Pool payout address{" "}
+                  <Hash value={pool} href={routes.address(pool)} head={12} tail={8} copy />
                 </span>
               </div>
             </Row>
@@ -169,7 +242,8 @@ export function BlockDetails({ id }: { id: string }) {
             <Row label="Block reward">
               <span className="tabular">{formatAmount(reward.total)}</span>{" "}
               <span className="text-fg-faint">
-                ({formatAmount(reward.pool)} to the pool, {formatAmount(reward.farmer)} to the farmer{isTx ? " plus the fees" : ""}; paid out in a later transaction block)
+                ({formatAmount(reward.pool)} to the pool, {formatAmount(reward.farmer)} to the
+                farmer{isTx ? " plus the fees" : ""}; paid out in a later transaction block)
               </span>
             </Row>
             {isTx ? (
@@ -177,17 +251,29 @@ export function BlockDetails({ id }: { id: string }) {
                 <Row label="Cost used">
                   <div className="flex flex-col gap-1">
                     <span className="tabular">
-                      {formatCost(block.cost)} of {formatCost(blockMaxCost)} ({formatPercent(fill, 1)})
+                      {formatCost(block.cost)} of {formatCost(blockMaxCost)} (
+                      {formatPercent(fill, 1)})
                     </span>
-                    <div className="h-2 w-full max-w-md overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(fill * 100)} aria-label="Block cost usage">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, fill * 100)}%` }} />
+                    <div
+                      className="h-2 w-full max-w-md overflow-hidden rounded-full bg-surface-2"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(fill * 100)}
+                      aria-label="Block cost usage"
+                    >
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.min(100, fill * 100)}%` }}
+                      />
                     </div>
                   </div>
                 </Row>
                 <Row label="Contents">
                   {coins.data ? (
                     <span className="tabular" data-testid="block-contents">
-                      {formatNumber(coins.data.removals.length)} spends · {formatNumber(coins.data.additions.length)} new coins
+                      {formatNumber(coins.data.removals.length)} spends ·{" "}
+                      {formatNumber(coins.data.additions.length)} new coins
                     </span>
                   ) : coins.isLoading ? (
                     <Skeleton className="h-5 w-40" />
@@ -204,12 +290,23 @@ export function BlockDetails({ id }: { id: string }) {
                   ) : (
                     <ul className="flex flex-col gap-1">
                       {block.rewardClaimsIncorporated.map((c, i) => {
-                        const address = puzzleHashToAddress(c.puzzleHash, networkConfig.addressPrefix);
+                        const address = puzzleHashToAddress(
+                          c.puzzleHash,
+                          networkConfig.addressPrefix
+                        );
                         return (
-                          <li key={`${c.parentCoinInfo}-${i}`} className="flex flex-wrap items-center gap-2">
+                          <li
+                            key={`${c.parentCoinInfo}-${i}`}
+                            className="flex flex-wrap items-center gap-2"
+                          >
                             <span className="tabular">{formatAmount(c.amount)}</span>
                             <span className="text-fg-faint">to</span>
-                            <Hash value={address} href={routes.address(address)} head={10} tail={6} />
+                            <Hash
+                              value={address}
+                              href={routes.address(address)}
+                              head={10}
+                              tail={6}
+                            />
                           </li>
                         );
                       })}
@@ -221,8 +318,10 @@ export function BlockDetails({ id }: { id: string }) {
                     <div className="flex flex-col gap-1">
                       <span>Present</span>
                       <span className="break-normal text-xs text-fg-faint">
-                        The farmer merges every included spend bundle into one block generator with one aggregated signature, so the block itself no longer
-                        shows where one transaction ends and the next begins. The transactions below are reconstructed from the spends.
+                        The farmer merges every included spend bundle into one block generator with
+                        one aggregated signature, so the block itself no longer shows where one
+                        transaction ends and the next begins. The transactions below are
+                        reconstructed from the spends.
                       </span>
                     </div>
                   ) : (
@@ -234,20 +333,37 @@ export function BlockDetails({ id }: { id: string }) {
               <Row label="Transactions" className="border-b-0">
                 <div className="flex flex-col gap-2">
                   <p className="text-fg-muted">
-                    This is a non-transaction block: it advances the chain's proof of space and time but carries no spends, fees or reward claims. Roughly two out of three Chia blocks are like this.
+                    This is a non-transaction block: it advances the chain's proof of space and time
+                    but carries no spends, fees or reward claims. Roughly two out of three Chia
+                    blocks are like this.
                   </p>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    <Link href={routes.block(record.prevTransactionBlockHeight)} className="rounded-sm border border-border px-3 py-1.5 hover:bg-surface-2">
-                      ← Previous transaction block <span className="tabular text-accent">{formatNumber(record.prevTransactionBlockHeight)}</span>
+                    <Link
+                      href={routes.block(record.prevTransactionBlockHeight)}
+                      className="rounded-sm border border-border px-3 py-1.5 hover:bg-surface-2"
+                    >
+                      ← Previous transaction block{" "}
+                      <span className="tabular text-accent">
+                        {formatNumber(record.prevTransactionBlockHeight)}
+                      </span>
                     </Link>
                     {nextTx.isLoading ? (
                       <Skeleton className="h-9 w-56" />
                     ) : nextTx.data ? (
-                      <Link href={routes.block(nextTx.data.height)} className="rounded-sm border border-border px-3 py-1.5 hover:bg-surface-2">
-                        Next transaction block <span className="tabular text-accent">{formatNumber(nextTx.data.height)}</span> →
+                      <Link
+                        href={routes.block(nextTx.data.height)}
+                        className="rounded-sm border border-border px-3 py-1.5 hover:bg-surface-2"
+                      >
+                        Next transaction block{" "}
+                        <span className="tabular text-accent">
+                          {formatNumber(nextTx.data.height)}
+                        </span>{" "}
+                        →
                       </Link>
                     ) : (
-                      <span className="rounded-sm border border-border px-3 py-1.5 text-fg-faint">No transaction block yet after this height</span>
+                      <span className="rounded-sm border border-border px-3 py-1.5 text-fg-faint">
+                        No transaction block yet after this height
+                      </span>
                     )}
                   </div>
                 </div>
@@ -259,7 +375,13 @@ export function BlockDetails({ id }: { id: string }) {
 
       {isTx ? (
         <>
-          <BlockTransactions height={record.height} headerHash={record.headerHash} blockCost={block.cost} blockMaxCost={blockMaxCost} isTransactionBlock={isTx} />
+          <BlockTransactions
+            height={record.height}
+            headerHash={record.headerHash}
+            blockCost={block.cost}
+            blockMaxCost={blockMaxCost}
+            isTransactionBlock={isTx}
+          />
           <BlockCoinFlow data={coins.data} loading={coins.isLoading} />
           <BlockCoins data={coins.data} loading={coins.isLoading} />
         </>

@@ -4,7 +4,11 @@ import { useCallback, useSyncExternalStore } from "react";
 import { capabilities } from "./bridge";
 
 /** Granted / refused state of one Sage capability, live, plus an enable() that asks once more. */
-export function useSageCapability(capability: string): { granted: boolean; refused: boolean; enable: () => Promise<boolean> } {
+export function useSageCapability(capability: string): {
+  granted: boolean;
+  refused: boolean;
+  enable: () => Promise<boolean>;
+} {
   const snapshot = useSyncExternalStore(
     (cb) => capabilities.subscribe(cb),
     () => `${capabilities.has(capability) ? 1 : 0}${capabilities.isRefused(capability) ? 1 : 0}`,

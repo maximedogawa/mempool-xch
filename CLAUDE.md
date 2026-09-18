@@ -6,11 +6,11 @@ Guidance for Claude Code when working in this repository.
 
 mempoolxch.space is split across sibling repositories checked out next to each other:
 
-| Path | Repo | Contents |
-| --- | --- | --- |
-| `.` | `mempool-xch` | Application code |
-| `../mempool-xch-backlog` | `mempool-xch-backlog` | Memo, concept, tasks, milestones and decisions (Backlog.md) |
-| `../mempool-xch-wiki` | `mempool-xch-wiki` | Documentation (architecture, data sources, deployment, guides) |
+| Path                     | Repo                  | Contents                                                       |
+| ------------------------ | --------------------- | -------------------------------------------------------------- |
+| `.`                      | `mempool-xch`         | Application code                                               |
+| `../mempool-xch-backlog` | `mempool-xch-backlog` | Memo, concept, tasks, milestones and decisions (Backlog.md)    |
+| `../mempool-xch-wiki`    | `mempool-xch-wiki`    | Documentation (architecture, data sources, deployment, guides) |
 
 This repo holds code only. Work items belong in the backlog; explanatory docs belong in the wiki.
 

@@ -14,7 +14,10 @@ export function NftMintsPage() {
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">New mints</h1>
-          <Tooltip text="NFTs freshly minted across every collection MintGarden indexes, newest first." placement="bottom" />
+          <Tooltip
+            text="NFTs freshly minted across every collection MintGarden indexes, newest first."
+            placement="bottom"
+          />
         </div>
       </header>
 
@@ -22,7 +25,11 @@ export function NftMintsPage() {
         <CardHeader title="Mints" />
         <CardBody className="flex flex-col gap-3">
           {query.error ? (
-            <EmptyState tone="danger" title="Could not load mints" description="MintGarden did not answer." />
+            <EmptyState
+              tone="danger"
+              title="Could not load mints"
+              description="MintGarden did not answer."
+            />
           ) : query.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 8 }, (_, i) => (
@@ -40,7 +47,12 @@ export function NftMintsPage() {
           )}
 
           {query.hasNextPage ? (
-            <Button size="sm" className="self-center" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+            <Button
+              size="sm"
+              className="self-center"
+              disabled={query.isFetchingNextPage}
+              onClick={() => void query.fetchNextPage()}
+            >
               {query.isFetchingNextPage ? "Loading…" : "Show more"}
             </Button>
           ) : null}

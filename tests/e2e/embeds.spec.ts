@@ -14,7 +14,9 @@ test.describe("embeds and badges", () => {
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   });
 
-  test("fees and blocks embeds show live numbers; tx embed reports a confirmed transaction", async ({ page }) => {
+  test("fees and blocks embeds show live numbers; tx embed reports a confirmed transaction", async ({
+    page,
+  }) => {
     await mockCoinset(page);
     await page.goto("/embed/fees.html");
     await expect(page.locator("#f60")).not.toHaveText("…");
@@ -48,16 +50,24 @@ test.describe("embeds and badges", () => {
     const dir = join(process.cwd(), "public", "embed");
     const scripts = readdirSync(dir).filter((f) => f.endsWith(".js"));
     const shared = statSync(join(dir, "common.js")).size;
-    for (const f of scripts.filter((s) => s !== "common.js")) expect(statSync(join(dir, f)).size + shared, f).toBeLessThan(100 * 1024);
+    for (const f of scripts.filter((s) => s !== "common.js"))
+      expect(statSync(join(dir, f)).size + shared, f).toBeLessThan(100 * 1024);
   });
 
   test("the API page documents the embeds with copy-paste snippets", async ({ page }) => {
     await mockCoinset(page);
     await page.goto("/api");
     await expect(page.getByRole("heading", { name: "Embeds and badges" })).toBeVisible();
-    await expect(page.getByTestId("embed-snippet-mempool")).toContainText('<iframe src="https://mempoolxch.space/embed/mempool.html?theme=dark"');
-    await page.getByRole("group", { name: "Embed theme" }).getByRole("button", { name: "light" }).click();
+    await expect(page.getByTestId("embed-snippet-mempool")).toContainText(
+      '<iframe src="https://mempoolxch.space/embed/mempool.html?theme=dark"'
+    );
+    await page
+      .getByRole("group", { name: "Embed theme" })
+      .getByRole("button", { name: "light" })
+      .click();
     await expect(page.getByTestId("embed-snippet-mempool")).toContainText("theme=light");
-    await expect(page.getByTestId("embed-snippet-badge")).toContainText("/api/badge/tx/<tx id>.svg");
+    await expect(page.getByTestId("embed-snippet-badge")).toContainText(
+      "/api/badge/tx/<tx id>.svg"
+    );
   });
 });

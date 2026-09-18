@@ -36,7 +36,11 @@ function parse(raw: string | null | undefined): Map<string, StoredClaim> {
   for (const [hash, row] of Object.entries(data as Record<string, unknown>)) {
     if (!/^[0-9a-f]{64}$/.test(hash) || !Array.isArray(row)) continue;
     const [target, selfPooled, at] = row as unknown[];
-    if ((target !== null && (typeof target !== "string" || !/^[0-9a-f]{64}$/.test(target))) || typeof at !== "number") continue;
+    if (
+      (target !== null && (typeof target !== "string" || !/^[0-9a-f]{64}$/.test(target))) ||
+      typeof at !== "number"
+    )
+      continue;
     out.set(hash, { target, selfPooled: selfPooled === 1, at });
   }
   return out;
@@ -50,7 +54,9 @@ export interface PoolClaimStore {
   subscribe: (listener: Listener) => () => void;
 }
 
-export function createPoolClaimStore(storage: Pick<Storage, "getItem" | "setItem"> | null): PoolClaimStore {
+export function createPoolClaimStore(
+  storage: Pick<Storage, "getItem" | "setItem"> | null
+): PoolClaimStore {
   const byNetwork = new Map<NetworkId, Map<string, StoredClaim>>();
   const listeners = new Set<Listener>();
 

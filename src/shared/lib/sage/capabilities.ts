@@ -17,7 +17,10 @@ export const REFUSED_KEY = "mempool-xch:sage-refused:v1";
 type Listener = () => void;
 
 function extractGranted(raw: unknown): string[] {
-  const r = raw && typeof raw === "object" ? (raw as { granted?: unknown; capabilities?: unknown; full?: unknown }) : {};
+  const r =
+    raw && typeof raw === "object"
+      ? (raw as { granted?: unknown; capabilities?: unknown; full?: unknown })
+      : {};
   const list = r.granted ?? r.capabilities ?? r.full;
   return Array.isArray(list) ? list.map(String) : [];
 }
@@ -58,15 +61,16 @@ export class CapabilityManager {
           // Not granted app.get_capabilities: assume nothing.
         }
         try {
-          this.unlisten = client.app.onGrantedCapabilitiesChange?.((event) => {
-            const full = event.full;
-            if (Array.isArray(full)) {
-              this.granted = new Set(full.map(String));
-              full.forEach((c) => this.refused.delete(String(c)));
-              this.persist();
-              this.emit();
-            }
-          }) ?? null;
+          this.unlisten =
+            client.app.onGrantedCapabilitiesChange?.((event) => {
+              const full = event.full;
+              if (Array.isArray(full)) {
+                this.granted = new Set(full.map(String));
+                full.forEach((c) => this.refused.delete(String(c)));
+                this.persist();
+                this.emit();
+              }
+            }) ?? null;
         } catch {
           // Hosts without change events: the set read above stays as it is.
         }
@@ -103,7 +107,9 @@ export class CapabilityManager {
       if (!client) return false;
       try {
         const result = await client.app.requestCapabilityGrant({ capability: capability as never });
-        const ok = Boolean((result as { granted?: boolean }).granted ?? (result as { ok?: boolean }).ok);
+        const ok = Boolean(
+          (result as { granted?: boolean }).granted ?? (result as { ok?: boolean }).ok
+        );
         if (ok) {
           this.granted.add(capability);
           this.refused.delete(capability);

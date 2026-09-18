@@ -9,7 +9,21 @@ import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import type { ClawbackCoin } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Badge, Button, Card, CardBody, CardHeader, CatRef, Hash, Skeleton, Table, Td, Th, Tooltip, Tr } from "@/shared/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CatRef,
+  Hash,
+  Skeleton,
+  Table,
+  Td,
+  Th,
+  Tooltip,
+  Tr,
+} from "@/shared/ui";
 import { usePagedList } from "@/widgets/assets/usePagedList";
 
 /**
@@ -20,10 +34,17 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
   const { client, endpoints, networkConfig } = useSettings();
   const network = endpoints.network;
   const list = usePagedList<ClawbackCoin>({
-    queryKey: useCallback((cursor: string | null) => queryKeys.address(network, p2, "clawbacks", cursor), [network, p2]),
+    queryKey: useCallback(
+      (cursor: string | null) => queryKeys.address(network, p2, "clawbacks", cursor),
+      [network, p2]
+    ),
     fetchPage: useCallback(
       async (cursor: string | null, limit: number, signal: AbortSignal) => {
-        const page = await client.getClawbackCoinsByReceiver(p2, { cursor: cursor ?? undefined, limit }, signal);
+        const page = await client.getClawbackCoinsByReceiver(
+          p2,
+          { cursor: cursor ?? undefined, limit },
+          signal
+        );
         return { items: page.clawbacks, truncated: page.truncated, nextCursor: page.nextCursor };
       },
       [client, p2]
@@ -45,7 +66,11 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
             <Tooltip text="Coins sent to this address with a clawback timelock: the sender can pull them back until the timelock ends, then the receiver can claim them." />
           </span>
         }
-        action={list.items.some((c) => c.revocable) ? <Badge tone="warning">{list.items.filter((c) => c.revocable).length} revocable</Badge> : null}
+        action={
+          list.items.some((c) => c.revocable) ? (
+            <Badge tone="warning">{list.items.filter((c) => c.revocable).length} revocable</Badge>
+          ) : null
+        }
       />
       <CardBody className="flex flex-col gap-3">
         {list.isLoading ? (
@@ -72,13 +97,25 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
                       <Hash value={c.coinId} href={routes.coin(c.coinId)} head={8} tail={5} />
                     </Td>
                     <Td className="tabular">
-                      {c.assetKind === "cat" && c.assetId ? <CatRef assetId={c.assetId} amountText={formatCat(c.amount)} /> : c.assetKind === "nft" ? <Badge tone="nft">NFT</Badge> : formatAmount(c.amount)}
+                      {c.assetKind === "cat" && c.assetId ? (
+                        <CatRef assetId={c.assetId} amountText={formatCat(c.amount)} />
+                      ) : c.assetKind === "nft" ? (
+                        <Badge tone="nft">NFT</Badge>
+                      ) : (
+                        formatAmount(c.amount)
+                      )}
                     </Td>
                     <Td className="hidden md:table-cell">
                       <Hash value={sender} href={routes.address(sender)} head={8} tail={5} />
                     </Td>
                     <Td className="tabular text-right">{formatDuration(c.seconds)}</Td>
-                    <Td className="text-right">{c.revocable ? <Badge tone="warning">sender can claw back</Badge> : <Badge tone="primary">claimable</Badge>}</Td>
+                    <Td className="text-right">
+                      {c.revocable ? (
+                        <Badge tone="warning">sender can claw back</Badge>
+                      ) : (
+                        <Badge tone="primary">claimable</Badge>
+                      )}
+                    </Td>
                   </Tr>
                 );
               })}
@@ -86,7 +123,13 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
           </Table>
         )}
         {list.hasMore ? (
-          <Button variant="secondary" size="sm" onClick={() => void list.loadMore()} disabled={list.loadingMore} className="self-center">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void list.loadMore()}
+            disabled={list.loadingMore}
+            className="self-center"
+          >
             {list.loadingMore ? "Loading…" : "Load more"}
           </Button>
         ) : null}

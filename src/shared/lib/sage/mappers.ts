@@ -11,7 +11,9 @@ interface SageGlobals {
 }
 
 /** Synchronous, side-effect free: Sage's shell exposes __TAURI__; the SDK creates __SAGE__. */
-export function isSageRuntime(globals: unknown = typeof window !== "undefined" ? window : undefined): boolean {
+export function isSageRuntime(
+  globals: unknown = typeof window !== "undefined" ? window : undefined
+): boolean {
   if (!globals || typeof globals !== "object") return false;
   const g = globals as SageGlobals;
   return g.__TAURI__ != null || g.__SAGE__ != null;
@@ -28,7 +30,8 @@ export interface SageNetworkLike {
 export function mapSageNetwork(result: SageNetworkLike): NetworkId {
   if (result.kind === "mainnet") return "mainnet";
   if (result.kind === "testnet") return "testnet11";
-  const hint = `${result.networkId ?? ""} ${result.name ?? ""} ${result.prefix ?? ""}`.toLowerCase();
+  const hint =
+    `${result.networkId ?? ""} ${result.name ?? ""} ${result.prefix ?? ""}`.toLowerCase();
   return hint.includes("testnet") || hint.includes("txch") ? "testnet11" : "mainnet";
 }
 
@@ -51,5 +54,7 @@ export function mapSageTheme(theme: SageThemeLike): "light" | "dark" {
 export function receiveAddressFrom(status: unknown): string | null {
   if (!status || typeof status !== "object") return null;
   const address = (status as { receive_address?: unknown }).receive_address;
-  return typeof address === "string" && /^t?xch1[a-z0-9]{50,}$/i.test(address) ? address.toLowerCase() : null;
+  return typeof address === "string" && /^t?xch1[a-z0-9]{50,}$/i.test(address)
+    ? address.toLowerCase()
+    : null;
 }

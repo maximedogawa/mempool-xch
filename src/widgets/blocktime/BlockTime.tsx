@@ -41,8 +41,13 @@ export function BlockTime() {
   const txShare = all.length > 1 ? txBlocks.length / all.length : CHIA.TX_BLOCK_RATIO;
   const expectedInterval = avgBlock / Math.max(0.1, txShare);
   // Observed gap between the recent transaction blocks.
-  const gaps = txBlocks.slice(0, -1).map((b, i) => (b.timestamp ?? 0) - (txBlocks[i + 1]?.timestamp ?? 0)).filter((g) => g > 0);
-  const observedInterval = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : expectedInterval;
+  const gaps = txBlocks
+    .slice(0, -1)
+    .map((b, i) => (b.timestamp ?? 0) - (txBlocks[i + 1]?.timestamp ?? 0))
+    .filter((g) => g > 0);
+  const observedInterval = gaps.length
+    ? gaps.reduce((a, b) => a + b, 0) / gaps.length
+    : expectedInterval;
   const progress = sinceLast !== null ? Math.min(1, sinceLast / expectedInterval) : 0;
   const overdue = sinceLast !== null && sinceLast > expectedInterval;
   const peak = state.data?.peak.height;
@@ -53,13 +58,22 @@ export function BlockTime() {
   const latestReorg = lastReorg
     ? { at: lastReorg.detectedAtMs, depth: lastReorg.depth, height: lastReorg.newPeakHeight }
     : reorgs.data?.reorgs[0]
-      ? { at: reorgs.data.reorgs[0].detectedAtMs, depth: reorgs.data.reorgs[0].depth, height: reorgs.data.reorgs[0].newPeakHeight }
+      ? {
+          at: reorgs.data.reorgs[0].detectedAtMs,
+          depth: reorgs.data.reorgs[0].depth,
+          height: reorgs.data.reorgs[0].newPeakHeight,
+        }
       : null;
   const recentReorg = latestReorg !== null && now - latestReorg.at < 60 * 60_000;
 
   return (
     <Card>
-      <CardHeader title="Block time" action={<Tooltip text="Chia farms a block roughly every 18.75 seconds, but only about one in three carries transactions. The bar counts up to the expected gap between transaction blocks." />} />
+      <CardHeader
+        title="Block time"
+        action={
+          <Tooltip text="Chia farms a block roughly every 18.75 seconds, but only about one in three carries transactions. The bar counts up to the expected gap between transaction blocks." />
+        }
+      />
       <CardBody className="flex flex-col gap-3">
         {!state.data ? (
           <Skeleton className="h-16 w-full" />
@@ -67,45 +81,101 @@ export function BlockTime() {
           <>
             <div className="flex items-end justify-between gap-3">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Since last transaction block</div>
-                <div className={cn("tabular text-2xl font-semibold leading-tight", overdue ? "text-warning" : "text-fg")}>{sinceLast !== null ? formatDuration(sinceLast) : "…"}</div>
+                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  Since last transaction block
+                </div>
+                <div
+                  className={cn(
+                    "tabular text-2xl font-semibold leading-tight",
+                    overdue ? "text-warning" : "text-fg"
+                  )}
+                >
+                  {sinceLast !== null ? formatDuration(sinceLast) : "…"}
+                </div>
               </div>
               <div className="text-right">
-                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Expected gap</div>
-                <div className="tabular text-lg font-semibold leading-tight">~{formatDuration(expectedInterval)}</div>
+                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  Expected gap
+                </div>
+                <div className="tabular text-lg font-semibold leading-tight">
+                  ~{formatDuration(expectedInterval)}
+                </div>
               </div>
             </div>
-            <div role="meter" aria-label="Progress toward the expected next transaction block" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} className="relative h-2.5 w-full overflow-hidden rounded-full border border-border bg-bg">
-              <div className={cn("capacity-fill absolute inset-y-0 left-0 rounded-full", overdue ? "bg-warning" : "bg-[linear-gradient(90deg,var(--primary-strong),var(--accent))]")} style={{ width: `${progress * 100}%` }}>
+            <div
+              role="meter"
+              aria-label="Progress toward the expected next transaction block"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+              className="relative h-2.5 w-full overflow-hidden rounded-full border border-border bg-bg"
+            >
+              <div
+                className={cn(
+                  "capacity-fill absolute inset-y-0 left-0 rounded-full",
+                  overdue
+                    ? "bg-warning"
+                    : "bg-[linear-gradient(90deg,var(--primary-strong),var(--accent))]"
+                )}
+                style={{ width: `${progress * 100}%` }}
+              >
                 <div aria-hidden="true" className="capacity-sheen absolute inset-0" />
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Avg block</dt>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+                  Avg block
+                </dt>
                 <dd className="tabular text-sm font-semibold">{avgBlock.toFixed(1)} s</dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Tx blocks</dt>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+                  Tx blocks
+                </dt>
                 <dd className="tabular text-sm font-semibold">{Math.round(txShare * 100)}%</dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Observed gap</dt>
-                <dd className="tabular text-sm font-semibold">~{formatDuration(observedInterval)}</dd>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+                  Observed gap
+                </dt>
+                <dd className="tabular text-sm font-semibold">
+                  ~{formatDuration(observedInterval)}
+                </dd>
               </div>
-              <div className="rounded-sm border border-border bg-bg px-2 py-2" title={pushed ? `Pushed by Coinset ${formatAge(pushed.at)} · difficulty ${formatNumber(pushed.difficulty)}` : "From get_blockchain_state"}>
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">Netspace</dt>
-                <dd className="tabular text-sm font-semibold" data-testid="netspace">{netspace !== null ? formatBytes(Number(netspace)) : "…"}</dd>
+              <div
+                className="rounded-sm border border-border bg-bg px-2 py-2"
+                title={
+                  pushed
+                    ? `Pushed by Coinset ${formatAge(pushed.at)} · difficulty ${formatNumber(pushed.difficulty)}`
+                    : "From get_blockchain_state"
+                }
+              >
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+                  Netspace
+                </dt>
+                <dd className="tabular text-sm font-semibold" data-testid="netspace">
+                  {netspace !== null ? formatBytes(Number(netspace)) : "…"}
+                </dd>
               </div>
             </dl>
             <p className="text-[11px] text-fg-faint">
-              Peak {peak !== undefined ? formatNumber(peak) : "…"} · last transaction block {last ? formatNumber(last.height) : "…"} · window of {all.length} blocks
+              Peak {peak !== undefined ? formatNumber(peak) : "…"} · last transaction block{" "}
+              {last ? formatNumber(last.height) : "…"} · window of {all.length} blocks
               {latestReorg ? (
                 <>
                   {" · "}
-                  <Link href={routes.blocks()} className={cn("hover:underline", recentReorg ? "font-medium text-warning" : undefined)} data-testid="reorg-indicator">
+                  <Link
+                    href={routes.blocks()}
+                    className={cn(
+                      "hover:underline",
+                      recentReorg ? "font-medium text-warning" : undefined
+                    )}
+                    data-testid="reorg-indicator"
+                  >
                     {recentReorg ? "reorg " : "last reorg "}
-                    {formatAge(latestReorg.at)} ({latestReorg.depth} block{latestReorg.depth === 1 ? "" : "s"} at #{formatNumber(latestReorg.height)})
+                    {formatAge(latestReorg.at)} ({latestReorg.depth} block
+                    {latestReorg.depth === 1 ? "" : "s"} at #{formatNumber(latestReorg.height)})
                   </Link>
                 </>
               ) : null}

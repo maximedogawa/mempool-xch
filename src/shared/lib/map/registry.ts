@@ -35,12 +35,19 @@ export function parseRegistry(raw: string | null | undefined, now = Date.now()):
   if (!raw) return emptyRegistry();
   try {
     const parsed = JSON.parse(raw) as Partial<NodeRegistry>;
-    if (!parsed || parsed.version !== 1 || !parsed.nodes || typeof parsed.nodes !== "object") return emptyRegistry();
+    if (!parsed || parsed.version !== 1 || !parsed.nodes || typeof parsed.nodes !== "object")
+      return emptyRegistry();
     const nodes: Record<string, ObservedNode> = {};
     for (const [ip, node] of Object.entries(parsed.nodes)) {
       if (!node || typeof node !== "object" || typeof node.lastSeen !== "number") continue;
       if (now - node.lastSeen > MAX_AGE_MS) continue;
-      nodes[ip] = { ip, firstSeen: typeof node.firstSeen === "number" ? node.firstSeen : node.lastSeen, lastSeen: node.lastSeen, hits: typeof node.hits === "number" ? node.hits : 1, geo: node.geo };
+      nodes[ip] = {
+        ip,
+        firstSeen: typeof node.firstSeen === "number" ? node.firstSeen : node.lastSeen,
+        lastSeen: node.lastSeen,
+        hits: typeof node.hits === "number" ? node.hits : 1,
+        geo: node.geo,
+      };
     }
     return { version: 1, nodes };
   } catch {
@@ -49,7 +56,11 @@ export function parseRegistry(raw: string | null | undefined, now = Date.now()):
 }
 
 /** Records one seeder answer; returns the new registry and which addresses were new. */
-export function mergeObserved(registry: NodeRegistry, ips: readonly string[], now = Date.now()): { registry: NodeRegistry; added: string[] } {
+export function mergeObserved(
+  registry: NodeRegistry,
+  ips: readonly string[],
+  now = Date.now()
+): { registry: NodeRegistry; added: string[] } {
   const nodes = { ...registry.nodes };
   const added: string[] = [];
   for (const ip of ips) {
@@ -70,7 +81,10 @@ function evict(nodes: Record<string, ObservedNode>): Record<string, ObservedNode
   return Object.fromEntries(entries.slice(0, MAX_NODES).map((n) => [n.ip, n]));
 }
 
-export function applyGeo(registry: NodeRegistry, results: Map<string, NodeGeo | null>): NodeRegistry {
+export function applyGeo(
+  registry: NodeRegistry,
+  results: Map<string, NodeGeo | null>
+): NodeRegistry {
   if (results.size === 0) return registry;
   const nodes = { ...registry.nodes };
   for (const [ip, geo] of results) {
@@ -107,7 +121,12 @@ export function countByCountry(registry: NodeRegistry): CountryCount[] {
     acc.set(node.geo.countryCode, entry);
   }
   return [...acc.entries()]
-    .map(([countryCode, { country, nodes }]) => ({ countryCode, country, nodes, share: located > 0 ? nodes / located : 0 }))
+    .map(([countryCode, { country, nodes }]) => ({
+      countryCode,
+      country,
+      nodes,
+      share: located > 0 ? nodes / located : 0,
+    }))
     .sort((a, b) => b.nodes - a.nodes || a.country.localeCompare(b.country));
 }
 
@@ -131,13 +150,23 @@ export function clusterNodes(nodes: Iterable<ObservedNode>): NodeCluster[] {
     const lat = Math.round(node.geo.lat / CLUSTER_DEGREES) * CLUSTER_DEGREES;
     const lon = Math.round(node.geo.lon / CLUSTER_DEGREES) * CLUSTER_DEGREES;
     const key = `${lat},${lon}`;
-    const cluster = acc.get(key) ?? { key, lat, lon, nodes: [] as ObservedNode[], label: "", labels: new Map<string, number>() };
+    const cluster = acc.get(key) ?? {
+      key,
+      lat,
+      lon,
+      nodes: [] as ObservedNode[],
+      label: "",
+      labels: new Map<string, number>(),
+    };
     cluster.nodes.push(node);
     const label = node.geo.city ? `${node.geo.city}, ${node.geo.country}` : node.geo.country;
     cluster.labels.set(label, (cluster.labels.get(label) ?? 0) + 1);
     acc.set(key, cluster);
   }
   return [...acc.values()]
-    .map(({ labels, ...cluster }) => ({ ...cluster, label: [...labels.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "" }))
+    .map(({ labels, ...cluster }) => ({
+      ...cluster,
+      label: [...labels.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "",
+    }))
     .sort((a, b) => b.nodes.length - a.nodes.length);
 }

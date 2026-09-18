@@ -58,18 +58,29 @@ export function StackedAreaChart({
       })
     );
     const paths = stacks.map((stack) => {
-      const top = stack.map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`).join(" ");
-      const bottom = [...stack].reverse().map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`).join(" ");
+      const top = stack
+        .map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`)
+        .join(" ");
+      const bottom = [...stack]
+        .reverse()
+        .map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`)
+        .join(" ");
       return `${top} ${bottom} Z`;
     });
     const ticks = [0, 0.5, 1].map((f) => ({ v: max * f, y: y(max * f) }));
-    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({ t: t0 + span * f, x: pad.l + innerW * f }));
+    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({
+      t: t0 + span * f,
+      x: pad.l + innerW * f,
+    }));
     return { paths, ticks, timeTicks, x, totals, max };
   }, [points, series, innerH, innerW, pad.l, pad.t]);
 
   if (!model || points.length < 2) {
     return (
-      <div className={cn("flex items-center justify-center text-sm text-fg-faint", className)} style={{ height }}>
+      <div
+        className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
+        style={{ height }}
+      >
         Collecting samples… history starts when the app is opened.
       </div>
     );
@@ -82,7 +93,8 @@ export function StackedAreaChart({
     const rect = target.getBoundingClientRect();
     const px = ((clientX - rect.left) / rect.width) * width;
     const nearest = points.reduce(
-      (best, p, i) => (Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best),
+      (best, p, i) =>
+        Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best,
       0
     );
     setHover(nearest);
@@ -109,22 +121,56 @@ export function StackedAreaChart({
         <title>{summary}</title>
         {model.ticks.map((tick) => (
           <g key={tick.v}>
-            <line x1={pad.l} x2={width - pad.r} y1={tick.y} y2={tick.y} stroke="var(--border)" strokeDasharray="3 3" />
-            <text x={pad.l - 6} y={tick.y + 4} textAnchor="end" fontSize="10" fill="var(--fg-faint)">
+            <line
+              x1={pad.l}
+              x2={width - pad.r}
+              y1={tick.y}
+              y2={tick.y}
+              stroke="var(--border)"
+              strokeDasharray="3 3"
+            />
+            <text
+              x={pad.l - 6}
+              y={tick.y + 4}
+              textAnchor="end"
+              fontSize="10"
+              fill="var(--fg-faint)"
+            >
               {formatValue(tick.v)}
             </text>
           </g>
         ))}
         {model.timeTicks.map((tick) => (
-          <text key={tick.t} x={tick.x} y={height - 6} textAnchor="middle" fontSize="10" fill="var(--fg-faint)">
+          <text
+            key={tick.t}
+            x={tick.x}
+            y={height - 6}
+            textAnchor="middle"
+            fontSize="10"
+            fill="var(--fg-faint)"
+          >
             {formatTime(tick.t)}
           </text>
         ))}
         {model.paths.map((d, i) => (
-          <path key={series[i]!.id} d={d} fill={series[i]!.color} fillOpacity={0.85} stroke={series[i]!.color} strokeWidth={0.5} />
+          <path
+            key={series[i]!.id}
+            d={d}
+            fill={series[i]!.color}
+            fillOpacity={0.85}
+            stroke={series[i]!.color}
+            strokeWidth={0.5}
+          />
         ))}
         {hoverPoint ? (
-          <line x1={model.x(hoverPoint.t)} x2={model.x(hoverPoint.t)} y1={pad.t} y2={pad.t + innerH} stroke="var(--fg-muted)" strokeWidth={1} />
+          <line
+            x1={model.x(hoverPoint.t)}
+            x2={model.x(hoverPoint.t)}
+            y1={pad.t}
+            y2={pad.t + innerH}
+            stroke="var(--fg-muted)"
+            strokeWidth={1}
+          />
         ) : null}
       </svg>
       {hoverPoint ? (
@@ -141,12 +187,18 @@ export function StackedAreaChart({
             .reverse()
             .map(({ s, v }) => (
               <div key={s.id} className="flex items-center gap-1.5 text-fg-muted">
-                <span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} aria-hidden="true" />
+                <span
+                  className="inline-block h-2 w-2 rounded-sm"
+                  style={{ background: s.color }}
+                  aria-hidden="true"
+                />
                 <span>{s.label}</span>
                 <span className="tabular ml-auto pl-3 text-fg">{formatValue(v)}</span>
               </div>
             ))}
-          <div className="mt-1 border-t border-border pt-1 text-fg">Total {formatValue(hoverPoint.values.reduce((a, b) => a + b, 0))}</div>
+          <div className="mt-1 border-t border-border pt-1 text-fg">
+            Total {formatValue(hoverPoint.values.reduce((a, b) => a + b, 0))}
+          </div>
         </div>
       ) : null}
     </div>

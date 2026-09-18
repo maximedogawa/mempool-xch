@@ -22,7 +22,10 @@ export const DEFAULT_WINDOW_MS = 2 * 60 * 60 * 1000;
 /** Do not store two samples closer than this. */
 export const MIN_SAMPLE_GAP_MS = 8_000;
 
-export function sampleFromSummary(summary: MempoolSummary, t = summary.generatedAt || Date.now()): MempoolSample {
+export function sampleFromSummary(
+  summary: MempoolSummary,
+  t = summary.generatedAt || Date.now()
+): MempoolSample {
   const bands = FEE_BANDS.map(() => 0);
   summary.items.forEach((item) => {
     const idx = FEE_BANDS.indexOf(feeBandFor(item.feeRate));
@@ -31,7 +34,11 @@ export function sampleFromSummary(summary: MempoolSummary, t = summary.generated
   return { t, bands, count: summary.items.length, fees: Number(summary.state.mempoolFees) };
 }
 
-export function appendSample(history: MempoolSample[], sample: MempoolSample, windowMs = DEFAULT_WINDOW_MS): MempoolSample[] {
+export function appendSample(
+  history: MempoolSample[],
+  sample: MempoolSample,
+  windowMs = DEFAULT_WINDOW_MS
+): MempoolSample[] {
   const last = history[history.length - 1];
   if (last && sample.t - last.t < MIN_SAMPLE_GAP_MS) return history;
   const cutoff = sample.t - windowMs;
@@ -39,7 +46,10 @@ export function appendSample(history: MempoolSample[], sample: MempoolSample, wi
   return next.length > MAX_SAMPLES ? next.slice(next.length - MAX_SAMPLES) : next;
 }
 
-export function loadHistory(storage: Pick<Storage, "getItem"> | null, network: string): MempoolSample[] {
+export function loadHistory(
+  storage: Pick<Storage, "getItem"> | null,
+  network: string
+): MempoolSample[] {
   try {
     const raw = storage?.getItem(`${HISTORY_KEY_PREFIX}${network}`);
     if (!raw) return [];
@@ -47,14 +57,21 @@ export function loadHistory(storage: Pick<Storage, "getItem"> | null, network: s
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (s): s is MempoolSample =>
-        !!s && typeof s === "object" && typeof (s as MempoolSample).t === "number" && Array.isArray((s as MempoolSample).bands)
+        !!s &&
+        typeof s === "object" &&
+        typeof (s as MempoolSample).t === "number" &&
+        Array.isArray((s as MempoolSample).bands)
     );
   } catch {
     return [];
   }
 }
 
-export function saveHistory(storage: Pick<Storage, "setItem"> | null, network: string, history: MempoolSample[]): void {
+export function saveHistory(
+  storage: Pick<Storage, "setItem"> | null,
+  network: string,
+  history: MempoolSample[]
+): void {
   try {
     storage?.setItem(`${HISTORY_KEY_PREFIX}${network}`, JSON.stringify(history));
   } catch {

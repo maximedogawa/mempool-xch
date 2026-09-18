@@ -230,8 +230,16 @@ export interface PeerConnection {
 
 /* ---- Coinset offers, clawbacks, reorgs, raw transactions ---- */
 
-export type OfferStatus = "open" | "pending" | "confirmed" | "cancel_pending" | "cancelled" | "expired";
-export const OFFER_STATUSES: readonly OfferStatus[] = ["open", "pending", "confirmed", "cancel_pending", "cancelled", "expired"];
+export type OfferStatus =
+  "open" | "pending" | "confirmed" | "cancel_pending" | "cancelled" | "expired";
+export const OFFER_STATUSES: readonly OfferStatus[] = [
+  "open",
+  "pending",
+  "confirmed",
+  "cancel_pending",
+  "cancelled",
+  "expired",
+];
 
 export interface OfferSide {
   xch: Mojos;

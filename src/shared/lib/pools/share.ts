@@ -55,7 +55,9 @@ function payoutRows(records: readonly BlockRecord[]): PayoutRow[] {
       rows.set(r.poolPuzzleHash, { payoutHash: r.poolPuzzleHash, blocks: 1, bothShares });
     }
   }
-  return [...rows.values()].sort((a, b) => b.blocks - a.blocks || a.payoutHash.localeCompare(b.payoutHash));
+  return [...rows.values()].sort(
+    (a, b) => b.blocks - a.blocks || a.payoutHash.localeCompare(b.payoutHash)
+  );
 }
 
 /**
@@ -73,7 +75,10 @@ export function payoutsToResolve(records: readonly BlockRecord[]): string[] {
  * payout address, so addresses are merged by the pool their rewards are claimed to (`claims`,
  * see claims.ts) and by registry entry; whatever is still unresolved stays a row of its own.
  */
-export function groupPoolShare(records: readonly BlockRecord[], claims: ReadonlyMap<string, PoolClaim>): PoolShare {
+export function groupPoolShare(
+  records: readonly BlockRecord[],
+  claims: ReadonlyMap<string, PoolClaim>
+): PoolShare {
   const totalBlocks = records.length;
   const rows = payoutRows(records);
   const groups = new Map<string, PoolGroup>();
@@ -84,7 +89,11 @@ export function groupPoolShare(records: readonly BlockRecord[], claims: Readonly
     const target = claim?.target ?? null;
     const entry = lookupPool(row.payoutHash) ?? (target ? lookupPool(target) : null);
     const kind: PoolGroupKind = entry ? "pool" : target ? "claim" : "address";
-    const key = entry ? `pool:${entry.name}` : target ? `claim:${target}` : `address:${row.payoutHash}`;
+    const key = entry
+      ? `pool:${entry.name}`
+      : target
+        ? `claim:${target}`
+        : `address:${row.payoutHash}`;
     let group = groups.get(key);
     if (!group) {
       group = {
@@ -102,10 +111,13 @@ export function groupPoolShare(records: readonly BlockRecord[], claims: Readonly
     }
     group.payouts.push(row);
     group.blocks += row.blocks;
-    if (kind === "claim") selfPooledByKey.set(key, (selfPooledByKey.get(key) ?? true) && claim!.selfPooled);
+    if (kind === "claim")
+      selfPooledByKey.set(key, (selfPooledByKey.get(key) ?? true) && claim!.selfPooled);
   }
 
-  const sorted = [...groups.values()].sort((a, b) => b.blocks - a.blocks || a.key.localeCompare(b.key));
+  const sorted = [...groups.values()].sort(
+    (a, b) => b.blocks - a.blocks || a.key.localeCompare(b.key)
+  );
   for (const group of sorted) {
     group.share = totalBlocks > 0 ? group.blocks / totalBlocks : 0;
     group.selfPooled = selfPooledByKey.get(group.key) ?? false;

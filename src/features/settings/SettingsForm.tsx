@@ -16,17 +16,28 @@ import { describeChannel } from "@/shared/lib/live/channel";
 import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
 
-type TestState = { status: "idle" } | { status: "testing" } | { status: "ok"; height: number; ms: number; coinset: boolean } | { status: "error"; message: string } | { status: "whitelist"; message: string; ok: boolean };
-
+type TestState =
+  | { status: "idle" }
+  | { status: "testing" }
+  | { status: "ok"; height: number; ms: number; coinset: boolean }
+  | { status: "error"; message: string }
+  | { status: "whitelist"; message: string; ok: boolean };
 
 /** Which live channel this tab is on and where the data comes from (same words as the pill and footer). */
 function ChannelLine() {
   const { endpoints } = useSettings();
   const { status, transport } = useLive();
-  const channel = describeChannel({ status, transport, rpcUrl: endpoints.rpcUrl, wsUrl: endpoints.wsUrl, isCoinset: endpoints.isCoinset });
+  const channel = describeChannel({
+    status,
+    transport,
+    rpcUrl: endpoints.rpcUrl,
+    wsUrl: endpoints.wsUrl,
+    isCoinset: endpoints.isCoinset,
+  });
   return (
     <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
-      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail} Everything is read from the endpoint directly.
+      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail} Everything
+      is read from the endpoint directly.
     </p>
   );
 }
@@ -47,7 +58,12 @@ function EndpointRow({ network }: { network: NetworkId }) {
     try {
       const client = createRpcClient({ rpcUrl: draft.trim(), indexedUrl: null, timeoutMs: 10_000 });
       const state = await client.getBlockchainState();
-      setTest({ status: "ok", height: state.peak.height, ms: Math.round(performance.now() - started), coinset: isCoinsetUrl(network, draft) });
+      setTest({
+        status: "ok",
+        height: state.peak.height,
+        ms: Math.round(performance.now() - started),
+        coinset: isCoinsetUrl(network, draft),
+      });
     } catch (error) {
       setTest({ status: "error", message: errorMessage(error) });
     }
@@ -57,9 +73,17 @@ function EndpointRow({ network }: { network: NetworkId }) {
     <div className="flex flex-col gap-2 rounded-sm border border-border bg-bg p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label htmlFor={`rpc-${network}`} className="text-sm font-semibold">
-          {config.label} <span className="font-normal text-fg-faint">({config.addressPrefix} addresses)</span>
+          {config.label}{" "}
+          <span className="font-normal text-fg-faint">({config.addressPrefix} addresses)</span>
         </label>
-        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase", isDefault ? "bg-primary-soft text-primary" : "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning")}>
+        <span
+          className={cn(
+            "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase",
+            isDefault
+              ? "bg-primary-soft text-primary"
+              : "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning"
+          )}
+        >
           {isDefault ? "Coinset default" : isCoinsetUrl(network, value) ? "Coinset" : "Custom node"}
         </span>
       </div>
@@ -77,7 +101,10 @@ function EndpointRow({ network }: { network: NetworkId }) {
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={runTest} disabled={test.status === "testing" || !draft.trim()}>
-          {test.status === "testing" ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : null} Test connection
+          {test.status === "testing" ? (
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+          ) : null}{" "}
+          Test connection
         </Button>
         <Button
           size="sm"
@@ -89,16 +116,27 @@ function EndpointRow({ network }: { network: NetworkId }) {
               // Sage blocks calls to hosts outside the granted whitelist: ask for this one first.
               const result = await requestEndpointWhitelist(rpcUrl, network);
               if (result === "unsupported") {
-                setTest({ status: "whitelist", ok: false, message: "Inside Sage only https endpoints can be whitelisted." });
+                setTest({
+                  status: "whitelist",
+                  ok: false,
+                  message: "Inside Sage only https endpoints can be whitelisted.",
+                });
                 return;
               }
               if (result === "refused") {
-                setTest({ status: "whitelist", ok: false, message: "Sage did not allow this host; the endpoint was not saved." });
+                setTest({
+                  status: "whitelist",
+                  ok: false,
+                  message: "Sage did not allow this host; the endpoint was not saved.",
+                });
                 return;
               }
               setTest({ status: "whitelist", ok: true, message: "Sage allowed this host." });
             }
-            update((prev) => ({ ...prev, endpoints: { ...prev.endpoints, [network]: { rpcUrl } } }));
+            update((prev) => ({
+              ...prev,
+              endpoints: { ...prev.endpoints, [network]: { rpcUrl } },
+            }));
           }}
         >
           Save
@@ -110,19 +148,35 @@ function EndpointRow({ network }: { network: NetworkId }) {
           onClick={() => {
             setDraft(config.rpcUrl);
             setTest({ status: "idle" });
-            update((prev) => ({ ...prev, endpoints: { ...prev.endpoints, [network]: { rpcUrl: config.rpcUrl } } }));
+            update((prev) => ({
+              ...prev,
+              endpoints: { ...prev.endpoints, [network]: { rpcUrl: config.rpcUrl } },
+            }));
           }}
         >
           <RotateCcw size={14} aria-hidden="true" /> Reset to Coinset
         </Button>
         {test.status === "ok" ? (
           <span role="status" className="inline-flex items-center gap-1 text-xs text-primary">
-            <CheckCircle2 size={14} aria-hidden="true" /> Peak {test.height.toLocaleString("en-US")} in {test.ms} ms{test.coinset ? "" : " · custom node: indexed API, WebSocket and summary API off"}
+            <CheckCircle2 size={14} aria-hidden="true" /> Peak {test.height.toLocaleString("en-US")}{" "}
+            in {test.ms} ms
+            {test.coinset ? "" : " · custom node: indexed API, WebSocket and summary API off"}
           </span>
         ) : null}
         {test.status === "whitelist" ? (
-          <span role="status" className={cn("inline-flex items-center gap-1 text-xs", test.ok ? "text-primary" : "text-danger")}>
-            {test.ok ? <CheckCircle2 size={14} aria-hidden="true" /> : <XCircle size={14} aria-hidden="true" />} {test.message}
+          <span
+            role="status"
+            className={cn(
+              "inline-flex items-center gap-1 text-xs",
+              test.ok ? "text-primary" : "text-danger"
+            )}
+          >
+            {test.ok ? (
+              <CheckCircle2 size={14} aria-hidden="true" />
+            ) : (
+              <XCircle size={14} aria-hidden="true" />
+            )}{" "}
+            {test.message}
           </span>
         ) : null}
         {test.status === "error" ? (
@@ -153,7 +207,9 @@ export function SettingsForm() {
                 onClick={() => update({ network: id })}
                 className={cn(
                   "min-h-11 rounded-sm border px-4 text-sm font-semibold transition-colors",
-                  settings.network === id ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+                  settings.network === id
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-border bg-bg text-fg-muted hover:text-fg"
                 )}
               >
                 {NETWORKS[id].label}
@@ -161,7 +217,8 @@ export function SettingsForm() {
             ))}
           </div>
           <p className="text-xs text-fg-faint">
-            The whole app follows the active network: address prefixes, explorer links, the live stream and the mempool summary. Active endpoint:{" "}
+            The whole app follows the active network: address prefixes, explorer links, the live
+            stream and the mempool summary. Active endpoint:{" "}
             <span className="mono text-fg-muted">{endpoints.rpcUrl}</span>
           </p>
           <ChannelLine />
@@ -173,18 +230,39 @@ export function SettingsForm() {
         <CardBody className="flex flex-col gap-3">
           {inSage ? (
             <p className="rounded-sm border border-primary/40 bg-primary-soft px-3 py-2 text-xs text-fg-muted">
-              <strong className="text-primary">Inside Sage:</strong> your balance, coins and transactions come from the wallet itself. Sage&apos;s app bridge has no node RPC (no peak, mempool or block queries), so chain-wide data comes from the endpoint below; a custom endpoint is whitelisted in Sage when you save it.
+              <strong className="text-primary">Inside Sage:</strong> your balance, coins and
+              transactions come from the wallet itself. Sage&apos;s app bridge has no node RPC (no
+              peak, mempool or block queries), so chain-wide data comes from the endpoint below; a
+              custom endpoint is whitelisted in Sage when you save it.
             </p>
           ) : null}
           <p className="text-sm text-fg-muted">
-            By default mempoolxch.space reads the chain through <a href="https://coinset.org" target="_blank" rel="noreferrer" className="text-accent hover:underline">Coinset</a>&apos;s public full-node RPC, so no own node is needed, straight from your browser.
-            You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history and the WebSocket stream) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.
+            By default mempoolxch.space reads the chain through{" "}
+            <a
+              href="https://coinset.org"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent hover:underline"
+            >
+              Coinset
+            </a>
+            &apos;s public full-node RPC, so no own node is needed, straight from your browser. You
+            can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead.
+            Coinset-only features (semantic transaction summaries, address history and the WebSocket
+            stream) switch off automatically for custom endpoints and the app falls back to polling
+            and to fetching the raw mempool in the browser.
           </p>
           {NETWORK_IDS.map((id) => (
             <EndpointRow key={id} network={id} />
           ))}
           <div className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] p-3 text-xs text-fg-muted">
-            <strong className="text-warning">Using your own node?</strong> A stock Chia full node listens on <span className="mono">https://localhost:8555</span> with mutual TLS: it requires the node&apos;s client certificate, which a browser cannot present, and it sends no CORS headers. Put a small reverse proxy in front of it that terminates TLS with the client certificate and adds <span className="mono">Access-Control-Allow-Origin</span>, then enter the proxy URL here.{" "}
+            <strong className="text-warning">Using your own node?</strong> A stock Chia full node
+            listens on <span className="mono">https://localhost:8555</span> with mutual TLS: it
+            requires the node&apos;s client certificate, which a browser cannot present, and it
+            sends no CORS headers. Put a small reverse proxy in front of it that terminates TLS with
+            the client certificate and adds{" "}
+            <span className="mono">Access-Control-Allow-Origin</span>, then enter the proxy URL
+            here.{" "}
             <Link href={`${routes.docs()}#custom-node`} className="text-accent hover:underline">
               Step-by-step guide
             </Link>
@@ -209,10 +287,18 @@ export function SettingsForm() {
             </select>
           </label>
           <label className="flex items-center gap-3 text-sm">
-            <input type="checkbox" checked={settings.sounds} onChange={(e) => update({ sounds: e.target.checked })} className="h-4 w-4 accent-[var(--primary)]" />
+            <input
+              type="checkbox"
+              checked={settings.sounds}
+              onChange={(e) => update({ sounds: e.target.checked })}
+              className="h-4 w-4 accent-[var(--primary)]"
+            />
             <span>
               <span className="font-medium">Confirmation chime</span>
-              <span className="block text-xs text-fg-muted">A soft coin sound when one of your wallet&apos;s transactions lands in a block (Sage only).</span>
+              <span className="block text-xs text-fg-muted">
+                A soft coin sound when one of your wallet&apos;s transactions lands in a block (Sage
+                only).
+              </span>
             </span>
           </label>
           <label className="flex flex-col gap-1 text-sm">

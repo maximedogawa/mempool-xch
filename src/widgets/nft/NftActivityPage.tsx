@@ -26,7 +26,10 @@ export function NftActivityPage() {
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">NFT activity</h1>
-          <Tooltip text="Mints, transfers, sales and burns across every collection MintGarden indexes, newest first." placement="bottom" />
+          <Tooltip
+            text="Mints, transfers, sales and burns across every collection MintGarden indexes, newest first."
+            placement="bottom"
+          />
         </div>
       </header>
 
@@ -43,7 +46,9 @@ export function NftActivityPage() {
                 onClick={() => setKind(opt.id)}
                 className={cn(
                   "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                  kind === opt.id ? "border-primary bg-primary-soft text-primary" : "border-border bg-bg text-fg-muted hover:text-fg"
+                  kind === opt.id
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-border bg-bg text-fg-muted hover:text-fg"
                 )}
               >
                 {opt.label}
@@ -52,7 +57,11 @@ export function NftActivityPage() {
           </div>
 
           {query.error ? (
-            <EmptyState tone="danger" title="Could not load activity" description="MintGarden did not answer." />
+            <EmptyState
+              tone="danger"
+              title="Could not load activity"
+              description="MintGarden did not answer."
+            />
           ) : query.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 8 }, (_, i) => (
@@ -70,7 +79,12 @@ export function NftActivityPage() {
           )}
 
           {query.hasNextPage ? (
-            <Button size="sm" className="self-center" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+            <Button
+              size="sm"
+              className="self-center"
+              disabled={query.isFetchingNextPage}
+              onClick={() => void query.fetchNextPage()}
+            >
               {query.isFetchingNextPage ? "Loading…" : "Show more"}
             </Button>
           ) : null}

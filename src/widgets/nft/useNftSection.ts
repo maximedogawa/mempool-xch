@@ -1,7 +1,13 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { fetchCollections, fetchNftEvents, fetchNftOffers, type CollectionInterval, type NftEventKind } from "@/shared/lib/nft/mintgarden";
+import {
+  fetchCollections,
+  fetchNftEvents,
+  fetchNftOffers,
+  type CollectionInterval,
+  type NftEventKind,
+} from "@/shared/lib/nft/mintgarden";
 
 export function useTopCollections(interval: CollectionInterval = "30", size = 10) {
   return useQuery({
@@ -15,7 +21,8 @@ export function useCollectionsList(interval: CollectionInterval, search: string)
   return useInfiniteQuery({
     queryKey: ["nftSection", "collectionsList", interval, search],
     initialPageParam: undefined as string | undefined,
-    queryFn: ({ pageParam }) => fetchCollections({ interval, search: search || undefined, page: pageParam, size: 25 }),
+    queryFn: ({ pageParam }) =>
+      fetchCollections({ interval, search: search || undefined, page: pageParam, size: 25 }),
     getNextPageParam: (last) => last.next ?? undefined,
     staleTime: 5 * 60_000,
   });

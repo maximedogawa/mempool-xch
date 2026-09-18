@@ -5,7 +5,11 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { shortId } from "@/shared/lib/chia/hex";
-import { notificationsSupported, requestNotificationPermission, sendNotification } from "@/shared/lib/notify/browser";
+import {
+  notificationsSupported,
+  requestNotificationPermission,
+  sendNotification,
+} from "@/shared/lib/notify/browser";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
@@ -80,22 +84,40 @@ export function WatchlistPanel() {
               type="button"
               onClick={toggleSound}
               aria-pressed={settings.sounds}
-              aria-label={settings.sounds ? "Mute the watchlist chime" : "Play a chime when a watched item confirms"}
+              aria-label={
+                settings.sounds
+                  ? "Mute the watchlist chime"
+                  : "Play a chime when a watched item confirms"
+              }
               title={settings.sounds ? "Watchlist chime on" : "Watchlist chime off"}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
             >
-              {settings.sounds ? <Volume2 size={14} aria-hidden="true" /> : <VolumeX size={14} aria-hidden="true" />}
+              {settings.sounds ? (
+                <Volume2 size={14} aria-hidden="true" />
+              ) : (
+                <VolumeX size={14} aria-hidden="true" />
+              )}
             </button>
             {canNotify ? (
               <button
                 type="button"
                 onClick={() => void toggleNotifications()}
                 aria-pressed={settings.notifications}
-                aria-label={settings.notifications ? "Turn off browser notifications" : "Turn on browser notifications"}
-                title={settings.notifications ? "Browser notifications on" : "Browser notifications off"}
+                aria-label={
+                  settings.notifications
+                    ? "Turn off browser notifications"
+                    : "Turn on browser notifications"
+                }
+                title={
+                  settings.notifications ? "Browser notifications on" : "Browser notifications off"
+                }
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
               >
-                {settings.notifications ? <Bell size={14} aria-hidden="true" /> : <BellOff size={14} aria-hidden="true" />}
+                {settings.notifications ? (
+                  <Bell size={14} aria-hidden="true" />
+                ) : (
+                  <BellOff size={14} aria-hidden="true" />
+                )}
               </button>
             ) : null}
           </span>
@@ -116,7 +138,10 @@ export function WatchlistPanel() {
             aria-describedby={error ? "watchlist-add-error" : undefined}
             className="h-9 min-w-0 flex-1 rounded-sm border border-border bg-surface px-2.5 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
           />
-          <button type="submit" className="h-9 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-fg hover:bg-primary-strong">
+          <button
+            type="submit"
+            className="h-9 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
+          >
             Watch
           </button>
         </form>
@@ -127,7 +152,8 @@ export function WatchlistPanel() {
         ) : null}
         {items.length === 0 ? (
           <p className="py-2 text-center text-sm text-fg-faint">
-            Nothing watched yet. Add an address or transaction above, or use the Watch button on its page.
+            Nothing watched yet. Add an address or transaction above, or use the Watch button on its
+            page.
           </p>
         ) : (
           <ul className="divide-y divide-border/60">
@@ -138,7 +164,9 @@ export function WatchlistPanel() {
                   item={item}
                   projectedItems={projectedItems}
                   projectedBlocks={projected.blocks}
-                  onConfirmed={(it, height) => notify(`Confirmed: ${it.label}`, height ? `Block ${height}` : undefined)}
+                  onConfirmed={(it, height) =>
+                    notify(`Confirmed: ${it.label}`, height ? `Block ${height}` : undefined)
+                  }
                   onRemove={() => remove("tx", item.id)}
                 />
               ) : (

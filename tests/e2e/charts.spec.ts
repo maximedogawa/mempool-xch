@@ -27,7 +27,9 @@ test.describe("charts", () => {
     expect(await definitions.count()).toBe(9);
   });
 
-  test("range, smoothing and scale controls are keyboard-accessible radiogroups", async ({ page }) => {
+  test("range, smoothing and scale controls are keyboard-accessible radiogroups", async ({
+    page,
+  }) => {
     await page.goto("/charts");
     const rangeGroup = page.getByRole("radiogroup", { name: "Range", exact: true });
     const day = rangeGroup.getByRole("radio", { name: "24h" });
@@ -47,7 +49,9 @@ test.describe("charts", () => {
     await expect(log).toHaveAttribute("aria-checked", "true");
   });
 
-  test("mempool charts read the existing 2h browser sample, unavailable outside it", async ({ page }) => {
+  test("mempool charts read the existing 2h browser sample, unavailable outside it", async ({
+    page,
+  }) => {
     await page.goto("/charts");
     await expect(page.getByRole("heading", { name: "Cost used" })).toBeVisible();
     // Freshly loaded in this test, the 2h sampler has under two points yet: shows the note.
