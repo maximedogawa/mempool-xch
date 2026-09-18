@@ -6,6 +6,7 @@ import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { formatAmount, formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { coinName } from "@/shared/lib/chia/coin";
 import { formatAge } from "@/shared/lib/format/time";
+import { createLimiter } from "@/shared/lib/limit";
 import {
   PREFARM_TOTAL_MOJOS,
   PREFARM_VAULTS,
@@ -19,6 +20,12 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, Hash, Skeleton, StatTile, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 
+/**
+ * Four vaults × three calls fired together is the kind of burst Coinset answers with a 503
+ * (and no CORS header, so the browser reports it as a CORS failure); queue them instead.
+ */
+const limit = createLimiter(3);
+
 async function loadVault(
   client: RpcClient,
   vault: (typeof PREFARM_VAULTS)[number],
@@ -26,9 +33,11 @@ async function loadVault(
 ): Promise<VaultBalance> {
   const [singletonRaw, ...coinLists] = await Promise.all([
     client.hasIndexed
-      ? client.getSingletonInfo(vault.launcherId, signal).catch(() => null)
+      ? limit(() => client.getSingletonInfo(vault.launcherId, signal)).catch(() => null)
       : Promise.resolve(null),
-    ...vault.puzzleHashes.map((ph) => client.getCoinRecordsByPuzzleHash(ph, false, signal)),
+    ...vault.puzzleHashes.map((ph) =>
+      limit(() => client.getCoinRecordsByPuzzleHash(ph, false, signal))
+    ),
   ]);
   const coins: VaultCoin[] = coinLists.flat().map((r) => ({
     name: r.name,
@@ -79,6 +88,8 @@ export function PrefarmTracker() {
       queryFn: ({ signal }: { signal: AbortSignal }) => loadVault(client, vault, signal),
       staleTime: 5 * 60_000,
       refetchInterval: 5 * 60_000,
+      retry: 2,
+      retryDelay: (attempt: number) => 1_500 * (attempt + 1),
     })),
   });
   const loaded = results.filter((r) => r.data).map((r) => r.data!);

@@ -34,6 +34,7 @@ const ROUTES = [
   "/learn/questions",
   "/prefarm",
   "/vaults",
+  "/gaming",
   "/status",
   "/changelog",
   "/offer/e86a565172a26530728edf9712a34cfb103e1f1395710a6c181c495b4e2ccca5",

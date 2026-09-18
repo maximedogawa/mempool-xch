@@ -51,6 +51,7 @@ export const routes = {
   learnArticle: (slug: string) => page(`learn/${slug}`),
   prefarm: () => page("prefarm"),
   vaults: () => page("vaults"),
+  gaming: () => page("gaming"),
   status: () => page("status"),
   changelog: () => page("changelog"),
   legalTerms: () => page("legal/terms"),
