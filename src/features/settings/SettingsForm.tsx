@@ -10,7 +10,7 @@ import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import type { ThemePreference } from "@/shared/lib/settings/store";
 import { useSage } from "@/shared/providers/SageProvider";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
@@ -26,7 +26,8 @@ type TestState =
 /** Which live channel this tab is on and where the data comes from (same words as the pill and footer). */
 function ChannelLine() {
   const { endpoints } = useSettings();
-  const { status, transport } = useLive();
+  const status = useLiveValue("status");
+  const transport = useLiveValue("transport");
   const channel = describeChannel({
     status,
     transport,

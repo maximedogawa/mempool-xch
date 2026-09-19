@@ -4,8 +4,8 @@ import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useBlockchainState } from "@/shared/api/hooks";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { seedBlockRecords, useBlockchainState } from "@/shared/api/hooks";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
@@ -13,7 +13,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   Button,
@@ -32,9 +32,10 @@ const PAGE = 25;
 
 export function BlocksList() {
   const { client, endpoints } = useSettings();
+  const queryClient = useQueryClient();
   const lookupPool = usePoolLookup();
   const state = useBlockchainState();
-  const { peakHeight } = useLive();
+  const peakHeight = useLiveValue("peakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   /** Highest height of the current page; null = follow the peak. */
   const [top, setTop] = useState<number | null>(null);
@@ -53,7 +54,11 @@ export function BlocksList() {
     queryKey: queryKeys.blockRecords(endpoints.network, start ?? -1, (end ?? -1) + 1),
     enabled: end !== null,
     placeholderData: keepPreviousData,
-    queryFn: ({ signal }) => client.getBlockRecords(start!, end! + 1, signal),
+    queryFn: async ({ signal }) => {
+      const records = await client.getBlockRecords(start!, end! + 1, signal);
+      seedBlockRecords(queryClient, endpoints.network, records);
+      return records;
+    },
   });
   const rows = [...(query.data ?? [])]
     .sort((a, b) => b.height - a.height)

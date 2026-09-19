@@ -46,7 +46,7 @@ export interface PollSample {
 export interface LiveStreamOptions {
   /** Null → polling only. */
   wsUrl: string | null;
-  poll: () => Promise<PollSample>;
+  poll: (signal: AbortSignal) => Promise<PollSample>;
   onEvent: (event: LiveEvent) => void;
   pollIntervalMs?: number;
   /** Fall back to polling after this many consecutive WebSocket failures. */
@@ -161,6 +161,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
   let pollTimer: TimerId | null = null;
   let lastSample: PollSample | null = null;
   let pollFailures = 0;
+  let pollController: AbortController | null = null;
 
   const setStatus = (next: LiveStatus) => {
     if (status === next) return;
@@ -183,8 +184,11 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
 
   const runPoll = async () => {
     if (stopped) return;
+    const controller = new AbortController();
+    pollController = controller;
     try {
-      const sample = await options.poll();
+      const sample = await options.poll(controller.signal);
+      if (controller.signal.aborted || stopped) return;
       pollFailures = 0;
       // Only the fallback poll owns the status; with a socket open or opening, a poll that
       // finishes later must not overwrite "live" with "polling".
@@ -197,6 +201,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       }
       lastSample = sample;
     } catch {
+      if (controller.signal.aborted || stopped) return;
       pollFailures += 1;
       if (pollFailures >= 2 && socket === null) setStatus("offline");
     }
@@ -271,10 +276,13 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     },
     stop() {
       stopped = true;
+      pollController?.abort();
+      pollController = null;
       clearTimers();
       const ws = socket;
       socket = null;
       if (ws) {
+        ws.onopen = null;
         ws.onclose = null;
         ws.onmessage = null;
         ws.onerror = null;

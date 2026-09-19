@@ -65,7 +65,7 @@ const previousBuiltVersion = (() => {
 // 1. Static export ------------------------------------------------------------------
 rmSync(OUT_DIR, { recursive: true, force: true });
 console.log("📦 next build (output: export)");
-await run(["bun", "next", "build"], {
+await run(["bun", "next", "build", ...(process.argv.includes("--webpack") ? ["--webpack"] : [])], {
   SAGE_BUILD: "1",
   NEXT_PUBLIC_SAGE_BUILD: "1",
 });

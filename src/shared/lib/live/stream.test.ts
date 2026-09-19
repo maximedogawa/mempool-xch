@@ -218,3 +218,32 @@ describe("parseCoinsetMessage: vault", () => {
     ).toBeNull();
   });
 });
+
+test("stopping aborts the poll and ignores its late result, including after restart", async () => {
+  const timers = fakeTimers();
+  const events: LiveEvent[] = [];
+  const pending: {
+    signal: AbortSignal;
+    resolve: (value: { peakHeight: number; peakIsTx: boolean; mempoolSize: number }) => void;
+  }[] = [];
+  const stream = createLiveStream({
+    wsUrl: null,
+    poll: (signal) => new Promise((resolve) => pending.push({ signal, resolve })),
+    onEvent: (event) => events.push(event),
+    ...timers,
+  });
+  stream.start();
+  stream.stop();
+  expect(pending[0]!.signal.aborted).toBe(true);
+  stream.start();
+  const before = events.length;
+  pending[0]!.resolve({ peakHeight: 99, peakIsTx: true, mempoolSize: 10 });
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(events.length).toBe(before);
+  expect(timers.pending()).toEqual([]);
+  stream.stop();
+  pending[1]!.resolve({ peakHeight: 100, peakIsTx: true, mempoolSize: 10 });
+  await Promise.resolve();
+  expect(stream.status).toBe("offline");
+});

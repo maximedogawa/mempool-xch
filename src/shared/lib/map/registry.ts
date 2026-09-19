@@ -49,7 +49,7 @@ export function parseRegistry(raw: string | null | undefined, now = Date.now()):
         geo: node.geo,
       };
     }
-    return { version: 1, nodes };
+    return { version: 1, nodes: evict(nodes) };
   } catch {
     return emptyRegistry();
   }

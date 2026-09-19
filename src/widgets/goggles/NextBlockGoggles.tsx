@@ -122,9 +122,15 @@ export function NextBlockGoggles() {
   }, []);
   useEffect(() => setNow(Date.now()), [next]);
   // Everything in the first snapshot was already waiting when this tab opened: only bundles
-  // observed after it count as arrivals.
+  // observed after it count as arrivals. (The last visit's snapshot is not a sync of this tab.)
   const baseline = useRef<number | null>(null);
-  if (summary && baseline.current === null) baseline.current = summary.generatedAt;
+  if (
+    summary &&
+    summary.source !== "snapshot" &&
+    summary.source !== "syncing" &&
+    baseline.current === null
+  )
+    baseline.current = summary.generatedAt;
 
   const fillHeight = next ? Math.round(H * Math.max(0.16, next.fill)) : 0;
   const top = H - fillHeight;

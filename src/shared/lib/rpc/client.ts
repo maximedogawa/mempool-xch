@@ -5,6 +5,9 @@
  */
 import { withHexPrefix } from "@/shared/lib/chia/hex";
 import { RpcError } from "./errors";
+import { createReadGate } from "./readGate";
+
+const indexedRead = createReadGate();
 import { parseJsonSafe, stringifyJsonSafe } from "./json";
 import {
   normaliseBlockRecord,
@@ -78,11 +81,13 @@ async function post(
   timeoutMs: number,
   signal?: AbortSignal
 ): Promise<Raw> {
+  if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   const onAbort = () => controller.abort();
   signal?.addEventListener("abort", onAbort);
   let response: Response;
+  let text: string;
   try {
     response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/${method}`, {
       method: "POST",
@@ -90,6 +95,7 @@ async function post(
       body: stringifyJsonSafe(params),
       signal: controller.signal,
     });
+    text = await response.text();
   } catch (error) {
     if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
     throw new RpcError("network", method, `Network error calling ${method}`, { detail: error });
@@ -97,7 +103,6 @@ async function post(
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
   }
-  const text = await response.text();
   if (!response.ok) {
     throw new RpcError("http", method, `HTTP ${response.status} from ${method}`, {
       status: response.status,
@@ -132,7 +137,10 @@ export function createRpcClient(options: RpcClientOptions) {
     if (!options.indexedUrl) {
       throw new RpcError("rpc", method, "Indexed API is only available with Coinset endpoints");
     }
-    return post(fetchImpl, options.indexedUrl, method, params, timeoutMs, signal);
+    return indexedRead(
+      () => post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal),
+      signal
+    );
   };
   const hasIndexed = options.indexedUrl !== null;
 

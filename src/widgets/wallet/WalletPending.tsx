@@ -21,7 +21,7 @@ import {
   type PendingStatus,
   type TrackedState,
 } from "@/shared/lib/wallet/pendingTracker";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon, Button, Card, CardBody, CardHeader, Hash } from "@/shared/ui";
@@ -208,7 +208,8 @@ function PendingRow({
 export function WalletPending() {
   const { inSage, walletAddress } = useSage();
   const { client, endpoints, settings, update } = useSettings();
-  const { txBatch, lastTxEvent } = useLive();
+  const txBatch = useLiveValue("txBatch");
+  const lastTxEvent = useLiveValue("lastTxEvent");
   const queryClient = useQueryClient();
   const capability = useSageCapability("wallet.get_pending_transactions");
   const projected = useProjectedBlocks(8);
@@ -222,6 +223,16 @@ export function WalletPending() {
   const trackedRef = useRef<TrackedState>(EMPTY_TRACKED);
   const knownRef = useRef(new Map<string, WalletTx>());
   const notifiedRef = useRef(new Set<string>());
+  const confirmationController = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    confirmationController.current = controller;
+    trackedRef.current = EMPTY_TRACKED;
+    knownRef.current.clear();
+    notifiedRef.current.clear();
+    setConfirmed({});
+    return () => controller.abort();
+  }, [client]);
   const [confirmed, setConfirmed] = useState<Record<string, Confirmed>>({});
   const [, tick] = useState(0);
 
@@ -258,10 +269,15 @@ export function WalletPending() {
         markConfirmed(id, null);
         return;
       }
+      const signal = confirmationController.current?.signal;
       client
-        .getTransaction(id)
-        .then((summary) => markConfirmed(id, summary.confirmedHeight))
-        .catch(() => markConfirmed(id, null));
+        .getTransaction(id, signal)
+        .then((summary) => {
+          if (!signal?.aborted) markConfirmed(id, summary.confirmedHeight);
+        })
+        .catch(() => {
+          if (!signal?.aborted) markConfirmed(id, null);
+        });
     });
   }, [client, markConfirmed, pending.data]);
 
@@ -282,6 +298,11 @@ export function WalletPending() {
         const kept = Object.fromEntries(
           Object.entries(prev).filter(([, c]) => now - c.at < KEEP_CONFIRMED_MS)
         );
+        const retained = new Set([...Object.keys(trackedRef.current.seen), ...Object.keys(kept)]);
+        for (const key of knownRef.current.keys())
+          if (!retained.has(key)) knownRef.current.delete(key);
+        for (const key of notifiedRef.current)
+          if (!retained.has(key)) notifiedRef.current.delete(key);
         return Object.keys(kept).length === Object.keys(prev).length ? prev : kept;
       });
     }, 10_000);

@@ -10,7 +10,7 @@ import { getPoolClaimStore, isFresh } from "@/shared/lib/pools/claimStore";
 import { groupPoolShare, payoutsToResolve, type PoolShare } from "@/shared/lib/pools/share";
 import { usePoolClaims } from "@/shared/lib/pools/usePoolLookup";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 /** Parity with xchmempool.com/pools: roughly one day of blocks. */
@@ -46,7 +46,7 @@ export interface PoolShareResult {
 export function usePoolShare(): PoolShareResult {
   const { client, endpoints } = useSettings();
   const state = useBlockchainState();
-  const { peakHeight } = useLive();
+  const peakHeight = useLiveValue("peakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const bucketedPeak = peak !== null ? peak - (peak % BUCKET) : null;
 

@@ -5,9 +5,9 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -37,15 +37,57 @@ export interface LiveContextValue {
   lastVault: Extract<LiveEvent, { type: "vault" }> | null;
 }
 
-const LiveContext = createContext<LiveContextValue | null>(null);
+const INITIAL: LiveContextValue = {
+  status: "offline",
+  transport: "polling",
+  lastEventAt: null,
+  peakHeight: null,
+  txBatch: 0,
+  lastTxEvent: null,
+  netspace: null,
+  lastReorg: null,
+  lastVault: null,
+};
+
+/**
+ * The live state is an external store rather than context state: Coinset sends several events
+ * per second when the mempool is busy and each one moves `lastEventAt`, so with one context
+ * value every consumer (the whole blocks row, the wallet panel, ...) re-rendered on every
+ * event. Widgets subscribe to the fields they read with `useLiveValue`.
+ */
+interface LiveStore {
+  get: () => LiveContextValue;
+  set: (patch: Partial<LiveContextValue>) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+function createLiveStore(): LiveStore {
+  let state = INITIAL;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => state,
+    set: (patch) => {
+      state = { ...state, ...patch };
+      listeners.forEach((l) => l());
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+}
+
+const LiveContext = createContext<LiveStore | null>(null);
 
 /** Coalesces bursts of invalidations (Coinset sends several mempool deltas per second when busy). */
 function throttled(fn: () => void, ms: number) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let last = 0;
-  return () => {
+  const invoke = () => {
     const due = last + ms - Date.now();
     if (due <= 0) {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
       last = Date.now();
       fn();
     } else if (timer === null) {
@@ -56,20 +98,17 @@ function throttled(fn: () => void, ms: number) {
       }, due);
     }
   };
+  invoke.cancel = () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+  };
+  return invoke;
 }
 
 export function LiveProvider({ children }: { children: ReactNode }) {
   const { client, endpoints, hydrated } = useSettings();
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<LiveStatus>("offline");
-  const [transport, setTransport] = useState<LiveTransport>("polling");
-  const [lastEventAt, setLastEventAt] = useState<number | null>(null);
-  const [peakHeight, setPeakHeight] = useState<number | null>(null);
-  const [txBatch, setTxBatch] = useState(0);
-  const [lastTxEvent, setLastTxEvent] = useState<LiveContextValue["lastTxEvent"]>(null);
-  const [netspace, setNetspace] = useState<LiveContextValue["netspace"]>(null);
-  const [lastReorg, setLastReorg] = useState<LiveContextValue["lastReorg"]>(null);
-  const [lastVault, setLastVault] = useState<LiveContextValue["lastVault"]>(null);
+  const [store] = useState(createLiveStore);
   const network = endpoints.network;
   const peakRef = useRef<number | null>(null);
 
@@ -82,13 +121,12 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     // Network or endpoint changed: forget everything learnt from the previous one so widgets
     // that key on the peak (recent blocks, confirmations) wait for the new chain's first poll.
     peakRef.current = null;
-    setPeakHeight(null);
-    setLastEventAt(null);
-    setLastTxEvent(null);
-    setNetspace(null);
-    setLastReorg(null);
-    setLastVault(null);
-    setStatus("connecting");
+    store.set({
+      ...INITIAL,
+      txBatch: store.get().txBatch,
+      transport: store.get().transport,
+      status: "connecting",
+    });
     // Only the families that change with a new peak: state, fees and the recent window.
     // Per-block data (records by hash, transactions, asset totals) is immutable and keyed by
     // height/hash, so it is never invalidated here.
@@ -104,8 +142,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     const stream = createLiveStream({
       wsUrl: endpoints.wsUrl,
       pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,
-      poll: async () => {
-        const state = await client.getBlockchainState();
+      poll: async (signal) => {
+        const state = await client.getBlockchainState(signal);
+        signal.throwIfAborted();
         queryClient.setQueryData(queryKeys.state(network), state);
         return {
           peakHeight: state.peak.height,
@@ -115,20 +154,21 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       },
       onEvent: (event) => {
         if (event.type === "status") {
-          setStatus(event.status);
-          setTransport(stream.transport);
+          store.set({ status: event.status, transport: stream.transport });
           return;
         }
-        setLastEventAt(Date.now());
+        const lastEventAt = Date.now();
         if (event.type === "peak") {
-          if (peakRef.current === event.height) return;
+          if (peakRef.current === event.height) {
+            store.set({ lastEventAt });
+            return;
+          }
           peakRef.current = event.height;
-          setPeakHeight(event.height);
+          store.set({ lastEventAt, peakHeight: event.height });
           invalidateChain();
           invalidateMempool();
         } else if (event.type === "transaction") {
-          setTxBatch((n) => n + 1);
-          setLastTxEvent(event);
+          store.set({ lastEventAt, txBatch: store.get().txBatch + 1, lastTxEvent: event });
           invalidateMempool();
           event.ids.forEach(
             (id) => void queryClient.invalidateQueries({ queryKey: queryKeys.tx(network, id) })
@@ -137,13 +177,17 @@ export function LiveProvider({ children }: { children: ReactNode }) {
             void queryClient.invalidateQueries({ queryKey: queryKeys.addressRoot(network) });
           }
         } else if (event.type === "mempool") {
+          store.set({ lastEventAt });
           invalidateMempool();
         } else if (event.type === "netspace") {
-          setNetspace({ bytes: event.bytes, difficulty: event.difficulty, at: Date.now() });
+          store.set({
+            lastEventAt,
+            netspace: { bytes: event.bytes, difficulty: event.difficulty, at: lastEventAt },
+          });
         } else if (event.type === "vault") {
-          setLastVault(event);
+          store.set({ lastEventAt, lastVault: event });
         } else if (event.type === "reorg") {
-          setLastReorg(event);
+          store.set({ lastEventAt, lastReorg: event });
           // The rolled-back blocks are gone: everything keyed on the recent chain is stale.
           peakRef.current = null;
           invalidateChain();
@@ -153,38 +197,34 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       },
     });
     stream.start();
-    return () => stream.stop();
-  }, [client, endpoints.wsUrl, hydrated, network, queryClient]);
+    return () => {
+      stream.stop();
+      invalidateChain.cancel();
+      invalidateMempool.cancel();
+    };
+  }, [client, endpoints.wsUrl, hydrated, network, queryClient, store]);
 
-  const value = useMemo<LiveContextValue>(
-    () => ({
-      status,
-      transport,
-      lastEventAt,
-      peakHeight,
-      txBatch,
-      lastTxEvent,
-      netspace,
-      lastReorg,
-      lastVault,
-    }),
-    [
-      status,
-      transport,
-      lastEventAt,
-      peakHeight,
-      txBatch,
-      lastTxEvent,
-      netspace,
-      lastReorg,
-      lastVault,
-    ]
-  );
-  return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
+  return <LiveContext.Provider value={store}>{children}</LiveContext.Provider>;
 }
 
+function useLiveStore(): LiveStore {
+  const store = useContext(LiveContext);
+  if (!store) throw new Error("useLive must be used inside LiveProvider");
+  return store;
+}
+
+/** One field of the live state; the component re-renders only when that field changes. */
+export function useLiveValue<K extends keyof LiveContextValue>(key: K): LiveContextValue[K] {
+  const store = useLiveStore();
+  return useSyncExternalStore(
+    store.subscribe,
+    () => store.get()[key],
+    () => INITIAL[key]
+  );
+}
+
+/** The whole live state: re-renders on every event, so only for pages that show all of it. */
 export function useLive(): LiveContextValue {
-  const ctx = useContext(LiveContext);
-  if (!ctx) throw new Error("useLive must be used inside LiveProvider");
-  return ctx;
+  const store = useLiveStore();
+  return useSyncExternalStore(store.subscribe, store.get, () => INITIAL);
 }

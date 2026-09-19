@@ -4,7 +4,7 @@ import Link from "next/link";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { routes } from "@/shared/lib/routes";
 import { useConsent } from "@/shared/providers/ConsentProvider";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
@@ -12,7 +12,8 @@ import { ExternalLink } from "@/shared/ui/ExternalLink";
 export function Footer() {
   const { endpoints, networkConfig } = useSettings();
   const { inSage } = useSage();
-  const { status, transport } = useLive();
+  const status = useLiveValue("status");
+  const transport = useLiveValue("transport");
   const { openSettings } = useConsent();
   const channel = describeChannel({
     status,

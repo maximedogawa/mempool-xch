@@ -51,11 +51,12 @@ export function RecentBlocks({
 }) {
   const now = useNow();
   const lookupPool = usePoolLookup();
-  const [seen, setSeen] = useState<Set<number>>(() => new Set());
+  // Only the newest cube animates, so the newest height already shown is all there is to keep.
+  const [seen, setSeen] = useState<number | null>(null);
   const newest = data?.txBlocks[0]?.height;
   useEffect(() => {
     if (newest === undefined) return;
-    const id = setTimeout(() => setSeen((s) => new Set([...s, newest])), 800);
+    const id = setTimeout(() => setSeen((s) => Math.max(s ?? 0, newest)), 800);
     return () => clearTimeout(id);
   }, [newest]);
 
@@ -100,7 +101,7 @@ export function RecentBlocks({
                 variant="confirmed"
                 href={routes.block(block.height)}
                 ariaLabel={label}
-                animate={!seen.has(block.height) && i === 0}
+                animate={i === 0 && (seen === null || block.height > seen)}
                 size={CUBE}
               >
                 <span className="tabular text-[15px] font-bold leading-tight">

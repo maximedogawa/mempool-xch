@@ -9,7 +9,7 @@ import { formatBytes } from "@/shared/lib/charts/format";
 import { cn } from "@/shared/lib/cn";
 import { formatAge, formatDuration } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 import { useReorgs } from "@/widgets/blocks/ReorgHistory";
@@ -52,7 +52,8 @@ export function BlockTime() {
   const overdue = sinceLast !== null && sinceLast > expectedInterval;
   const peak = state.data?.peak.height;
   // Netspace from Coinset's pushed estimate when the stream has one, else the node's own state.
-  const { netspace: pushed, lastReorg } = useLive();
+  const pushed = useLiveValue("netspace");
+  const lastReorg = useLiveValue("lastReorg");
   const netspace = pushed?.bytes ?? state.data?.space ?? null;
   const reorgs = useReorgs(1);
   const latestReorg = lastReorg

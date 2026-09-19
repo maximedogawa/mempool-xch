@@ -39,3 +39,31 @@ test.describe("tokens", () => {
     await expect(rows.first()).toContainText("10+");
   });
 });
+
+test("token activity recovers after an opaque upstream failure without a request burst", async ({
+  page,
+}) => {
+  await mockCoinset(page);
+  await mockDexie(page);
+  let failed = false;
+  let active = 0;
+  let maximum = 0;
+  await page.route("**/get_transactions_by_cat_asset_id", async (route) => {
+    active++;
+    maximum = Math.max(maximum, active);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      if (!failed) {
+        failed = true;
+        await route.abort("failed");
+      } else await route.fallback();
+    } finally {
+      active--;
+    }
+  });
+  await page.goto("/tokens");
+  const row = page.getByRole("row").filter({ hasText: "Most Active Token" });
+  await expect(row).toContainText("10+", { timeout: 15_000 });
+  expect(failed).toBe(true);
+  expect(maximum).toBeLessThanOrEqual(3);
+});

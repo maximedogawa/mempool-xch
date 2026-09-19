@@ -32,3 +32,27 @@ describe("createLimiter", () => {
     expect(await limit(async () => "ok")).toBe("ok");
   });
 });
+
+test("cancelling queued work skips it and lets the following job run", async () => {
+  const limit = createLimiter(1);
+  let release!: () => void;
+  const first = limit(
+    () =>
+      new Promise<void>((r) => {
+        release = r;
+      })
+  );
+  await Promise.resolve();
+  const controller = new AbortController();
+  let ran = false;
+  const cancelled = limit(async () => {
+    ran = true;
+  }, controller.signal).catch(() => "cancelled");
+  const next = limit(async () => "next");
+  controller.abort();
+  expect(await cancelled).toBe("cancelled");
+  release();
+  await first;
+  expect(await next).toBe("next");
+  expect(ran).toBe(false);
+});

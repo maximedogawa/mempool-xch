@@ -54,6 +54,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   // The hydration render still sees the SSR defaults (Coinset). Any fetch started from that
   // render must not go out: a user with a custom node would otherwise leak a burst of calls
   // to Coinset and the hosted APIs on every page load. LiveProvider refetches once hydrated.
+  const activeEndpoints = useRef(endpoints);
+  activeEndpoints.current = endpoints;
   const hydratedRef = useRef(hydrated);
   hydratedRef.current = hydrated;
   const client = useMemo(
@@ -62,7 +64,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         rpcUrl: endpoints.rpcUrl,
         indexedUrl: endpoints.indexedUrl,
         fetchImpl: (input, init) =>
-          hydratedRef.current
+          hydratedRef.current &&
+          activeEndpoints.current.rpcUrl === endpoints.rpcUrl &&
+          activeEndpoints.current.indexedUrl === endpoints.indexedUrl
             ? fetch(input, init)
             : Promise.reject(new RpcError("aborted", "hydration", "Settings not hydrated yet")),
       }),

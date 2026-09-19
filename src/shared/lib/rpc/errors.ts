@@ -6,6 +6,8 @@ export class RpcError extends Error {
   readonly method: string;
   readonly status?: number;
   readonly detail?: unknown;
+  /** Transport already exhausted its bounded retries; avoid multiplying them in Query. */
+  retryHandled = false;
 
   constructor(
     kind: RpcErrorKind,
