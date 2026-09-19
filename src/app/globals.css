@@ -178,6 +178,22 @@ a {
   }
 }
 
+@keyframes market-tick {
+  0% {
+    border-color: var(--border);
+  }
+  40% {
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  }
+  100% {
+    border-color: var(--border);
+  }
+}
+
+.market-book {
+  animation: market-tick 900ms ease-out;
+}
+
 @keyframes block-in {
   from {
     opacity: 0;
