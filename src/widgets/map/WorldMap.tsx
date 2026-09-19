@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import { LAND_RUNS } from "@/shared/lib/map/landDots";
 import { cellCenter, GRID_STEP, MAP_HEIGHT, MAP_WIDTH, project } from "@/shared/lib/map/projection";
 import type { NodeCluster } from "@/shared/lib/map/registry";
@@ -27,6 +27,10 @@ function markerRadius(count: number): number {
   return Math.min(9, 2.2 + Math.sqrt(count) * 1.1);
 }
 
+function clusterCount(cluster: NodeCluster): number {
+  return cluster.count ?? cluster.nodes.length;
+}
+
 /**
  * Dot-matrix world map: the land is a single path (one horizontal segment per run of land
  * cells, drawn as round dashes), observed nodes are clusters sized by count, connected peers
@@ -38,13 +42,17 @@ export function WorldMap({
   pulses,
   hovered,
   onHover,
+  focus,
 }: {
   clusters: NodeCluster[];
   peers: PeerMarker[];
   pulses: MapPulse[];
   hovered: string | null;
   onHover: (key: string | null) => void;
+  focus?: { lat: number; lon: number } | null;
 }) {
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; originX: number; originY: number } | null>(null);
   const land = useMemo(() => {
     const segments: string[] = [];
     LAND_RUNS.forEach((runs, row) => {
@@ -60,15 +68,69 @@ export function WorldMap({
     () => new Map(clusters.map((c) => [c.key, project(c.lon, c.lat)])),
     [clusters]
   );
-  const total = clusters.reduce((s, c) => s + c.nodes.length, 0);
+  const total = clusters.reduce((s, c) => s + clusterCount(c), 0);
+  useEffect(() => {
+    if (!focus) return;
+    const point = project(focus.lon, focus.lat);
+    setView((current) => ({
+      ...current,
+      x: MAP_WIDTH / 2 - point.x * current.scale,
+      y: MAP_HEIGHT / 2 - point.y * current.scale,
+    }));
+  }, [focus]);
+  const zoom = (factor: number) =>
+    setView((current) => ({ ...current, scale: Math.min(5, Math.max(1, current.scale * factor)) }));
+  const onPointerDown = (event: PointerEvent<SVGSVGElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { x: event.clientX, y: event.clientY, originX: view.x, originY: view.y };
+  };
+  const onPointerMove = (event: PointerEvent<SVGSVGElement>) => {
+    if (!drag.current) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const unitX = MAP_WIDTH / rect.width / view.scale;
+    const unitY = MAP_HEIGHT / rect.height / view.scale;
+    setView((current) => ({
+      ...current,
+      x: drag.current!.originX + (event.clientX - drag.current!.x) * unitX,
+      y: drag.current!.originY + (event.clientY - drag.current!.y) * unitY,
+    }));
+  };
+  const stopDrag = () => {
+    drag.current = null;
+  };
+  const onWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15);
+  };
 
   return (
-    <svg
-      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-      role="group"
-      aria-label={`World map of ${formatNumber(total)} observed Chia nodes in ${clusters.length} places`}
-      className="block h-auto w-full select-none"
-    >
+    <div className="map-viewport relative overflow-hidden rounded-sm" onWheel={onWheel}>
+      <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-sm border border-primary/30 bg-bg-elevated/90 px-2 py-1 text-[10px] uppercase tracking-wider text-primary">
+        drag · wheel to zoom
+      </div>
+      <div className="absolute right-3 top-3 z-10 flex overflow-hidden rounded-sm border border-border bg-bg-elevated/90">
+        <button type="button" aria-label="Zoom in" className="map-control" onClick={() => zoom(1.35)}>
+          +
+        </button>
+        <button type="button" aria-label="Zoom out" className="map-control" onClick={() => zoom(1 / 1.35)}>
+          −
+        </button>
+        <button type="button" aria-label="Reset map view" className="map-control map-control-wide" onClick={() => setView({ scale: 1, x: 0, y: 0 })}>
+          reset
+        </button>
+      </div>
+      <svg
+        viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+        role="group"
+        aria-label={`World map of ${formatNumber(total)} observed Chia nodes in ${clusters.length} places`}
+        className="block h-auto w-full select-none"
+        style={{ touchAction: "none" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={stopDrag}
+        onPointerCancel={stopDrag}
+      >
+      <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
       <path
         d={land}
         fill="none"
@@ -98,7 +160,8 @@ export function WorldMap({
       <g>
         {clusters.map((c) => {
           const pos = positions.get(c.key)!;
-          const r = markerRadius(c.nodes.length);
+          const count = clusterCount(c);
+          const r = markerRadius(count);
           const active = hovered === c.key;
           return (
             <g
@@ -110,7 +173,7 @@ export function WorldMap({
               onBlur={() => onHover(null)}
               tabIndex={0}
               role="img"
-              aria-label={`${c.label}: ${c.nodes.length} node${c.nodes.length === 1 ? "" : "s"}`}
+              aria-label={`${c.label}: ${count} node${count === 1 ? "" : "s"}`}
             >
               <circle
                 cx={pos.x}
@@ -150,6 +213,8 @@ export function WorldMap({
           );
         })}
       </g>
-    </svg>
+      </g>
+      </svg>
+    </div>
   );
 }

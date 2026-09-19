@@ -392,6 +392,38 @@ body {
   stroke-width: 1.5;
 }
 
+.map-viewport {
+  background-color: #071014;
+  background-image: linear-gradient(rgb(48 120 105 / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(48 120 105 / 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  cursor: grab;
+}
+
+.map-viewport:active {
+  cursor: grabbing;
+}
+
+.map-control {
+  min-width: 2rem;
+  height: 2rem;
+  border-right: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.map-control:hover {
+  background: var(--surface-2);
+}
+
+.map-control-wide {
+  min-width: 3.5rem;
+  border-right: 0;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
 .card-lift {
   transition:
     transform 160ms ease,

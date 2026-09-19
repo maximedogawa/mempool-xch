@@ -23,6 +23,7 @@ interface NavItem {
 const PRIMARY: NavItem[] = [
   { href: routes.home(), label: "Dashboard", match: (p) => p === "/" },
   { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
+  { href: routes.map(), label: "Map", match: (p) => p.startsWith("/map") },
   { href: routes.market(), label: "Market", match: (p) => p.startsWith("/market") },
   {
     href: routes.nftHome(),

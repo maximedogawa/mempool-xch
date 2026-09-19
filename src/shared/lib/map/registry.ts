@@ -136,6 +136,8 @@ export interface NodeCluster {
   lat: number;
   lon: number;
   nodes: ObservedNode[];
+  /** Dashboard-backed country population when the source has no individual coordinates. */
+  count?: number;
   /** Most common city/country label among the members. */
   label: string;
 }

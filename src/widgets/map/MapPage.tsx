@@ -8,8 +8,11 @@ import { queryKeys } from "@/shared/api/queryKeys";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
+import dashboardSnapshot from "@/shared/lib/map/dashboardSnapshot.json";
+import type { DashboardSnapshot } from "@/shared/lib/map/dashboard";
+import { COUNTRY_POINTS } from "@/shared/lib/map/countryPoints";
 import { lookupGeo } from "@/shared/lib/map/geo";
-import { clusterNodes, countByCountry, type NodeCluster } from "@/shared/lib/map/registry";
+import type { NodeCluster } from "@/shared/lib/map/registry";
 import { isPublicIp } from "@/shared/lib/map/seeders";
 import { routes } from "@/shared/lib/routes";
 import type { PeerConnection } from "@/shared/lib/rpc/types";
@@ -29,7 +32,6 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
-import { useNodeScan } from "./useNodeScan";
 import { WorldMap, type MapPulse, type PeerMarker } from "./WorldMap";
 
 const CONNECTION_TYPE: Record<number, string> = {
@@ -43,6 +45,7 @@ const CONNECTION_TYPE: Record<number, string> = {
 const COUNTRY_ROWS = 12;
 const FEED_LIMIT = 10;
 const PULSE_MS = 1_600;
+const DASHBOARD = dashboardSnapshot as DashboardSnapshot;
 
 function byteRate(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -64,7 +67,7 @@ function pickCluster(clusters: NodeCluster[], total: number): NodeCluster | null
   if (clusters.length === 0 || total === 0) return null;
   let r = Math.random() * total;
   for (const c of clusters) {
-    r -= c.nodes.length;
+    r -= c.count ?? c.nodes.length;
     if (r <= 0) return c;
   }
   return clusters[clusters.length - 1] ?? null;
@@ -99,7 +102,7 @@ function useActivity(clusters: NodeCluster[]) {
   const pulse = (kind: MapPulse["kind"], n: number) => {
     if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const list = clustersRef.current;
-    const total = list.reduce((s, c) => s + c.nodes.length, 0);
+    const total = list.reduce((s, c) => s + (c.count ?? c.nodes.length), 0);
     const fresh: MapPulse[] = [];
     for (let i = 0; i < n; i += 1) {
       const c = pickCluster(list, total);
@@ -158,13 +161,38 @@ function useActivity(clusters: NodeCluster[]) {
 
 export function MapPage() {
   const { client, endpoints } = useSettings();
-  const scan = useNodeScan(endpoints.network);
   const [hovered, setHovered] = useState<string | null>(null);
-  const nodes = useMemo(() => Object.values(scan.registry.nodes), [scan.registry]);
-  const clusters = useMemo(() => clusterNodes(nodes), [nodes]);
-  const countries = useMemo(() => countByCountry(scan.registry), [scan.registry]);
-  const located = nodes.filter((n) => n.geo).length;
-  const ipv6 = nodes.filter((n) => n.ip.includes(":")).length;
+  const dashboardForNetwork = DASHBOARD.network === endpoints.network;
+  const countries = useMemo(
+    () =>
+      (dashboardForNetwork ? DASHBOARD.countries : []).map((country) => ({
+        countryCode: country.key.length <= 3 ? country.key.toUpperCase() : "—",
+        country: country.label,
+        nodes: country.nodes,
+        share: DASHBOARD.total > 0 ? country.nodes / DASHBOARD.total : 0,
+      })),
+    [dashboardForNetwork]
+  );
+  const clusters = useMemo<NodeCluster[]>(
+    () =>
+      dashboardForNetwork
+        ? DASHBOARD.countries.flatMap((country) => {
+            const point = COUNTRY_POINTS[country.label];
+            if (!point) return [];
+            return [
+              {
+                key: `dashboard:${country.key}`,
+                lat: point.lat,
+                lon: point.lon,
+                nodes: [],
+                count: country.nodes,
+                label: country.label,
+              },
+            ];
+          })
+        : [],
+    [dashboardForNetwork]
+  );
   const activity = useActivity(clusters);
   const summary = useMempoolSummary();
   const kindOf = useMemo(
@@ -216,27 +244,31 @@ export function MapPage() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Network</h1>
+          <h1 className="text-lg font-semibold">Network map</h1>
           <Tooltip
-            text="Full nodes discovered by asking the Chia DNS introducers (the same seeders every node bootstraps from) from your browser, placed with GeoJS city-level estimates. Only node addresses are looked up; nothing about you is sent beyond the requests themselves, and nothing goes through our server."
+            text="The map uses Chia's published Peer Info dashboard snapshot. Country markers show aggregate node populations at representative points; no browser crawler or address harvesting is needed."
             placement="bottom"
           />
         </div>
+        <p className="max-w-2xl text-sm text-fg-muted">
+          Explore the Chia network at a glance: dashboard totals cluster across the world, while
+          new peaks and mempool batches travel as modelled pulses.
+        </p>
       </header>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <StatTile
-          label="Observed nodes"
-          value={formatNumber(nodes.length)}
-          sub={scan.scanning ? "scanning…" : "paused"}
+          label="Full nodes"
+          value={formatNumber(dashboardForNetwork ? DASHBOARD.total : 0)}
+          sub={dashboardForNetwork ? "dashboard snapshot" : "mainnet only"}
           tone="primary"
-          hint="Distinct node addresses the seeders handed out to this browser; kept for a week per network."
+          hint="Full-node population reported by Chia's Peer Info dashboard."
         />
         <StatTile
-          label="Located"
-          value={formatNumber(located)}
-          sub={scan.pendingGeo > 0 ? `${formatNumber(scan.pendingGeo)} pending` : "all placed"}
-          hint="Nodes GeoJS could place on the map (city-level estimates)."
+          label="Mapped countries"
+          value={formatNumber(clusters.length)}
+          sub="representative points"
+          hint="Country totals are shown at stable representative coordinates."
         />
         <StatTile
           label="Countries"
@@ -245,14 +277,13 @@ export function MapPage() {
         />
         <StatTile
           label="IPv6"
-          value={nodes.length > 0 ? formatPercent(ipv6 / nodes.length) : "—"}
-          sub={`${formatNumber(ipv6)} addresses`}
+          value={dashboardForNetwork && DASHBOARD.ipv6 !== null ? formatPercent(DASHBOARD.ipv6 / DASHBOARD.total) : "—"}
+          sub={dashboardForNetwork && DASHBOARD.ipv6 !== null ? `${formatNumber(DASHBOARD.ipv6)} nodes` : undefined}
         />
         <StatTile
-          label="Seeder answers"
-          value={formatNumber(scan.scans)}
-          sub={scan.lastScanAt ? `last ${formatAge(scan.lastScanAt)}` : "waiting for the first"}
-          hint="One seeder is asked every few seconds while this page is open; each answer is a fresh batch of reachable nodes."
+          label="Snapshot"
+          value={dashboardForNetwork ? formatAge(new Date(DASHBOARD.observedAt).getTime()) : "—"}
+          sub={dashboardForNetwork ? "last observed" : "unavailable"}
         />
       </div>
 
@@ -266,7 +297,7 @@ export function MapPage() {
                   aria-hidden="true"
                   className="inline-block h-2.5 w-2.5 rounded-full bg-primary"
                 />{" "}
-                observed node
+                dashboard country total
               </span>
               {!endpoints.isCoinset ? (
                 <span className="inline-flex items-center gap-1">
@@ -293,15 +324,6 @@ export function MapPage() {
           }
         />
         <CardBody className="relative">
-          {nodes.length === 0 ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center">
-              <div className="rounded-sm border border-border bg-bg-elevated/90 px-3 py-2 text-xs text-fg-muted">
-                {scan.log[0]?.error
-                  ? `The seeders did not answer (${scan.log[0].error}); retrying.`
-                  : "Asking the seeders for the first batch of nodes…"}
-              </div>
-            </div>
-          ) : null}
           <WorldMap
             clusters={clusters}
             peers={peerMarkers}
@@ -317,9 +339,9 @@ export function MapPage() {
             <div className="font-medium text-fg">{hoveredCluster?.label ?? "—"}</div>
             <div className="text-fg-muted">
               {hoveredCluster
-                ? `${formatNumber(hoveredCluster.nodes.length)} node${hoveredCluster.nodes.length === 1 ? "" : "s"}`
+                ? `${formatNumber(hoveredCluster.count ?? hoveredCluster.nodes.length)} node${(hoveredCluster.count ?? hoveredCluster.nodes.length) === 1 ? "" : "s"}`
                 : ""}
-              {hoveredCluster?.nodes[0]?.geo?.org ? ` · ${hoveredCluster.nodes[0].geo.org}` : ""}
+              {hoveredCluster ? " · dashboard estimate" : ""}
             </div>
           </div>
         </CardBody>
@@ -330,12 +352,12 @@ export function MapPage() {
           <CardHeader
             title="Countries"
             action={
-              <span className="text-xs text-fg-faint">{formatNumber(located)} located nodes</span>
+              <span className="text-xs text-fg-faint">{formatNumber(DASHBOARD.total)} observed nodes</span>
             }
           />
           <CardBody>
             {countries.length === 0 ? (
-              <p className="py-6 text-center text-sm text-fg-faint">No located nodes yet.</p>
+              <p className="py-6 text-center text-sm text-fg-faint">No dashboard snapshot for this network.</p>
             ) : (
               <Table>
                 <thead>
@@ -446,20 +468,6 @@ export function MapPage() {
                 ))}
               </ul>
             )}
-            <details className="text-xs text-fg-faint">
-              <summary className="cursor-pointer select-none font-medium text-fg-muted">
-                Scan log
-              </summary>
-              <ul className="mt-1 flex flex-col gap-0.5">
-                {scan.log.length === 0 ? <li>No seeder asked yet.</li> : null}
-                {scan.log.map((s) => (
-                  <li key={s.t} className="mono">
-                    {new Date(s.t).toLocaleTimeString("en-GB")} {s.seeder} {s.type}:{" "}
-                    {s.error ? `failed (${s.error})` : `${s.answered} addresses, ${s.added} new`}
-                  </li>
-                ))}
-              </ul>
-            </details>
           </CardBody>
         </Card>
       </div>
@@ -473,19 +481,9 @@ export function MapPage() {
       ) : null}
 
       <p className="text-xs text-fg-faint">
-        Node addresses come from the Chia DNS introducers (dns-introducer.chia.net and the community
-        seeders every node ships with) via Cloudflare&apos;s DNS-over-HTTPS; locations are
-        city-level estimates by{" "}
-        <a
-          href="https://www.geojs.io/"
-          target="_blank"
-          rel="noreferrer"
-          className="text-accent hover:underline"
-        >
-          GeoJS
-        </a>{" "}
-        using GeoLite2 data by MaxMind. Chia does not reveal where a block was farmed or where a
-        spend bundle came from: the pulses model propagation from random observed nodes and are not
+        Country markers use the Chia Peer Info dashboard&apos;s aggregate snapshot and stable
+        representative coordinates. Chia does not reveal where a block was farmed or where a spend
+        bundle came from: the pulses model propagation from random observed countries and are not
         the route an event travelled.{" "}
         {endpoints.isCoinset
           ? "Point Settings at your own node to also see its connected peers here."
