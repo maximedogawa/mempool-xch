@@ -53,8 +53,14 @@ export default function PrivacyPage() {
         <p>
           The server does not fetch chain or asset data on your behalf: it only serves the
           application itself (HTML, scripts, styles). Every lookup you make is a request from your
-          own browser to Coinset, Dexie, MintGarden or your own node, described in the next
-          sections.
+          own browser to Coinset, Dexie, MintGarden, public market data sources or your own node,
+          described in the next sections.
+        </p>
+        <p>
+          The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com)
+          and HTX (api.huobi.pro), plus public XCH offers for ByteCash (BYC) and wUSDC.b from
+          Dexie. These requests contain no account credentials. A source can be unavailable or rate
+          limited; the page labels it stale and excludes it from its aggregate.
         </p>
       </Section>
 

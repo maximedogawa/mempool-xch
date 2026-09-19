@@ -39,6 +39,7 @@ export const routes = {
   blocks: () => page("blocks"),
   mempool: () => page("mempool"),
   charts: () => page("charts"),
+  market: () => page("market"),
   fees: () => page("fees"),
   pools: () => page("pools"),
   tokens: () => page("tokens"),

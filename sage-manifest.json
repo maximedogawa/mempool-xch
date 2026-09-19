@@ -26,7 +26,10 @@
           "https://ipfs.mintgarden.io",
           "https://cloudflare-dns.com",
           "https://dns.google",
-          "https://get.geojs.io"
+          "https://get.geojs.io",
+          "https://api.gateio.ws",
+          "https://www.okx.com",
+          "https://api.huobi.pro"
         ],
         "optional": []
       },
