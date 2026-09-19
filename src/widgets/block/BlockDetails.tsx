@@ -9,7 +9,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { isNotFound } from "@/shared/lib/rpc/errors";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton } from "@/shared/ui";
 import { blockReward } from "@/shared/lib/blocks/reward";
@@ -20,7 +20,8 @@ import { BlockTransactions } from "./BlockTransactions";
 import { AssetsMoved } from "./AssetsMoved";
 import {
   parseBlockId,
-  useBlock,
+  useBlockRecord,
+  useFullBlock,
   useBlockAssetTotals,
   useBlockCoins,
   useNextTransactionBlock,
@@ -53,14 +54,14 @@ function Row({
 export function BlockDetails({ id }: { id: string }) {
   const { networkConfig } = useSettings();
   const parsed = parseBlockId(id);
-  const query = useBlock(id);
+  const query = useBlockRecord(id);
   const state = useBlockchainState();
-  const { peakHeight } = useLive();
+  const peakHeight = useLiveValue("peakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   const blockMaxCost = state.data?.blockMaxCost ?? 11_000_000_000;
-  const record = query.data?.record;
+  const record = query.data;
   const farmedBy = useBlockPool(record);
-  const block = query.data?.block;
+  const block = useFullBlock(record?.headerHash ?? null).data;
   const isTx = record?.isTransactionBlock ?? false;
   const coins = useBlockCoins(record?.headerHash ?? null, isTx);
   const nextTx = useNextTransactionBlock(record?.height ?? null, record !== undefined && !isTx);
@@ -89,7 +90,7 @@ export function BlockDetails({ id }: { id: string }) {
       />
     );
   }
-  if (!record || !block) {
+  if (!record) {
     return (
       <div className="flex flex-col gap-4">
         <Skeleton className="h-10 w-72" />
@@ -98,7 +99,7 @@ export function BlockDetails({ id }: { id: string }) {
     );
   }
 
-  const fill = block.cost / blockMaxCost;
+  const fill = (block?.cost ?? 0) / blockMaxCost;
   const farmer = puzzleHashToAddress(record.farmerPuzzleHash, networkConfig.addressPrefix);
   const pool = puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix);
   const nextDisabled = peak !== null && record.height >= peak;
@@ -107,6 +108,7 @@ export function BlockDetails({ id }: { id: string }) {
     ? puzzleHashToAddress(farmedBy.claim.target, networkConfig.addressPrefix)
     : null;
   const reward = blockReward(record.height);
+  const rewardClaims = record.rewardClaimsIncorporated ?? [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -156,10 +158,10 @@ export function BlockDetails({ id }: { id: string }) {
               <Hash value={record.headerHash} full copy />
             </Row>
             <Row label="Timestamp">
-              {block.timestamp ? (
+              {record.timestamp ? (
                 <>
-                  {formatDateTime(block.timestamp * 1000)}{" "}
-                  <span className="text-fg-faint">({formatAge(block.timestamp * 1000)})</span>
+                  {formatDateTime(record.timestamp * 1000)}{" "}
+                  <span className="text-fg-faint">({formatAge(record.timestamp * 1000)})</span>
                 </>
               ) : (
                 <span className="text-fg-faint">Non-transaction blocks carry no timestamp</span>
@@ -251,8 +253,8 @@ export function BlockDetails({ id }: { id: string }) {
                 <Row label="Cost used">
                   <div className="flex flex-col gap-1">
                     <span className="tabular">
-                      {formatCost(block.cost)} of {formatCost(blockMaxCost)} (
-                      {formatPercent(fill, 1)})
+                      {block ? formatCost(block.cost) : "…"} of {formatCost(blockMaxCost)}
+                      {block ? ` (${formatPercent(fill, 1)})` : ""}
                     </span>
                     <div
                       className="h-2 w-full max-w-md overflow-hidden rounded-full bg-surface-2"
@@ -282,14 +284,14 @@ export function BlockDetails({ id }: { id: string }) {
                   )}
                 </Row>
                 <Row label="Total fees">
-                  <span className="tabular">{formatAmount(block.fees)}</span>
+                  <span className="tabular">{formatAmount(record.fees ?? 0n)}</span>
                 </Row>
                 <Row label="Reward claims">
-                  {block.rewardClaimsIncorporated.length === 0 ? (
+                  {rewardClaims.length === 0 ? (
                     <span className="text-fg-faint">None</span>
                   ) : (
                     <ul className="flex flex-col gap-1">
-                      {block.rewardClaimsIncorporated.map((c, i) => {
+                      {rewardClaims.map((c, i) => {
                         const address = puzzleHashToAddress(
                           c.puzzleHash,
                           networkConfig.addressPrefix
@@ -314,7 +316,9 @@ export function BlockDetails({ id }: { id: string }) {
                   )}
                 </Row>
                 <Row label="Generator" className="border-b-0">
-                  {block.hasGenerator ? (
+                  {!block ? (
+                    <Skeleton className="h-4 w-24" />
+                  ) : block.hasGenerator ? (
                     <div className="flex flex-col gap-1">
                       <span>Present</span>
                       <span className="break-normal text-xs text-fg-faint">
@@ -373,7 +377,7 @@ export function BlockDetails({ id }: { id: string }) {
         </CardBody>
       </Card>
 
-      {isTx ? (
+      {isTx && block ? (
         <>
           <BlockTransactions
             height={record.height}

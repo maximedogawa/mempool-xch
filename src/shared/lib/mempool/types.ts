@@ -70,7 +70,8 @@ export interface MempoolSummary {
   network: string;
   /** Unix ms when the summary was assembled. */
   generatedAt: number;
-  source: "server" | "browser";
+  /** "snapshot": the last visit's summary from localStorage, shown until the first sync lands. */
+  source: "server" | "browser" | "snapshot";
   state: MempoolStateSummary;
   items: CompactMempoolItem[];
 }

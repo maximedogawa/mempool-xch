@@ -7,7 +7,7 @@ import { formatNumber } from "@/shared/lib/chia/amounts";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   Badge,
@@ -26,7 +26,7 @@ import {
 /** Reorg events Coinset persisted, newest first; refreshed when the live stream reports one. */
 export function useReorgs(limit = 20) {
   const { client, endpoints } = useSettings();
-  const { lastReorg } = useLive();
+  const lastReorg = useLiveValue("lastReorg");
   return useQuery({
     queryKey: [
       ...queryKeys.chainRoot(endpoints.network),

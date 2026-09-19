@@ -13,7 +13,7 @@ import { clusterNodes, countByCountry, type NodeCluster } from "@/shared/lib/map
 import { isPublicIp } from "@/shared/lib/map/seeders";
 import { routes } from "@/shared/lib/routes";
 import type { PeerConnection } from "@/shared/lib/rpc/types";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   Card,
@@ -76,7 +76,9 @@ function pickCluster(clusters: NodeCluster[], total: number): NodeCluster | null
  * from: Chia does not reveal the origin of a block or a spend bundle.
  */
 function useActivity(clusters: NodeCluster[]) {
-  const { peakHeight, txBatch, lastTxEvent } = useLive();
+  const peakHeight = useLiveValue("peakHeight");
+  const txBatch = useLiveValue("txBatch");
+  const lastTxEvent = useLiveValue("lastTxEvent");
   const [feed, setFeed] = useState<FeedEntry[]>([]);
   const [pulses, setPulses] = useState<MapPulse[]>([]);
   const [counts, setCounts] = useState({ blocks: 0, bundles: 0 });

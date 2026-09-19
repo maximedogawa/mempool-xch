@@ -47,8 +47,10 @@ export function LiveTransactions() {
   const shown = paused ? frozen.current : rows;
   const knownIds = useRef(new Set<string>());
   const fresh = new Set(shown.filter((r) => !knownIds.current.has(r.id)).map((r) => r.id));
+  // Only the rows on screen matter for the "new" flash; remembering every id ever shown would
+  // grow for as long as the tab stays open.
   useEffect(() => {
-    shown.forEach((r) => knownIds.current.add(r.id));
+    knownIds.current = new Set(shown.map((r) => r.id));
   });
 
   return (

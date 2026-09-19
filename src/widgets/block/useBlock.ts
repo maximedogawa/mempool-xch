@@ -42,6 +42,33 @@ export function useBlock(id: string) {
   });
 }
 
+/**
+ * The block page asks for the record and the full block separately: the record is one small
+ * call and carries nearly everything the page shows, the full block (a few hundred KB with the
+ * generator) only adds the cost, so the page paints on the record and fills the rest in.
+ */
+export function useBlockRecord(id: string) {
+  const { client, endpoints } = useSettings();
+  const parsed = parseBlockId(id);
+  return useQuery({
+    queryKey: queryKeys.blockRecord(endpoints.network, id.trim().toLowerCase()),
+    enabled: parsed !== null,
+    queryFn: ({ signal }): Promise<BlockRecord> =>
+      parsed && "height" in parsed
+        ? client.getBlockRecordByHeight(parsed.height, signal)
+        : client.getBlockRecord(parsed!.hash, signal),
+  });
+}
+
+export function useFullBlock(hash: string | null) {
+  const { client, endpoints } = useSettings();
+  return useQuery({
+    queryKey: [...queryKeys.block(endpoints.network, hash ?? ""), "full"],
+    enabled: hash !== null,
+    queryFn: ({ signal }) => client.getBlock(hash!, signal),
+  });
+}
+
 export function useBlockTransactions(
   height: number | null,
   cursor: string | null,

@@ -25,6 +25,12 @@ const NECESSARY = [
     lifetime: "Entries older than two hours are dropped",
   },
   {
+    key: "mempool-xch:mempool-snapshot:v1:<network>",
+    purpose:
+      "The pending transactions last shown (public network data), so the next visit shows them at once and does not download them again",
+    lifetime: "Ignored after one hour, replaced while the page is open",
+  },
+  {
     key: "mempool-xch:watchlist:v1",
     purpose: "Addresses and transaction ids you chose to watch",
     lifetime: "Until you remove them or clear it",

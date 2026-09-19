@@ -10,6 +10,9 @@ export const queryKeys = {
     ["chain", network, "recent", count, peak] as const,
   blockRoot: (network: NetworkId) => ["chain", network, "block"] as const,
   block: (network: NetworkId, id: string) => ["chain", network, "block", id] as const,
+  /** The block record alone, by height or header hash (the block page paints on it). */
+  blockRecord: (network: NetworkId, id: string) =>
+    ["chain", network, "block", id, "record"] as const,
   blockTxs: (network: NetworkId, height: number, cursor: string | null) =>
     ["chain", network, "blockTxs", height, cursor] as const,
   blockSpends: (network: NetworkId, hash: string) =>

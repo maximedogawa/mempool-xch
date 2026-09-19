@@ -9,7 +9,7 @@ import { normaliseId32 } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   Badge,
@@ -94,7 +94,7 @@ function parseLookup(raw: string): Lookup {
  */
 export function ChiaVaults() {
   const { client, endpoints, networkConfig } = useSettings();
-  const { lastVault } = useLive();
+  const lastVault = useLiveValue("lastVault");
   const [input, setInput] = useState("");
   const [lookup, setLookup] = useState<Lookup>(null);
   const [events, setEvents] = useState<VaultEvent[]>([]);

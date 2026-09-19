@@ -21,7 +21,7 @@ import {
   type PendingStatus,
   type TrackedState,
 } from "@/shared/lib/wallet/pendingTracker";
-import { useLive } from "@/shared/providers/LiveProvider";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon, Button, Card, CardBody, CardHeader, Hash } from "@/shared/ui";
@@ -208,7 +208,8 @@ function PendingRow({
 export function WalletPending() {
   const { inSage, walletAddress } = useSage();
   const { client, endpoints, settings, update } = useSettings();
-  const { txBatch, lastTxEvent } = useLive();
+  const txBatch = useLiveValue("txBatch");
+  const lastTxEvent = useLiveValue("lastTxEvent");
   const queryClient = useQueryClient();
   const capability = useSageCapability("wallet.get_pending_transactions");
   const projected = useProjectedBlocks(8);
