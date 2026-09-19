@@ -83,9 +83,11 @@ const LiveContext = createContext<LiveStore | null>(null);
 function throttled(fn: () => void, ms: number) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let last = 0;
-  return () => {
+  const invoke = () => {
     const due = last + ms - Date.now();
     if (due <= 0) {
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
       last = Date.now();
       fn();
     } else if (timer === null) {
@@ -96,6 +98,11 @@ function throttled(fn: () => void, ms: number) {
       }, due);
     }
   };
+  invoke.cancel = () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+  };
+  return invoke;
 }
 
 export function LiveProvider({ children }: { children: ReactNode }) {
@@ -135,8 +142,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     const stream = createLiveStream({
       wsUrl: endpoints.wsUrl,
       pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,
-      poll: async () => {
-        const state = await client.getBlockchainState();
+      poll: async (signal) => {
+        const state = await client.getBlockchainState(signal);
+        signal.throwIfAborted();
         queryClient.setQueryData(queryKeys.state(network), state);
         return {
           peakHeight: state.peak.height,
@@ -189,7 +197,11 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       },
     });
     stream.start();
-    return () => stream.stop();
+    return () => {
+      stream.stop();
+      invalidateChain.cancel();
+      invalidateMempool.cancel();
+    };
   }, [client, endpoints.wsUrl, hydrated, network, queryClient, store]);
 
   return <LiveContext.Provider value={store}>{children}</LiveContext.Provider>;

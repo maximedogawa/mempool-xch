@@ -202,3 +202,47 @@ describe("createRpcClient", () => {
     await expect(client.getMempoolItemByTxId("aa")).rejects.toMatchObject({ kind: "not_found" });
   });
 });
+
+test("an already aborted RPC never reaches the transport", async () => {
+  let calls = 0;
+  const client = createRpcClient({
+    rpcUrl: "https://node.example",
+    indexedUrl: null,
+    fetchImpl: async () => {
+      calls++;
+      return new Response("{}");
+    },
+  });
+  const controller = new AbortController();
+  controller.abort();
+  await expect(client.getBlockchainState(controller.signal)).rejects.toMatchObject({
+    kind: "aborted",
+  });
+  expect(calls).toBe(0);
+});
+
+test("RPC timeout covers a stalled response body after headers arrive", async () => {
+  let aborted = false;
+  const client = createRpcClient({
+    rpcUrl: "https://node.example",
+    indexedUrl: null,
+    timeoutMs: 10,
+    fetchImpl: async (_, init) =>
+      ({
+        ok: true,
+        text: () =>
+          new Promise<string>((_, reject) => {
+            init!.signal!.addEventListener(
+              "abort",
+              () => {
+                aborted = true;
+                reject(new Error("aborted body"));
+              },
+              { once: true }
+            );
+          }),
+      }) as Response,
+  });
+  await expect(client.getBlockchainState()).rejects.toThrow();
+  expect(aborted).toBe(true);
+});

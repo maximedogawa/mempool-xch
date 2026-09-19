@@ -25,7 +25,7 @@ import {
 
 /** Reorg events Coinset persisted, newest first; refreshed when the live stream reports one. */
 export function useReorgs(limit = 20) {
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const lastReorg = useLiveValue("lastReorg");
   return useQuery({
     queryKey: [
@@ -35,7 +35,7 @@ export function useReorgs(limit = 20) {
       lastReorg?.detectedAtMs ?? 0,
     ],
     queryFn: ({ signal }) => client.getReorgs({ limit }, signal),
-    enabled: client.hasIndexed,
+    enabled: hydrated && client.hasIndexed,
     staleTime: 5 * 60_000,
   });
 }

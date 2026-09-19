@@ -88,6 +88,7 @@ export function useNodeScan(network: NetworkId): NodeScanState {
     registryRef.current = initial;
     setRegistry(initial);
     setScans(0);
+    setLastScanAt(null);
     setLog([]);
     stepRef.current = 0;
 
@@ -107,6 +108,7 @@ export function useNodeScan(network: NetworkId): NodeScanState {
       const now = Date.now();
       try {
         const ips = await resolveSeeder(seeder, type, undefined, controller.signal);
+        if (stopped || controller.signal.aborted) return;
         const merged = mergeObserved(registryRef.current, ips, now);
         commit(merged.registry);
         setScans((n) => n + 1);
@@ -135,10 +137,10 @@ export function useNodeScan(network: NetworkId): NodeScanState {
       }
       try {
         const batch = pendingGeo(registryRef.current, GEO_BATCH_SIZE);
-        if (batch.length > 0)
-          commit(
-            applyGeo(registryRef.current, await lookupGeo(batch, undefined, controller.signal))
-          );
+        if (batch.length > 0) {
+          const geo = await lookupGeo(batch, undefined, controller.signal);
+          if (!stopped && !controller.signal.aborted) commit(applyGeo(registryRef.current, geo));
+        }
       } catch {
         // GeoJS hiccup: the addresses stay pending and are retried next tick.
       } finally {

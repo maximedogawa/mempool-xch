@@ -227,3 +227,16 @@ describe("projection and land dots", () => {
     expect(cellCenter(0, 0).x).toBeGreaterThan(0);
   });
 });
+
+test("oversized persisted registries are capped on load, before a seeder succeeds", () => {
+  const now = Date.now();
+  const nodes = Object.fromEntries(
+    Array.from({ length: MAX_NODES + 20 }, (_, i) => [
+      String(i),
+      { ip: String(i), firstSeen: now, lastSeen: now - i, hits: 1 },
+    ])
+  );
+  const registry = parseRegistry(JSON.stringify({ version: 1, nodes }), now);
+  expect(Object.keys(registry.nodes)).toHaveLength(MAX_NODES);
+  expect(registry.nodes[String(MAX_NODES + 19)]).toBeUndefined();
+});

@@ -89,3 +89,24 @@ test.describe("block pages", () => {
     );
   });
 });
+
+test("block totals recover after a CORS-opaque upstream failure", async ({ page }) => {
+  await mockCoinset(page);
+  let calls = 0;
+  let failedHeight: number | undefined;
+  let recovered = false;
+  await page.route("**/get_block_transactions", async (route) => {
+    calls++;
+    const height = route.request().postDataJSON().height as number;
+    if (calls === 1) {
+      failedHeight = height;
+      await route.abort("failed");
+    } else {
+      if (height === failedHeight) recovered = true;
+      await route.fallback();
+    }
+  });
+  await page.goto("/blocks");
+  await expect.poll(() => recovered, { timeout: 15_000 }).toBe(true);
+  await expect(page.getByRole("checkbox", { name: "Transaction blocks only" })).toBeVisible();
+});

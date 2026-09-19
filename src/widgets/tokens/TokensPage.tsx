@@ -42,9 +42,11 @@ const SORTS: readonly { id: SortMode; label: string }[] = [
 function ActivityCells({
   sample,
   loading,
+  error = false,
 }: {
   sample: TokenActivitySample | null;
   loading: boolean;
+  error?: boolean;
 }) {
   if (loading && !sample) {
     return (
@@ -67,7 +69,15 @@ function ActivityCells({
   if (!sample) {
     return (
       <>
-        <Td className="text-right text-fg-faint">—</Td>
+        <Td className="text-right text-fg-faint">
+          {error ? (
+            <span title="Coinset activity is temporarily unavailable. Try again shortly.">
+              Unavailable
+            </span>
+          ) : (
+            "—"
+          )}
+        </Td>
         <Td className="hidden text-right text-fg-faint md:table-cell">—</Td>
         <Td className="hidden text-fg-faint lg:table-cell">—</Td>
         <Td className="hidden text-fg-faint lg:table-cell">—</Td>
@@ -112,7 +122,7 @@ function NameRow({ token }: { token: TokenInfo }) {
       <Td className="hidden xl:table-cell">
         <Hash value={token.assetId} href={routes.cat(token.assetId)} head={8} tail={6} copy />
       </Td>
-      <ActivityCells sample={activity.data} loading={activity.isLoading} />
+      <ActivityCells sample={activity.data} loading={activity.isLoading} error={!!activity.error} />
     </Tr>
   );
 }
@@ -238,6 +248,7 @@ export function TokensPage() {
                   onClick={() => {
                     setSort(opt.id);
                     setPage(0);
+                    if (opt.id === "name") scan.reset();
                   }}
                   className={cn(
                     "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
@@ -275,6 +286,9 @@ export function TokensPage() {
                 <span>
                   Scanning… {formatNumber(scan.done)} of {formatNumber(scan.total)}
                 </span>
+                <Button size="sm" onClick={scan.reset}>
+                  Stop scan
+                </Button>
               </div>
               <div
                 className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2"

@@ -39,6 +39,10 @@ export function WatchedAddressRow({
   useEffect(() => {
     if (!pending.data) return;
     const ids = pending.data.transactions.map((tx) => tx.id).filter(Boolean);
+    const live = new Set(ids);
+    for (const id of notifiedReceiveRef.current) {
+      if (!live.has(id)) notifiedReceiveRef.current.delete(id);
+    }
     const { state, left } = trackPending(trackedRef.current, ids, Date.now());
     trackedRef.current = state;
     left.forEach((id) => onConfirmed(item, id));

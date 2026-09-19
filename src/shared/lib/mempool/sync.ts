@@ -8,7 +8,6 @@
  * so the map never holds the fetched item: `reduce` turns it into what the UI keeps (a ~1 KB
  * compact item) once, when it arrives, and the full item is left to the garbage collector.
  */
-import { createLimiter } from "@/shared/lib/limit";
 import type { MempoolItem } from "@/shared/lib/rpc/types";
 
 export interface MempoolItemSyncDeps<T> {
@@ -27,35 +26,63 @@ export interface MempoolItemSync<T> {
   /**
    * Diffs against the live id list, fetches only new items, and returns every known entry.
    * The entries are the same objects from one sync to the next while an item stays.
+   * While a large backlog is being fetched (a cold tab), `onProgress` receives what is known
+   * so far about once a second, so the UI can fill in instead of waiting for the last item.
    */
-  sync: (signal?: AbortSignal) => Promise<T[]>;
+  sync: (signal?: AbortSignal, onProgress?: (entries: T[]) => void) => Promise<T[]>;
   readonly size: number;
 }
 
+/** Fewer new ids than this arrive faster than a progress update is worth. */
+export const PROGRESS_MIN_NEW = 16;
+export const PROGRESS_GAP_MS = 1_000;
+
 export function createMempoolItemSync<T>(deps: MempoolItemSyncDeps<T>): MempoolItemSync<T> {
   const now = deps.now ?? Date.now;
-  const limit = createLimiter(deps.concurrency ?? 8);
+  const concurrency = Math.max(1, Math.floor(deps.concurrency ?? 8));
+  let generation = 0;
   const known = new Map<string, T>(deps.seed ?? []);
 
   return {
-    async sync(signal) {
+    async sync(signal, onProgress) {
+      const run = ++generation;
+      const check = () => {
+        signal?.throwIfAborted();
+        if (run !== generation) throw new DOMException("Superseded sync", "AbortError");
+      };
+      check();
       const ids = await deps.getAllMempoolTxIds(signal);
+      check();
       const live = new Set(ids);
-      [...known.keys()].filter((id) => !live.has(id)).forEach((id) => known.delete(id));
-      const newIds = ids.filter((id) => !known.has(id));
+      for (const id of known.keys()) if (!live.has(id)) known.delete(id);
+      const newIds = [...live].filter((id) => !known.has(id));
+      const reportProgress = onProgress && newIds.length >= PROGRESS_MIN_NEW;
+      let lastProgress = now();
+      let cursor = 0;
+      // A fixed worker pool avoids retaining a promise and queue closure for every tx.
       await Promise.all(
-        newIds.map((id) =>
-          limit(async () => {
+        Array.from({ length: Math.min(concurrency, newIds.length) }, async () => {
+          while (cursor < newIds.length) {
+            check();
+            const id = newIds[cursor++]!;
+            let item: MempoolItem;
             try {
-              const item = await deps.getMempoolItemByTxId(id, signal);
-              known.set(id, deps.reduce(item, now()));
+              item = await deps.getMempoolItemByTxId(id, signal);
             } catch {
-              // Left the mempool between listing and fetching, or a transient error: the next
-              // sync tries again if the id is still live.
+              check();
+              // Items that left or failed transiently can be retried on the next sync.
+              continue;
             }
-          })
-        )
+            check();
+            known.set(id, deps.reduce(item, now()));
+            if (reportProgress && now() - lastProgress >= PROGRESS_GAP_MS) {
+              lastProgress = now();
+              onProgress([...known.values()]);
+            }
+          }
+        })
       );
+      check();
       return [...known.values()];
     },
     get size() {

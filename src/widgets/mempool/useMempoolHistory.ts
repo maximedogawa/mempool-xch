@@ -27,6 +27,8 @@ export function useMempoolHistory(): { history: MempoolSample[]; startedAt: numb
   const generatedAt = summary.data?.generatedAt;
   useEffect(() => {
     if (!summary.data || loadedFor.current !== endpoints.network) return;
+    // A snapshot from the last visit or a first sync in progress is not the mempool right now.
+    if (summary.data.source === "snapshot" || summary.data.source === "syncing") return;
     const sample = sampleFromSummary(summary.data, Date.now());
     setHistory((prev) => {
       const next = appendSample(prev, sample);

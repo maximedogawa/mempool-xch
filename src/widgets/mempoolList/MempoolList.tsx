@@ -109,7 +109,9 @@ export function MempoolList() {
                 ? "summary API"
                 : summary.data.source === "snapshot"
                   ? "from your last visit, syncing"
-                  : "direct from node"
+                  : summary.data.source === "syncing"
+                    ? "first sync in progress"
+                    : "direct from node"
               : undefined
           }
         />

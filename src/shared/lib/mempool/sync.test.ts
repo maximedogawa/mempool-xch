@@ -111,4 +111,70 @@ describe("createMempoolItemSync", () => {
     ids = ["b"];
     expect((await sync.sync()).map((e) => e.id)).toEqual(["b"]);
   });
+
+  test("reports progress about once a second while a large backlog is fetched", async () => {
+    let clock = 0;
+    const ids = Array.from({ length: 20 }, (_, i) => `id${i}`);
+    const progress: number[] = [];
+    const sync = createMempoolItemSync({
+      getAllMempoolTxIds: async () => ids,
+      getMempoolItemByTxId: async (id) => {
+        clock += 400;
+        return fakeItem(id);
+      },
+      reduce: (item) => ({ id: item.name }),
+      now: () => clock,
+      concurrency: 1,
+    });
+    const all = await sync.sync(undefined, (entries) => progress.push(entries.length));
+    expect(all.length).toBe(20);
+    expect(progress.length).toBeGreaterThan(3);
+    expect(progress).toEqual([...progress].sort((a, b) => a - b));
+    expect(progress[progress.length - 1]!).toBeLessThanOrEqual(20);
+
+    // A handful of new ids is not worth intermediate updates.
+    ids.push("late");
+    const later: number[] = [];
+    await sync.sync(undefined, (entries) => later.push(entries.length));
+    expect(later).toEqual([]);
+  });
+});
+
+test("aborting a catch-up stops queued requests and rejects instead of returning partial success", async () => {
+  const controller = new AbortController();
+  const fetched: string[] = [];
+  const sync = createMempoolItemSync({
+    concurrency: 1,
+    getAllMempoolTxIds: async () => ["a", "b", "c"],
+    getMempoolItemByTxId: async (id) => {
+      fetched.push(id);
+      controller.abort();
+      return fakeItem(id);
+    },
+    reduce: (item) => item.name,
+  });
+  await expect(sync.sync(controller.signal)).rejects.toThrow();
+  expect(fetched).toEqual(["a"]);
+  expect(sync.size).toBe(0);
+});
+
+test("a superseded request cannot put removed items back in the cache", async () => {
+  let resolve!: (item: MempoolItem) => void;
+  let ids = ["old"];
+  const sync = createMempoolItemSync({
+    getAllMempoolTxIds: async () => ids,
+    getMempoolItemByTxId: () =>
+      new Promise<MempoolItem>((r) => {
+        resolve = r;
+      }),
+    reduce: (item) => item.name,
+  });
+  const first = sync.sync();
+  const rejected = first.catch((error: Error) => error);
+  await Promise.resolve();
+  ids = [];
+  expect(await sync.sync()).toEqual([]);
+  resolve(fakeItem("old"));
+  expect(((await rejected) as Error).message).toBe("Superseded sync");
+  expect(sync.size).toBe(0);
 });

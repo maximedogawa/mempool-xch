@@ -15,7 +15,7 @@ import { loadSnapshot, saveSnapshot, SNAPSHOT_MIN_GAP_MS } from "@/shared/lib/me
 import { createMempoolItemSync, type MempoolItemSync } from "@/shared/lib/mempool/sync";
 import type { CompactMempoolItem, MempoolSummary } from "@/shared/lib/mempool/types";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
-import type { BlockRecord } from "@/shared/lib/rpc/types";
+import type { BlockchainState, BlockRecord } from "@/shared/lib/rpc/types";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -47,12 +47,12 @@ function browserStorage(): Storage | null {
  * (src/shared/lib/mempool/sync.ts). Seeded from the last visit's snapshot so a reload does not
  * download the whole mempool again.
  */
-const mempoolSyncs = new Map<NetworkId, MempoolItemSync<CompactMempoolItem>>();
+const mempoolSyncs = new WeakMap<RpcClient, MempoolItemSync<CompactMempoolItem>>();
 function getMempoolSync(
   network: NetworkId,
   client: RpcClient
 ): MempoolItemSync<CompactMempoolItem> {
-  let sync = mempoolSyncs.get(network);
+  let sync = mempoolSyncs.get(client);
   if (!sync) {
     const snapshot = loadSnapshot(browserStorage(), network);
     sync = createMempoolItemSync({
@@ -61,7 +61,7 @@ function getMempoolSync(
       reduce: compactMempoolItem,
       seed: snapshot?.items.map((item) => [item.id, item] as const),
     });
-    mempoolSyncs.set(network, sync);
+    mempoolSyncs.set(client, sync);
   }
   return sync;
 }
@@ -71,6 +71,36 @@ function saveSnapshotThrottled(summary: MempoolSummary, network: NetworkId) {
   if (summary.generatedAt - (snapshotSavedAt.get(network) ?? 0) < SNAPSHOT_MIN_GAP_MS) return;
   snapshotSavedAt.set(network, summary.generatedAt);
   saveSnapshot(browserStorage(), summary);
+}
+
+function toSummary(
+  network: NetworkId,
+  state: BlockchainState,
+  items: CompactMempoolItem[],
+  source: MempoolSummary["source"]
+): MempoolSummary {
+  return {
+    network,
+    generatedAt: Date.now(),
+    source,
+    state: {
+      peakHeight: state.peak.height,
+      peakHash: state.peak.headerHash,
+      lastTxBlockHeight: state.peak.isTransactionBlock
+        ? state.peak.height
+        : state.peak.prevTransactionBlockHeight,
+      mempoolSize: state.mempoolSize,
+      mempoolCost: state.mempoolCost,
+      mempoolMaxTotalCost: state.mempoolMaxTotalCost,
+      mempoolFees: state.mempoolFees.toString(),
+      blockMaxCost: state.blockMaxCost,
+      averageBlockTime: state.averageBlockTime,
+      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost).
+      minFeeRate: state.mempoolMinFees.cost_5000000 ?? 0,
+      synced: state.synced,
+    },
+    items,
+  };
 }
 
 /** Compact mempool, synced incrementally in the browser (see getMempoolSync above). */
@@ -97,34 +127,23 @@ export function useMempoolSummary() {
     queryKey: queryKeys.mempoolSummary(network, "browser"),
     enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
-      const [state, items] = await Promise.all([
-        client.getBlockchainState(signal),
-        getMempoolSync(endpoints.network, client).sync(signal),
-      ]);
-      const now = Date.now();
-      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost).
-      const minFeeRate = state.mempoolMinFees.cost_5000000 ?? 0;
-      const summary: MempoolSummary = {
-        network: endpoints.network,
-        generatedAt: now,
-        source: "browser",
-        state: {
-          peakHeight: state.peak.height,
-          peakHash: state.peak.headerHash,
-          lastTxBlockHeight: state.peak.isTransactionBlock
-            ? state.peak.height
-            : state.peak.prevTransactionBlockHeight,
-          mempoolSize: state.mempoolSize,
-          mempoolCost: state.mempoolCost,
-          mempoolMaxTotalCost: state.mempoolMaxTotalCost,
-          mempoolFees: state.mempoolFees.toString(),
-          blockMaxCost: state.blockMaxCost,
-          averageBlockTime: state.averageBlockTime,
-          minFeeRate,
-          synced: state.synced,
-        },
-        items,
-      };
+      const key = queryKeys.mempoolSummary(network, "browser");
+      const statePromise = client.getBlockchainState(signal);
+      let state: BlockchainState | null = null;
+      void statePromise.then(
+        (s) => (state = s),
+        () => undefined
+      );
+      // A cold tab has every pending bundle to fetch; show what has arrived so far instead
+      // of nothing until the last one is in.
+      const items = await getMempoolSync(network, client).sync(signal, (partial) => {
+        if (!state || signal.aborted) return;
+        const soFar = toSummary(network, state, partial, "syncing");
+        queryClient.setQueryData(key, soFar);
+        // Worth keeping even if the tab closes before the sync completes: it is only a seed.
+        saveSnapshotThrottled(soFar, network);
+      });
+      const summary = toSummary(network, await statePromise, items, "browser");
       saveSnapshotThrottled(summary, endpoints.network);
       return summary;
     },

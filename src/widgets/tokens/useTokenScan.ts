@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createLimiter } from "@/shared/lib/limit";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { summariseRecentActivity, type TokenActivitySample } from "@/shared/lib/tokens/activity";
@@ -31,9 +31,20 @@ export function useTokenScan(client: RpcClient) {
     total: 0,
   });
   const runId = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+  useEffect(
+    () => () => {
+      runId.current += 1;
+      controllerRef.current?.abort();
+    },
+    [client]
+  );
 
   const scan = useCallback(
     (assetIds: string[]) => {
+      controllerRef.current?.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
       const ids = assetIds.slice(0, SCAN_LIMIT);
       const id = (runId.current += 1);
       setState({ results: new Map(), scanning: true, done: 0, total: ids.length });
@@ -46,13 +57,22 @@ export function useTokenScan(client: RpcClient) {
       void Promise.all(
         ids.map((assetId) =>
           limiter(async () => {
+            if (controller.signal.aborted) return;
             try {
               const [firstPage, recentPage] = await Promise.all([
-                client.getTransactionsByCatAssetId(assetId, { limit: 1, order: "asc" }),
-                client.getTransactionsByCatAssetId(assetId, {
-                  limit: RECENT_SAMPLE,
-                  order: "desc",
-                }),
+                client.getTransactionsByCatAssetId(
+                  assetId,
+                  { limit: 1, order: "asc" },
+                  controller.signal
+                ),
+                client.getTransactionsByCatAssetId(
+                  assetId,
+                  {
+                    limit: RECENT_SAMPLE,
+                    order: "desc",
+                  },
+                  controller.signal
+                ),
               ]);
               const sample: TokenActivitySample = {
                 firstSeenMs: firstPage.transactions[0]?.confirmedAtMs ?? null,
@@ -79,6 +99,7 @@ export function useTokenScan(client: RpcClient) {
   );
 
   const reset = useCallback(() => {
+    controllerRef.current?.abort();
     runId.current += 1;
     setState({ results: new Map(), scanning: false, done: 0, total: 0 });
   }, []);

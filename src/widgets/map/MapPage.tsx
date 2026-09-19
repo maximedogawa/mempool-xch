@@ -87,8 +87,17 @@ function useActivity(clusters: NodeCluster[]) {
   clustersRef.current = clusters;
   const lastPeak = useRef<number | null>(null);
   const lastBatch = useRef(0);
+  const pulseTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  useEffect(() => {
+    const timers = pulseTimers.current;
+    return () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+  }, []);
 
   const pulse = (kind: MapPulse["kind"], n: number) => {
+    if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const list = clustersRef.current;
     const total = list.reduce((s, c) => s + c.nodes.length, 0);
     const fresh: MapPulse[] = [];
@@ -97,9 +106,13 @@ function useActivity(clusters: NodeCluster[]) {
       if (c) fresh.push({ id: (seq.current += 1), clusterKey: c.key, kind });
     }
     if (fresh.length === 0) return;
-    setPulses((p) => [...p, ...fresh]);
+    setPulses((p) => [...p, ...fresh].slice(-48));
     const ids = new Set(fresh.map((f) => f.id));
-    setTimeout(() => setPulses((p) => p.filter((x) => !ids.has(x.id))), PULSE_MS);
+    const timer = setTimeout(() => {
+      pulseTimers.current.delete(timer);
+      setPulses((p) => p.filter((x) => !ids.has(x.id)));
+    }, PULSE_MS);
+    pulseTimers.current.add(timer);
   };
 
   useEffect(() => {

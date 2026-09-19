@@ -1,24 +1,40 @@
-/**
- * Tiny concurrency gate: at most `max` callers run at once, the rest wait in FIFO order.
- * Used for fan-out browser calls against Coinset (one indexed request per recent block)
- * so a dashboard load does not fire a dozen requests in the same instant; Coinset answers
- * bursts with error pages that carry no CORS headers, which the browser reports as CORS
- * failures.
- */
+/** FIFO concurrency gate. Queued cancellations release their closures immediately. */
 export function createLimiter(max: number) {
+  if (!Number.isInteger(max) || max < 1) throw new RangeError("Concurrency must be positive");
   let active = 0;
   const queue: (() => void)[] = [];
-  const next = () => {
-    active -= 1;
-    queue.shift()?.();
+  const drain = () => {
+    while (active < max && queue.length) queue.shift()!();
   };
-  return async function limited<T>(fn: () => Promise<T>): Promise<T> {
-    if (active >= max) await new Promise<void>((resolve) => queue.push(resolve));
-    active += 1;
-    try {
-      return await fn();
-    } finally {
-      next();
-    }
+  return function limited<T>(fn: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(signal.reason);
+        return;
+      }
+      const onAbort = () => {
+        const index = queue.indexOf(start);
+        if (index >= 0) queue.splice(index, 1);
+        reject(signal!.reason);
+      };
+      const start = () => {
+        signal?.removeEventListener("abort", onAbort);
+        // Reserve the slot synchronously, before any other caller can enter.
+        active++;
+        void Promise.resolve()
+          .then(() => {
+            signal?.throwIfAborted();
+            return fn();
+          })
+          .then(resolve, reject)
+          .finally(() => {
+            active--;
+            drain();
+          });
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
+      queue.push(start);
+      drain();
+    });
   };
 }

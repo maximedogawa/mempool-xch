@@ -123,18 +123,46 @@ async function measureLoad(base: string, route: string) {
     const loadMs = Date.now() - started;
     // What the first paint had to wait for; chunks split out with next/dynamic arrive later.
     const jsInitialKb = round(jsBytes / 1024);
+    const firstProjected =
+      route === "/"
+        ? page
+            .getByRole("list", { name: "Projected next blocks" })
+            .getByRole("listitem")
+            .first()
+            .waitFor({ timeout: 180_000 })
+            .then(() => Date.now() - started)
+            .catch(() => null)
+        : null;
     // Let the first data render and LCP settle.
     await page.waitForTimeout(12_000);
     const perf = (await page.evaluate("window.__perf")) as PagePerf;
     const nav = (await page.evaluate(
       "(() => { const n = performance.getEntriesByType('navigation')[0]; return { dcl: n.domContentLoadedEventEnd, ttfb: n.responseStart }; })()"
     )) as { dcl: number; ttfb: number };
+    const initialTotals = { jsKb: round(jsBytes / 1024), cssKb: round(cssBytes / 1024), scripts };
+    // Dashboard only: when do the projected blocks show, on this first visit and on a reload
+    // 20 s later (HTTP cache and localStorage warm, same throttling)?
+    let projected: { firstVisitMs: number | null; reloadMs: number | null } | null = null;
+    if (route === "/") {
+      const cube = page
+        .getByRole("list", { name: "Projected next blocks" })
+        .getByRole("listitem")
+        .first();
+      const firstVisitMs = await firstProjected;
+      await page.waitForTimeout(20_000);
+      const reloaded = Date.now();
+      await page.reload({ waitUntil: "commit" });
+      const reloadMs = await cube
+        .waitFor({ timeout: 180_000 })
+        .then(() => Date.now() - reloaded)
+        .catch(() => null);
+      projected = { firstVisitMs, reloadMs };
+    }
     return {
       path,
+      projected,
       jsInitialKb,
-      jsKb: round(jsBytes / 1024),
-      cssKb: round(cssBytes / 1024),
-      scripts,
+      ...initialTotals,
       ttfbMs: round(nav.ttfb),
       dclMs: round(nav.dcl),
       loadMs,
@@ -217,6 +245,13 @@ async function main() {
   if (args.phase !== "load" && args.minutes > 0)
     for (const route of args.routes)
       soaks.push({ route, ...(await measureSoak(args.base, route, args.minutes)) });
+  loads
+    .filter((l) => l.projected)
+    .forEach((l) =>
+      console.log(
+        `${l.route} projected blocks visible: first visit ${l.projected!.firstVisitMs} ms, reload ${l.projected!.reloadMs} ms`
+      )
+    );
   console.table(
     soaks.map((s) => ({
       route: s.route,
