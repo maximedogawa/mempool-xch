@@ -107,6 +107,7 @@ export function NftHomePage() {
                     urls={c.thumbnailUrl ? [c.thumbnailUrl] : []}
                     alt={c.name ?? "collection"}
                     rounded=""
+                    sensitivity={c.sensitivity}
                     className="absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-110"
                   />
                   <div

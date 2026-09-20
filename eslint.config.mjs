@@ -46,6 +46,21 @@ export default [
       ],
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      // next/image re-serves remote files from our own origin (/_next/image), which would make
+      // this site the host of third-party NFT artwork it has no rights to and no control over.
+      // Asset imagery is always a plain <img>/<video> pointing straight at the source.
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "next/image",
+              message:
+                "next/image proxies and caches remote files on our origin. NFT and token imagery must load directly from its source: use src/shared/ui/AssetImage.tsx.",
+            },
+          ],
+        },
+      ],
     },
   },
   {

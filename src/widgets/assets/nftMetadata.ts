@@ -5,6 +5,8 @@
  * (img-src). Everything here is best effort: the page works without it.
  */
 import { MINTGARDEN_API, loadNftRecord } from "@/shared/lib/nft/mintgarden";
+import { classifyNft, type Sensitivity } from "@/shared/lib/nft/sensitivity";
+import { isTrustedVideoUrl } from "@/shared/lib/trustedImage";
 
 export { MINTGARDEN_API };
 
@@ -15,11 +17,15 @@ export interface NftMetadata {
   collectionId: string | null;
   /** Preferred image (thumbnail first for speed), then full-size candidates. */
   imageUrls: string[];
+  /** The artwork itself when it is a video; the images above are then its poster frame. */
+  videoUrl: string | null;
   ownerP2: string | null;
   creatorP2: string | null;
   royaltyBasisPoints: number | null;
   metadataUris: string[];
   dataUris: string[];
+  /** MintGarden's moderation verdict, from this same record: see lib/nft/sensitivity.ts. */
+  sensitivity: Sensitivity;
 }
 
 type Raw = Record<string, unknown>;
@@ -39,9 +45,14 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
   const collection = obj(meta.collection);
   const owner = obj(r.owner_address);
   const creator = obj(r.creator_address);
-  const images = [str(data.thumbnail_uri), str(data.preview_uri), ...arr(data.data_uris)].filter(
-    (u): u is string => !!u && /^https?:\/\//.test(u)
-  );
+  const candidates = [
+    str(data.thumbnail_uri),
+    str(data.preview_uri),
+    ...arr(data.data_uris),
+  ].filter((u): u is string => !!u && /^https?:\/\//.test(u));
+  // A video data_uri is the artwork, not an image candidate: <img> would only fail on it.
+  const videoUrl = candidates.find(isTrustedVideoUrl) ?? null;
+  const images = candidates.filter((u) => u !== videoUrl);
   const description =
     collection.attributes && Array.isArray(collection.attributes)
       ? ((collection.attributes.map(obj).find((a) => a.type === "description")?.value as
@@ -54,11 +65,13 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     collectionName: str(collection.name) ?? str(obj(r.collection).name),
     collectionId: str(collection.id) ?? str(obj(r.collection).id),
     imageUrls: [...new Set(images)],
+    videoUrl,
     ownerP2: hex(owner.id),
     creatorP2: hex(creator.id),
     royaltyBasisPoints: typeof royalty === "number" ? Math.round(royalty) : null,
     metadataUris: arr(data.metadata_uris),
     dataUris: arr(data.data_uris),
+    sensitivity: classifyNft(r),
   };
 }
 

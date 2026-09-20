@@ -120,6 +120,8 @@ export function NftPage() {
           <AssetImage
             urls={metadata.data?.imageUrls ?? []}
             alt={name ?? "NFT image"}
+            sensitivity={metadata.data?.sensitivity}
+            videoUrl={metadata.data?.videoUrl}
             className="aspect-square w-full max-w-[280px] justify-self-center md:justify-self-start"
           />
           <div className="flex min-w-0 flex-col gap-3">

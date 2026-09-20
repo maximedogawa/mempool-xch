@@ -17,6 +17,7 @@ import type { CompactMempoolItem, TxKindHint } from "@/shared/lib/mempool/types"
 import { routes } from "@/shared/lib/routes";
 import { squarify } from "@/shared/lib/treemap";
 import { AssetAmount, AssetIcon, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
+import { isVeiled } from "@/shared/lib/nft/sensitivity";
 import { fetchNftMetadata } from "@/widgets/assets/nftMetadata";
 
 const W = 800;
@@ -201,7 +202,17 @@ export function NextBlockGoggles() {
       retry: false,
     })),
   });
-  const nftImage = new Map(nftLaunchers.map((l, i) => [l, nftMeta[i]?.data?.imageUrls[0] ?? null]));
+  // Artwork MintGarden marks as sensitive or blocked never reaches a cell: a treemap tile is
+  // too small to veil and carries no reason, so the cell simply keeps its plain colour.
+  const nftSensitivity = new Map(
+    nftLaunchers.map((l, i) => [l, nftMeta[i]?.data?.sensitivity ?? null])
+  );
+  const nftImage = new Map(
+    nftLaunchers.map((l, i) => [
+      l,
+      isVeiled(nftMeta[i]?.data?.sensitivity) ? null : (nftMeta[i]?.data?.imageUrls[0] ?? null),
+    ])
+  );
 
   const label = next
     ? `Next block composition: ${next.items.length} spend bundles, ${formatCost(next.totalCost)} of ${formatCost(blockMax)} cost (${formatPercent(next.fill)} full), ${formatEta(next.etaSeconds)}`
@@ -533,7 +544,12 @@ export function NextBlockGoggles() {
                           >
                             <div className="flex h-full flex-col justify-between text-[11px] leading-tight text-[#0a0d18]">
                               <div className="w-fit rounded-sm bg-white/80 p-0.5">
-                                <AssetIcon kind={item.kind} assetId={item.assetIds[0]} size={16} />
+                                <AssetIcon
+                                  kind={item.kind}
+                                  assetId={item.assetIds[0]}
+                                  size={16}
+                                  sensitivity={nftSensitivity.get(item.assetIds[0] ?? "")}
+                                />
                               </div>
                               <div className="w-fit max-w-full truncate rounded-sm bg-white/80 px-1 py-0.5 font-semibold">
                                 <AssetAmount assets={item.assets} kind={item.kind} />
@@ -566,7 +582,12 @@ export function NextBlockGoggles() {
                   className="pointer-events-none absolute right-2 top-2 max-w-[min(320px,calc(100%-1rem))] rounded-sm border border-border bg-bg-elevated/95 px-2.5 py-2 text-xs shadow-card"
                 >
                   <div className="flex items-center gap-1.5">
-                    <AssetIcon kind={hover.kind} assetId={hover.assetIds[0]} size={14} />
+                    <AssetIcon
+                      kind={hover.kind}
+                      assetId={hover.assetIds[0]}
+                      size={14}
+                      sensitivity={nftSensitivity.get(hover.assetIds[0] ?? "")}
+                    />
                     <span className="font-semibold text-fg">
                       <AssetAmount assets={hover.assets} kind={hover.kind} full />
                     </span>

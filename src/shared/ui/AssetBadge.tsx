@@ -16,6 +16,7 @@ import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import { fetchNftImageUrls, mintGardenThumbnailUrl } from "@/shared/lib/nft/mintgarden";
+import { isVeiled, type Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { catIconCandidates, nftIconCandidates } from "./assetIconCandidates";
 import { KindBadge } from "./Badge";
 
@@ -31,12 +32,15 @@ export function AssetIcon({
   iconUrl,
   size = 18,
   className,
+  sensitivity,
 }: {
   kind: TxKindHint;
   assetId?: string;
   iconUrl?: string | null;
   size?: number;
   className?: string;
+  /** A caller that already knows MintGarden's verdict; flagged art gives way to the glyph. */
+  sensitivity?: Sensitivity | null;
 }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
@@ -44,7 +48,10 @@ export function AssetIcon({
   // src/shared/lib/sage/wallet.ts and src/widgets/goggles/NextBlockGoggles.tsx both pass it this
   // way). The direct thumbnail redirect is the primary candidate (no fetch); the full record's
   // own image is fetched as a fallback only once that 404s, not on every render.
-  const nftId = kind === "nft" && assetId ? launcherIdToNftId(assetId) : null;
+  // An icon this small cannot carry a veil or its reason, so flagged artwork is simply not
+  // shown: the neutral NFT glyph below takes its place, and no image is requested.
+  const nftId =
+    kind === "nft" && assetId && !isVeiled(sensitivity) ? launcherIdToNftId(assetId) : null;
   const primaryNftThumbnail = nftId ? mintGardenThumbnailUrl(nftId) : null;
   const [nftThumbnailFailed, setNftThumbnailFailed] = useState(false);
   const nftFallback = useQuery({

@@ -6,6 +6,7 @@
  */
 
 import { createLimiter } from "@/shared/lib/limit";
+import { classifyCollection, classifyNft, type Sensitivity } from "./sensitivity";
 
 export const MINTGARDEN_API = "https://api.mintgarden.io";
 export const DEXIE_API = "https://api.dexie.space/v1";
@@ -63,6 +64,7 @@ export interface NftCollectionSummary {
   floorPriceXch: number | null;
   nftCount: number | null;
   tradeCount: number | null;
+  sensitivity: Sensitivity;
 }
 
 function normaliseCollection(raw: unknown): NftCollectionSummary {
@@ -77,6 +79,7 @@ function normaliseCollection(raw: unknown): NftCollectionSummary {
     floorPriceXch: num(r.floor_price),
     nftCount: num(r.nft_count),
     tradeCount: num(r.trade_count),
+    sensitivity: classifyCollection(r),
   };
 }
 
@@ -135,6 +138,7 @@ export interface NftEvent {
   blockHeight: number | null;
   xchPrice: number | null;
   ownerAddress: string | null;
+  sensitivity: Sensitivity;
 }
 
 function normaliseEvent(raw: unknown): NftEvent | null {
@@ -143,7 +147,9 @@ function normaliseEvent(raw: unknown): NftEvent | null {
   if (!nftId) return null;
   const nft = obj(r.nft);
   const data = obj(nft.data);
-  const collection = obj(obj(r.nft).collection ?? {});
+  // The events payload carries the collection at the top level, not inside `nft`; reading it
+  // from `nft` left the name and the moderation flags empty on every row.
+  const collection = obj(r.collection ?? nft.collection);
   const address = obj(r.address);
   const type = typeof r.type === "number" ? r.type : Number(r.type);
   const timestamp = str(r.timestamp);
@@ -158,6 +164,7 @@ function normaliseEvent(raw: unknown): NftEvent | null {
     blockHeight: num(r.block_height),
     xchPrice: num(r.xch_price),
     ownerAddress: str(address.encoded_id),
+    sensitivity: classifyNft(nft, collection, r.creator),
   };
 }
 

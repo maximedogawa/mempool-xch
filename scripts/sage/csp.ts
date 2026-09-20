@@ -3,7 +3,9 @@
  *
  * Mirrored from `crates/sage-apps/src/security/csp.rs` (xch-dev/sage, Sage 0.13.0):
  * `connect-src` gains the granted network whitelist for the active network, `img-src`
- * gains its https entries, and nothing else varies. Used by the local snapshot server
+ * gains its https entries, and nothing else varies. In particular Sage's `media-src` is
+ * 'self' data: blob:, so a video NFT hosted on IPFS plays only in the hosted build and falls
+ * back to its still thumbnail inside Sage; `mediaSrcExtra` is for the hosted policy alone. Used by the local snapshot server
  * and by the Playwright CSP check so the snapshot is exercised under the real policy.
  */
 
@@ -12,7 +14,12 @@ import { whitelistForNetwork, type SageManifest } from "./manifestSchema";
 
 export function buildAppCsp(
   whitelist: string[] = [],
-  opts: { scriptSrcExtra?: string[]; prefetchSrc?: boolean; frameAncestors?: string } = {}
+  opts: {
+    scriptSrcExtra?: string[];
+    mediaSrcExtra?: string[];
+    prefetchSrc?: boolean;
+    frameAncestors?: string;
+  } = {}
 ): string {
   const connectSrc = ["'self'", ...whitelist].join(" ");
   const imgSrc = [
@@ -31,7 +38,7 @@ export function buildAppCsp(
     "frame-src 'none'",
     `img-src ${imgSrc}`,
     "manifest-src 'none'",
-    "media-src 'self' data: blob:",
+    `media-src ${["'self'", "data:", "blob:", ...(opts.mediaSrcExtra ?? [])].join(" ")}`,
     "object-src 'none'",
     // Chrome dropped prefetch-src and logs it as an error on every page; Sage's webview still takes it.
     ...(opts.prefetchSrc === false ? [] : ["prefetch-src 'none'"]),
@@ -81,6 +88,8 @@ export function buildHostedAppCsp(opts: { frameAncestors?: string } = {}): strin
   const imageHosts = [...TRUSTED_IMAGE_HOSTS].map((host) => `https://${host}`);
   return buildAppCsp(["https:", "wss:", ...localNode, ...imageHosts], {
     scriptSrcExtra: ["'unsafe-inline'"],
+    // NFT artwork is not always a still: video data_uris live on the same trusted hosts.
+    mediaSrcExtra: imageHosts,
     prefetchSrc: false,
     frameAncestors: opts.frameAncestors,
   });

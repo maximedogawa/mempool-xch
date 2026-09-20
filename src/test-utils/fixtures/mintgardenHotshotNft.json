@@ -1,0 +1,29 @@
+{
+  "id": "0205d75aaca055cda8288ac7d7a301f8bc9d7b097d1b0afee85968c781d8d585",
+  "encoded_id": "nft1qgzawk4v5p2um2pg3tra0gcplz7f67cf05ds4lhgt95v0qwc6kzs9ffh8x",
+  "is_blocked": false,
+  "data": {
+    "thumbnail_uri": "https://assets.mainnet.mintgarden.io/thumbnails/ffe474ced97010a25d184f95aea1d10cf7b8fb053536ff5ff19e967b98f6ca34_512.webp",
+    "data_type": 3,
+    "data_uris": [
+      "https://ipfs.mintgarden.io/ipfs/bafybeifi43bc5oo2xz763lfj5cqsw3crbtfqgama7jcvhvy3fjzaonyere/540.mp4",
+      "ipfs://bafybeifi43bc5oo2xz763lfj5cqsw3crbtfqgama7jcvhvy3fjzaonyere/540.mp4"
+    ],
+    "metadata_json": {
+      "name": "HOTSHOT #540",
+      "sensitive_content": false
+    }
+  },
+  "collection": {
+    "id": "col1rr6h7f0rrtxllqmygfd29l0d6th0gr57skdqv972yp2s6fzn6ays6xmfy9",
+    "name": "HOTSHOT",
+    "sensitive_content": false,
+    "blocked_content": true,
+    "blocked_content_reason": "Pornographic material"
+  },
+  "creator": {
+    "name": "LegendChia",
+    "minting_blocked": true,
+    "minting_blocked_reason": "Terms of service violation: Pornographic content"
+  }
+}
