@@ -160,8 +160,8 @@ export const TOKEN_QUIET = hash(0x2222);
 export const TOKEN_SILENT = hash(0x3333);
 
 const DEXIE_ASSETS = [
-  { id: `0x${TOKEN_ACTIVE}`, code: "MAT", name: "Most Active Token" },
-  { id: `0x${TOKEN_QUIET}`, code: "QT", name: "Quiet Token" },
+  { id: `0x${TOKEN_ACTIVE}`, code: "MAT", name: "Most Active Token", liquidity: [120.5, 9000] },
+  { id: `0x${TOKEN_QUIET}`, code: "QT", name: "Quiet Token", liquidity: [800, 10] },
   { id: `0x${TOKEN_SILENT}`, code: "SIL", name: "Silent Token" },
   { id: `0x${hash(0xa001)}`, code: "ALP", name: "Alpha Coin" },
   { id: `0x${hash(0xa002)}`, code: "ZET", name: "Zeta Coin" },
@@ -659,8 +659,32 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
 }
 
-/** Intercepts the Dexie CAT registry with a small fixed set (the tokens page). */
+function dexieTicker(assetId: string, price: string, d1: string, d7: string, d30: string) {
+  return {
+    ticker_id: `${assetId}_xch`,
+    base_currency: assetId,
+    target_currency: "xch",
+    last_price: price,
+    target_volume: d1,
+    target_volume_7d: d7,
+    target_volume_30d: d30,
+    bid: null,
+    ask: null,
+  };
+}
+
+/** Busy trades every day, quiet only within the month, silent has a price but no trades. */
+const DEXIE_TICKERS = [
+  dexieTicker(TOKEN_ACTIVE, "0.0125", "42.5", "310", "2210.9"),
+  dexieTicker(TOKEN_QUIET, "3.5", "0", "0", "7.25"),
+  dexieTicker(TOKEN_SILENT, "0.5", "0", "0", "0"),
+];
+
+/** Intercepts the Dexie CAT registry and tickers with a small fixed set (the tokens page). */
 export async function mockDexie(page: Page) {
+  await page.route(/https:\/\/api\.dexie\.space\/v3\/prices\/tickers.*/, (route) =>
+    json(route, { success: true, tickers: DEXIE_TICKERS })
+  );
   await page.route(/https:\/\/api\.dexie\.space\/v1\/assets.*/, (route) =>
     json(route, {
       success: true,

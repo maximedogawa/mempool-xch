@@ -2,13 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { useTokenList } from "@/shared/api/useTokenList";
-import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
+import { formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
-import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
-import type { TokenActivitySample } from "@/shared/lib/tokens/activity";
-import type { TokenInfo } from "@/shared/api/tokenList";
-import { useSettings } from "@/shared/providers/SettingsProvider";
+import {
+  buildTokenRows,
+  countByFilter,
+  listTokens,
+  type TokenFilter,
+  type TokenRow,
+  type TokenSort,
+} from "@/shared/lib/tokens/listing";
+import { formatXchFigure, type VolumeWindow } from "@/shared/lib/tokens/markets";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
 import {
   Button,
@@ -16,7 +21,6 @@ import {
   CardBody,
   CardHeader,
   EmptyState,
-  Hash,
   Skeleton,
   Table,
   Td,
@@ -24,186 +28,150 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
-import { RECENT_SAMPLE, useTokenActivity } from "./useTokenActivity";
-import { SCAN_LIMIT, useTokenScan } from "./useTokenScan";
+import { useTokenMarkets } from "./useTokenMarkets";
 
 const PAGE = 25;
 
-type SortMode = "name" | "active" | "volume" | "recent" | "newest";
-
-const SORTS: readonly { id: SortMode; label: string }[] = [
-  { id: "name", label: "Name" },
-  { id: "active", label: "Most active" },
-  { id: "volume", label: "Volume" },
-  { id: "recent", label: "Recently active" },
-  { id: "newest", label: "Newest" },
+const WINDOWS: readonly { id: VolumeWindow; label: string; long: string }[] = [
+  { id: "d1", label: "24h", long: "24 hours" },
+  { id: "d7", label: "7d", long: "7 days" },
+  { id: "d30", label: "30d", long: "30 days" },
 ];
 
-function ActivityCells({
-  sample,
-  loading,
-  error = false,
+const FILTERS: readonly { id: TokenFilter; label: string }[] = [
+  { id: "traded", label: "Traded" },
+  { id: "liquid", label: "With liquidity" },
+  { id: "priced", label: "Priced" },
+  { id: "all", label: "All" },
+];
+
+const SORTS: readonly { id: TokenSort; label: string }[] = [
+  { id: "volume", label: "Volume" },
+  { id: "liquidity", label: "Liquidity" },
+  { id: "price", label: "Price" },
+  { id: "name", label: "Name" },
+];
+
+function Choice<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
 }: {
-  sample: TokenActivitySample | null;
-  loading: boolean;
-  error?: boolean;
+  label: string;
+  value: T;
+  options: readonly { id: T; label: string; count?: number }[];
+  onChange: (id: T) => void;
 }) {
-  if (loading && !sample) {
-    return (
-      <>
-        <Td className="text-right">
-          <Skeleton className="ml-auto h-4 w-10" />
-        </Td>
-        <Td className="hidden text-right md:table-cell">
-          <Skeleton className="ml-auto h-4 w-20" />
-        </Td>
-        <Td className="hidden lg:table-cell">
-          <Skeleton className="h-4 w-24" />
-        </Td>
-        <Td className="hidden lg:table-cell">
-          <Skeleton className="h-4 w-24" />
-        </Td>
-      </>
-    );
-  }
-  if (!sample) {
-    return (
-      <>
-        <Td className="text-right text-fg-faint">
-          {error ? (
-            <span title="Coinset activity is temporarily unavailable. Try again shortly.">
-              Unavailable
-            </span>
-          ) : (
-            "—"
-          )}
-        </Td>
-        <Td className="hidden text-right text-fg-faint md:table-cell">—</Td>
-        <Td className="hidden text-fg-faint lg:table-cell">—</Td>
-        <Td className="hidden text-fg-faint lg:table-cell">—</Td>
-      </>
-    );
-  }
   return (
-    <>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
+      <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            role="radio"
+            aria-checked={value === opt.id}
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
+              value === opt.id
+                ? "border-primary bg-primary-soft text-primary"
+                : "border-border bg-bg text-fg-muted hover:text-fg"
+            )}
+          >
+            {opt.label}
+            {opt.count !== undefined ? (
+              <span className="tabular ml-1.5 font-normal opacity-70">
+                {formatNumber(opt.count)}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Figure({ value, loading }: { value: number | null; loading: boolean }) {
+  if (loading) return <Skeleton className="ml-auto h-4 w-14" />;
+  if (value === null || value === 0) return <span className="text-fg-faint">—</span>;
+  return <>{formatXchFigure(value)}</>;
+}
+
+function TokenTableRow({
+  row,
+  period,
+  marketsLoading,
+}: {
+  row: TokenRow;
+  period: VolumeWindow;
+  marketsLoading: boolean;
+}) {
+  const { token, market } = row;
+  return (
+    <Tr>
+      <Td>
+        <a
+          href={routes.cat(token.assetId)}
+          className="flex min-w-0 items-center gap-2 text-fg hover:text-accent"
+        >
+          <AssetIcon kind="cat" assetId={token.assetId} size={22} />
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate font-medium">{token.name}</span>
+            <span className="text-xs text-fg-faint">{token.symbol}</span>
+          </span>
+        </a>
+      </Td>
       <Td className="tabular text-right">
-        {formatNumber(sample.sampledSpends)}
-        {sample.capped ? "+" : ""}
+        <Figure value={market?.lastPriceXch ?? null} loading={marketsLoading} />
       </Td>
-      <Td className="tabular hidden text-right md:table-cell">
-        {sample.sampledVolume > 0n ? `${formatAmount(sample.sampledVolume, "cat")}+` : "—"}
-      </Td>
-      <Td className="hidden text-xs text-fg-muted lg:table-cell">
-        {sample.firstSeenMs ? formatDateTime(sample.firstSeenMs) : "—"}
-      </Td>
-      <Td className="hidden text-xs text-fg-muted lg:table-cell">
-        {sample.lastSeenMs ? formatAge(sample.lastSeenMs) : "—"}
-      </Td>
-    </>
-  );
-}
-
-function NameRow({ token }: { token: TokenInfo }) {
-  const activity = useTokenActivity(token.assetId, true);
-  return (
-    <Tr>
-      <Td>
-        <a
-          href={routes.cat(token.assetId)}
-          className="flex min-w-0 items-center gap-2 text-fg hover:text-accent"
+      {WINDOWS.map((w) => (
+        <Td
+          key={w.id}
+          className={cn(
+            "tabular text-right",
+            w.id === period ? "font-medium text-fg" : "hidden text-fg-muted md:table-cell"
+          )}
         >
-          <AssetIcon kind="cat" assetId={token.assetId} size={22} />
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-medium">{token.name}</span>
-            <span className="text-xs text-fg-faint">{token.symbol}</span>
-          </span>
-        </a>
+          <Figure value={market?.volumeXch[w.id] ?? null} loading={marketsLoading} />
+        </Td>
+      ))}
+      <Td className="tabular hidden text-right sm:table-cell">
+        <Figure value={row.liquidityXch} loading={false} />
       </Td>
-      <Td className="hidden xl:table-cell">
-        <Hash value={token.assetId} href={routes.cat(token.assetId)} head={8} tail={6} copy />
-      </Td>
-      <ActivityCells sample={activity.data} loading={activity.isLoading} error={!!activity.error} />
-    </Tr>
-  );
-}
-
-function ScannedRow({ token, sample }: { token: TokenInfo; sample: TokenActivitySample | null }) {
-  return (
-    <Tr>
-      <Td>
-        <a
-          href={routes.cat(token.assetId)}
-          className="flex min-w-0 items-center gap-2 text-fg hover:text-accent"
-        >
-          <AssetIcon kind="cat" assetId={token.assetId} size={22} />
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-medium">{token.name}</span>
-            <span className="text-xs text-fg-faint">{token.symbol}</span>
-          </span>
-        </a>
-      </Td>
-      <Td className="hidden xl:table-cell">
-        <Hash value={token.assetId} href={routes.cat(token.assetId)} head={8} tail={6} copy />
-      </Td>
-      <ActivityCells sample={sample} loading={false} />
     </Tr>
   );
 }
 
 export function TokensPage() {
-  const { client } = useSettings();
   const tokens = useTokenList();
-  const scan = useTokenScan(client);
-  const [sort, setSort] = useState<SortMode>("name");
+  const markets = useTokenMarkets();
+  const [filter, setFilter] = useState<TokenFilter>("traded");
+  const [sort, setSort] = useState<TokenSort>("volume");
+  const [period, setPeriod] = useState<VolumeWindow>("d30");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
-  const allTokens = useMemo(
-    () => Object.values(tokens.data ?? {}).sort((a, b) => a.name.localeCompare(b.name)),
-    [tokens.data]
+  const rows = useMemo(
+    () => buildTokenRows(Object.values(tokens.data ?? {}), markets.data ?? {}),
+    [tokens.data, markets.data]
   );
-  const q = search.trim().toLowerCase();
-  const filtered = useMemo(
-    () =>
-      q
-        ? allTokens.filter(
-            (t) =>
-              t.name.toLowerCase().includes(q) ||
-              t.symbol.toLowerCase().includes(q) ||
-              t.assetId.includes(q)
-          )
-        : allTokens,
-    [allTokens, q]
+  const counts = useMemo(() => countByFilter(rows, period), [rows, period]);
+  // Without market data nothing is "traded": show the whole registry rather than an empty table.
+  const marketsMissing = !markets.data && !markets.isLoading;
+  const activeFilter: TokenFilter = marketsMissing && filter !== "liquid" ? "all" : filter;
+  const ordered = useMemo(
+    () => listTokens(rows, { filter: activeFilter, sort, window: period, search }),
+    [rows, activeFilter, sort, period, search]
   );
-
-  const scoreOf = (t: TokenInfo): number | null => {
-    const s = scan.results.get(t.assetId);
-    if (!s) return null;
-    if (sort === "active") return s.sampledSpends;
-    if (sort === "volume") return Number(s.sampledVolume);
-    if (sort === "recent") return s.lastSeenMs ?? -1;
-    if (sort === "newest") return s.firstSeenMs ?? -1;
-    return null;
-  };
-
-  const ordered = useMemo(() => {
-    if (sort === "name") return filtered;
-    return [...filtered].sort((a, b) => {
-      const sa = scoreOf(a);
-      const sb = scoreOf(b);
-      if (sa === null && sb === null) return a.name.localeCompare(b.name);
-      if (sa === null) return 1;
-      if (sb === null) return -1;
-      return sb - sa || a.name.localeCompare(b.name);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, sort, scan.results]);
 
   const pageCount = Math.max(1, Math.ceil(ordered.length / PAGE));
   const clampedPage = Math.min(page, pageCount - 1);
   const visible = ordered.slice(clampedPage * PAGE, clampedPage * PAGE + PAGE);
-
-  const needsScan = sort !== "name" && !scan.scanning && scan.results.size === 0;
+  const windowLong = WINDOWS.find((w) => w.id === period)!.long;
+  const loading = tokens.isLoading || (markets.isLoading && filter !== "all");
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,7 +179,7 @@ export function TokensPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Tokens</h1>
           <Tooltip
-            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(allTokens.length)} in total. Activity figures come from Coinset's get_transactions_by_cat_asset_id per asset on request — first seen is exact, spends and volume are a sample of the most recent ${RECENT_SAMPLE} transfers (marked with a + when there are more), nothing kept on our server.`}
+            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(rows.length)} in total. Price, volume and liquidity are Dexie market data, all in XCH so tokens compare with each other: volume is the XCH traded against the token, liquidity the XCH side of its open offers (refreshed daily). One request covers every token's market data, nothing kept on our server. On-chain history is on each token's page.`}
             placement="bottom"
           />
         </div>
@@ -227,7 +195,6 @@ export function TokensPage() {
               onChange={(e) => {
                 setSearch(e.target.value);
                 setPage(0);
-                scan.reset();
               }}
               placeholder="Search name, ticker or asset id"
               aria-label="Search tokens"
@@ -236,74 +203,55 @@ export function TokensPage() {
           }
         />
         <CardBody className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">Sort</span>
-            <div role="radiogroup" aria-label="Sort" className="flex flex-wrap gap-1">
-              {SORTS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={sort === opt.id}
-                  onClick={() => {
-                    setSort(opt.id);
-                    setPage(0);
-                    if (opt.id === "name") scan.reset();
-                  }}
-                  className={cn(
-                    "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                    sort === opt.id
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border bg-bg text-fg-muted hover:text-fg"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Choice
+              label="Show"
+              value={activeFilter}
+              options={FILTERS.map((f) => ({
+                ...f,
+                label:
+                  f.id === "traded"
+                    ? `Traded in ${WINDOWS.find((w) => w.id === period)!.label}`
+                    : f.label,
+                count:
+                  markets.data || f.id === "all" || f.id === "liquid" ? counts[f.id] : undefined,
+              }))}
+              onChange={(id) => {
+                setFilter(id);
+                setPage(0);
+              }}
+            />
+            <Choice
+              label="Period"
+              value={period}
+              options={WINDOWS}
+              onChange={(id) => {
+                setPeriod(id);
+                setPage(0);
+              }}
+            />
+            <Choice
+              label="Sort"
+              value={sort}
+              options={SORTS}
+              onChange={(id) => {
+                setSort(id);
+                setPage(0);
+              }}
+            />
           </div>
 
-          {needsScan ? (
-            <div className="flex flex-wrap items-center gap-3 rounded-sm border border-border bg-bg p-3 text-sm">
-              <p className="text-fg-muted">
-                Sorting by {SORTS.find((s) => s.id === sort)?.label.toLowerCase()} needs each
-                token&apos;s activity, fetched on request. Scans up to{" "}
-                {formatNumber(Math.min(SCAN_LIMIT, filtered.length))} of the{" "}
-                {formatNumber(filtered.length)} tokens currently listed
-                {filtered.length > SCAN_LIMIT
-                  ? " (search to narrow the list for an exact scan)"
-                  : ""}
-                .
-              </p>
-              <Button size="sm" onClick={() => scan.scan(filtered.map((t) => t.assetId))}>
-                Scan tokens
-              </Button>
-            </div>
-          ) : null}
-          {scan.scanning ? (
-            <div className="flex flex-col gap-1 text-xs text-fg-faint">
-              <div className="flex items-center justify-between">
-                <span>
-                  Scanning… {formatNumber(scan.done)} of {formatNumber(scan.total)}
-                </span>
-                <Button size="sm" onClick={scan.reset}>
-                  Stop scan
-                </Button>
-              </div>
-              <div
-                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2"
-                role="progressbar"
-                aria-label="Scan progress"
-                aria-valuemin={0}
-                aria-valuemax={scan.total}
-                aria-valuenow={scan.done}
+          {markets.error ? (
+            <p className="rounded-sm border border-border bg-bg p-3 text-sm text-fg-muted">
+              Dexie market data is unavailable right now, so prices and volume are missing.{" "}
+              <button
+                type="button"
+                className="font-medium text-accent hover:underline"
+                onClick={() => void markets.refetch()}
               >
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${scan.total > 0 ? (scan.done / scan.total) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
+                Try again
+              </button>
+            </p>
           ) : null}
 
           {tokens.error ? (
@@ -312,7 +260,7 @@ export function TokensPage() {
               title="Could not load the token registry"
               description={String((tokens.error as Error).message)}
             />
-          ) : tokens.isLoading ? (
+          ) : loading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 10 }, (_, i) => (
                 <Skeleton key={i} className="h-10 w-full" />
@@ -320,7 +268,21 @@ export function TokensPage() {
             </div>
           ) : ordered.length === 0 ? (
             <p className="py-6 text-center text-sm text-fg-faint">
-              No token matches &quot;{search}&quot;.
+              {search.trim()
+                ? `No token matches "${search.trim()}" in this view.`
+                : `No token was traded in the last ${windowLong}.`}{" "}
+              {activeFilter !== "all" ? (
+                <button
+                  type="button"
+                  className="font-medium text-accent hover:underline"
+                  onClick={() => {
+                    setFilter("all");
+                    setPage(0);
+                  }}
+                >
+                  Show all tokens
+                </button>
+              ) : null}
             </p>
           ) : (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tokens">
@@ -328,25 +290,27 @@ export function TokensPage() {
                 <thead>
                   <tr>
                     <Th>Token</Th>
-                    <Th className="hidden xl:table-cell">Asset id</Th>
-                    <Th className="text-right">Spends</Th>
-                    <Th className="hidden text-right md:table-cell">Volume moved</Th>
-                    <Th className="hidden lg:table-cell">First seen</Th>
-                    <Th className="hidden lg:table-cell">Last seen</Th>
+                    <Th className="text-right">Price (XCH)</Th>
+                    {WINDOWS.map((w) => (
+                      <Th
+                        key={w.id}
+                        className={cn("text-right", w.id !== period && "hidden md:table-cell")}
+                      >
+                        Volume {w.label} (XCH)
+                      </Th>
+                    ))}
+                    <Th className="hidden text-right sm:table-cell">Liquidity (XCH)</Th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((t) =>
-                    sort === "name" ? (
-                      <NameRow key={t.assetId} token={t} />
-                    ) : (
-                      <ScannedRow
-                        key={t.assetId}
-                        token={t}
-                        sample={scan.results.get(t.assetId) ?? null}
-                      />
-                    )
-                  )}
+                  {visible.map((row) => (
+                    <TokenTableRow
+                      key={row.token.assetId}
+                      row={row}
+                      period={period}
+                      marketsLoading={markets.isLoading}
+                    />
+                  ))}
                 </tbody>
               </Table>
             </div>

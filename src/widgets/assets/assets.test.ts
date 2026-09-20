@@ -23,6 +23,7 @@ describe("tokenList", () => {
         code: "sbx",
         denom: 1000,
         website: "https://spacebucks.io",
+        liquidity: [746.44, 3387460.5],
       },
       { id: "short", name: "bad" },
       { id: "cd".repeat(32), name: "", code: "" },
@@ -38,8 +39,10 @@ describe("tokenList", () => {
       iconUrl: `https://icons.dexie.space/${"ab".repeat(32)}.webp`,
       website: "https://spacebucks.io",
       description: null,
+      liquidityXch: 746.44,
     });
     expect(map["cd".repeat(32)]!.name).toBe("Unknown token");
+    expect(map["cd".repeat(32)]!.liquidityXch).toBeNull();
     expect(map["cd".repeat(32)]!.symbol).toBe("CAT");
     expect(normaliseTokenList(null)).toEqual({});
     expect(tokenLabel(map["ab".repeat(32)], "x")).toBe("Spacebucks (SBX)");
