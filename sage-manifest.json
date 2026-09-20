@@ -5,7 +5,7 @@
   "icon": "icons/icon-512.png",
   "entry": "index.html",
   "sageVersion": {
-    "min": "0.13.0"‚
+    "min": "0.13.0"
   },
   "author": {
     "name": "mempoolxch.space",
