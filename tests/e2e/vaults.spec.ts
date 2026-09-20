@@ -12,10 +12,9 @@ test.describe("vaults", () => {
       await page.goto("/vaults");
     } else {
       await page.goto("/");
-      await page
-        .getByRole("navigation", { name: "Primary" })
-        .getByRole("link", { name: "Vaults" })
-        .click();
+      // Vaults lives under the header's More menu, not the top bar.
+      await page.getByRole("button", { name: "More", exact: true }).click();
+      await page.getByRole("menuitem", { name: "Vaults" }).click();
       await expect(page).toHaveURL(/\/vaults$/);
     }
     await expect(page.getByRole("heading", { level: 1, name: "Prefarm tracker" })).toBeVisible();

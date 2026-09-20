@@ -15,6 +15,18 @@
   --surface-hover: #2a3050;
   --border: #2c3350;
   --map-land: #2f3757;
+  --map-bg: #070d1c;
+  --map-grid: rgb(94 206 123 / 0.06);
+  --map-marker-edge: rgb(7 13 28 / 0.75);
+
+  /* Region hues for the network map: size shows population, hue shows region. */
+  --region-europe: #5ece7b;
+  --region-asia: #7dd3fc;
+  --region-north-america: #8aa4ff;
+  --region-south-america: #f5c542;
+  --region-africa: #d68cf5;
+  --region-oceania: #f2903b;
+  --region-unmapped: #67708f;
   --border-strong: #3b4468;
 
   --fg: #e8ebf5;
@@ -69,6 +81,16 @@
   --surface-hover: #e4e8f3;
   --border: #d9deec;
   --map-land: #c9d0e3;
+  --map-bg: #eaf0fb;
+  --map-grid: rgb(47 154 77 / 0.07);
+  --map-marker-edge: rgb(255 255 255 / 0.9);
+  --region-europe: #2f9a4d;
+  --region-asia: #0a7ea4;
+  --region-north-america: #4a63d8;
+  --region-south-america: #b78a00;
+  --region-africa: #a855c7;
+  --region-oceania: #d1701f;
+  --region-unmapped: #7b849f;
   --border-strong: #b9c1d9;
   --fg: #10142a;
   --fg-muted: #4d5674;
@@ -364,7 +386,9 @@ body {
   opacity: 0.35;
 }
 
-/* Network map: a live event ripples out of an observed node (transform and opacity only). */
+/* Network map ------------------------------------------------------------- */
+
+/* A live event ripples out of the countries it is modelled to reach (transform + opacity only). */
 @keyframes map-pulse {
   0% {
     transform: scale(0.4);
@@ -382,29 +406,90 @@ body {
   transform-origin: center;
 }
 
-.map-node {
-  cursor: pointer;
+/* Modelled reach arcs: a slow dash crawl, never a claim about a real packet route. */
+@keyframes map-arc-drift {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+.map-arc {
+  stroke-opacity: 0.18;
+  stroke-dasharray: 2 6;
+  animation: map-arc-drift 2.4s linear infinite;
+}
+
+.map-canvas {
   outline: none;
 }
 
-.map-node:focus-visible circle:first-child {
-  stroke: var(--primary);
-  stroke-width: 1.5;
+.map-canvas:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.map-node {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 140ms ease;
+}
+
+.map-node circle {
+  transition:
+    r 140ms ease,
+    fill-opacity 140ms ease;
+}
+
+.map-node-dim {
+  opacity: 0.16;
+  cursor: default;
+}
+
+.map-node:focus-visible circle:nth-of-type(1) {
+  stroke: var(--fg);
+  stroke-width: 2;
+}
+
+.map-label {
+  fill: var(--fg);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--map-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+@keyframes map-peer-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.map-peer-ring {
+  animation: map-peer-ring 2.6s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .map-viewport {
-  background-color: #071014;
-  background-image: linear-gradient(rgb(48 120 105 / 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(48 120 105 / 0.08) 1px, transparent 1px);
+  background-color: var(--map-bg);
+  background-image:
+    linear-gradient(var(--map-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--map-grid) 1px, transparent 1px);
   background-size: 24px 24px;
-  cursor: grab;
-}
-
-.map-viewport:active {
-  cursor: grabbing;
 }
 
 .map-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 2rem;
   height: 2rem;
   border-right: 1px solid var(--border);
@@ -413,15 +498,90 @@ body {
   font-size: 0.85rem;
 }
 
-.map-control:hover {
+.map-control:last-child {
+  border-right: 0;
+}
+
+.map-control:hover:not(:disabled) {
   background: var(--surface-2);
+}
+
+.map-control:disabled {
+  color: var(--fg-faint);
+  cursor: not-allowed;
 }
 
 .map-control-wide {
   min-width: 3.5rem;
-  border-right: 0;
   font-size: 0.65rem;
   text-transform: uppercase;
+}
+
+.map-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.map-toggle:hover,
+.map-toggle-active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+/* Region legend chips double as filters; the dot carries the region's map colour. */
+.map-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  color: var(--fg-muted);
+  font-size: 0.7rem;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.map-legend-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--fg);
+}
+
+.map-legend-chip-active {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: var(--fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse,
+  .map-arc,
+  .map-peer-ring {
+    animation: none;
+  }
+
+  .map-pulse {
+    opacity: 0.5;
+  }
+
+  .map-node,
+  .map-node circle {
+    transition: none;
+  }
 }
 
 .card-lift {
