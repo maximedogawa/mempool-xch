@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Search, X } from "lucide-react";
+import { AtSign, Loader2, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -19,6 +19,14 @@ function CandidateLabel({ match }: { match: SearchMatch }) {
       <span className="inline-flex items-center gap-1.5 font-medium">
         <AssetIcon kind="cat" assetId={match.assetId} size={16} />
         {ticker}
+      </span>
+    );
+  }
+  if (match.kind === "handle") {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium">
+        <AtSign size={15} className="shrink-0 text-primary" aria-hidden="true" />
+        {match.label}
       </span>
     );
   }
@@ -117,7 +125,7 @@ export function SearchBox({
         const matches = await resolveText(target.value);
         if (matches.length === 0) {
           setError(
-            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id or a CAT asset id.`
+            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id, a CAT asset id or an @handle.`
           );
         } else {
           setCandidates(matches);

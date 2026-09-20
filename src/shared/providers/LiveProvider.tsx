@@ -192,7 +192,16 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           peakRef.current = null;
           invalidateChain();
           invalidateMempool();
-          void queryClient.invalidateQueries({ queryKey: queryKeys.blockRoot(network) });
+          // Height-based lists, transactions and balances can all describe the old fork.
+          // Cancel old reads before invalidation so an in-flight response cannot win the race.
+          const affected = {
+            predicate: (query: { queryKey: readonly unknown[] }) =>
+              query.queryKey[1] === network &&
+              ["chain", "tx", "coin", "address", "cat", "nft"].includes(String(query.queryKey[0])),
+          };
+          void queryClient
+            .cancelQueries(affected)
+            .then(() => queryClient.invalidateQueries(affected));
         }
       },
     });

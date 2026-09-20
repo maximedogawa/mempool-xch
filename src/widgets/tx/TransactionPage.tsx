@@ -352,6 +352,18 @@ export function TransactionPage({ id }: { id: string | null }) {
 
   if (view.status === "pending") {
     const { item } = view;
+    if (!item) {
+      return (
+        <div className="flex flex-col gap-4">
+          <Heading id={id} status="pending" />
+          <p className="text-sm text-fg-muted">
+            Pending in the index. Waiting for the node to provide the spend bundle; checking every
+            10 seconds.
+          </p>
+          {view.summary ? <SemanticSummary summary={view.summary} /> : null}
+        </div>
+      );
+    }
     const rate = feePerCost(item.fee, item.cost);
     const flow = flowFromCoins(item.removals, item.additions, view.kind, view.assetIds);
     const memos = view.summary ? collectMemos(view.summary.events) : [];

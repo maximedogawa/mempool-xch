@@ -287,16 +287,6 @@ a {
   animation: ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-@keyframes radar {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-radar {
-  animation: radar 2.4s linear infinite;
-}
-
 /* Page flair: soft green glow at the top, gradient hairline under the header */
 body {
   background-image: radial-gradient(
