@@ -9,19 +9,36 @@ interface Release {
   changes: string[];
 }
 
-/** Releases from git tags (scripts/changelog/generate.ts); the newest entry may be unreleased work on the branch. */
+/** The tag released before `version`, for a GitHub compare link; null for the first release. */
+export function previousOf(tagged: string[], version: string): string | null {
+  const at = tagged.indexOf(version);
+  return at >= 0 ? (tagged[at + 1] ?? null) : null;
+}
+
+/**
+ * Releases from git tags (scripts/changelog/generate.ts); the newest entry may be unreleased
+ * work on the branch. The subjects here are this repository's own commits; each entry also links
+ * out to the release GitHub publishes for that tag, which carries the contributors and the pull
+ * requests that a commit subject alone leaves out. Links only: the page ships inside the Docker
+ * image and the offline Sage export, so it never calls the GitHub API.
+ */
 export function ChangelogPage() {
   const releases = changelog.releases as Release[];
   const current = process.env.NEXT_PUBLIC_APP_VERSION ?? "";
+  const tagged = releases.filter((r) => r.version !== "unreleased").map((r) => r.version);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header>
         <h1 className="text-2xl font-semibold">Changelog</h1>
         <p className="mt-2 text-sm text-fg-muted">
           Every release of mempoolxch.space, generated from the repository&apos;s tags and commit
-          messages. Full history on{" "}
-          <ExternalLink href={`${REPO}/commits`} className="text-accent hover:underline">
+          messages. The published release notes live on{" "}
+          <ExternalLink href={`${REPO}/releases`} className="text-accent hover:underline">
             GitHub
+          </ExternalLink>
+          , and the full commit history is{" "}
+          <ExternalLink href={`${REPO}/commits`} className="text-accent hover:underline">
+            there too
           </ExternalLink>
           .
         </p>
@@ -43,14 +60,33 @@ export function ChangelogPage() {
                   running
                 </span>
               ) : null}
-              {r.version !== "unreleased" ? (
-                <ExternalLink
-                  href={`${REPO}/releases/tag/${r.version}`}
-                  className="text-xs text-accent hover:underline"
-                >
-                  tag
-                </ExternalLink>
-              ) : null}
+              {r.version === "unreleased" ? (
+                tagged[0] ? (
+                  <ExternalLink
+                    href={`${REPO}/compare/${tagged[0]}...main`}
+                    className="text-xs text-accent hover:underline"
+                  >
+                    compare on GitHub
+                  </ExternalLink>
+                ) : null
+              ) : (
+                <>
+                  <ExternalLink
+                    href={`${REPO}/releases/tag/${r.version}`}
+                    className="text-xs text-accent hover:underline"
+                  >
+                    release notes
+                  </ExternalLink>
+                  {previousOf(tagged, r.version) ? (
+                    <ExternalLink
+                      href={`${REPO}/compare/${previousOf(tagged, r.version)}...${r.version}`}
+                      className="text-xs text-fg-faint hover:text-accent hover:underline"
+                    >
+                      compare
+                    </ExternalLink>
+                  ) : null}
+                </>
+              )}
             </div>
             <ul className="list-disc space-y-1 pl-5 text-sm text-fg-muted">
               {r.changes.map((c, i) => (
