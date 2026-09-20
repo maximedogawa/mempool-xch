@@ -43,10 +43,12 @@ test.describe("network map", () => {
     await mockCoinset(page);
     await page.goto("/map");
     const search = page.getByRole("textbox", { name: "Filter the map by country or region" });
-    await search.fill("germany");
-
-    // The filter narrows both the map's count line and the country table.
-    await expect(page.getByText(/1 of 113 countries/)).toBeVisible();
+    // On a slow runner the field is typed into before hydration, which then resets the
+    // controlled value to "": type again until the filter has taken hold.
+    await expect(async () => {
+      await search.fill("germany");
+      await expect(page.getByText(/1 of 113 countries/)).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
     const countries = page.getByRole("region", { name: "Countries" });
     await expect(countries.getByText("Germany")).toBeVisible();
     await expect(countries.getByText("United States")).toHaveCount(0);
