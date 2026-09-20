@@ -65,5 +65,6 @@ test("token activity recovers after an opaque upstream failure without a request
   const row = page.getByRole("row").filter({ hasText: "Most Active Token" });
   await expect(row).toContainText("10+", { timeout: 15_000 });
   expect(failed).toBe(true);
-  expect(maximum).toBeLessThanOrEqual(3);
+  // The shared Coinset read gate (src/shared/lib/rpc/readGate.ts) allows 5 requests in flight.
+  expect(maximum).toBeLessThanOrEqual(5);
 });

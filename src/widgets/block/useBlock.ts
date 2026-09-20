@@ -6,6 +6,7 @@ import {
   assetTotalsFromSummaries,
   type BlockAssetTotals,
 } from "@/shared/lib/blocks/assetTotals";
+import { loadCachedTotals, saveCachedTotals } from "@/shared/lib/blocks/totalsCache";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
@@ -123,6 +124,14 @@ const TOTALS_PAGES = 4;
 /** At most this many per-block indexed calls in flight per tab (recent cubes + blocks list). */
 const blockTotalsLimit = createLimiter(3);
 
+function browserStorage(): Storage | null {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Per-asset totals of one block: Coinset summaries (up to 4 pages of 50) or the block's spends. */
 export function useBlockAssetTotals(height: number | null, hash: string | null, enabled: boolean) {
   const { client, endpoints } = useSettings();
@@ -136,6 +145,15 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
     enabled: enabled && height !== null && hash !== null,
     staleTime: Infinity,
     queryFn: async ({ signal }): Promise<BlockAssetTotals> => {
+      const source = client.hasIndexed ? "coinset" : "rpc";
+      const block = { height: height!, hash: hash! };
+      // A first-page total from the cubes is not good enough for the block page.
+      const cached = loadCachedTotals(browserStorage(), endpoints.network, block.hash, source);
+      if (cached && !cached.partial) return cached;
+      const keep = (totals: BlockAssetTotals) => {
+        saveCachedTotals(browserStorage(), endpoints.network, block, totals);
+        return totals;
+      };
       if (client.hasIndexed) {
         const txs: TxSummary[] = [];
         let cursor: string | null = null;
@@ -150,9 +168,9 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
           if (!cursor) break;
           if (page === TOTALS_PAGES - 1) partial = true;
         }
-        return assetTotalsFromSummaries(txs, partial);
+        return keep(assetTotalsFromSummaries(txs, partial));
       }
-      return assetTotalsFromSpends(await client.getBlockSpends(hash!, signal));
+      return keep(assetTotalsFromSpends(await client.getBlockSpends(hash!, signal)));
     },
   });
 }
@@ -170,13 +188,20 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
       ],
       staleTime: Infinity,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
+        const source = client.hasIndexed ? "coinset" : "rpc";
+        const cached = loadCachedTotals(browserStorage(), endpoints.network, b.hash, source);
+        if (cached) return cached;
+        const keep = (totals: BlockAssetTotals) => {
+          saveCachedTotals(browserStorage(), endpoints.network, b, totals);
+          return totals;
+        };
         if (client.hasIndexed) {
           const list = await blockTotalsLimit(() =>
             client.getBlockTransactions(b.height, { limit: 50 }, signal)
           );
-          return assetTotalsFromSummaries(list.transactions, list.nextCursor !== null);
+          return keep(assetTotalsFromSummaries(list.transactions, list.nextCursor !== null));
         }
-        return assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal));
+        return keep(assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal)));
       },
     })),
   });
