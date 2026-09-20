@@ -41,6 +41,7 @@ describe("fetchCollections", () => {
         floorPriceXch: 13.5,
         nftCount: 9997,
         tradeCount: 34,
+        sensitivity: { level: "clear", reason: null },
       },
     ]);
     expect(result.next).toBe(">f:1~s:col1abc");
@@ -72,14 +73,34 @@ describe("fetchNftEvents", () => {
             xch_price: 5,
             nft: { data: { name: "Trade #1" } },
           },
+          {
+            nft_id: "0xCC",
+            type: 1,
+            // MintGarden puts the collection at the top level of an event, not inside `nft`.
+            collection: {
+              id: "col1porn",
+              name: "Kamasutra: R.E. Edition",
+              blocked_content: true,
+              sensitive_content: false,
+            },
+            nft: { data: { name: "Veiled #1" }, is_blocked: false },
+          },
           { type: 1 },
         ],
         next: null,
       })
     );
-    expect(result.events).toHaveLength(2);
+    expect(result.events).toHaveLength(3);
     expect(result.events[0]).toMatchObject({ nftId: "aa", kind: "mint", nftName: "Mint #1" });
     expect(result.events[1]).toMatchObject({ nftId: "bb", kind: "trade", xchPrice: 5 });
+    expect(result.events[0]!.sensitivity).toEqual({ level: "clear", reason: null });
+    // The collection's block flag reaches the row, and so does its name.
+    expect(result.events[2]).toMatchObject({
+      nftId: "cc",
+      collectionId: "col1porn",
+      collectionName: "Kamasutra: R.E. Edition",
+      sensitivity: { level: "blocked", reason: null },
+    });
   });
 });
 

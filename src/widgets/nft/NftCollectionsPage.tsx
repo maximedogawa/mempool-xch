@@ -130,6 +130,8 @@ export function NftCollectionsPage() {
                             alt=""
                             className="h-8 w-8 shrink-0"
                             rounded="rounded-sm"
+                            sensitivity={c.sensitivity}
+                            veilDetail={false}
                           />
                           <span className="truncate font-medium">{c.name ?? "Untitled"}</span>
                         </a>

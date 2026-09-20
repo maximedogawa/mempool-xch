@@ -22,7 +22,11 @@ const isSageBuild = process.env.SAGE_BUILD === "1";
 
 const nextConfig: NextConfig = {
   output: isSageBuild ? "export" : "standalone",
-  ...(isSageBuild ? { images: { unoptimized: true }, pageExtensions: ["tsx", "jsx"] } : {}),
+  // Never on any build: the optimiser would fetch remote NFT and token artwork and re-serve the
+  // bytes from this origin, making the site its host. Asset imagery loads straight from source
+  // (src/shared/ui/AssetImage.tsx); an eslint rule keeps next/image out of the codebase.
+  images: { unoptimized: true },
+  ...(isSageBuild ? { pageExtensions: ["tsx", "jsx"] } : {}),
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,

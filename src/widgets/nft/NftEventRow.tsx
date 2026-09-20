@@ -35,6 +35,8 @@ export function NftEventRow({ event }: { event: NftEvent }) {
           alt=""
           className="h-11 w-11 transition-transform duration-200 group-hover:scale-105"
           rounded=""
+          sensitivity={event.sensitivity}
+          veilDetail={false}
         />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
