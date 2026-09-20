@@ -19,9 +19,13 @@ export function abortableDelay(ms: number, signal?: AbortSignal): Promise<void> 
   });
 }
 
-/** All indexed reads share slots and an outage cooldown, including token scans and block totals. */
+/**
+ * All Coinset reads share slots and an outage cooldown: dashboard polling, the mempool catch-up,
+ * token scans and block totals. Measured against api.coinset.org (2026-09-20): 3 in flight gave
+ * no 503 in 60 calls, 7 gave 1 in 140, 11 gave 5 in 240.
+ */
 export function createReadGate({
-  concurrency = 3,
+  concurrency = 5,
   now = Date.now,
   delay = abortableDelay,
   jitter = () => Math.random() * 250,

@@ -4,7 +4,9 @@
  * ipfs.mintgarden.io and the NFT's own data URIs. Those hosts must be on the Sage whitelist
  * (img-src). Everything here is best effort: the page works without it.
  */
-export const MINTGARDEN_API = "https://api.mintgarden.io";
+import { MINTGARDEN_API, loadNftRecord } from "@/shared/lib/nft/mintgarden";
+
+export { MINTGARDEN_API };
 
 export interface NftMetadata {
   name: string | null;
@@ -62,12 +64,12 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
 
 export async function fetchNftMetadata(
   nftId: string,
-  fetchImpl: typeof fetch = fetch
+  fetchImpl?: typeof fetch
 ): Promise<NftMetadata | null> {
+  // Shared with the icon fallback: one request per NFT, however many components show it.
+  const record = await loadNftRecord(nftId, fetchImpl && ((url) => fetchImpl(url)));
   try {
-    const response = await fetchImpl(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
-    if (!response.ok) return null;
-    return normaliseMintGardenNft(await response.json());
+    return record === null ? null : normaliseMintGardenNft(record);
   } catch {
     return null;
   }
