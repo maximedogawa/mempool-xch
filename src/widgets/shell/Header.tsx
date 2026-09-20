@@ -126,7 +126,8 @@ export function Header() {
     match: (p) => p.startsWith("/settings"),
   };
   const mobileGroups: NavGroup[] = [
-    { title: "Network", items: primary },
+    // Not "Network": MORE_GROUPS has a group of that name, and titles key the list.
+    { title: "Live chain", items: primary },
     ...MORE_GROUPS,
     { title: "You", items: [settings] },
   ];

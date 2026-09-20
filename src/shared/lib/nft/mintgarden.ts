@@ -5,6 +5,8 @@
  * an empty result rather than throwing, so a page degrades instead of breaking.
  */
 
+import { createLimiter } from "@/shared/lib/limit";
+
 export const MINTGARDEN_API = "https://api.mintgarden.io";
 export const DEXIE_API = "https://api.dexie.space/v1";
 
@@ -22,6 +24,35 @@ const hex = (v: unknown): string | null => {
   const s = str(v);
   return s ? s.toLowerCase().replace(/^0x/, "") : null;
 };
+
+/** MintGarden calls in flight per tab, across every badge, goggle and NFT page. */
+const mintGardenLimit = createLimiter(4);
+const NFT_RECORD_TTL_MS = 5 * 60_000;
+const nftRecords = new Map<string, { at: number; record: Promise<unknown> }>();
+
+/**
+ * The raw /nfts/<id> record, or null when MintGarden does not know the NFT. Asked once per NFT
+ * for all callers (icon fallback, goggles, NFT page), misses included: an NFT that is not
+ * indexed would otherwise cost one 404 per component showing it. An injected fetch bypasses the
+ * shared memo.
+ */
+export function loadNftRecord(nftId: string, fetchImpl?: FetchLike): Promise<unknown> {
+  const load = async (doFetch: FetchLike): Promise<unknown> => {
+    try {
+      const response = await doFetch(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
+      return response.ok ? await response.json() : null;
+    } catch {
+      return null;
+    }
+  };
+  if (fetchImpl) return load(fetchImpl);
+  const known = nftRecords.get(nftId);
+  if (known && Date.now() - known.at < NFT_RECORD_TTL_MS) return known.record;
+  const record = mintGardenLimit(() => load((url) => fetch(url)));
+  nftRecords.set(nftId, { at: Date.now(), record });
+  if (nftRecords.size > 500) nftRecords.delete(nftRecords.keys().next().value!);
+  return record;
+}
 
 export interface NftCollectionSummary {
   id: string;
@@ -199,19 +230,9 @@ export function mintGardenThumbnailUrl(nftId: string): string {
 }
 
 /** Fallback when the thumbnail redirect 404s (NFT not indexed by MintGarden): the full record's own image candidates. */
-export async function fetchNftImageUrls(
-  nftId: string,
-  fetchImpl: FetchLike = fetch
-): Promise<string[]> {
-  try {
-    const response = await fetchImpl(`${MINTGARDEN_API}/nfts/${encodeURIComponent(nftId)}`);
-    if (!response.ok) return [];
-    const body = obj(await response.json());
-    const data = obj(body.data);
-    return [str(data.thumbnail_uri), str(data.preview_uri)].filter((u): u is string => !!u);
-  } catch {
-    return [];
-  }
+export async function fetchNftImageUrls(nftId: string, fetchImpl?: FetchLike): Promise<string[]> {
+  const data = obj(obj(await loadNftRecord(nftId, fetchImpl)).data);
+  return [str(data.thumbnail_uri), str(data.preview_uri)].filter((u): u is string => !!u);
 }
 
 /** Open (status 0 = active) sell offers for `nftId`, cheapest first — Dexie is the offer index. */

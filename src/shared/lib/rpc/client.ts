@@ -7,7 +7,12 @@ import { withHexPrefix } from "@/shared/lib/chia/hex";
 import { RpcError } from "./errors";
 import { createReadGate } from "./readGate";
 
-const indexedRead = createReadGate();
+/**
+ * One budget for everything sent to Coinset from this tab, full-node RPC and indexed API alike:
+ * the gateway throttles per client, not per method, and its 503/429 answers carry no CORS
+ * headers, so the browser reports each of them as a CORS failure. A custom node is not gated.
+ */
+const coinsetRead = createReadGate();
 import { parseJsonSafe, stringifyJsonSafe } from "./json";
 import {
   normaliseBlockRecord,
@@ -131,18 +136,23 @@ export function createRpcClient(options: RpcClientOptions) {
   const fetchImpl: FetchLike =
     options.fetchImpl ?? ((input, init) => globalThis.fetch(input, init));
   const timeoutMs = options.timeoutMs ?? 20_000;
-  const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
+  const hasIndexed = options.indexedUrl !== null;
+  const rpcDirect = (method: string, params: Raw = {}, signal?: AbortSignal) =>
     post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal);
+  // indexedUrl is only set for Coinset endpoints, where the RPC shares the gateway's budget.
+  const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
+    hasIndexed
+      ? coinsetRead(() => rpcDirect(method, params, signal), signal)
+      : rpcDirect(method, params, signal);
   const indexed = (method: string, params: Raw = {}, signal?: AbortSignal) => {
     if (!options.indexedUrl) {
       throw new RpcError("rpc", method, "Indexed API is only available with Coinset endpoints");
     }
-    return indexedRead(
+    return coinsetRead(
       () => post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal),
       signal
     );
   };
-  const hasIndexed = options.indexedUrl !== null;
 
   const notFoundIfMissing = <T>(value: T | null | undefined, method: string, what: string): T => {
     if (value === null || value === undefined)
@@ -355,8 +365,9 @@ export function createRpcClient(options: RpcClientOptions) {
       );
     },
 
+    /** Never replayed by the read gate: a lost answer does not mean the bundle was not accepted. */
     async pushTx(spendBundle: Raw, signal?: AbortSignal): Promise<string> {
-      const r = await rpc("push_tx", { spend_bundle: spendBundle }, signal);
+      const r = await rpcDirect("push_tx", { spend_bundle: spendBundle }, signal);
       return String(r.status ?? "UNKNOWN");
     },
 
