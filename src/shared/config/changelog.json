@@ -1,10 +1,57 @@
 {
-  "generatedAt": "2026-09-18",
+  "generatedAt": "2026-09-20",
   "releases": [
     {
-      "version": "unreleased",
-      "date": null,
+      "version": "0.7.0",
+      "date": "2026-09-20",
       "changes": [
+        "bump version to 0.7.0",
+        "NFT artwork MintGarden flags as sensitive or blocked is veiled behind frosted glass (TASK-094)",
+        "Tokens e2e: the burst ceiling follows the shared Coinset gate (5 in flight)",
+        "Map e2e: retry the country filter until it survives hydration, fixing a flaky CI failure",
+        "Release 0.6.1",
+        "Tokens page shows Dexie market data in XCH: price, 24h/7d/30d volume and liquidity, with traded/liquidity/priced filters",
+        "Mobile menu: the top-bar pages are grouped as \"Live chain\", no longer a second \"Network\" heading with a duplicate React key",
+        "All Coinset requests share one request budget of 5 with a common back-off; MintGarden NFT lookups are asked once per NFT",
+        "Block totals are cached in localStorage so reloads stop re-requesting get_block_transactions from Coinset"
+      ]
+    },
+    {
+      "version": "0.6.0",
+      "date": "2026-09-20",
+      "changes": [
+        "feat(tests): update navigation tests for NFT and Pools sections to reflect menu structure",
+        "feat(map): add country search functionality and enhance map controls",
+        "feat(map): enhance map functionality with dashboard snapshot integration",
+        "feat: implement market page with order book integration and animations",
+        "feat: enhance polling mechanism with abort support and improve error handling",
+        "Performance: two thirds less memory on the dashboard, map and charts; block pages paint three times sooner; reloads reuse the known mempool",
+        "Performance measurement: bun run perf reports JS, LCP, long tasks and a 15-minute heap soak per route"
+      ]
+    },
+    {
+      "version": "0.5.1",
+      "date": "2026-09-18",
+      "changes": [
+        "Bump version to 0.5.1 in package.json and sage-manifest.json",
+        "Add Google site verification and implement sitemap and robots.txt functionality"
+      ]
+    },
+    {
+      "version": "0.5.0",
+      "date": "2026-09-18",
+      "changes": [
+        "Arcade: potato on top, searchable room accordion beside the games, no source links or intro",
+        "Arcade: live game rooms through a pass-through rewrite to the arcade21 tracker",
+        "Arcade: Pot Potato timer read from the coin lineage, with the tip snapshotted by bun run arcade",
+        "Arcade and vaults e2e: navigate directly on phones, where the primary menu is collapsed",
+        "Arcade page: games built on Chia from the arcade21 tracker, rooms summary and Pot Potato",
+        "Prefarm tracker: queue Coinset calls and retry, so a burst 503 no longer shows as a CORS error",
+        "Vaults: format the e2e mocks",
+        "Vaults: template literal in the stream test",
+        "Vaults page: prefarm custody vaults, Chia Vault lookup and live recovery events",
+        "Version 0.5.0; branch-per-task rule in CLAUDE.md",
+        "Format the whole repository with Prettier",
         "Lint the embeds as plain browser scripts",
         "Embeds: block queue, fee cards, mempool occupancy and transaction status, plus an SVG badge",
         "Learn section, prefarm tracker, status page and changelog",

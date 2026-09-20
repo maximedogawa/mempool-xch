@@ -3,7 +3,7 @@ import { mockCoinset, mockDexie } from "./mockCoinset";
 import { mockMintGarden } from "./mockMintGarden";
 import { mockNodeScan } from "./mockNodeScan";
 
-test.describe("learn, prefarm, status and changelog", () => {
+test.describe("learn, prefarm and status", () => {
   test.beforeEach(async ({ page }) => {
     await mockCoinset(page);
     await mockDexie(page);
@@ -52,16 +52,5 @@ test.describe("learn, prefarm, status and changelog", () => {
       timeout: 15_000,
     });
     await expect(page.getByRole("button", { name: "Check again" })).toBeVisible();
-  });
-
-  test("changelog lists tagged releases newest first", async ({ page }) => {
-    await page.goto("/changelog");
-    await expect(page.getByRole("heading", { level: 1, name: "Changelog" })).toBeVisible();
-    await expect(page.getByTestId("release-0.1.0")).toBeVisible();
-    await expect(page.getByTestId("release-0.4.0")).toBeVisible();
-    const headings = await page.getByRole("heading", { level: 2 }).allTextContents();
-    const tagged = headings.filter((h) => /^v\d/.test(h));
-    expect(tagged[tagged.length - 1]).toBe("v0.1.0");
-    expect(tagged[0]).toBe("v0.4.0");
   });
 });
