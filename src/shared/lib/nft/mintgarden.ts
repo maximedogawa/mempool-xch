@@ -266,12 +266,14 @@ export interface NftSearchResult {
   nftId: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface CollectionSearchResult {
   id: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface NftSearchResults {
@@ -309,6 +311,7 @@ export async function searchMintGarden(
           nftId: str(n.encoded_id) ?? "",
           name: str(n.name),
           thumbnailUrl: str(n.thumbnail_uri),
+          sensitivity: classifyNft(n, n.collection),
         }))
         .filter((n) => n.nftId),
       collections: collections
@@ -317,6 +320,7 @@ export async function searchMintGarden(
           id: str(c.id) ?? "",
           name: str(c.name),
           thumbnailUrl: str(c.thumbnail_uri),
+          sensitivity: classifyCollection(c),
         }))
         .filter((c) => c.id),
     };

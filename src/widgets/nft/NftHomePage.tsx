@@ -108,11 +108,12 @@ export function NftHomePage() {
                     alt={c.name ?? "collection"}
                     rounded=""
                     sensitivity={c.sensitivity}
+                    veilDetail={false}
                     className="absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-110"
                   />
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"
                   />
                   <div className="relative z-10 flex flex-col gap-0.5 p-2.5">
                     <span className="truncate text-sm font-semibold text-white">

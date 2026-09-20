@@ -604,3 +604,22 @@ body {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * The sensitive-content veil (src/shared/ui/AssetImage.tsx) obscures artwork with
+ * `backdrop-filter`, which some engines disable and which Chromium drops when printing. Without
+ * this the full-resolution artwork would show through a mostly transparent tint. Where the
+ * filter cannot apply, the glass becomes opaque instead: the silhouette is lost, never the veil.
+ */
+@supports not (backdrop-filter: blur(1px)) {
+  .veil-glass {
+    background: var(--surface);
+  }
+}
+
+@media print {
+  .veil-glass {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+}

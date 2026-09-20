@@ -17,7 +17,7 @@ import type { CompactMempoolItem, TxKindHint } from "@/shared/lib/mempool/types"
 import { routes } from "@/shared/lib/routes";
 import { squarify } from "@/shared/lib/treemap";
 import { AssetAmount, AssetIcon, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
-import { isVeiled } from "@/shared/lib/nft/sensitivity";
+import { isVeiled, type Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { fetchNftMetadata } from "@/widgets/assets/nftMetadata";
 
 const W = 800;
@@ -207,6 +207,17 @@ export function NextBlockGoggles() {
   const nftSensitivity = new Map(
     nftLaunchers.map((l, i) => [l, nftMeta[i]?.data?.sensitivity ?? null])
   );
+  /**
+   * Only the largest MAX_NFT_LOOKUPS cells get a metadata lookup, and a lookup in flight has no
+   * verdict yet — but the hover row and the legend render for every cell. An NFT this tab has
+   * not classified is treated as sensitive rather than shown: the icon falls back to its glyph,
+   * so a blocked thumbnail cannot appear in the cells we never looked at or before we know.
+   */
+  const UNCLASSIFIED: Sensitivity = { level: "sensitive", reason: null };
+  const nftVerdict = (assetId: string | undefined, kind: string): Sensitivity | null => {
+    if (kind !== "nft" || !assetId) return null;
+    return nftSensitivity.get(assetId) ?? UNCLASSIFIED;
+  };
   const nftImage = new Map(
     nftLaunchers.map((l, i) => [
       l,
@@ -548,7 +559,7 @@ export function NextBlockGoggles() {
                                   kind={item.kind}
                                   assetId={item.assetIds[0]}
                                   size={16}
-                                  sensitivity={nftSensitivity.get(item.assetIds[0] ?? "")}
+                                  sensitivity={nftVerdict(item.assetIds[0], item.kind)}
                                 />
                               </div>
                               <div className="w-fit max-w-full truncate rounded-sm bg-white/80 px-1 py-0.5 font-semibold">
@@ -586,7 +597,7 @@ export function NextBlockGoggles() {
                       kind={hover.kind}
                       assetId={hover.assetIds[0]}
                       size={14}
-                      sensitivity={nftSensitivity.get(hover.assetIds[0] ?? "")}
+                      sensitivity={nftVerdict(hover.assetIds[0], hover.kind)}
                     />
                     <span className="font-semibold text-fg">
                       <AssetAmount assets={hover.assets} kind={hover.kind} full />

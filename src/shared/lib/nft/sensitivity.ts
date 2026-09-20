@@ -107,7 +107,12 @@ export function sensitivityText(sensitivity: Sensitivity): SensitivityText {
     .replace(POLICY_PREFIX, "")
     .replace(TRAILING_NOUN, "")
     .trim();
-  const reason = trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase() : null;
+  // Only sentence-case a reason that arrived all-lowercase: "DMCA" and "CSAM" are not "Dmca".
+  const reason = trimmed
+    ? trimmed === trimmed.toLowerCase()
+      ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+      : trimmed
+    : null;
   const title = "Sensitive content";
   return { title, reason, summary: reason ? `${title}. Reason: ${reason}` : title };
 }

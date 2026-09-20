@@ -128,6 +128,14 @@ export async function mockMintGardenSearch(page: Page) {
               name: "Test Friends",
               thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/collection.webp",
             },
+            {
+              id: BLOCKED_COLLECTION_ID,
+              name: "Blocked Friends",
+              thumbnail_uri:
+                "https://assets.mainnet.mintgarden.io/thumbnails/blocked-collection.webp",
+              blocked_content: true,
+              blocked_content_reason: BLOCKED_REASON,
+            },
           ]
         : [],
       profiles: [],

@@ -154,6 +154,13 @@ describe("searchMintGarden", () => {
             name: "Chia Friends",
             thumbnail_uri: "https://assets.mainnet.mintgarden.io/y.webp",
           },
+          {
+            id: "col1blocked",
+            name: "Blocked Friends",
+            thumbnail_uri: "https://assets.mainnet.mintgarden.io/z.webp",
+            blocked_content: true,
+            blocked_content_reason: "Pornographic material",
+          },
         ],
         profiles: [{ id: "should be ignored" }],
       })
@@ -163,13 +170,22 @@ describe("searchMintGarden", () => {
         nftId: "nft1abc",
         name: "Friend #1",
         thumbnailUrl: "https://assets.mainnet.mintgarden.io/x.webp",
+        sensitivity: { level: "clear", reason: null },
       },
     ]);
+    // A search hit carries the same flags as any other record, so the dropdown can veil it.
     expect(result.collections).toEqual([
       {
         id: "col1abc",
         name: "Chia Friends",
         thumbnailUrl: "https://assets.mainnet.mintgarden.io/y.webp",
+        sensitivity: { level: "clear", reason: null },
+      },
+      {
+        id: "col1blocked",
+        name: "Blocked Friends",
+        thumbnailUrl: "https://assets.mainnet.mintgarden.io/z.webp",
+        sensitivity: { level: "blocked", reason: "Pornographic material" },
       },
     ]);
   });

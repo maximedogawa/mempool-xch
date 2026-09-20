@@ -48,6 +48,17 @@ export function AssetImage({
   const [loaded, setLoaded] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [veilArtFailed, setVeilArtFailed] = useState(false);
+  // A route that swaps one item for another (NFT to NFT) re-renders this same element, and React
+  // keeps its state unless something resets it. Revealing one item must never reveal the next.
+  const identity = `${urls.join("|")}::${videoUrl ?? ""}::${sensitivity?.level ?? "clear"}`;
+  const [seen, setSeen] = useState(identity);
+  if (seen !== identity) {
+    setSeen(identity);
+    setIndex(0);
+    setLoaded(false);
+    setRevealed(false);
+    setVeilArtFailed(false);
+  }
   const trusted = urls.filter(isTrustedImageUrl);
   const src = trusted[index];
   const video = videoUrl && isTrustedVideoUrl(videoUrl) ? videoUrl : null;
@@ -87,7 +98,7 @@ export function AssetImage({
         />
       );
     const glass = (
-      <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[color-mix(in_srgb,var(--surface)_22%,transparent)] p-2 text-center backdrop-blur-xl transition-colors duration-200 group-hover:bg-[color-mix(in_srgb,var(--surface)_10%,transparent)]">
+      <span className="veil-glass absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[color-mix(in_srgb,var(--surface)_22%,transparent)] p-2 text-center backdrop-blur-xl transition-colors duration-200 group-hover:bg-[color-mix(in_srgb,var(--surface)_10%,transparent)]">
         <EyeOff
           size={veilDetail ? 24 : 14}
           aria-hidden="true"

@@ -6,6 +6,7 @@ import {
   VIDEO_URL,
   mockDexieOffers,
   mockMintGarden,
+  mockMintGardenSearch,
   NFT_ID,
 } from "./mockMintGarden";
 
@@ -169,4 +170,31 @@ test("a video NFT is veiled by its blocked creator and plays once revealed", asy
   await expect(player).toBeVisible();
   await expect(player).toHaveAttribute("controls", "");
   await expect(player).toHaveJSProperty("src", VIDEO_URL);
+});
+
+test("a blocked collection is veiled in the search dropdown too", async ({ page }) => {
+  await mockCoinset(page);
+  await mockMintGarden(page);
+  await mockMintGardenSearch(page);
+  await page.goto("/");
+  const search = page.getByRole("searchbox").first();
+  await search.fill("friend");
+  // Candidates are resolved on submit, not while typing.
+  await search.press("Enter");
+  // Both hits list; only the blocked one wears the glass.
+  await expect(page.getByText("Blocked Friends").first()).toBeVisible();
+  await expect(page.locator('[title*="Sensitive content"]').first()).toBeVisible();
+});
+
+test("the home grid's veiled tile reveals on click instead of opening MintGarden", async ({
+  page,
+}) => {
+  await mockCoinset(page);
+  await mockMintGarden(page);
+  await page.goto("/nfts");
+  const tile = page.locator('a[href*="mintgarden.io"]').filter({ hasText: "Blocked Friends" });
+  await expect(tile).toBeVisible();
+  // The glass inside the card is decoration, never a button nested in the card's link.
+  await expect(tile.locator("button")).toHaveCount(0);
+  await expect(tile.locator('[title*="Sensitive content"]')).toHaveCount(1);
 });
