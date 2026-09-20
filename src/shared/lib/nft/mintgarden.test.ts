@@ -142,6 +142,17 @@ describe("searchMintGarden", () => {
       okResponse({
         nfts: [
           {
+            encoded_id: "nft1blocked",
+            name: "HOTSHOT #540",
+            thumbnail_uri: "https://assets.mainnet.mintgarden.io/blocked.webp",
+            // /search flattens the collection's verdict onto the row; the nested shape a
+            // /nfts/{id} read expects is simply not there, and reading it would call this clear.
+            is_blocked: false,
+            sensitive_content: false,
+            collection_blocked_content: true,
+            collection_blocked_content_reason: "Pornographic material",
+          },
+          {
             encoded_id: "nft1abc",
             name: "Friend #1",
             thumbnail_uri: "https://assets.mainnet.mintgarden.io/x.webp",
@@ -154,23 +165,35 @@ describe("searchMintGarden", () => {
             name: "Chia Friends",
             thumbnail_uri: "https://assets.mainnet.mintgarden.io/y.webp",
           },
+          {
+            id: "col1blocked",
+            name: "Blocked Friends",
+            thumbnail_uri: "https://assets.mainnet.mintgarden.io/z.webp",
+            blocked_content: true,
+            blocked_content_reason: "Pornographic material",
+          },
         ],
         profiles: [{ id: "should be ignored" }],
       })
     );
-    expect(result.nfts).toEqual([
+    expect(result.nfts[0]).toEqual({
+      nftId: "nft1blocked",
+      name: "HOTSHOT #540",
+      thumbnailUrl: "https://assets.mainnet.mintgarden.io/blocked.webp",
+      sensitivity: { level: "blocked", reason: "Pornographic material" },
+    });
+    expect(result.nfts.slice(1)).toEqual([
       {
         nftId: "nft1abc",
         name: "Friend #1",
         thumbnailUrl: "https://assets.mainnet.mintgarden.io/x.webp",
+        sensitivity: { level: "clear", reason: null },
       },
     ]);
-    expect(result.collections).toEqual([
-      {
-        id: "col1abc",
-        name: "Chia Friends",
-        thumbnailUrl: "https://assets.mainnet.mintgarden.io/y.webp",
-      },
+    // A collection hit carries no flags at all, so it is never shown on trust.
+    expect(result.collections.map((c) => c.sensitivity)).toEqual([
+      { level: "sensitive", reason: null },
+      { level: "sensitive", reason: null },
     ]);
   });
 

@@ -7,6 +7,7 @@
 import type { NetworkId } from "@/shared/config/networks";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
+import type { Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { routes } from "@/shared/lib/routes";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS } from "@/shared/config/networks";
@@ -20,6 +21,7 @@ export interface SearchMatch {
   assetId?: string;
   /** NFT/collection thumbnail, host-restricted by AssetImage itself when rendered. */
   thumbnailUrl?: string | null;
+  sensitivity?: Sensitivity | null;
 }
 
 const SEARCH_RESULT_LIMIT = 5;
@@ -33,6 +35,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
       label: n.name ?? "NFT",
       href: routes.nft(n.nftId),
       thumbnailUrl: n.thumbnailUrl,
+      sensitivity: n.sensitivity,
     })),
     // No in-app collection detail page yet; link out to MintGarden's own, same as the collections list page does.
     ...collections.slice(0, SEARCH_RESULT_LIMIT).map((c) => ({
@@ -40,6 +43,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
       label: c.name ?? "Collection",
       href: mintGardenCollectionUrl(c.id),
       thumbnailUrl: c.thumbnailUrl,
+      sensitivity: c.sensitivity,
     })),
   ];
 }

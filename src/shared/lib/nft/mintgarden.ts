@@ -6,7 +6,13 @@
  */
 
 import { createLimiter } from "@/shared/lib/limit";
-import { classifyCollection, classifyNft, type Sensitivity } from "./sensitivity";
+import {
+  UNCLASSIFIED,
+  classifyCollection,
+  classifyNft,
+  classifySearchNft,
+  type Sensitivity,
+} from "./sensitivity";
 
 export const MINTGARDEN_API = "https://api.mintgarden.io";
 export const DEXIE_API = "https://api.dexie.space/v1";
@@ -266,12 +272,14 @@ export interface NftSearchResult {
   nftId: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface CollectionSearchResult {
   id: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface NftSearchResults {
@@ -309,6 +317,7 @@ export async function searchMintGarden(
           nftId: str(n.encoded_id) ?? "",
           name: str(n.name),
           thumbnailUrl: str(n.thumbnail_uri),
+          sensitivity: classifySearchNft(n),
         }))
         .filter((n) => n.nftId),
       collections: collections
@@ -317,6 +326,9 @@ export async function searchMintGarden(
           id: str(c.id) ?? "",
           name: str(c.name),
           thumbnailUrl: str(c.thumbnail_uri),
+          // A collection hit carries no flags of its own (verified 2026-09-20), so it is never
+          // shown on trust; the collection page, which has the record, judges it properly.
+          sensitivity: UNCLASSIFIED,
         }))
         .filter((c) => c.id),
     };
