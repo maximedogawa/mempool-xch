@@ -12,7 +12,7 @@ export const DEXIE_ICON_BASE = "https://icons.dexie.space";
 export const DEXIE_PAGE_SIZE = 100;
 /** Hard stop for the page loop (943 CATs ≈ 10 pages in 2026). */
 export const DEXIE_MAX_PAGES = 40;
-export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v2";
+export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v3";
 export const TOKEN_LIST_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface TokenInfo {
@@ -22,6 +22,8 @@ export interface TokenInfo {
   iconUrl: string | null;
   website: string | null;
   description: string | null;
+  /** XCH side of Dexie's open-offer liquidity for the token, as of the registry load (≤ 24 h). */
+  liquidityXch?: number | null;
 }
 
 export type TokenMap = Record<string, TokenInfo>;
@@ -33,6 +35,8 @@ interface DexieAsset {
   denom?: number;
   website?: string;
   description?: string;
+  /** [XCH, token] */
+  liquidity?: unknown;
 }
 
 interface DexiePage {
@@ -71,6 +75,8 @@ export function normaliseTokenList(raw: unknown): TokenMap {
       website: typeof t.website === "string" && /^https?:\/\//.test(t.website) ? t.website : null,
       description:
         typeof t.description === "string" && t.description.trim() ? t.description.trim() : null,
+      liquidityXch:
+        Array.isArray(t.liquidity) && typeof t.liquidity[0] === "number" ? t.liquidity[0] : null,
     };
   });
   return map;
