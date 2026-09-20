@@ -20,7 +20,9 @@ test.describe("custom node", () => {
     await expect(
       page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("status").filter({ hasText: "Polling" }).first()).toBeVisible({
+    // Polling is not called out on the pill any more: it reads Live, and only the channel
+    // description below names the transport.
+    await expect(page.getByRole("status").filter({ hasText: "Live" }).first()).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByRole("status").filter({ hasText: "custom node" }).first()).toBeVisible();

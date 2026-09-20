@@ -5,7 +5,7 @@
  * can show candidates when more than one lookup succeeds.
  */
 import type { NetworkId } from "@/shared/config/networks";
-import { puzzleHashToAddress } from "@/shared/lib/chia/address";
+import { launcherIdToDidId, puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import type { Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { routes } from "@/shared/lib/routes";
@@ -89,7 +89,9 @@ export async function resolveHex32(
   if (singleton?.singletonType === "nft")
     matches.push({ kind: "nft", label: "NFT", href: routes.nft(hex) });
   else if (singleton?.singletonType === "did")
-    matches.push({ kind: "did", label: "DID", href: routes.address(hex) });
+    // As the did:chia: id, so the page opens as a DID rather than reading the launcher id as a
+    // puzzle hash.
+    matches.push({ kind: "did", label: "DID", href: routes.address(launcherIdToDidId(hex)) });
   if (catCoins && catCoins.length > 0 && !singleton) {
     matches.push({ kind: "cat", label: "CAT asset", href: routes.cat(hex), assetId: hex });
   }

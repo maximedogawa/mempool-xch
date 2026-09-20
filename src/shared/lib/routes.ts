@@ -33,6 +33,7 @@ export const routes = {
   nft: (nftId: string) => detail("nft", nftId),
   offer: (offerId: string) => detail("offer", offerId),
   nftHome: () => page("nfts"),
+  ownedNfts: (address: string) => detail("nfts/owned", address),
   nftCollections: () => page("nfts/collections"),
   nftActivity: () => page("nfts/activity"),
   nftMints: () => page("nfts/mints"),

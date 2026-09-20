@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useProjectedBlocks, useRecentBlocks } from "@/shared/api/hooks";
+import { useWatchedActivity } from "@/widgets/watchlist/useWatchedActivity";
 import { CHIA } from "@/shared/config/networks";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ProjectedBlockDetails } from "./ProjectedBlockDetails";
@@ -15,6 +16,7 @@ import { RecentBlocks } from "./RecentBlocks";
  */
 export function BlocksRow() {
   const { settings } = useSettings();
+  const watched = useWatchedActivity();
   const projected = useProjectedBlocks(8);
   const recent = useRecentBlocks(settings.recentBlocks);
   const [selected, setSelected] = useState<number | null>(null);
@@ -93,6 +95,7 @@ export function BlocksRow() {
               Projected · next blocks
             </span>
             <ProjectedBlocks
+              watchedIds={watched.pendingIds}
               blocks={projected.blocks}
               loading={projected.isLoading}
               selected={selected}
@@ -112,6 +115,7 @@ export function BlocksRow() {
               Confirmed · recent transaction blocks
             </span>
             <RecentBlocks
+              watchedConfirmed={watched.confirmed}
               data={recent.data}
               loading={recent.isLoading}
               blockMaxCost={blockMaxCost}

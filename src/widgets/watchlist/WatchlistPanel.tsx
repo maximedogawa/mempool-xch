@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellOff, Eye, Plus, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
 import { useProjectedBlocks } from "@/shared/api/hooks";
@@ -14,13 +14,15 @@ import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
 import { WatchedAddressRow } from "./WatchedAddressRow";
+import { WatchedDidRow } from "./WatchedDidRow";
 import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
 
 /**
- * Follow addresses and transactions without a Sage wallet: pending status with queue
- * position, a confirmation chime and opt-in browser notifications. Everything lives in
- * localStorage (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
+ * Follow addresses, transactions and DIDs without a Sage wallet: pending status with queue
+ * position, a confirmation chime and opt-in browser notifications, plus what a watched DID
+ * holds. Everything lives in localStorage (src/shared/lib/watchlist/store.ts); nothing is sent
+ * anywhere.
  */
 export function WatchlistPanel() {
   const { settings, update } = useSettings();
@@ -51,8 +53,10 @@ export function WatchlistPanel() {
       add({ kind: "address", id: target.puzzleHash, label: target.address });
     } else if (target.kind === "hex32") {
       add({ kind: "tx", id: target.hex, label: shortId(target.hex) });
+    } else if (target.kind === "did") {
+      add({ kind: "did", id: target.launcherId, label: target.didId });
     } else {
-      setError("Paste an address or a 64-character transaction id.");
+      setError("Paste an address, a did:chia: id or a 64-character transaction id.");
       return;
     }
     setInput("");
@@ -75,9 +79,14 @@ export function WatchlistPanel() {
   };
 
   return (
-    <Card role="region" aria-label="Watchlist">
+    <Card role="region" aria-label="Watchlist" className="overflow-hidden border-primary/20">
       <CardHeader
-        title={items.length ? `Watchlist · ${items.length}` : "Watchlist"}
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Eye size={17} className="text-primary" aria-hidden="true" />
+            {items.length ? `Watchlist · ${items.length}` : "Watchlist"}
+          </span>
+        }
         action={
           <span className="inline-flex items-center gap-2">
             <button
@@ -90,7 +99,7 @@ export function WatchlistPanel() {
                   : "Play a chime when a watched item confirms"
               }
               title={settings.sounds ? "Watchlist chime on" : "Watchlist chime off"}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg/50 text-fg-muted transition-colors hover:border-primary/40 hover:text-primary"
             >
               {settings.sounds ? (
                 <Volume2 size={14} aria-hidden="true" />
@@ -111,7 +120,7 @@ export function WatchlistPanel() {
                 title={
                   settings.notifications ? "Browser notifications on" : "Browser notifications off"
                 }
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg/50 text-fg-muted transition-colors hover:border-primary/40 hover:text-primary"
               >
                 {settings.notifications ? (
                   <Bell size={14} aria-hidden="true" />
@@ -123,25 +132,33 @@ export function WatchlistPanel() {
           </span>
         }
       />
-      <CardBody className="flex flex-col gap-3">
-        <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
+      <CardBody className="flex flex-col gap-4">
+        <p className="text-xs text-fg-muted">
+          Follow incoming assets and confirmations. Watched transactions are marked in the blocks
+          above, and a watched DID shows the NFTs it holds.
+        </p>
+        <form
+          onSubmit={onSubmit}
+          className="flex flex-wrap gap-2 rounded-xl border border-border bg-bg/50 p-2"
+        >
           <label htmlFor="watchlist-add" className="sr-only">
-            Add an address or transaction id to your watchlist
+            Add an address, DID or transaction id to your watchlist
           </label>
           <input
             id="watchlist-add"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Address or transaction id"
+            placeholder="Address, DID or transaction id"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "watchlist-add-error" : undefined}
-            className="h-9 min-w-0 flex-1 rounded-sm border border-border bg-surface px-2.5 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
+            className="h-10 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
           />
           <button
             type="submit"
-            className="h-9 rounded-sm bg-primary px-3 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
+            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
           >
+            <Plus size={15} aria-hidden="true" />
             Watch
           </button>
         </form>
@@ -151,14 +168,20 @@ export function WatchlistPanel() {
           </p>
         ) : null}
         {items.length === 0 ? (
-          <p className="py-2 text-center text-sm text-fg-faint">
-            Nothing watched yet. Add an address or transaction above, or use the Watch button on its
-            page.
+          <p className="rounded-xl border border-dashed border-border py-6 px-4 text-center text-sm text-fg-faint">
+            Nothing watched yet. Add an address, DID or transaction above, or use the Watch button
+            on its page.
           </p>
         ) : (
-          <ul className="divide-y divide-border/60">
+          <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
             {items.map((item) =>
-              item.kind === "tx" ? (
+              item.kind === "did" ? (
+                <WatchedDidRow
+                  key={`did:${item.id}`}
+                  item={item}
+                  onRemove={() => remove("did", item.id)}
+                />
+              ) : item.kind === "tx" ? (
                 <WatchedTxRow
                   key={`tx:${item.id}`}
                   item={item}

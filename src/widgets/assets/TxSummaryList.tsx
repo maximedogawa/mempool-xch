@@ -77,6 +77,11 @@ export function TxSummaryList({
   if (transactions.length === 0) return <EmptyState title={emptyText} />;
   return (
     <div className="flex flex-col gap-2">
+      {error ? (
+        <p role="alert" className="text-xs text-danger">
+          Could not refresh or load more transactions. Please try again.
+        </p>
+      ) : null}
       <ul className="divide-y divide-border/60">
         {transactions.map((tx) => {
           const flow = viewedP2 ? deriveAddressFlow(tx, viewedP2) : null;

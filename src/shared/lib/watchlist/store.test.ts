@@ -56,6 +56,34 @@ describe("watchlist store", () => {
     expect(second.get()).toHaveLength(1);
   });
 
+  test("keeps a watched DID, keyed by its launcher id, across a reload", () => {
+    const storage = memoryStorage();
+    const launcher = "73ef2c17b2ed1e979cb449ff28852c337018cd1f7e5e4b6abf1448e8d650a6d9";
+    const didId = "did:chia:1w0hjc9aja50f0895f8lj3pfvxdcp3ngl0e0yk64lz3yw34js5mvstx2cnk";
+    const first = createWatchlistStore(storage);
+    first.add({ kind: "did", id: `0x${launcher.toUpperCase()}`, label: didId });
+    expect(first.has("did", launcher)).toBe(true);
+    // A DID and an address are separate entries even when the hex matches.
+    expect(first.has("address", launcher)).toBe(false);
+    const second = createWatchlistStore(storage);
+    expect(second.get()).toEqual([
+      expect.objectContaining({ kind: "did", id: launcher, label: didId }),
+    ]);
+  });
+
+  test("drops persisted entries whose kind is not a watchable one", () => {
+    const storage = memoryStorage();
+    storage.setItem(
+      "mempool-xch:watchlist:v1",
+      JSON.stringify([
+        { kind: "did", id: "dd".repeat(32), label: "did:chia:1…", addedAt: 1 },
+        { kind: "nft", id: "ee".repeat(32), label: "nft1…", addedAt: 2 },
+      ])
+    );
+    const store = createWatchlistStore(storage);
+    expect(store.get().map((i) => i.kind)).toEqual(["did"]);
+  });
+
   test("ignores malformed persisted data instead of throwing", () => {
     const storage = memoryStorage();
     storage.setItem("mempool-xch:watchlist:v1", "not json");

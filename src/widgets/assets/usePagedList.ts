@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 export interface Page<T> {
   items: T[];
@@ -9,11 +8,7 @@ export interface Page<T> {
   nextCursor: string | null;
 }
 
-/**
- * Cursor pagination over any Coinset list (offers, clawbacks, reorgs): the generic twin of
- * usePagedTransactions. Accumulates pages in state, exposes "load more", and refetches the
- * first page on invalidation.
- */
+/** Pages belong to their query identity; late responses never append to another list. */
 export function usePagedList<T>({
   queryKey,
   fetchPage,
@@ -29,46 +24,24 @@ export function usePagedList<T>({
   pageSize?: number;
   itemKey: (item: T) => string;
 }) {
-  const queryClient = useQueryClient();
-  const [extra, setExtra] = useState<T[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const first = useQuery({
-    queryKey: queryKey(null),
-    queryFn: ({ signal }) => fetchPage(null, pageSize, signal),
+  const query = useInfiniteQuery({
+    // Keep infinite data distinct from single-page queries using the same family.
+    queryKey: [...queryKey(null), "pages", pageSize],
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam, signal }) => fetchPage(pageParam, pageSize, signal),
+    getNextPageParam: (last, _pages, previous, cursors) =>
+      last.items.length > 0 &&
+      last.truncated &&
+      last.nextCursor &&
+      last.nextCursor !== previous &&
+      !cursors.includes(last.nextCursor)
+        ? last.nextCursor
+        : undefined,
     enabled,
     refetchInterval,
   });
-
-  const keyString = JSON.stringify(queryKey(null));
-  useEffect(() => {
-    setExtra([]);
-    setCursor(null);
-  }, [keyString]);
-
-  useEffect(() => {
-    if (first.data && cursor === null && extra.length === 0)
-      setCursor(first.data.truncated ? first.data.nextCursor : null);
-  }, [first.data, cursor, extra.length]);
-
-  const loadMore = useCallback(async () => {
-    if (!cursor || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const page = await queryClient.fetchQuery({
-        queryKey: queryKey(cursor),
-        queryFn: ({ signal }) => fetchPage(cursor, pageSize, signal),
-        staleTime: 60_000,
-      });
-      setExtra((prev) => [...prev, ...page.items]);
-      setCursor(page.items.length > 0 && page.truncated ? page.nextCursor : null);
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [cursor, loadingMore, queryClient, queryKey, fetchPage, pageSize]);
-
   const seen = new Set<string>();
-  const items = [...(first.data?.items ?? []), ...extra].filter((item) => {
+  const items = (query.data?.pages.flatMap((page) => page.items) ?? []).filter((item) => {
     const key = itemKey(item);
     if (seen.has(key)) return false;
     seen.add(key);
@@ -76,10 +49,12 @@ export function usePagedList<T>({
   });
   return {
     items,
-    isLoading: first.isLoading,
-    error: first.error,
-    hasMore: cursor !== null,
-    loadMore,
-    loadingMore,
+    isLoading: query.isLoading,
+    error: query.error,
+    hasMore: query.hasNextPage,
+    loadMore: async () => {
+      if (enabled && query.hasNextPage && !query.isFetching) await query.fetchNextPage();
+    },
+    loadingMore: query.isFetchingNextPage,
   };
 }

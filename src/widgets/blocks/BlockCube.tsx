@@ -21,6 +21,7 @@ export function BlockCube({
   animate = false,
   glow = false,
   selected = false,
+  watched = false,
   size = 124,
 }: {
   /** 0..1 */
@@ -38,6 +39,8 @@ export function BlockCube({
   glow?: boolean;
   /** Highlight the front face (drill-down open). */
   selected?: boolean;
+  /** A transaction followed in the watchlist is in this block. */
+  watched?: boolean;
   size?: number;
 }) {
   const depth = Math.round(size * 0.2);
@@ -106,7 +109,9 @@ export function BlockCube({
           "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[3px] rounded-tr-none text-center text-fg transition-transform duration-200",
           variant === "projected" &&
             !selected &&
+            !watched &&
             "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          watched && !selected && "outline-2 outline-solid outline-warning -outline-offset-2",
           selected && "outline-2 outline-solid outline-primary -outline-offset-2",
           (onClick || href) && "group-hover:-translate-y-1"
         )}

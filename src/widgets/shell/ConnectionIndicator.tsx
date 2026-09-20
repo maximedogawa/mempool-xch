@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Radar, WifiOff, Zap } from "lucide-react";
+import { Loader2, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useBlockchainState } from "@/shared/api/hooks";
 import { describeChannel } from "@/shared/lib/live/channel";
@@ -13,15 +13,20 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 
 const LABEL = {
   live: "Live",
-  polling: "Polling",
   connecting: "Connecting",
   offline: "Offline",
 } as const;
 
+type PillTone = keyof typeof LABEL;
+
 /**
- * Connection pill: a pulsing green ring while the WebSocket stream is live, a sweeping radar
- * while polling, a spinner while connecting, red when offline. Shows the peak height and the
- * age of the last update so "alive" is visible at a glance.
+ * Connection pill: a pulsing green ring while updates are arriving, a spinner while connecting,
+ * red when offline. Shows the peak height and the age of the last update so "alive" is visible
+ * at a glance.
+ *
+ * Polling is shown as live on purpose: the data is just as current, only its transport differs,
+ * and an amber pill read as a fault whenever Coinset's socket was busy. Which channel the tab is
+ * actually on stays one hover away in the tooltip, and in the footer and settings page.
  */
 export function ConnectionIndicator({ compact = false }: { compact?: boolean }) {
   const { status, transport, lastEventAt, peakHeight } = useLive();
@@ -41,17 +46,16 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     wsUrl: endpoints.wsUrl,
     isCoinset: endpoints.isCoinset,
   });
+  const tone: PillTone = status === "polling" ? "live" : status;
   const hint =
     status === "connecting"
       ? `Connecting: ${channel.name}…`
       : `${channel.name}: ${channel.detail} Last update ${age}.`;
   const styles = {
     live: "border-primary/40 bg-primary-soft text-primary",
-    polling:
-      "border-warning/40 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning",
     connecting: "border-border bg-surface text-fg-muted",
     offline: "border-danger/40 bg-danger-soft text-danger",
-  }[status];
+  }[tone];
   return (
     <Tooltip text={hint} placement="bottom">
       <span
@@ -67,19 +71,17 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
           className="relative inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center"
           aria-hidden="true"
         >
-          {status === "live" ? <span className="live-ring absolute inset-0 rounded-full" /> : null}
-          {status === "polling" ? (
-            <Radar size={14} className="animate-radar absolute -inset-0.5 h-3.5 w-3.5" />
-          ) : status === "connecting" ? (
+          {tone === "live" ? <span className="live-ring absolute inset-0 rounded-full" /> : null}
+          {tone === "connecting" ? (
             <Loader2 size={14} className="absolute -inset-0.5 h-3.5 w-3.5 animate-spin" />
-          ) : status === "offline" ? (
+          ) : tone === "offline" ? (
             <WifiOff size={14} className="absolute -inset-0.5 h-3.5 w-3.5" />
           ) : (
             <span className="relative h-2 w-2 shrink-0 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
           )}
         </span>
-        {!compact ? <span className="whitespace-nowrap">{LABEL[status]}</span> : null}
-        {!compact && status === "live" ? (
+        {!compact ? <span className="whitespace-nowrap">{LABEL[tone]}</span> : null}
+        {!compact && tone === "live" ? (
           <Zap size={12} aria-hidden="true" className="-ml-1 hidden md:inline" />
         ) : null}
         {!compact && peak !== null ? (
@@ -92,7 +94,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
             {age}
           </span>
         ) : null}
-        <span className="sr-only">{`${LABEL[status]} via ${channel.name}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
+        <span className="sr-only">{`${LABEL[tone]} via ${channel.name}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
       </span>
     </Tooltip>
   );

@@ -1,17 +1,21 @@
 /**
- * Watchlist of addresses and transaction ids. Local only, never sent anywhere: a tiny
+ * Watchlist of addresses, transaction ids and DIDs. Local only, never sent anywhere: a tiny
  * external store so React reads it with useSyncExternalStore. Follows the same shape as
  * src/shared/lib/settings/store.ts (cached snapshot, not a fresh array per get(), so
  * useSyncExternalStore does not loop).
  */
 
-export type WatchKind = "address" | "tx";
+import { browserStorage } from "@/shared/lib/browserStorage";
+
+export type WatchKind = "address" | "tx" | "did";
+
+const KINDS: readonly WatchKind[] = ["address", "tx", "did"];
 
 export interface WatchItem {
   kind: WatchKind;
-  /** Puzzle hash (address) or transaction id, lowercase hex, no 0x prefix. */
+  /** Puzzle hash (address), transaction id or DID launcher id: lowercase hex, no 0x prefix. */
   id: string;
-  /** What to show: the bech32 address, or the tx id itself. */
+  /** What to show: the bech32 address, the did:chia: id, or the tx id itself. */
   label: string;
   addedAt: number;
 }
@@ -31,7 +35,7 @@ function sanitise(raw: unknown): WatchItem[] {
     if (!entry || typeof entry !== "object") continue;
     const e = entry as Partial<WatchItem>;
     if (
-      (e.kind !== "address" && e.kind !== "tx") ||
+      !KINDS.includes(e.kind as WatchKind) ||
       typeof e.id !== "string" ||
       typeof e.label !== "string"
     )
@@ -41,7 +45,7 @@ function sanitise(raw: unknown): WatchItem[] {
     if (!id || seen.has(key)) continue;
     seen.add(key);
     items.push({
-      kind: e.kind,
+      kind: e.kind as WatchKind,
       id,
       label: e.label,
       addedAt: typeof e.addedAt === "number" ? e.addedAt : Date.now(),
@@ -112,8 +116,7 @@ let browserStore: WatchlistStore | null = null;
 /** Singleton store bound to window.localStorage (in-memory during SSR). */
 export function getWatchlistStore(): WatchlistStore {
   if (!browserStore) {
-    const storage = typeof window !== "undefined" ? window.localStorage : null;
-    browserStore = createWatchlistStore(storage);
+    browserStore = createWatchlistStore(browserStorage());
   }
   return browserStore;
 }
