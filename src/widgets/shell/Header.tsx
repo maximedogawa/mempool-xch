@@ -20,40 +20,68 @@ interface NavItem {
   match: (p: string) => boolean;
 }
 
+/**
+ * The top bar carries the live-chain pages only: what a visitor watching the network needs at
+ * a glance. Everything else lives under "More", grouped so a nine-item menu still reads as a
+ * map of the site rather than a list.
+ */
 const PRIMARY: NavItem[] = [
   { href: routes.home(), label: "Dashboard", match: (p) => p === "/" },
-  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
-  { href: routes.market(), label: "Market", match: (p) => p.startsWith("/market") },
-  {
-    href: routes.nftHome(),
-    label: "NFTs",
-    match: (p) => p.startsWith("/nfts") || p.startsWith("/nft"),
-  },
-  {
-    href: routes.tokens(),
-    label: "Tokens",
-    match: (p) => p.startsWith("/tokens") || p.startsWith("/cat"),
-  },
-  { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
-  { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
-  {
-    href: routes.vaults(),
-    label: "Vaults",
-    match: (p) => p.startsWith("/vaults") || p.startsWith("/prefarm"),
-  },
-];
-
-const MORE: NavItem[] = [
   {
     href: routes.blocks(),
     label: "Blocks",
     match: (p) => p.startsWith("/blocks") || p.startsWith("/block"),
   },
   { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
-  { href: routes.gaming(), label: "Arcade", match: (p) => p.startsWith("/gaming") },
-  { href: routes.learn(), label: "Learn", match: (p) => p.startsWith("/learn") },
-  { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
+  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
+  { href: routes.market(), label: "Market", match: (p) => p.startsWith("/market") },
+  { href: routes.map(), label: "Map", match: (p) => p.startsWith("/map") },
 ];
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+const MORE_GROUPS: NavGroup[] = [
+  {
+    title: "Assets",
+    items: [
+      {
+        href: routes.tokens(),
+        label: "Tokens",
+        match: (p) => p.startsWith("/tokens") || p.startsWith("/cat"),
+      },
+      {
+        href: routes.nftHome(),
+        label: "NFTs",
+        match: (p) => p.startsWith("/nfts") || p.startsWith("/nft"),
+      },
+    ],
+  },
+  {
+    title: "Network",
+    items: [
+      { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
+      { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
+      {
+        href: routes.vaults(),
+        label: "Vaults",
+        match: (p) => p.startsWith("/vaults") || p.startsWith("/prefarm"),
+      },
+    ],
+  },
+  {
+    title: "Learn & play",
+    items: [
+      { href: routes.learn(), label: "Learn", match: (p) => p.startsWith("/learn") },
+      { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
+      { href: routes.gaming(), label: "Arcade", match: (p) => p.startsWith("/gaming") },
+    ],
+  },
+];
+
+const MORE: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   return (
@@ -92,10 +120,15 @@ export function Header() {
   };
   const primary = inSage ? [...PRIMARY, wallet] : PRIMARY;
   const moreActive = MORE.some((item) => item.match(pathname));
-  const allMobile = [
-    ...primary,
-    ...MORE,
-    { href: routes.settings(), label: "Settings", match: (p: string) => p.startsWith("/settings") },
+  const settings: NavItem = {
+    href: routes.settings(),
+    label: "Settings",
+    match: (p) => p.startsWith("/settings"),
+  };
+  const mobileGroups: NavGroup[] = [
+    { title: "Network", items: primary },
+    ...MORE_GROUPS,
+    { title: "You", items: [settings] },
   ];
 
   return (
@@ -120,6 +153,7 @@ export function Header() {
           ))}
           <Popover
             label="More pages"
+            panelClassName="min-w-[26rem]"
             trigger={({ open: moreOpen, toggle }) => (
               <button
                 type="button"
@@ -147,23 +181,35 @@ export function Header() {
               </button>
             )}
           >
-            {MORE.map((item) => {
-              const active = item.match(pathname);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  role="menuitem"
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "block rounded-sm px-3 py-2 text-sm font-medium text-fg-muted hover:bg-surface-2 hover:text-fg",
-                    active && "bg-surface-2 text-fg"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            <div className="grid gap-x-3 gap-y-2 sm:grid-cols-3">
+              {MORE_GROUPS.map((group) => (
+                <div key={group.title} className="flex flex-col">
+                  <span
+                    aria-hidden="true"
+                    className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-faint"
+                  >
+                    {group.title}
+                  </span>
+                  {group.items.map((item) => {
+                    const active = item.match(pathname);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        role="menuitem"
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "block whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-fg-muted hover:bg-surface-2 hover:text-fg",
+                          active && "bg-surface-2 text-fg"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </Popover>
         </nav>
         <div className="min-w-0 flex-1">
@@ -207,19 +253,34 @@ export function Header() {
           className="border-t border-border bg-bg-elevated px-4 py-3 lg:hidden"
         >
           <ul className="flex flex-col gap-1">
-            {allMobile.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  aria-current={item.match(pathname) ? "page" : undefined}
+            {mobileGroups.map((group, index) => (
+              <li key={group.title}>
+                <span
+                  aria-hidden="true"
                   className={cn(
-                    "block min-h-11 rounded-sm px-3 py-2.5 text-base font-medium text-fg-muted hover:bg-surface-2 hover:text-fg",
-                    item.match(pathname) && "bg-surface-2 text-fg"
+                    "block px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint",
+                    index > 0 && "mt-2 border-t border-border/60 pt-3"
                   )}
                 >
-                  {item.label}
-                </Link>
+                  {group.title}
+                </span>
+                <ul className="flex flex-col gap-1">
+                  {group.items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        aria-current={item.match(pathname) ? "page" : undefined}
+                        className={cn(
+                          "block min-h-11 rounded-sm px-3 py-2.5 text-base font-medium text-fg-muted hover:bg-surface-2 hover:text-fg",
+                          item.match(pathname) && "bg-surface-2 text-fg"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
             <li className="pt-2 sm:hidden">

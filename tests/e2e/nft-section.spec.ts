@@ -53,7 +53,9 @@ test.describe("NFT section", () => {
   test("NFTs nav link reaches the home page", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop nav only");
     await page.goto("/");
-    await page.getByRole("link", { name: "NFTs", exact: true }).click();
+    // NFTs lives under the header's More menu, not the top bar.
+    await page.getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "NFTs" }).click();
     await expect(page).toHaveURL(/\/nfts$/);
   });
 });
