@@ -71,6 +71,17 @@ describe("watchlist store", () => {
     ]);
   });
 
+  test("keeps a watched handle under its own name, not as hex", () => {
+    const storage = memoryStorage();
+    const first = createWatchlistStore(storage);
+    first.add({ kind: "handle", id: "MempoolXCH", label: "mempoolxch" });
+    expect(first.has("handle", "mempoolxch")).toBe(true);
+    const second = createWatchlistStore(storage);
+    expect(second.get()).toEqual([
+      expect.objectContaining({ kind: "handle", id: "mempoolxch", label: "mempoolxch" }),
+    ]);
+  });
+
   test("drops persisted entries whose kind is not a watchable one", () => {
     const storage = memoryStorage();
     storage.setItem(

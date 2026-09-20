@@ -1,5 +1,6 @@
 /**
- * Watchlist of addresses, transaction ids and DIDs. Local only, never sent anywhere: a tiny
+ * Watchlist of addresses, transaction ids, DIDs and XCHandles handles. Local only, never sent
+ * anywhere: a tiny
  * external store so React reads it with useSyncExternalStore. Follows the same shape as
  * src/shared/lib/settings/store.ts (cached snapshot, not a fresh array per get(), so
  * useSyncExternalStore does not loop).
@@ -7,15 +8,18 @@
 
 import { browserStorage } from "@/shared/lib/browserStorage";
 
-export type WatchKind = "address" | "tx" | "did";
+export type WatchKind = "address" | "tx" | "did" | "handle";
 
-const KINDS: readonly WatchKind[] = ["address", "tx", "did"];
+const KINDS: readonly WatchKind[] = ["address", "tx", "did", "handle"];
 
 export interface WatchItem {
   kind: WatchKind;
-  /** Puzzle hash (address), transaction id or DID launcher id: lowercase hex, no 0x prefix. */
+  /**
+   * Puzzle hash (address), transaction id or DID launcher id as lowercase hex without 0x — or,
+   * for a handle, the handle itself, which is the registry's own unique key for it.
+   */
   id: string;
-  /** What to show: the bech32 address, the did:chia: id, or the tx id itself. */
+  /** What to show: the bech32 address, the did:chia: id, the handle, or the tx id itself. */
   label: string;
   addedAt: number;
 }

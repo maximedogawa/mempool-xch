@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockCoinset, mockDexie, P2, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinset";
 import { mockDexieOffers, mockMintGarden, NFT_ID } from "./mockMintGarden";
+import { HANDLE, mockXchandles } from "./mockXchandles";
 import { mockNodeScan } from "./mockNodeScan";
 
 const ROUTES = [
@@ -25,6 +26,7 @@ const ROUTES = [
   `/block/${TX_BLOCK_HEIGHT}`,
   `/tx/${TX_ID}`,
   `/address/${P2}`,
+  `/handle/${HANDLE}`,
   "/legal/terms",
   "/legal/notice",
   "/legal/privacy",
@@ -70,6 +72,7 @@ test.describe("accessibility", () => {
     await mockMintGarden(page);
     await mockDexieOffers(page);
     await mockNodeScan(page);
+    await mockXchandles(page);
   });
 
   /*

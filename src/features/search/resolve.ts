@@ -6,6 +6,7 @@
  */
 import type { NetworkId } from "@/shared/config/networks";
 import { launcherIdToDidId, puzzleHashToAddress } from "@/shared/lib/chia/address";
+import { fetchHandle, parseHandle } from "@/shared/lib/handles/xchandles";
 import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import type { Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { routes } from "@/shared/lib/routes";
@@ -14,7 +15,8 @@ import { NETWORKS } from "@/shared/config/networks";
 import type { SearchTarget } from "./parse";
 
 export interface SearchMatch {
-  kind: "tx" | "coin" | "block" | "cat" | "address" | "nft" | "did" | "collection" | "offer";
+  kind:
+    "tx" | "coin" | "block" | "cat" | "address" | "nft" | "did" | "collection" | "offer" | "handle";
   label: string;
   href: string;
   /** CAT asset id (no 0x) so the result row can show the token icon and ticker. */
@@ -26,10 +28,29 @@ export interface SearchMatch {
 
 const SEARCH_RESULT_LIMIT = 5;
 
-/** Free-text name search via MintGarden: NFTs and collections only, capped for a usable dropdown. */
+/**
+ * Free-text name search. A word that could be an XCHandles handle is asked of the registry at
+ * the same time as MintGarden's NFT and collection name search; a registered handle leads the
+ * results, and a name nobody has taken leaves the MintGarden matches exactly as they were.
+ */
 export async function resolveText(value: string): Promise<SearchMatch[]> {
-  const { nfts, collections } = await searchMintGarden(value);
+  const handle = parseHandle(value);
+  const [{ nfts, collections }, handleRecord] = await Promise.all([
+    searchMintGarden(value),
+    handle ? probe(() => fetchHandle(handle)) : Promise.resolve(null),
+  ]);
+  const handleMatch: SearchMatch[] =
+    handle && (handleRecord?.status === "active" || handleRecord?.status === "expired")
+      ? [
+          {
+            kind: "handle",
+            label: handleRecord.status === "expired" ? `${handle} (expired handle)` : handle,
+            href: routes.handle(handle),
+          },
+        ]
+      : [];
   return [
+    ...handleMatch,
     ...nfts.slice(0, SEARCH_RESULT_LIMIT).map((n) => ({
       kind: "nft" as const,
       label: n.name ?? "NFT",

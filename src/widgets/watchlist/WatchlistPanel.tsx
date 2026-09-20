@@ -3,6 +3,7 @@
 import { Bell, BellOff, Eye, Plus, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
+import { parseHandle } from "@/shared/lib/handles/xchandles";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { shortId } from "@/shared/lib/chia/hex";
 import {
@@ -15,14 +16,15 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
 import { WatchedAddressRow } from "./WatchedAddressRow";
 import { WatchedDidRow } from "./WatchedDidRow";
+import { WatchedHandleRow } from "./WatchedHandleRow";
 import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
 
 /**
- * Follow addresses, transactions and DIDs without a Sage wallet: pending status with queue
- * position, a confirmation chime and opt-in browser notifications, plus what a watched DID
- * holds. Everything lives in localStorage (src/shared/lib/watchlist/store.ts); nothing is sent
- * anywhere.
+ * Follow addresses, transactions, DIDs and XCHandles handles without a Sage wallet: pending
+ * status with queue position, a confirmation chime and opt-in browser notifications, plus what a
+ * watched DID holds and where a watched handle points. Everything lives in localStorage
+ * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
  */
 export function WatchlistPanel() {
   const { settings, update } = useSettings();
@@ -49,14 +51,21 @@ export function WatchlistPanel() {
     e.preventDefault();
     setError(null);
     const target = parseSearchInput(input);
+    const handle = target.kind === "text" ? parseHandle(target.value) : null;
     if (target.kind === "address") {
       add({ kind: "address", id: target.puzzleHash, label: target.address });
     } else if (target.kind === "hex32") {
       add({ kind: "tx", id: target.hex, label: shortId(target.hex) });
     } else if (target.kind === "did") {
       add({ kind: "did", id: target.launcherId, label: target.didId });
+    } else if (handle) {
+      // A bare name is an XCHandles handle. It is added without asking the registry first: an
+      // unregistered handle is a fine thing to watch, and the row says so until someone takes it.
+      add({ kind: "handle", id: handle, label: handle });
     } else {
-      setError("Paste an address, a did:chia: id or a 64-character transaction id.");
+      setError(
+        "Paste an address, a did:chia: id, an XCHandles handle or a 64-character transaction id."
+      );
       return;
     }
     setInput("");
@@ -135,21 +144,21 @@ export function WatchlistPanel() {
       <CardBody className="flex flex-col gap-4">
         <p className="text-xs text-fg-muted">
           Follow incoming assets and confirmations. Watched transactions are marked in the blocks
-          above, and a watched DID shows the NFTs it holds.
+          above, a watched DID shows the NFTs it holds, and a watched handle where it points.
         </p>
         <form
           onSubmit={onSubmit}
           className="flex flex-wrap gap-2 rounded-xl border border-border bg-bg/50 p-2"
         >
           <label htmlFor="watchlist-add" className="sr-only">
-            Add an address, DID or transaction id to your watchlist
+            Add an address, handle, DID or transaction id to your watchlist
           </label>
           <input
             id="watchlist-add"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Address, DID or transaction id"
+            placeholder="Address, handle, DID or transaction id"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "watchlist-add-error" : undefined}
             className="h-10 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
@@ -169,13 +178,19 @@ export function WatchlistPanel() {
         ) : null}
         {items.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 px-4 text-center text-sm text-fg-faint">
-            Nothing watched yet. Add an address, DID or transaction above, or use the Watch button
-            on its page.
+            Nothing watched yet. Add an address, handle, DID or transaction above, or use the Watch
+            button on its page.
           </p>
         ) : (
           <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
             {items.map((item) =>
-              item.kind === "did" ? (
+              item.kind === "handle" ? (
+                <WatchedHandleRow
+                  key={`handle:${item.id}`}
+                  item={item}
+                  onRemove={() => remove("handle", item.id)}
+                />
+              ) : item.kind === "did" ? (
                 <WatchedDidRow
                   key={`did:${item.id}`}
                   item={item}

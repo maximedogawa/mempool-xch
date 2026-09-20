@@ -54,6 +54,7 @@ const nextConfig: NextConfig = {
             { source: "/coin/:id", destination: "/coin?id=:id" },
             { source: "/cat/:id", destination: "/cat?id=:id" },
             { source: "/nft/:id", destination: "/nft?id=:id" },
+            { source: "/handle/:id", destination: "/handle?id=:id" },
             { source: "/nfts/owned/:id", destination: "/nfts/owned?id=:id" },
             { source: "/offer/:id", destination: "/offer?id=:id" },
             // The arcade21 tracker answers JSON without CORS headers; this plain pass-through

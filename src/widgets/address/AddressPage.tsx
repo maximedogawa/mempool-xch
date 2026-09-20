@@ -1,5 +1,6 @@
 "use client";
 
+import { AtSign } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useDetailId } from "@/shared/hooks/useDetailId";
 import Link from "next/link";
@@ -34,6 +35,7 @@ import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { AddressNfts } from "./AddressNfts";
 import { DidProfileCard } from "@/widgets/did/DidProfileCard";
 import { useDidHoldings } from "@/widgets/did/useDidProfile";
+import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
@@ -62,6 +64,7 @@ export function AddressPage() {
   const tokens = useTokenList();
   // Shares its queries with the profile card below (same key), so a DID costs no extra request.
   const did = useDidHoldings(resolved?.kind === "did" ? resolved.puzzleHash : null);
+  const handle = useAddressHandle(resolved?.kind === "address" ? resolved.puzzleHash : null);
 
   if (!resolved) {
     return (
@@ -135,6 +138,27 @@ export function AddressPage() {
                 <CopyButton value={`0x${ph}`} />
               </dd>
             </div>
+            {handle.data ? (
+              <div className="min-w-0">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  XCHandles
+                </dt>
+                <dd className="flex flex-wrap items-center gap-2 text-sm">
+                  <Link
+                    href={routes.handle(handle.data.handle)}
+                    className="mono inline-flex items-center gap-1 font-semibold text-accent hover:underline"
+                  >
+                    <AtSign size={14} aria-hidden="true" />
+                    {handle.data.handle}
+                  </Link>
+                  {handle.data.count > 1 ? (
+                    <span className="text-xs text-fg-faint">
+                      +{handle.data.count - 1} more resolve here
+                    </span>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
             {!isDid ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
