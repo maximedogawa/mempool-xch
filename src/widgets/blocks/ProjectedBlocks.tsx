@@ -6,6 +6,7 @@ import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
+import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
 
 const CUBE = 138;
@@ -13,11 +14,13 @@ const CUBE = 138;
 /** Projected blocks, furthest-in-the-future on the left, next block right next to the divider. */
 export function ProjectedBlocks({
   blocks,
+  watchedIds,
   loading,
   selected,
   onSelect,
 }: {
   blocks: ProjectedBlock[];
+  watchedIds?: ReadonlySet<string>;
   loading: boolean;
   selected: number | null;
   onSelect: (index: number | null) => void;
@@ -52,9 +55,10 @@ export function ProjectedBlocks({
       aria-label="Projected next blocks"
     >
       {blocks.map((block) => {
+        const watched = block.items.filter((item) => watchedIds?.has(item.id)).length;
         const zero = block.maxFeeRate === 0;
         const yours = mine.size ? block.items.filter((i) => mine.has(i.id)).length : 0;
-        const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles${yours ? `, ${yours} of yours` : ""}, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
+        const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles${yours ? `, ${yours} of yours` : ""}${watched ? `, ${watched} watched` : ""}, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
         return (
           <li key={block.index} className="flex flex-col items-center gap-1">
             <span className="tabular h-4 text-xs font-semibold text-fg-muted">
@@ -69,6 +73,7 @@ export function ProjectedBlocks({
               animate
               glow={block.index === 0}
               selected={selected === block.index}
+              watched={watched > 0}
               size={CUBE}
             >
               <span className="tabular text-[15px] font-bold leading-tight">
@@ -86,6 +91,7 @@ export function ProjectedBlocks({
               <span className="tabular text-[11px] text-fg/80">
                 {block.items.length} tx · {formatCost(block.totalCost)}
               </span>
+              {watched ? <WatchedBlockBadge count={watched} /> : null}
               {yours ? (
                 <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">
                   {yours} yours

@@ -287,16 +287,6 @@ a {
   animation: ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-@keyframes radar {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-radar {
-  animation: radar 2.4s linear infinite;
-}
-
 /* Page flair: soft green glow at the top, gradient hairline under the header */
 body {
   background-image: radial-gradient(
@@ -603,4 +593,39 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * The sensitive-content veil (src/shared/ui/AssetImage.tsx) obscures artwork with
+ * `backdrop-filter`, which some engines disable and which Chromium drops when printing. Without
+ * this the full-resolution artwork would show through a mostly transparent tint. Where the
+ * filter cannot apply, the glass becomes opaque instead: the silhouette is lost, never the veil.
+ */
+/* Keeps the veil's wording legible over whatever artwork shows through the glass. */
+.veil-text {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.9);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .veil-glass {
+    background: var(--surface);
+  }
+}
+
+/*
+ * Printing is the dangerous case: Chrome and Safari drop backgrounds unless the reader turns
+ * "Background graphics" on, and they drop backdrop-filter outright — so a veil that relies on
+ * either would print the artwork in full. The artwork itself is hidden instead, which needs no
+ * cooperation from the print settings, and the wording is forced to print with it.
+ */
+@media print {
+  .veil-glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .veil-art {
+    visibility: hidden !important;
+  }
 }

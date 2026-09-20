@@ -118,10 +118,19 @@ export default function DocsPage() {
         <CardBody className="flex flex-col gap-4">
           <Q q="What can I paste into the search box?">
             A transaction (spend bundle) id, a block height or header hash, an xch or txch address,
-            a coin id, a CAT asset id, an nft1 id or a did:chia: id. Press{" "}
+            a coin id, a CAT asset id, an nft1 id or a did:chia: id. A plain word is looked up as an
+            XCHandles handle and searched as an NFT or collection name at the same time. Press{" "}
             <kbd className="rounded-sm border border-border px-1 text-xs">/</kbd> anywhere to jump
             to the box. If a 64-character hex id could be several things, the app checks the
             mempool, transactions, coins and blocks and shows you the candidates.
+          </Q>
+          <Q q="What is a handle?">
+            XCHandles (xchandles.com) is a name registry on Chia: a handle such as{" "}
+            <span className="mono">@maximedogawa</span> is a registry slot that resolves to a name
+            NFT, and that NFT&apos;s address is where a payment to the name goes. Its page shows
+            what it resolves to today, who holds it and when the registration runs out, and it can
+            be watched like an address. Handle data comes from the registry&apos;s own read-only
+            API, mainnet only.
           </Q>
           <Q q="I sent a transaction. Where is it?">
             Paste its id or your address. A pending transaction shows which projected block it sits

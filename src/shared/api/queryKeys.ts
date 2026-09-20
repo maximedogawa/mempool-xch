@@ -36,5 +36,9 @@ export const queryKeys = {
     ["cat", network, id, part, cursor] as const,
   nft: (network: NetworkId, id: string, part: string, cursor: string | null = null) =>
     ["nft", network, id, part, cursor] as const,
+  handle: (network: NetworkId, handle: string, part: string) =>
+    ["handle", network, handle, part] as const,
+  did: (network: NetworkId, launcherId: string, part: string) =>
+    ["did", network, launcherId, part] as const,
   search: (network: NetworkId, q: string) => ["search", network, q] as const,
 };

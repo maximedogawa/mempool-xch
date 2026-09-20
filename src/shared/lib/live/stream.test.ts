@@ -70,19 +70,23 @@ class FakeSocket {
   onerror: (() => void) | null = null;
   onclose: (() => void) | null = null;
   closed = false;
+  readyState = 0;
   constructor(readonly url: string) {
     FakeSocket.instances.push(this);
   }
   close() {
     this.closed = true;
+    this.readyState = 3;
   }
   open() {
+    this.readyState = 1;
     this.onopen?.();
   }
   message(data: unknown) {
     this.onmessage?.({ data: JSON.stringify(data) });
   }
   drop() {
+    this.readyState = 3;
     this.onclose?.();
   }
 }
@@ -165,6 +169,72 @@ describe("createLiveStream", () => {
     expect(timers.pending()).toContain(30_000);
     stream.stop();
     expect(FakeSocket.instances.length).toBe(2);
+  });
+
+  test("a socket that is open is never labelled polling, even if its open event was missed", async () => {
+    FakeSocket.instances = [];
+    const timers = fakeTimers();
+    const stream = createLiveStream({
+      wsUrl: "wss://api.coinset.org/ws",
+      poll: async () => ({ peakHeight: 1, peakIsTx: false, mempoolSize: 0 }),
+      onEvent: () => {},
+      pollIntervalMs: 15_000,
+      maxWsFailures: 1,
+      WebSocketImpl: FakeSocket as unknown as typeof WebSocket,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    await Promise.resolve();
+    FakeSocket.instances[0]!.drop();
+    expect(stream.status).toBe("polling");
+
+    // The retry connects and reaches OPEN, but its onopen never runs (a frozen tab, a callback
+    // the browser drops). Nothing else would ever correct the pill.
+    await timers.advance(30_000);
+    const retried = FakeSocket.instances[1]!;
+    retried.readyState = 1;
+    // The retry left the label on "connecting" and, with onopen lost, nothing would move it.
+    expect(stream.status).toBe("connecting");
+
+    // The next poll reads the socket rather than the last event, and puts it right.
+    await timers.advance(15_000);
+    expect(stream.status).toBe("live");
+    stream.stop();
+  });
+
+  test("the background retry brings the pill back to live, and a later poll does not undo it", async () => {
+    FakeSocket.instances = [];
+    const timers = fakeTimers();
+    const stream = createLiveStream({
+      wsUrl: "wss://api.coinset.org/ws",
+      poll: async () => ({ peakHeight: 1, peakIsTx: false, mempoolSize: 0 }),
+      onEvent: () => {},
+      pollIntervalMs: 15_000,
+      maxWsFailures: 1,
+      WebSocketImpl: FakeSocket as unknown as typeof WebSocket,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    await Promise.resolve();
+    FakeSocket.instances[0]!.drop();
+    expect(stream.status).toBe("polling");
+    expect(stream.transport).toBe("polling");
+
+    // The retry at the max backoff reconnects: the tab is on the socket again.
+    await timers.advance(30_000);
+    const retried = FakeSocket.instances[1]!;
+    expect(retried).toBeDefined();
+    retried.open();
+    expect(stream.status).toBe("live");
+    expect(stream.transport).toBe("websocket");
+
+    // Polls keep running behind the socket; none of them may take the pill back to "polling".
+    await timers.advance(15_000);
+    await timers.advance(15_000);
+    expect(stream.status).toBe("live");
+    stream.stop();
   });
 });
 

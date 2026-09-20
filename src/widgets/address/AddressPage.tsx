@@ -31,6 +31,11 @@ import { useTokenList } from "@/shared/api/useTokenList";
 import { resolveAddressId } from "./resolveAddressId";
 import { SageAddressPanel } from "@/widgets/wallet/SagePanels";
 import { WatchButton } from "@/widgets/watchlist/WatchButton";
+import { AddressNfts } from "./AddressNfts";
+import { DidProfileCard } from "@/widgets/did/DidProfileCard";
+import { useDidHoldings } from "@/widgets/did/useDidProfile";
+import { formatHandle } from "@/shared/lib/handles/xchandles";
+import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
@@ -57,6 +62,9 @@ export function AddressPage() {
   );
   const data = useAddressData(resolved?.puzzleHash ?? null);
   const tokens = useTokenList();
+  // Shares its queries with the profile card below (same key), so a DID costs no extra request.
+  const did = useDidHoldings(resolved?.kind === "did" ? resolved.puzzleHash : null);
+  const handle = useAddressHandle(resolved?.kind === "address" ? resolved.puzzleHash : null);
 
   if (!resolved) {
     return (
@@ -88,7 +96,11 @@ export function AddressPage() {
                 {networkConfig.label}
               </Badge>
               {isDid ? <Badge tone="did">did:chia</Badge> : null}
-              {!isDid ? <WatchButton kind="address" id={ph} label={addressText} /> : null}
+              <WatchButton
+                kind={isDid ? "did" : "address"}
+                id={ph}
+                label={isDid ? (resolved.didId ?? addressText) : addressText}
+              />
             </span>
           }
         />
@@ -126,6 +138,26 @@ export function AddressPage() {
                 <CopyButton value={`0x${ph}`} />
               </dd>
             </div>
+            {handle.data ? (
+              <div className="min-w-0">
+                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  XCHandles
+                </dt>
+                <dd className="flex flex-wrap items-center gap-2 text-sm">
+                  <Link
+                    href={routes.handle(handle.data.handle)}
+                    className="mono inline-flex items-center gap-1 font-semibold text-accent hover:underline"
+                  >
+                    {formatHandle(handle.data.handle)}
+                  </Link>
+                  {handle.data.count > 1 ? (
+                    <span className="text-xs text-fg-faint">
+                      +{handle.data.count - 1} more resolve here
+                    </span>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
             {!isDid ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
@@ -140,6 +172,8 @@ export function AddressPage() {
           </dl>
         </CardBody>
       </Card>
+
+      {isDid ? <DidProfileCard launcherId={ph} didId={resolved.didId ?? addressText} /> : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
@@ -173,17 +207,36 @@ export function AddressPage() {
           }
           sub={data.indexed ? "tokens held" : "needs Coinset"}
         />
-        <StatTile
-          label="NFTs"
-          value={
-            data.indexed
-              ? data.nfts.data !== undefined
-                ? formatNumber(data.nfts.data)
-                : "…"
-              : "n/a"
-          }
-          sub={data.indexed ? "owned" : "needs Coinset"}
-        />
+        {isDid ? (
+          <StatTile
+            label="NFTs"
+            href={did.available ? routes.ownedNfts(resolved.didId ?? addressText) : undefined}
+            value={
+              !did.available
+                ? "n/a"
+                : did.isLoading
+                  ? "…"
+                  : did.profile?.ownedNfts !== null && did.profile?.ownedNfts !== undefined
+                    ? formatNumber(did.profile.ownedNfts)
+                    : "n/a"
+            }
+            sub={did.available ? "held · View NFTs →" : "needs mainnet"}
+            hint="NFTs attributed to this DID by MintGarden, not coins hinted to its launcher id."
+          />
+        ) : (
+          <StatTile
+            label="NFTs"
+            href={data.indexed ? routes.ownedNfts(addressText) : undefined}
+            value={
+              data.indexed
+                ? data.nfts.data !== undefined
+                  ? formatNumber(data.nfts.data)
+                  : "…"
+                : "n/a"
+            }
+            sub={data.indexed ? "owned · View NFTs →" : "needs Coinset"}
+          />
+        )}
         <StatTile
           label="Unspent coins"
           value={unspentCount !== null ? formatNumber(unspentCount) : "…"}
@@ -199,6 +252,8 @@ export function AddressPage() {
       {!data.indexed ? (
         <Unavailable what="Balances by asset, NFT count, pending and confirmed transaction history" />
       ) : null}
+
+      {isDid && did.available ? <AddressNfts owner={{ kind: "did", id: ph }} /> : null}
 
       {data.indexed &&
       data.cats.data &&

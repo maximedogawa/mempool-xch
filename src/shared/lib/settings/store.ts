@@ -4,6 +4,7 @@
  * non-React data layer can read it too.
  */
 import { isCoinsetUrl, NETWORKS, NETWORK_IDS, type NetworkId } from "@/shared/config/networks";
+import { browserStorage } from "@/shared/lib/browserStorage";
 
 export type ThemePreference = "dark" | "light" | "system";
 
@@ -139,8 +140,7 @@ let browserStore: SettingsStore | null = null;
 /** Singleton store bound to window.localStorage (in-memory during SSR). */
 export function getSettingsStore(): SettingsStore {
   if (!browserStore) {
-    const storage = typeof window !== "undefined" ? window.localStorage : null;
-    browserStore = createSettingsStore(storage);
+    browserStore = createSettingsStore(browserStorage());
   }
   return browserStore;
 }

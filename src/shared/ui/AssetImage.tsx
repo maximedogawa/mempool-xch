@@ -48,6 +48,17 @@ export function AssetImage({
   const [loaded, setLoaded] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [veilArtFailed, setVeilArtFailed] = useState(false);
+  // A route that swaps one item for another (NFT to NFT) re-renders this same element, and React
+  // keeps its state unless something resets it. Revealing one item must never reveal the next.
+  const identity = `${urls.join("|")}::${videoUrl ?? ""}::${sensitivity?.level ?? "clear"}`;
+  const [seen, setSeen] = useState(identity);
+  if (seen !== identity) {
+    setSeen(identity);
+    setIndex(0);
+    setLoaded(false);
+    setRevealed(false);
+    setVeilArtFailed(false);
+  }
   const trusted = urls.filter(isTrustedImageUrl);
   const src = trusted[index];
   const video = videoUrl && isTrustedVideoUrl(videoUrl) ? videoUrl : null;
@@ -83,11 +94,11 @@ export function AssetImage({
           // Only what shows through is lost when this fails; the glass itself must stay, so this
           // never walks the candidate list on to the plain "no image" box.
           onError={() => setVeilArtFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="veil-art absolute inset-0 h-full w-full object-cover"
         />
       );
     const glass = (
-      <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[color-mix(in_srgb,var(--surface)_22%,transparent)] p-2 text-center backdrop-blur-xl transition-colors duration-200 group-hover:bg-[color-mix(in_srgb,var(--surface)_10%,transparent)]">
+      <span className="veil-glass absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[color-mix(in_srgb,var(--surface)_22%,transparent)] p-2 text-center backdrop-blur-xl transition-colors duration-200 group-hover:bg-[color-mix(in_srgb,var(--surface)_10%,transparent)]">
         <EyeOff
           size={veilDetail ? 24 : 14}
           aria-hidden="true"
@@ -95,11 +106,9 @@ export function AssetImage({
         />
         {veilDetail ? (
           <>
-            <span className="text-xs font-semibold leading-snug drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-              {title}
-            </span>
+            <span className="veil-text text-xs font-semibold leading-snug">{title}</span>
             {reason ? (
-              <span className="line-clamp-2 text-[11px] leading-snug drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              <span className="veil-text line-clamp-2 text-[11px] leading-snug">
                 <span className="opacity-70">Reason: </span>
                 {reason}
               </span>

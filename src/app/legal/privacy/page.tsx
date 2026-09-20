@@ -53,8 +53,8 @@ export default function PrivacyPage() {
         <p>
           The server does not fetch chain or asset data on your behalf: it only serves the
           application itself (HTML, scripts, styles). Every lookup you make is a request from your
-          own browser to Coinset, Dexie, MintGarden, public market data sources or your own node,
-          described in the next sections.
+          own browser to Coinset, Dexie, MintGarden, XCHandles, public market data sources or your
+          own node, described in the next sections.
         </p>
         <p>
           The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com)
@@ -103,6 +103,10 @@ export default function PrivacyPage() {
           <li>
             Hosts named in an NFT&apos;s own on-chain metadata, when MintGarden has no copy. Which
             hosts these are is decided by the NFT&apos;s creator.
+          </li>
+          <li>
+            XCHandles (api.xchandles.com): only when you look up, watch or search a handle — what
+            that name resolves to and when it expires.
           </li>
           <li>
             Coinset (api.coinset.org): all chain data — the mempool, blocks, transactions,

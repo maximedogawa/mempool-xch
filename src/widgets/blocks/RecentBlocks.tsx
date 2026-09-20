@@ -11,6 +11,7 @@ import type { BlockRecord } from "@/shared/lib/rpc/types";
 import type { RecentBlocksResult } from "@/shared/api/hooks";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
 import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
 
@@ -42,10 +43,12 @@ function gapBetween(all: BlockRecord[], newer: BlockRecord, older: BlockRecord):
 
 export function RecentBlocks({
   data,
+  watchedConfirmed,
   loading,
   blockMaxCost,
 }: {
   data: RecentBlocksResult | undefined;
+  watchedConfirmed?: ReadonlyMap<number, ReadonlySet<string>>;
   loading: boolean;
   blockMaxCost: number;
 }) {
@@ -77,6 +80,7 @@ export function RecentBlocks({
   return (
     <ul className="flex min-w-max items-end gap-4" aria-label="Recent transaction blocks">
       {blocks.map((block, i) => {
+        const watched = watchedConfirmed?.get(block.height)?.size ?? 0;
         const older = blocks[i + 1];
         const gap = older && data ? gapBetween(data.all, block, older) : 0;
         const fees = block.fees ?? 0n;
@@ -88,7 +92,7 @@ export function RecentBlocks({
             (block.rewardClaimsIncorporated?.length ?? 0) * 0.02
         );
         const pool = lookupPool(block.poolPuzzleHash);
-        const label = `Block ${formatNumber(block.height)}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, ${pool ? `farmed by ${pool.name}` : `farmer ${shortId(block.farmerPuzzleHash)}`}`;
+        const label = `Block ${formatNumber(block.height)}${watched ? `, ${watched} watched` : ""}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, ${pool ? `farmed by ${pool.name}` : `farmer ${shortId(block.farmerPuzzleHash)}`}`;
         return (
           <li key={block.height} className="flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
@@ -103,6 +107,7 @@ export function RecentBlocks({
                 ariaLabel={label}
                 animate={i === 0 && (seen === null || block.height > seen)}
                 size={CUBE}
+                watched={watched > 0}
               >
                 <span className="tabular text-[15px] font-bold leading-tight">
                   {formatAmount(fees)}
@@ -114,6 +119,7 @@ export function RecentBlocks({
                     : `${block.rewardClaimsIncorporated?.length ?? 0} reward claims`}
                 </span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
+                {watched ? <WatchedBlockBadge count={watched} /> : null}
               </BlockCube>
               <span
                 className={cn(

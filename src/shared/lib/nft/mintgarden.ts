@@ -6,7 +6,13 @@
  */
 
 import { createLimiter } from "@/shared/lib/limit";
-import { classifyCollection, classifyNft, type Sensitivity } from "./sensitivity";
+import {
+  UNCLASSIFIED,
+  classifyCollection,
+  classifyNft,
+  classifySearchNft,
+  type Sensitivity,
+} from "./sensitivity";
 
 export const MINTGARDEN_API = "https://api.mintgarden.io";
 export const DEXIE_API = "https://api.dexie.space/v1";
@@ -227,6 +233,10 @@ export function mintGardenCollectionUrl(collectionId: string): string {
   return `https://mintgarden.io/collections/${encodeURIComponent(collectionId)}`;
 }
 
+export function mintGardenProfileUrl(didId: string): string {
+  return `https://mintgarden.io/${encodeURIComponent(didId)}`;
+}
+
 export function dexieOfferUrl(offerId: string): string {
   return `https://dexie.space/offers/${encodeURIComponent(offerId)}`;
 }
@@ -266,12 +276,14 @@ export interface NftSearchResult {
   nftId: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface CollectionSearchResult {
   id: string;
   name: string | null;
   thumbnailUrl: string | null;
+  sensitivity: Sensitivity;
 }
 
 export interface NftSearchResults {
@@ -309,6 +321,7 @@ export async function searchMintGarden(
           nftId: str(n.encoded_id) ?? "",
           name: str(n.name),
           thumbnailUrl: str(n.thumbnail_uri),
+          sensitivity: classifySearchNft(n),
         }))
         .filter((n) => n.nftId),
       collections: collections
@@ -317,10 +330,106 @@ export async function searchMintGarden(
           id: str(c.id) ?? "",
           name: str(c.name),
           thumbnailUrl: str(c.thumbnail_uri),
+          // A collection hit carries no flags of its own (verified 2026-09-20), so it is never
+          // shown on trust; the collection page, which has the record, judges it properly.
+          sensitivity: UNCLASSIFIED,
         }))
         .filter((c) => c.id),
     };
   } catch {
     return EMPTY_SEARCH;
+  }
+}
+
+export interface DidProfile {
+  /** Launcher id, lowercase hex without 0x. */
+  launcherId: string;
+  didId: string | null;
+  name: string | null;
+  bio: string | null;
+  website: string | null;
+  twitterHandle: string | null;
+  avatarUrl: string | null;
+  /** Null when MintGarden was not asked for counts, or answered without them. */
+  ownedNfts: number | null;
+  createdNfts: number | null;
+  verified: boolean;
+}
+
+export interface HeldCollection {
+  id: string;
+  name: string | null;
+  thumbnailUrl: string | null;
+  nftsOwned: number;
+}
+
+function normaliseProfile(raw: unknown): DidProfile | null {
+  const r = obj(raw);
+  const launcherId = hex(r.id);
+  if (!launcherId) return null;
+  return {
+    launcherId,
+    didId: str(r.encoded_id),
+    name: str(r.name) ?? str(r.username),
+    bio: str(r.bio),
+    website: str(r.website),
+    twitterHandle: str(r.twitter_handle),
+    avatarUrl: str(r.avatar_uri),
+    ownedNfts: num(r.owned_nfts_count),
+    createdNfts: num(r.created_nfts_count),
+    // The field is a number on the plain record and a string once counts are included.
+    verified: Number(r.verification_state) > 0,
+  };
+}
+
+/**
+ * The MintGarden profile behind a DID: /profile/<launcher hex> answers for an unregistered DID
+ * too, with every field empty, so a hit is not proof the owner ever used MintGarden. `counts`
+ * asks for the owned/created totals, which cost an extra aggregation on their side; the
+ * watchlist row wants them, an avatar lookup does not. Best effort like the rest of this file:
+ * a miss is null, never a throw.
+ */
+export async function fetchDidProfile(
+  launcherId: string,
+  opts: { counts?: boolean } = {},
+  fetchImpl: FetchLike = fetch
+): Promise<DidProfile | null> {
+  const id = hex(launcherId);
+  if (!id) return null;
+  try {
+    const response = await fetchImpl(
+      `${MINTGARDEN_API}/profile/${id}${opts.counts ? "?include_counts=true" : ""}`
+    );
+    if (!response.ok) return null;
+    return normaliseProfile(await response.json());
+  } catch {
+    return null;
+  }
+}
+
+/** Collections the DID holds NFTs from, biggest holding first. */
+export async function fetchDidHeldCollections(
+  launcherId: string,
+  fetchImpl: FetchLike = fetch
+): Promise<HeldCollection[]> {
+  const id = hex(launcherId);
+  if (!id) return [];
+  try {
+    const response = await fetchImpl(`${MINTGARDEN_API}/profile/${id}/held-collections`);
+    if (!response.ok) return [];
+    const body: unknown = await response.json();
+    if (!Array.isArray(body)) return [];
+    return body
+      .map(obj)
+      .map((c) => ({
+        id: str(c.id) ?? "",
+        name: str(c.name),
+        thumbnailUrl: str(c.thumbnail_uri),
+        nftsOwned: num(c.nfts_owned) ?? 0,
+      }))
+      .filter((c) => c.id)
+      .sort((a, b) => b.nftsOwned - a.nftsOwned);
+  } catch {
+    return [];
   }
 }

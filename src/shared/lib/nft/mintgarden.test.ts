@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   fetchCollections,
+  fetchDidHeldCollections,
+  fetchDidProfile,
   fetchNftEvents,
   fetchNftOffers,
   mintGardenThumbnailUrl,
@@ -142,6 +144,17 @@ describe("searchMintGarden", () => {
       okResponse({
         nfts: [
           {
+            encoded_id: "nft1blocked",
+            name: "HOTSHOT #540",
+            thumbnail_uri: "https://assets.mainnet.mintgarden.io/blocked.webp",
+            // /search flattens the collection's verdict onto the row; the nested shape a
+            // /nfts/{id} read expects is simply not there, and reading it would call this clear.
+            is_blocked: false,
+            sensitive_content: false,
+            collection_blocked_content: true,
+            collection_blocked_content_reason: "Pornographic material",
+          },
+          {
             encoded_id: "nft1abc",
             name: "Friend #1",
             thumbnail_uri: "https://assets.mainnet.mintgarden.io/x.webp",
@@ -154,23 +167,35 @@ describe("searchMintGarden", () => {
             name: "Chia Friends",
             thumbnail_uri: "https://assets.mainnet.mintgarden.io/y.webp",
           },
+          {
+            id: "col1blocked",
+            name: "Blocked Friends",
+            thumbnail_uri: "https://assets.mainnet.mintgarden.io/z.webp",
+            blocked_content: true,
+            blocked_content_reason: "Pornographic material",
+          },
         ],
         profiles: [{ id: "should be ignored" }],
       })
     );
-    expect(result.nfts).toEqual([
+    expect(result.nfts[0]).toEqual({
+      nftId: "nft1blocked",
+      name: "HOTSHOT #540",
+      thumbnailUrl: "https://assets.mainnet.mintgarden.io/blocked.webp",
+      sensitivity: { level: "blocked", reason: "Pornographic material" },
+    });
+    expect(result.nfts.slice(1)).toEqual([
       {
         nftId: "nft1abc",
         name: "Friend #1",
         thumbnailUrl: "https://assets.mainnet.mintgarden.io/x.webp",
+        sensitivity: { level: "clear", reason: null },
       },
     ]);
-    expect(result.collections).toEqual([
-      {
-        id: "col1abc",
-        name: "Chia Friends",
-        thumbnailUrl: "https://assets.mainnet.mintgarden.io/y.webp",
-      },
+    // A collection hit carries no flags at all, so it is never shown on trust.
+    expect(result.collections.map((c) => c.sensitivity)).toEqual([
+      { level: "sensitive", reason: null },
+      { level: "sensitive", reason: null },
     ]);
   });
 
@@ -195,5 +220,83 @@ describe("mintGardenThumbnailUrl", () => {
     expect(mintGardenThumbnailUrl("nft1abc")).toBe(
       "https://api.mintgarden.io/nfts/nft1abc/thumbnail"
     );
+  });
+});
+
+describe("fetchDidProfile", () => {
+  test("normalises the profile of a DID, counts included", async () => {
+    const urls: string[] = [];
+    const profile = await fetchDidProfile(
+      "0x73EF2C17B2ED1E979CB449FF28852C337018CD1F7E5E4B6ABF1448E8D650A6D9",
+      { counts: true },
+      (url) => {
+        urls.push(url);
+        return okResponse({
+          id: "73ef2c17b2ed1e979cb449ff28852c337018cd1f7e5e4b6abf1448e8d650a6d9",
+          encoded_id: "did:chia:1w0hjc9aja50f0895f8lj3pfvxdcp3ngl0e0yk64lz3yw34js5mvstx2cnk",
+          name: "MaximEdogawa.xch",
+          bio: "NFT collector",
+          website: "",
+          twitter_handle: "MaximEdogawa",
+          avatar_uri: "https://assets.mainnet.mintgarden.io/profiles/x.webp",
+          owned_nfts_count: 81,
+          created_nfts_count: 0,
+          // A record with counts reports the state as a string; without them it is a number.
+          verification_state: "0",
+        });
+      }
+    );
+    expect(urls[0]).toBe(
+      "https://api.mintgarden.io/profile/73ef2c17b2ed1e979cb449ff28852c337018cd1f7e5e4b6abf1448e8d650a6d9?include_counts=true"
+    );
+    expect(profile).toEqual({
+      launcherId: "73ef2c17b2ed1e979cb449ff28852c337018cd1f7e5e4b6abf1448e8d650a6d9",
+      didId: "did:chia:1w0hjc9aja50f0895f8lj3pfvxdcp3ngl0e0yk64lz3yw34js5mvstx2cnk",
+      name: "MaximEdogawa.xch",
+      bio: "NFT collector",
+      website: null,
+      twitterHandle: "MaximEdogawa",
+      avatarUrl: "https://assets.mainnet.mintgarden.io/profiles/x.webp",
+      ownedNfts: 81,
+      createdNfts: 0,
+      verified: false,
+    });
+  });
+
+  test("falls back to the username and reads a verified profile", async () => {
+    const profile = await fetchDidProfile("aa".repeat(32), {}, () =>
+      okResponse({ id: "aa".repeat(32), username: "dracattus", verification_state: 1 })
+    );
+    expect(profile?.name).toBe("dracattus");
+    expect(profile?.verified).toBe(true);
+    expect(profile?.ownedNfts).toBeNull();
+  });
+
+  test("a record without an id, a failed fetch and an empty id all give null", async () => {
+    expect(await fetchDidProfile("bb".repeat(32), {}, () => okResponse({}))).toBeNull();
+    expect(
+      await fetchDidProfile("bb".repeat(32), {}, () => Promise.reject(new Error("network")))
+    ).toBeNull();
+    expect(await fetchDidProfile("", {}, () => okResponse({ id: "x" }))).toBeNull();
+  });
+});
+
+describe("fetchDidHeldCollections", () => {
+  test("sorts collections by the number held and drops entries with no id", async () => {
+    const held = await fetchDidHeldCollections("cc".repeat(32), () =>
+      okResponse([
+        { id: "col1a", name: "Dracattus", thumbnail_uri: "https://x/a.webp", nfts_owned: 10 },
+        { name: "No id", nfts_owned: 99 },
+        { id: "col1b", name: "Pickles", thumbnail_uri: null, nfts_owned: 11 },
+      ])
+    );
+    expect(held).toEqual([
+      { id: "col1b", name: "Pickles", thumbnailUrl: null, nftsOwned: 11 },
+      { id: "col1a", name: "Dracattus", thumbnailUrl: "https://x/a.webp", nftsOwned: 10 },
+    ]);
+  });
+
+  test("a non-array body degrades to no collections", async () => {
+    expect(await fetchDidHeldCollections("dd".repeat(32), () => okResponse({}))).toEqual([]);
   });
 });
