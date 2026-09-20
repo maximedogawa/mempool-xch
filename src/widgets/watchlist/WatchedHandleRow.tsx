@@ -3,6 +3,7 @@
 import { AtSign, Clock3, Eye, Wallet } from "lucide-react";
 import Link from "next/link";
 import { describeExpiry } from "@/shared/lib/handles/expiry";
+import { formatHandle } from "@/shared/lib/handles/xchandles";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { routes } from "@/shared/lib/routes";
 import type { WatchItem } from "@/shared/lib/watchlist/store";
@@ -19,7 +20,9 @@ import { RemoveWatch, WatchStatus } from "./WatchlistParts";
  */
 export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove: () => void }) {
   const { networkConfig } = useSettings();
+  // The id is the registry's bare key; the @ is how it is written back out.
   const handle = item.id;
+  const shown = formatHandle(handle);
   const { record, art, isLoading, available } = useHandle(handle);
   const status = record?.status;
   const address = record?.p2PuzzleHash
@@ -34,7 +37,7 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
         {art?.thumbnailUrl ? (
           <AssetImage
             urls={[art.thumbnailUrl]}
-            alt={`Name NFT of ${handle}`}
+            alt={`Name NFT of ${shown}`}
             className="h-10 w-10 shrink-0"
             rounded="rounded-xl"
           />
@@ -69,10 +72,10 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
             href={routes.handle(handle)}
             className="mono block truncate text-sm font-semibold hover:text-primary"
           >
-            {handle}
+            {shown}
           </Link>
         </div>
-        <RemoveWatch label={handle} onRemove={onRemove} />
+        <RemoveWatch label={shown} onRemove={onRemove} />
       </div>
       <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
         {!available ? (

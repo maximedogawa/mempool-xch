@@ -125,7 +125,7 @@ export function SearchBox({
         const matches = await resolveText(target.value);
         if (matches.length === 0) {
           setError(
-            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id, a CAT asset id or an XCHandles handle.`
+            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id, a CAT asset id or an @handle.`
           );
         } else {
           setCandidates(matches);

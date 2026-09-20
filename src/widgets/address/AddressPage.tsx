@@ -1,6 +1,5 @@
 "use client";
 
-import { AtSign } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useDetailId } from "@/shared/hooks/useDetailId";
 import Link from "next/link";
@@ -35,6 +34,7 @@ import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { AddressNfts } from "./AddressNfts";
 import { DidProfileCard } from "@/widgets/did/DidProfileCard";
 import { useDidHoldings } from "@/widgets/did/useDidProfile";
+import { formatHandle } from "@/shared/lib/handles/xchandles";
 import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
@@ -148,8 +148,7 @@ export function AddressPage() {
                     href={routes.handle(handle.data.handle)}
                     className="mono inline-flex items-center gap-1 font-semibold text-accent hover:underline"
                   >
-                    <AtSign size={14} aria-hidden="true" />
-                    {handle.data.handle}
+                    {formatHandle(handle.data.handle)}
                   </Link>
                   {handle.data.count > 1 ? (
                     <span className="text-xs text-fg-faint">

@@ -3,7 +3,7 @@
 import { Bell, BellOff, Eye, Plus, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
-import { parseHandle } from "@/shared/lib/handles/xchandles";
+import { formatHandle, parseHandle } from "@/shared/lib/handles/xchandles";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { shortId } from "@/shared/lib/chia/hex";
 import {
@@ -61,11 +61,9 @@ export function WatchlistPanel() {
     } else if (handle) {
       // A bare name is an XCHandles handle. It is added without asking the registry first: an
       // unregistered handle is a fine thing to watch, and the row says so until someone takes it.
-      add({ kind: "handle", id: handle, label: handle });
+      add({ kind: "handle", id: handle, label: formatHandle(handle) });
     } else {
-      setError(
-        "Paste an address, a did:chia: id, an XCHandles handle or a 64-character transaction id."
-      );
+      setError("Paste an address, a did:chia: id, an @handle or a 64-character transaction id.");
       return;
     }
     setInput("");
@@ -144,21 +142,21 @@ export function WatchlistPanel() {
       <CardBody className="flex flex-col gap-4">
         <p className="text-xs text-fg-muted">
           Follow incoming assets and confirmations. Watched transactions are marked in the blocks
-          above, a watched DID shows the NFTs it holds, and a watched handle where it points.
+          above, a watched DID shows the NFTs it holds, and a watched @handle where it points.
         </p>
         <form
           onSubmit={onSubmit}
           className="flex flex-wrap gap-2 rounded-xl border border-border bg-bg/50 p-2"
         >
           <label htmlFor="watchlist-add" className="sr-only">
-            Add an address, handle, DID or transaction id to your watchlist
+            Add an address, @handle, DID or transaction id to your watchlist
           </label>
           <input
             id="watchlist-add"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Address, handle, DID or transaction id"
+            placeholder="Address, @handle, DID or transaction id"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "watchlist-add-error" : undefined}
             className="h-10 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
@@ -178,7 +176,7 @@ export function WatchlistPanel() {
         ) : null}
         {items.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 px-4 text-center text-sm text-fg-faint">
-            Nothing watched yet. Add an address, handle, DID or transaction above, or use the Watch
+            Nothing watched yet. Add an address, @handle, DID or transaction above, or use the Watch
             button on its page.
           </p>
         ) : (

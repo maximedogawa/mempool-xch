@@ -7,7 +7,12 @@ import { useDetailId } from "@/shared/hooks/useDetailId";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { describeExpiry } from "@/shared/lib/handles/expiry";
-import { parseHandle, xchandlesUrl, type HandleStatus } from "@/shared/lib/handles/xchandles";
+import {
+  formatHandle,
+  parseHandle,
+  xchandlesUrl,
+  type HandleStatus,
+} from "@/shared/lib/handles/xchandles";
 import { formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -50,7 +55,7 @@ export function HandlePage() {
       <EmptyState
         tone="danger"
         title="Not a valid handle"
-        description={`An XCHandles handle is 3 to 63 lowercase letters and digits, with no dots or dashes. Got: ${raw || "(empty)"}`}
+        description={`An XCHandles handle is 3 to 63 lowercase letters and digits, written @name, with no dots or dashes. Got: ${raw || "(empty)"}`}
       />
     );
   if (!available)
@@ -85,7 +90,7 @@ export function HandlePage() {
                 XCHandles
                 <ExternalLink size={12} aria-hidden="true" />
               </a>
-              <WatchButton kind="handle" id={handle} label={handle} />
+              <WatchButton kind="handle" id={handle} label={formatHandle(handle)} />
             </span>
           }
         />
@@ -93,7 +98,7 @@ export function HandlePage() {
           {art?.thumbnailUrl ? (
             <AssetImage
               urls={[art.thumbnailUrl]}
-              alt={`Name NFT of ${handle}`}
+              alt={`Name NFT of ${formatHandle(handle)}`}
               className="h-28 w-28 shrink-0 self-center sm:self-start"
             />
           ) : (
@@ -107,8 +112,8 @@ export function HandlePage() {
                 Handle
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-base">
-                {handle}
-                <CopyButton value={handle} />
+                {formatHandle(handle)}
+                <CopyButton value={formatHandle(handle)} />
               </dd>
             </div>
             <div className="min-w-0">
@@ -236,7 +241,7 @@ export function HandlePage() {
 
       {status === "unknown" ? (
         <EmptyState
-          title={`${handle} is not registered`}
+          title={`${formatHandle(handle)} is not registered`}
           description="No live slot in the registry resolves this handle. It can be registered on xchandles.com."
           action={
             <a

@@ -6,7 +6,7 @@
  */
 import type { NetworkId } from "@/shared/config/networks";
 import { launcherIdToDidId, puzzleHashToAddress } from "@/shared/lib/chia/address";
-import { fetchHandle, parseHandle } from "@/shared/lib/handles/xchandles";
+import { fetchHandle, formatHandle, parseHandle } from "@/shared/lib/handles/xchandles";
 import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import type { Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { routes } from "@/shared/lib/routes";
@@ -44,7 +44,10 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
       ? [
           {
             kind: "handle",
-            label: handleRecord.status === "expired" ? `${handle} (expired handle)` : handle,
+            label:
+              handleRecord.status === "expired"
+                ? `${formatHandle(handle)} (expired handle)`
+                : formatHandle(handle),
             href: routes.handle(handle),
           },
         ]

@@ -126,11 +126,11 @@ export default function DocsPage() {
           </Q>
           <Q q="What is a handle?">
             XCHandles (xchandles.com) is a name registry on Chia: a handle such as{" "}
-            <span className="mono">yakuhito</span> is a registry slot that resolves to a name NFT,
-            and that NFT&apos;s address is where a payment to the name goes. Its page shows what it
-            resolves to today, who holds it and when the registration runs out, and it can be
-            watched like an address. Handle data comes from the registry&apos;s own read-only API,
-            mainnet only.
+            <span className="mono">@maximedogawa</span> is a registry slot that resolves to a name
+            NFT, and that NFT&apos;s address is where a payment to the name goes. Its page shows
+            what it resolves to today, who holds it and when the registration runs out, and it can
+            be watched like an address. Handle data comes from the registry&apos;s own read-only
+            API, mainnet only.
           </Q>
           <Q q="I sent a transaction. Where is it?">
             Paste its id or your address. A pending transaction shows which projected block it sits

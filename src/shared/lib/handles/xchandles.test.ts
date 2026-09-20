@@ -3,6 +3,7 @@ import liveHandle from "@/test-utils/fixtures/xchandlesHandle.json";
 import {
   fetchHandle,
   fetchHandleRegistration,
+  formatHandle,
   isHandle,
   parseHandle,
   type HandleResponse,
@@ -22,6 +23,16 @@ describe("parseHandle", () => {
     expect(parseHandle("  MempoolXCH  ")).toBe("mempoolxch");
     expect(parseHandle("a1".repeat(30))).toBe("a1".repeat(30));
     expect(isHandle("abc")).toBe(true);
+  });
+
+  test("takes the @ people write a handle with, and gives back the registry's bare key", () => {
+    expect(parseHandle("@maximedogawa")).toBe("maximedogawa");
+    expect(parseHandle(" @MaximEdogawa ")).toBe("maximedogawa");
+    // Only the one the user typed: @ is not part of a handle, so a second one is not a handle.
+    expect(parseHandle("@@maximedogawa")).toBeNull();
+    expect(parseHandle("maxim@edogawa")).toBeNull();
+    expect(parseHandle("@")).toBeNull();
+    expect(formatHandle("maximedogawa")).toBe("@maximedogawa");
   });
 
   test("rejects shapes the registry does not issue, including Namesdao .xch names", () => {
@@ -89,6 +100,16 @@ describe("fetchHandle", () => {
     expect((await fetchHandle("nobodyhasthis", () => respond(404))).status).toBe("unknown");
     expect((await fetchHandle("nobodyhasthis", () => respond(400))).status).toBe("unknown");
     expect((await fetchHandle("nobodyhasthis", () => respond(503))).status).toBe("syncing");
+  });
+
+  test("the @ is stripped before the registry is asked, which keys on the bare name", async () => {
+    const urls: string[] = [];
+    const record = await fetchHandle("@MaximEdogawa", (url) => {
+      urls.push(url);
+      return respond(200, liveHandle);
+    });
+    expect(urls).toEqual(["https://api.xchandles.com/handle/maximedogawa"]);
+    expect(record.handle).toBe("maximedogawa");
   });
 
   test("a handle the registry cannot issue is never asked for", async () => {

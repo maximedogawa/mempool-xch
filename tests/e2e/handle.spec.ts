@@ -25,7 +25,7 @@ test.describe("handles", () => {
   test("a name nobody has registered says so instead of failing", async ({ page }) => {
     await page.goto(`/handle/${FREE_HANDLE}`);
     await expect(page.getByText("Not registered", { exact: true })).toBeVisible();
-    await expect(page.getByText(`${FREE_HANDLE} is not registered`)).toBeVisible();
+    await expect(page.getByText(`@${FREE_HANDLE} is not registered`)).toBeVisible();
   });
 
   test("a string the registry cannot issue is rejected before it is asked for", async ({
@@ -35,6 +35,12 @@ test.describe("handles", () => {
     await expect(page.getByText("Not a valid handle")).toBeVisible();
   });
 
+  test("the @ people write a handle with resolves the same page", async ({ page }) => {
+    await page.goto(`/handle/@${HANDLE}`);
+    await expect(page.getByText("Registered", { exact: true })).toBeVisible();
+    await expect(page.getByText(`@${HANDLE}`, { exact: true })).toBeVisible();
+  });
+
   test("the Watch button adds the handle and the dashboard row resolves it", async ({ page }) => {
     await page.goto(`/handle/${HANDLE}`);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
@@ -42,7 +48,7 @@ test.describe("handles", () => {
 
     await page.goto("/");
     const panel = page.getByRole("region", { name: "Watchlist" });
-    await expect(panel.getByRole("link", { name: HANDLE })).toBeVisible();
+    await expect(panel.getByRole("link", { name: `@${HANDLE}` })).toBeVisible();
     await expect(panel.getByText("Resolves to")).toBeVisible();
   });
 });

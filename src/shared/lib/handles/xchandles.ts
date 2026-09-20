@@ -19,13 +19,20 @@ export function isHandle(value: string): boolean {
 }
 
 /**
- * The handle inside a string a user typed, or null. Case is folded because a registry handle is
- * lowercase by definition, but nothing else is: an ".xch" name belongs to Namesdao, a different
- * registry, and must not be silently read as a handle.
+ * The handle inside a string a user typed, or null. People write and share a handle as
+ * "@maximedogawa", so a single leading @ is stripped; the registry's own key is the bare name,
+ * and that is what is stored and put in a URL. Case is folded because a handle is lowercase by
+ * definition, but nothing else is: an ".xch" name belongs to Namesdao, a different registry, and
+ * must not be silently read as a handle.
  */
 export function parseHandle(raw: string): string | null {
-  const value = raw.trim().toLowerCase();
+  const value = raw.trim().toLowerCase().replace(/^@/, "");
   return isHandle(value) ? value : null;
+}
+
+/** How a handle is shown and shared: with the @ people write it with. */
+export function formatHandle(handle: string): string {
+  return `@${handle}`;
 }
 
 export type HandleStatus =

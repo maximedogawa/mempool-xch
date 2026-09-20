@@ -19,14 +19,14 @@ test.describe("watchlist", () => {
     await expect(panel.getByText("Nothing watched yet.")).toBeVisible();
 
     await page
-      .getByLabel("Add an address, handle, DID or transaction id to your watchlist")
+      .getByLabel("Add an address, @handle, DID or transaction id to your watchlist")
       .fill(TX_ID);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
     await expect(panel.getByRole("link", { name: new RegExp(TX_ID.slice(0, 8)) })).toBeVisible();
     await expect(panel.getByText("Confirmed")).toBeVisible();
 
     await page
-      .getByLabel("Add an address, handle, DID or transaction id to your watchlist")
+      .getByLabel("Add an address, @handle, DID or transaction id to your watchlist")
       .fill(P2_ADDRESS);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
     await expect(
@@ -45,11 +45,11 @@ test.describe("watchlist", () => {
   test("rejects invalid input", async ({ page }) => {
     await page.goto("/");
     await page
-      .getByLabel("Add an address, handle, DID or transaction id to your watchlist")
+      .getByLabel("Add an address, @handle, DID or transaction id to your watchlist")
       .fill("not an id");
     await page.getByRole("button", { name: "Watch", exact: true }).click();
     await expect(page.locator("#watchlist-add-error")).toContainText(
-      "Paste an address, a did:chia: id, an XCHandles handle or a 64-character transaction id."
+      "Paste an address, a did:chia: id, an @handle or a 64-character transaction id."
     );
   });
 
@@ -57,7 +57,7 @@ test.describe("watchlist", () => {
     await page.goto("/");
     const panel = page.getByRole("region", { name: "Watchlist" });
     await page
-      .getByLabel("Add an address, handle, DID or transaction id to your watchlist")
+      .getByLabel("Add an address, @handle, DID or transaction id to your watchlist")
       .fill(DID_ID);
     await page.getByRole("button", { name: "Watch", exact: true }).click();
     await expect(panel.getByText("Watchlist · 1")).toBeVisible();
@@ -71,18 +71,21 @@ test.describe("watchlist", () => {
     ).toBeVisible();
   });
 
-  test("an XCHandles handle is watched under its own name", async ({ page }) => {
+  test("an XCHandles handle is watched as @name and kept by its bare name", async ({ page }) => {
     await page.goto("/");
     const panel = page.getByRole("region", { name: "Watchlist" });
     await page
-      .getByLabel("Add an address, handle, DID or transaction id to your watchlist")
-      .fill("mempoolxch");
+      .getByLabel("Add an address, @handle, DID or transaction id to your watchlist")
+      .fill("@MempoolXCH");
     await page.getByRole("button", { name: "Watch", exact: true }).click();
-    await expect(panel.getByRole("link", { name: "mempoolxch" })).toBeVisible();
+    await expect(panel.getByRole("link", { name: "@mempoolxch" })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem("mempool-xch:watchlist:v1"))).toContain(
+      '"id":"mempoolxch"'
+    );
 
     await page.reload();
     await expect(
-      page.getByRole("region", { name: "Watchlist" }).getByRole("link", { name: "mempoolxch" })
+      page.getByRole("region", { name: "Watchlist" }).getByRole("link", { name: "@mempoolxch" })
     ).toBeVisible();
   });
 
