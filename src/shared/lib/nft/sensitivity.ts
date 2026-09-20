@@ -84,6 +84,34 @@ export function classifyNft(
   return verdict;
 }
 
+/**
+ * MintGarden's search endpoint returns a flattened row rather than a nested record: the NFT's
+ * own flags sit at the top level and its collection's arrive as `collection_*`. Verified against
+ * /search on 2026-09-20, where a `/nfts/{id}`-shaped read finds nothing and would call every hit
+ * clear.
+ */
+export function classifySearchNft(raw: unknown): Sensitivity {
+  const n = obj(raw);
+  let verdict: Sensitivity = flag(n.is_blocked)
+    ? { level: "blocked", reason: reason(n.blocked_reason) }
+    : CLEAR;
+  if (flag(n.sensitive_content)) verdict = strongest(verdict, { level: "sensitive", reason: null });
+  if (flag(n.collection_blocked_content))
+    verdict = strongest(verdict, {
+      level: "blocked",
+      reason: reason(n.collection_blocked_content_reason),
+    });
+  if (flag(n.collection_sensitive_content))
+    verdict = strongest(verdict, { level: "sensitive", reason: null });
+  return verdict;
+}
+
+/**
+ * A record that carries no moderation data at all, such as a collection hit from /search: it is
+ * veiled rather than taken on trust, the same rule the treemap uses for a cell it never looked up.
+ */
+export const UNCLASSIFIED: Sensitivity = { level: "sensitive", reason: null };
+
 export interface SensitivityText {
   /** The same headline for both levels: the viewer can still open it, so "blocked" would lie. */
   title: string;
@@ -107,12 +135,14 @@ export function sensitivityText(sensitivity: Sensitivity): SensitivityText {
     .replace(POLICY_PREFIX, "")
     .replace(TRAILING_NOUN, "")
     .trim();
-  // Only sentence-case a reason that arrived all-lowercase: "DMCA" and "CSAM" are not "Dmca".
-  const reason = trimmed
-    ? trimmed === trimmed.toLowerCase()
-      ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
-      : trimmed
-    : null;
+  // Sentence case, but never at the cost of an acronym: "DMCA" and "CSAM" stay as they are,
+  // while a shouted "PORNOGRAPHIC MATERIAL" is calmed down. A short all-caps word reads as an
+  // acronym, a long one as shouting.
+  const words = trimmed
+    .split(/\s+/)
+    .map((w) => (w.length > 5 && w === w.toUpperCase() ? w.toLowerCase() : w));
+  const joined = words.join(" ");
+  const reason = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : null;
   const title = "Sensitive content";
   return { title, reason, summary: reason ? `${title}. Reason: ${reason}` : title };
 }

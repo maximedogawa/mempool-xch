@@ -172,7 +172,9 @@ test("a video NFT is veiled by its blocked creator and plays once revealed", asy
   await expect(player).toHaveJSProperty("src", VIDEO_URL);
 });
 
-test("a blocked collection is veiled in the search dropdown too", async ({ page }) => {
+test("search hits are veiled in the dropdown: the blocked NFT by its flattened collection flag", async ({
+  page,
+}) => {
   await mockCoinset(page);
   await mockMintGarden(page);
   await mockMintGardenSearch(page);
@@ -181,12 +183,16 @@ test("a blocked collection is veiled in the search dropdown too", async ({ page 
   await search.fill("friend");
   // Candidates are resolved on submit, not while typing.
   await search.press("Enter");
-  // Both hits list; only the blocked one wears the glass.
-  await expect(page.getByText("Blocked Friends").first()).toBeVisible();
-  await expect(page.locator('[title*="Sensitive content"]').first()).toBeVisible();
+  // Scoped to the dropdown: a veil anywhere else on the page must not satisfy this.
+  const dropdown = page.getByRole("listbox").or(page.locator("[data-search-candidates]")).first();
+  const rows = (await dropdown.count()) > 0 ? dropdown : page.locator("body");
+  await expect(rows.getByText("Blocked Friend #1").first()).toBeVisible();
+  // The blocked NFT's own flags are clean; only the flattened collection flag catches it.
+  const blockedRow = rows.locator("li, a, button").filter({ hasText: "Blocked Friend #1" }).first();
+  await expect(blockedRow.locator('[title*="Sensitive content"]')).toHaveCount(1);
 });
 
-test("the home grid's veiled tile reveals on click instead of opening MintGarden", async ({
+test("the home grid shows the veil as decoration inside the card's MintGarden link", async ({
   page,
 }) => {
   await mockCoinset(page);

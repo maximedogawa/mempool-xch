@@ -137,6 +137,9 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
   return null;
 }
 
+/** WebSocket.OPEN; the constant is not on the interface when a custom impl is injected. */
+const OPEN = 1;
+
 export const BACKOFF_BASE_MS = 1_000;
 export const BACKOFF_MAX_MS = 30_000;
 
@@ -190,9 +193,15 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       const sample = await options.poll(controller.signal);
       if (controller.signal.aborted || stopped) return;
       pollFailures = 0;
-      // Only the fallback poll owns the status; with a socket open or opening, a poll that
-      // finishes later must not overwrite "live" with "polling".
-      if (socket === null) setStatus("polling");
+      // The poll also reconciles the label against the socket itself, every interval. The
+      // status is otherwise only moved by socket callbacks, and a callback that never arrives
+      // (a close the browser swallows, a reconnect whose open fired while this tab was frozen)
+      // would leave the pill contradicting a connection that is plainly there. Reading
+      // readyState instead of trusting the last event seen means the two cannot drift.
+      const open = socket !== null && socket.readyState === OPEN;
+      if (open) setStatus("live");
+      // With a socket still connecting, a poll that finishes later must not overwrite "live".
+      else if (socket === null || socket.readyState > OPEN) setStatus("polling");
       if (lastSample === null || sample.peakHeight !== lastSample.peakHeight) {
         options.onEvent({ type: "peak", height: sample.peakHeight, tx: sample.peakIsTx });
       }

@@ -6,6 +6,8 @@ import {
   classifyCollection,
   classifyCreator,
   classifyNft,
+  classifySearchNft,
+  UNCLASSIFIED,
   isVeiled,
   sensitivityText,
   strongest,
@@ -131,4 +133,36 @@ test("a sibling in the same collection is caught without its own record being sp
   expect(
     classifyNft({ data: { metadata_json: { name: "HOTSHOT #7" } } }, hotshotNft.collection)
   ).toEqual({ level: "blocked", reason: "Pornographic material" });
+});
+
+test("a /search row is classified from its flattened fields, not the nested record shape", () => {
+  // Reading the nested shape against this row finds nothing and would call it clear.
+  const row = {
+    encoded_id: "nft1hotshot",
+    is_blocked: false,
+    sensitive_content: false,
+    collection_blocked_content: true,
+    collection_blocked_content_reason: "Pornographic material",
+  };
+  expect(classifyNft(row)).toEqual(CLEAR);
+  expect(classifySearchNft(row)).toEqual({ level: "blocked", reason: "Pornographic material" });
+  expect(classifySearchNft({ sensitive_content: true }).level).toBe("sensitive");
+  expect(classifySearchNft({ collection_sensitive_content: true }).level).toBe("sensitive");
+  expect(classifySearchNft({ is_blocked: true, blocked_reason: "DMCA" })).toEqual({
+    level: "blocked",
+    reason: "DMCA",
+  });
+  expect(classifySearchNft({})).toEqual(CLEAR);
+  expect(UNCLASSIFIED.level).toBe("sensitive");
+});
+
+test("acronyms survive, shouting does not", () => {
+  expect(sensitivityText({ level: "blocked", reason: "DMCA" }).reason).toBe("DMCA");
+  expect(sensitivityText({ level: "blocked", reason: "CSAM" }).reason).toBe("CSAM");
+  expect(sensitivityText({ level: "blocked", reason: "PORNOGRAPHIC MATERIAL" }).reason).toBe(
+    "Pornographic"
+  );
+  expect(sensitivityText({ level: "sensitive", reason: "graphic violence" }).reason).toBe(
+    "Graphic violence"
+  );
 });

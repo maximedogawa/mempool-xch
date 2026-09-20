@@ -94,7 +94,7 @@ export function AssetImage({
           // Only what shows through is lost when this fails; the glass itself must stay, so this
           // never walks the candidate list on to the plain "no image" box.
           onError={() => setVeilArtFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="veil-art absolute inset-0 h-full w-full object-cover"
         />
       );
     const glass = (
@@ -106,11 +106,9 @@ export function AssetImage({
         />
         {veilDetail ? (
           <>
-            <span className="text-xs font-semibold leading-snug drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-              {title}
-            </span>
+            <span className="veil-text text-xs font-semibold leading-snug">{title}</span>
             {reason ? (
-              <span className="line-clamp-2 text-[11px] leading-snug drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              <span className="veil-text line-clamp-2 text-[11px] leading-snug">
                 <span className="opacity-70">Reason: </span>
                 {reason}
               </span>

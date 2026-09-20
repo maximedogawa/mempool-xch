@@ -118,6 +118,19 @@ export async function mockMintGardenSearch(page: Page) {
               encoded_id: NFT_ID,
               name: "Test Friend #1",
               thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/nft.webp",
+              is_blocked: false,
+              sensitive_content: false,
+              collection_blocked_content: false,
+            },
+            {
+              encoded_id: BLOCKED_NFT_ID,
+              name: "Blocked Friend #1",
+              thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/blocked-nft.webp",
+              // /search flattens the collection's verdict onto the row.
+              is_blocked: false,
+              sensitive_content: false,
+              collection_blocked_content: true,
+              collection_blocked_content_reason: BLOCKED_REASON,
             },
           ]
         : [],
@@ -129,12 +142,11 @@ export async function mockMintGardenSearch(page: Page) {
               thumbnail_uri: "https://assets.mainnet.mintgarden.io/thumbnails/collection.webp",
             },
             {
+              // A collection hit carries no flags: the real endpoint sends none.
               id: BLOCKED_COLLECTION_ID,
               name: "Blocked Friends",
               thumbnail_uri:
                 "https://assets.mainnet.mintgarden.io/thumbnails/blocked-collection.webp",
-              blocked_content: true,
-              blocked_content_reason: BLOCKED_REASON,
             },
           ]
         : [],

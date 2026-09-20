@@ -17,7 +17,7 @@ import type { CompactMempoolItem, TxKindHint } from "@/shared/lib/mempool/types"
 import { routes } from "@/shared/lib/routes";
 import { squarify } from "@/shared/lib/treemap";
 import { AssetAmount, AssetIcon, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
-import { isVeiled, type Sensitivity } from "@/shared/lib/nft/sensitivity";
+import { UNCLASSIFIED, isVeiled } from "@/shared/lib/nft/sensitivity";
 import { fetchNftMetadata } from "@/widgets/assets/nftMetadata";
 
 const W = 800;
@@ -213,8 +213,7 @@ export function NextBlockGoggles() {
    * not classified is treated as sensitive rather than shown: the icon falls back to its glyph,
    * so a blocked thumbnail cannot appear in the cells we never looked at or before we know.
    */
-  const UNCLASSIFIED: Sensitivity = { level: "sensitive", reason: null };
-  const nftVerdict = (assetId: string | undefined, kind: string): Sensitivity | null => {
+  const nftVerdict = (assetId: string | undefined, kind: string) => {
     if (kind !== "nft" || !assetId) return null;
     return nftSensitivity.get(assetId) ?? UNCLASSIFIED;
   };
