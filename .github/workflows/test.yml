@@ -36,6 +36,10 @@ jobs:
 
   e2e:
     name: Playwright e2e (mocked Coinset)
+    # Pull requests only. The suite boots a real build and a browser for every route, which is
+    # worth the minutes while a change is still up for review and not worth repeating on the push
+    # that merges the same commits into main or testing.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
