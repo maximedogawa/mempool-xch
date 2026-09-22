@@ -91,6 +91,28 @@ test.describe("accessibility", () => {
     });
   }
 
+  // The same sweep in the light theme, which the dark default above never reached: light-only
+  // hues had drifted below AA unnoticed (TASK-095). The setting is stored before the app boots.
+  for (const route of ROUTES) {
+    test(`axe passes on ${route} (light)`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "the route sweep runs once, on desktop");
+      await page.addInitScript(() => {
+        try {
+          const key = "mempool-xch:settings:v1";
+          const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+          localStorage.setItem(key, JSON.stringify({ ...stored, theme: "light" }));
+        } catch {
+          // Storage unavailable: the check below fails loudly on the theme instead.
+        }
+      });
+      await page.goto(route);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      await settled(page);
+      const violations = await serious(page);
+      expect(violations, report(violations)).toEqual([]);
+    });
+  }
+
   test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({
     page,
     isMobile,

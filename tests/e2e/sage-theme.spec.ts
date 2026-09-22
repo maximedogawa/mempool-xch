@@ -39,7 +39,7 @@ test.describe("theme inside Sage", () => {
 test.describe("Sage's theme variables", () => {
   for (const sage of [
     { name: "xch-dark", mostLike: "dark", primary: "#5ece7b" },
-    { name: "xch-light", mostLike: "light", primary: "#2f9a4d" },
+    { name: "xch-light", mostLike: "light", primary: "#176c33" },
   ]) {
     test(`do not replace the app's own colours (${sage.mostLike})`, async ({ page }) => {
       await mockCoinset(page);
@@ -59,4 +59,33 @@ test.describe("Sage's theme variables", () => {
       expect(await token("--radius")).toBe("10px");
     });
   }
+});
+
+test.describe("theme picker in settings", () => {
+  test("switches the theme in a browser", async ({ page }) => {
+    await mockCoinset(page);
+    await page.goto("/settings");
+    const picker = page.getByRole("radiogroup", { name: "Theme" });
+    await picker.getByRole("radio", { name: /Light/ }).click();
+    await expect(picker.getByRole("radio", { name: /Light/ })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+    await expect.poll(() => theme(page)).toBe("light");
+    await picker.getByRole("radio", { name: /Dark/ }).click();
+    await expect.poll(() => theme(page)).toBe("dark");
+  });
+
+  test("is locked to Sage's theme inside Sage", async ({ page }) => {
+    await mockCoinset(page);
+    await installFakeSage(page, [], undefined, { name: "xch-light", mostLike: "light" });
+    await page.goto("/settings");
+    const picker = page.getByRole("radiogroup", { name: "Theme" });
+    await expect(page.getByText(/follows the wallet's theme \(currently light\)/)).toBeVisible();
+    await expect(picker.getByRole("radio", { name: /Light/ })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+    await expect(picker.getByRole("radio", { name: /Dark/ })).toBeDisabled();
+  });
 });

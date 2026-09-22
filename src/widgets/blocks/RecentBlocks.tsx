@@ -15,7 +15,7 @@ import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
 import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
 
-const CONFIRMED_GRADIENT = "linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%)";
+const CONFIRMED_GRADIENT = "var(--confirmed-fill)";
 
 const CUBE = 138;
 
