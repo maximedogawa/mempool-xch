@@ -59,6 +59,20 @@ first, and the matching detailed guide before lifecycle actions (`task-creation`
 `task-execution`, `task-finalization`). Never edit the markdown files under
 `../mempool-xch-backlog/.backlog/` by hand; use the CLI. Milestones define delivery order.
 
+## Checking the Sage install
+
+"Install from URL" fetches every path in the served `sage-manifest.json` `files[]` and aborts
+on the first non-200 (e.g. `request failed for …/api/__next._full.txt`). `src/proxy.ts` serves
+them from `./sage-snapshot` (Docker) or `out/` (`next dev`), so its matcher must not exclude any
+prefix the snapshot uses. After touching the proxy, routes or the Sage build, run
+`bun run build:sage`, start `bun run dev`, and check that everything answers 200:
+
+```sh
+bun -e 'const b=process.argv[1]??"http://localhost:3000";const m=await (await fetch(b+"/sage-manifest.json")).json();const bad=[];for(const f of m.files){const r=await fetch(b+"/"+f.path);if(r.status!==200)bad.push(r.status+" "+f.path)}console.log(bad.length?bad.join("\n"):"all "+m.files.length+" files OK")'
+```
+
+Pass `https://mempoolxch.space` as the argument to check production after a deploy.
+
 ## Branches and releases
 
 One feature branch per backlog task (`feat/task-NNN-short-name`, `chore/...` for housekeeping),
