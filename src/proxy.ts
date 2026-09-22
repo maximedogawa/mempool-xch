@@ -13,10 +13,15 @@ import { join, resolve } from "node:path";
  * The turbopackIgnore comments keep Next's output file tracing away from these reads: it cannot
  * resolve a runtime path, so it would copy the whole repository into .next/standalone (and the
  * Docker image). The snapshot is not traced output anyway; the Dockerfile copies it in.
+ *
+ * `next dev` has no ./sage-snapshot, so it falls back to the local `bun run build:sage` output in
+ * out/ and re-reads the manifest on every request, so a rebuilt snapshot is picked up without a
+ * restart.
  */
+const isDev = process.env.NODE_ENV !== "production";
 const SNAPSHOT_DIR = resolve(
   /*turbopackIgnore: true*/ process.cwd(),
-  process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot"
+  process.env.SAGE_SNAPSHOT_DIR || (isDev ? "out" : "sage-snapshot")
 );
 
 const MIME: Record<string, string> = {
@@ -43,7 +48,7 @@ function servablePaths(): ReadonlySet<string> {
       "sage-manifest.json",
       ...(manifest.files ?? []).map((f) => f.path),
     ]);
-    servable = paths;
+    if (!isDev) servable = paths;
     return paths;
   } catch {
     return new Set();
@@ -73,9 +78,8 @@ export function proxy(request: NextRequest) {
   }
 }
 
+// No api/ exclusion: the snapshot's /api docs page ships api/__next.*.txt files that Sage
+// fetches on install, and anything not listed in the manifest falls through untouched anyway.
 export const config = {
-  matcher: [
-    "/sage-manifest.json",
-    "/((?!api/|up$).*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))",
-  ],
+  matcher: ["/sage-manifest.json", "/(.*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))"],
 };
