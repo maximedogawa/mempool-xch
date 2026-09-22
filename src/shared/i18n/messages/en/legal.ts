@@ -125,9 +125,9 @@ const messages = {
     law: {
       title: "9. Governing law and venue",
       choice:
-        "These terms are governed by the law of austria, excluding the UN Convention on Contracts for the International Sale of Goods. If you are a consumer, this choice of law does not take away the protection of mandatory consumer law of the country where you habitually live.",
+        "These terms are governed by the law of Austria, excluding the UN Convention on Contracts for the International Sale of Goods. If you are a consumer, this choice of law does not take away the protection of mandatory consumer law of the country where you habitually live.",
       venue:
-        "If you are a merchant, a legal entity under public law or have no general place of jurisdiction in the European Union, the courts of vienna austria have jurisdiction. Mandatory statutory venues remain unaffected.",
+        "If you are a merchant, a legal entity under public law or have no general place of jurisdiction in the European Union, the courts of Vienna, Austria, have jurisdiction. Mandatory statutory venues remain unaffected.",
       disputes:
         "The operator is neither obliged nor willing to take part in dispute resolution proceedings before a consumer arbitration board.",
     },
@@ -176,7 +176,7 @@ const messages = {
       "How {site} handles personal data, under the EU General Data Protection Regulation (GDPR). In short: no accounts, no tracking, no analytics and no advertising. Your settings stay in your browser.",
     controller: {
       title: "1. Controller",
-      body: "Maxim Edogawa, See also the <link>legal notice</link>.",
+      body: "Maxim Edogawa. See also the <link>legal notice</link>.",
     },
     logs: {
       title: "2. Visiting the website: server logs",
@@ -194,7 +194,7 @@ const messages = {
       noProxy:
         "The server does not fetch chain or asset data on your behalf: it only serves the application itself (HTML, scripts, styles). Every lookup you make is a request from your own browser to Coinset, Dexie, MintGarden, XCHandles, public market data sources or your own node, described in the next sections.",
       market:
-        "The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro), plus public XCH offers for ByteCash (BYC) and wUSDC.b from Dexie. These requests contain no account credentials. A source can be unavailable or rate limited; the page labels it stale and excludes it from its aggregate.",
+        "The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro), plus public XCH offers for ByteCash (BYC, Circuit's USD stablecoin) and wUSDC.b from Dexie. These requests contain no account credentials. A source can be unavailable or rate limited; the page labels it stale and excludes it from its aggregate.",
     },
     storage: {
       title: "3. Storage in your browser",
@@ -316,7 +316,7 @@ const messages = {
     },
     thirdParties: {
       title: "Content from other services",
-      body: "Icons, NFT images and some chain data load directly from other services, which receive your IP address as any web server does. See section 4 of the <link>privacy policy</link>. x.com/MaximEdogawa on x.com. Since there are no accounts, server logs can only be matched to you with your IP address and the time of your visit.",
+      body: "Icons, NFT images and some chain data load directly from other services, which receive your IP address as any web server does. See section 4 of the <link>privacy policy</link>.",
     },
   },
 };

@@ -184,7 +184,7 @@ const messages: Translation<typeof en> = {
       noProxy:
         "服务器不会代表您获取链上或资产数据：它仅提供应用本身（HTML、脚本、样式）。您进行的每一次查询，都是由您自己的浏览器向 Coinset、Dexie、MintGarden、XCHandles、公共市场数据来源或您自己的节点发出的请求，详见以下各节。",
       market:
-        "「市场」页面从 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）读取公开订单簿，并从 Dexie 读取 ByteCash（BYC）和 wUSDC.b 的公开 XCH 报价（offer）。这些请求不包含任何账户凭据。某个来源可能不可用或受到速率限制；此时页面会将其标记为过时，并将其排除在汇总数据之外。",
+        "「市场」页面从 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）读取公开订单簿，并从 Dexie 读取 ByteCash（BYC，Circuit 的美元稳定币）和 wUSDC.b 的公开 XCH 报价（offer）。这些请求不包含任何账户凭据。某个来源可能不可用或受到速率限制；此时页面会将其标记为过时，并将其排除在汇总数据之外。",
     },
     storage: {
       title: "3. 在您浏览器中的存储",
@@ -300,7 +300,7 @@ const messages: Translation<typeof en> = {
     },
     thirdParties: {
       title: "来自其他服务的内容",
-      body: "图标、NFT 图片和部分链上数据直接从其他服务加载，这些服务会像任何网络服务器一样收到您的 IP 地址。请参阅<link>隐私政策</link>第 4 节。x.com 上的 x.com/MaximEdogawa。由于没有账户，服务器日志只能通过您的 IP 地址和访问时间与您对应。",
+      body: "图标、NFT 图片和部分链上数据直接从其他服务加载，这些服务会像任何网络服务器一样收到您的 IP 地址。请参阅<link>隐私政策</link>第 4 节。",
     },
   },
 };

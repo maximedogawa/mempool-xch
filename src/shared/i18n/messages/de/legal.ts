@@ -198,7 +198,7 @@ const messages: Translation<typeof en> = {
       noProxy:
         "Der Server ruft keine Chain- oder Asset-Daten in Ihrem Auftrag ab: Er liefert nur die Anwendung selbst aus (HTML, Skripte, Styles). Jede Abfrage, die Sie vornehmen, ist eine Anfrage Ihres eigenen Browsers an Coinset, Dexie, MintGarden, XCHandles, öffentliche Marktdatenquellen oder Ihren eigenen Node, wie in den folgenden Abschnitten beschrieben.",
       market:
-        "Die Seite „Markt“ liest öffentliche Orderbücher von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) sowie öffentliche XCH-Offers für ByteCash (BYC) und wUSDC.b von Dexie. Diese Anfragen enthalten keine Zugangsdaten zu Konten. Eine Quelle kann nicht verfügbar oder ratenbegrenzt sein; die Seite kennzeichnet sie dann als veraltet und nimmt sie aus ihrem Gesamtwert heraus.",
+        "Die Seite „Markt“ liest öffentliche Orderbücher von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) sowie öffentliche XCH-Offers für ByteCash (BYC, den USD-Stablecoin von Circuit) und wUSDC.b von Dexie. Diese Anfragen enthalten keine Zugangsdaten zu Konten. Eine Quelle kann nicht verfügbar oder ratenbegrenzt sein; die Seite kennzeichnet sie dann als veraltet und nimmt sie aus ihrem Gesamtwert heraus.",
     },
     storage: {
       title: "3. Speicherung in Ihrem Browser",
@@ -325,7 +325,7 @@ const messages: Translation<typeof en> = {
     },
     thirdParties: {
       title: "Inhalte anderer Dienste",
-      body: "Icons, NFT-Bilder und einige Chain-Daten werden direkt von anderen Diensten geladen, die wie jeder Webserver Ihre IP-Adresse erhalten. Siehe Abschnitt 4 der <link>Datenschutzerklärung</link>. x.com/MaximEdogawa auf x.com. Da es keine Konten gibt, können Serverprotokolle Ihnen nur anhand Ihrer IP-Adresse und des Zeitpunkts Ihres Besuchs zugeordnet werden.",
+      body: "Icons, NFT-Bilder und einige Chain-Daten werden direkt von anderen Diensten geladen, die wie jeder Webserver Ihre IP-Adresse erhalten. Siehe Abschnitt 4 der <link>Datenschutzerklärung</link>.",
     },
   },
 };

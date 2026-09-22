@@ -25,7 +25,7 @@ const messages: Translation<typeof en> = {
     },
     confirmed: {
       q: "¿Y los bloques de la derecha?",
-      a: "Los bloques de transacciones recién confirmados, del más nuevo al más antiguo, con sus comisiones, cobros de recompensa, antigüedad y el farmer que los ganó. Chia genera un bloque aproximadamente cada 19 segundos, pero solo uno de cada tres lleva transacciones; los pequeños marcadores +N cuentan los vacíos que hay entre medias.",
+      a: "Los bloques de transacciones recién confirmados, del más nuevo al más antiguo, con sus comisiones, cobros de recompensa, antigüedad y el farmer que los ganó. Chia genera un bloque cada 18,75 segundos de media, pero solo uno de cada tres lleva transacciones; los pequeños marcadores +N cuentan los vacíos que hay entre medias.",
     },
     zeroFee: {
       q: "¿Por qué la comisión estimada suele ser 0?",

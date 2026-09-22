@@ -198,7 +198,7 @@ const messages: Translation<typeof en> = {
       noProxy:
         "El servidor no obtiene datos de la cadena ni de activos en tu nombre: solo sirve la propia aplicación (HTML, scripts, estilos). Cada consulta que haces es una solicitud de tu propio navegador a Coinset, Dexie, MintGarden, XCHandles, fuentes públicas de datos de mercado o tu propio nodo, descritas en los apartados siguientes.",
       market:
-        "La página Mercado lee libros de órdenes públicos de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro), además de ofertas públicas de XCH para ByteCash (BYC) y wUSDC.b de Dexie. Estas solicitudes no contienen credenciales de ninguna cuenta. Una fuente puede no estar disponible o tener limitada la frecuencia de solicitudes; la página la marca como desactualizada y la excluye de su agregado.",
+        "La página Mercado lee libros de órdenes públicos de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro), además de ofertas públicas de XCH para ByteCash (BYC, la stablecoin en USD de Circuit) y wUSDC.b de Dexie. Estas solicitudes no contienen credenciales de ninguna cuenta. Una fuente puede no estar disponible o tener limitada la frecuencia de solicitudes; la página la marca como desactualizada y la excluye de su agregado.",
     },
     storage: {
       title: "3. Almacenamiento en tu navegador",
@@ -323,7 +323,7 @@ const messages: Translation<typeof en> = {
     },
     thirdParties: {
       title: "Contenido de otros servicios",
-      body: "Los iconos, las imágenes de NFT y algunos datos de la cadena se cargan directamente desde otros servicios, que reciben tu dirección IP como cualquier servidor web. Consulta el apartado 4 de la <link>política de privacidad</link>. x.com/MaximEdogawa en x.com. Como no hay cuentas, los registros del servidor solo pueden asociarse contigo mediante tu dirección IP y la hora de tu visita.",
+      body: "Los iconos, las imágenes de NFT y algunos datos de la cadena se cargan directamente desde otros servicios, que reciben tu dirección IP como cualquier servidor web. Consulta el apartado 4 de la <link>política de privacidad</link>.",
     },
   },
 };

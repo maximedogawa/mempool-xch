@@ -25,7 +25,7 @@ const messages: Translation<typeof en> = {
     },
     confirmed: {
       q: "Und die Blöcke rechts?",
-      a: "Die gerade bestätigten Transaktionsblöcke, neueste zuerst, mit ihren Gebühren, Belohnungs-Claims, ihrem Alter und dem Farmer, der sie gewonnen hat. Chia farmt etwa alle 19 Sekunden einen Block, aber nur jeder dritte enthält Transaktionen; die kleinen +N-Markierungen zählen die leeren dazwischen.",
+      a: "Die gerade bestätigten Transaktionsblöcke, neueste zuerst, mit ihren Gebühren, Belohnungs-Claims, ihrem Alter und dem Farmer, der sie gewonnen hat. Chia farmt im Schnitt alle 18,75 Sekunden einen Block, aber nur jeder dritte enthält Transaktionen; die kleinen +N-Markierungen zählen die leeren dazwischen.",
     },
     zeroFee: {
       q: "Warum ist die Gebührenschätzung meist 0?",

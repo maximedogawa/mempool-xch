@@ -23,7 +23,7 @@ const messages = {
     },
     confirmed: {
       q: "And the blocks on the right?",
-      a: "The transaction blocks that were just confirmed, newest first, with their fees, reward claims, age and the farmer who won them. Chia farms a block about every 19 seconds but only every third one carries transactions; the small +N markers count the empty ones in between.",
+      a: "The transaction blocks that were just confirmed, newest first, with their fees, reward claims, age and the farmer who won them. Chia farms a block every 18.75 seconds on average but only every third one carries transactions; the small +N markers count the empty ones in between.",
     },
     zeroFee: {
       q: "Why is the fee estimate usually 0?",

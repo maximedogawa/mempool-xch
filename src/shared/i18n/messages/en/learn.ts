@@ -26,12 +26,12 @@ const messages = {
     programsTitle: "Coins are programs",
     programs:
       "The program behind a coin is written in <strong>Chialisp</strong> and runs on the CLVM, a tiny virtual machine every node executes. That is what makes tokens (<tokens>CATs</tokens>), NFTs, decentralised identities and <offers>offers</offers> possible without special-casing them in the protocol: they are just coins with particular puzzles. It also explains the word <em>cost</em> you will see everywhere here: every spend has a CLVM cost, and a block can carry at most 11 billion of it.",
-    blocksTitle: "Blocks every nine seconds, transactions in a third of them",
+    blocksTitle: "A block every 18.75 seconds, transactions in a third of them",
     blocks:
       "A new block arrives on average every 18.75 seconds, but only about one in three is a <strong>transaction block</strong> that actually includes spends; the others only carry the proofs that keep the chain moving. The <dashboard>dashboard</dashboard> shows both kinds and counts down to the next transaction block.",
     originTitle: "Where the coins came from",
     origin:
-      "Every block pays 0.5 XCH to the farmer and 1.5 XCH to the pool of the winning plot (halving over time), so new coins enter circulation at a known rate. Before the first block, Chia Network created a 21 million XCH <prefarm>prefarm</prefarm> held in publicly auditable custody wallets.",
+      "Every block pays a reward of 1 XCH, 1/8 to the farmer and 7/8 to the pool of the winning plot. It halves every three years (it was 2 XCH at launch) until it stays at 0.125 XCH from 2033, so new coins enter circulation at a known rate. Before the first block, Chia Network created a 21 million XCH <prefarm>prefarm</prefarm> held in publicly auditable custody wallets.",
   },
   proofOfSpaceAndTime: {
     title: "Proof of space and time",
@@ -52,7 +52,8 @@ const messages = {
   },
   farmingAndPlotting: {
     title: "Farming and plotting",
-    summary: "What a plot is, what a farmer does every nine seconds, and where pools fit in.",
+    summary:
+      "What a plot is, what a farmer does at every signage point (about every nine seconds), and where pools fit in.",
     plottingTitle: "Plotting",
     plotting:
       "A plot is a file, typically around 100 GB, produced once by a plotter and then farmed for years. Creating it means building seven hash tables and sorting them, which takes a while and a lot of temporary space; that work is the “proof of work” Chia moves out of the way so that the ongoing cost of farming is close to zero. Plots are tied to a <strong>plot NFT</strong> or to your own keys, which is what decides who gets paid when the plot wins.",
@@ -61,10 +62,10 @@ const messages = {
       "A farmer runs a full node plus a <em>harvester</em> for each machine with plots. Every signage point the harvester looks up the challenge in each plot and, if a proof of good enough quality exists, the farmer builds a block and broadcasts it. The full node validates blocks from everyone else and keeps the copy of the chain that this explorer reads through <settings>a node or Coinset</settings>.",
     rewardsTitle: "Rewards",
     rewards:
-      "Each block creates two reward coins: a farmer reward and a pool reward (0.25 and 0.75 XCH after the third halving in 2033, currently 0.5 and 1.5). The <blocks>block page</blocks> lists the reward claims a transaction block incorporates, and the <pools>pools page</pools> attributes the pool reward to the pool it was paid to.",
+      "Each block creates two reward coins: a farmer reward of 1/8 and a pool reward of 7/8 (currently 0.125 and 0.875 XCH, after the 2024 halving; the total halves again in 2027 and 2030 and stays at 0.125 XCH from 2033). The <blocks>block page</blocks> lists the reward claims a transaction block incorporates, and the <pools>pools page</pools> attributes the pool reward to the pool it was paid to.",
     poolsTitle: "Pools",
     pools:
-      "With a small farm you may go months without winning. A <strong>pool</strong> smooths that out: your plot NFT points at the pool, the pool receives the 1.5 XCH reward whenever any member wins, and pays members by their share of partial proofs submitted. Because pooling is part of the protocol you keep your keys and switch pools by spending your plot NFT, which is a normal transaction you can find in the mempool like any other.",
+      "With a small farm you may go months without winning. A <strong>pool</strong> smooths that out: your plot NFT points at the pool, the pool receives the 0.875 XCH pool reward whenever any member wins, and pays members by their share of partial proofs submitted. Because pooling is part of the protocol you keep your keys and switch pools by spending your plot NFT, which is a normal transaction you can find in the mempool like any other.",
     hereTitle: "What you can see here",
     hereNetspace:
       "<dashboard>Netspace</dashboard>: the total plotted space the network estimates from recent difficulty.",

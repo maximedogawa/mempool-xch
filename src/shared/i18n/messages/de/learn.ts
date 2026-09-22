@@ -28,12 +28,12 @@ const messages: Translation<typeof en> = {
     programsTitle: "Coins sind Programme",
     programs:
       "Das Programm hinter einem Coin ist in <strong>Chialisp</strong> geschrieben und läuft auf der CLVM, einer winzigen virtuellen Maschine, die jeder Node ausführt. Dadurch sind Token (<tokens>CATs</tokens>), NFTs, dezentrale Identitäten und <offers>Offers</offers> möglich, ohne dass das Protokoll sie gesondert behandeln muss: Es sind einfach Coins mit bestimmten Puzzles. Das erklärt auch das Wort <em>Kosten</em>, das Ihnen hier überall begegnet: Jede Ausgabe hat CLVM-Kosten, und ein Block kann höchstens 11 Milliarden davon aufnehmen.",
-    blocksTitle: "Blöcke alle neun Sekunden, Transaktionen in einem Drittel davon",
+    blocksTitle: "Alle 18,75 Sekunden ein Block, Transaktionen in einem Drittel davon",
     blocks:
       "Im Schnitt kommt alle 18,75 Sekunden ein neuer Block, aber nur etwa jeder dritte ist ein <strong>Transaktionsblock</strong>, der tatsächlich Ausgaben enthält; die übrigen tragen nur die Beweise, die die Chain am Laufen halten. Die <dashboard>Übersicht</dashboard> zeigt beide Arten und zählt bis zum nächsten Transaktionsblock herunter.",
     originTitle: "Woher die Coins kommen",
     origin:
-      "Jeder Block zahlt 0,5 XCH an den Farmer und 1,5 XCH an den Pool des gewinnenden Plots (mit Halvings im Lauf der Zeit), sodass neue Coins in bekanntem Tempo in Umlauf kommen. Vor dem ersten Block hat Chia Network eine <prefarm>Prefarm</prefarm> von 21 Millionen XCH angelegt, die in öffentlich prüfbaren Verwahrungs-Wallets liegt.",
+      "Jeder Block zahlt eine Belohnung von 1 XCH, 1/8 an den Farmer und 7/8 an den Pool des gewinnenden Plots. Sie halbiert sich alle drei Jahre (zum Start waren es 2 XCH), bis sie ab 2033 bei 0,125 XCH bleibt, sodass neue Coins in bekanntem Tempo in Umlauf kommen. Vor dem ersten Block hat Chia Network eine <prefarm>Prefarm</prefarm> von 21 Millionen XCH angelegt, die in öffentlich prüfbaren Verwahrungs-Wallets liegt.",
   },
   proofOfSpaceAndTime: {
     title: "Proof of Space and Time",
@@ -55,7 +55,7 @@ const messages: Translation<typeof en> = {
   farmingAndPlotting: {
     title: "Farming und Plotting",
     summary:
-      "Was ein Plot ist, was ein Farmer alle neun Sekunden tut und welche Rolle Pools spielen.",
+      "Was ein Plot ist, was ein Farmer an jedem Signage Point (etwa alle neun Sekunden) tut und welche Rolle Pools spielen.",
     plottingTitle: "Plotting",
     plotting:
       "Ein Plot ist eine Datei, typischerweise rund 100 GB groß, die ein Plotter einmal erzeugt und die dann jahrelang gefarmt wird. Beim Erstellen werden sieben Hash-Tabellen aufgebaut und sortiert, was eine Weile dauert und viel temporären Speicher braucht; diese Arbeit ist der „Proof of Work“, den Chia aus dem laufenden Betrieb herausnimmt, damit die fortlaufenden Kosten des Farmings nahe null liegen. Plots sind an ein <strong>Plot-NFT</strong> oder an Ihre eigenen Schlüssel gebunden – das entscheidet, wer bezahlt wird, wenn der Plot gewinnt.",
@@ -64,10 +64,10 @@ const messages: Translation<typeof en> = {
       "Ein Farmer betreibt einen Full Node plus einen <em>Harvester</em> auf jedem Rechner mit Plots. An jedem Signage Point sucht der Harvester die Challenge in jedem Plot, und wenn ein Beweis von ausreichender Qualität existiert, baut der Farmer einen Block und verbreitet ihn. Der Full Node validiert die Blöcke aller anderen und hält die Kopie der Chain, die dieser Explorer über <settings>einen Node oder Coinset</settings> liest.",
     rewardsTitle: "Belohnungen",
     rewards:
-      "Jeder Block erzeugt zwei Belohnungs-Coins: eine Farmer-Belohnung und eine Pool-Belohnung (0,25 und 0,75 XCH nach dem dritten Halving 2033, derzeit 0,5 und 1,5). Die <blocks>Block-Seite</blocks> listet die Belohnungs-Claims auf, die ein Transaktionsblock enthält, und die <pools>Pools-Seite</pools> ordnet die Pool-Belohnung dem Pool zu, an den sie ausgezahlt wurde.",
+      "Jeder Block erzeugt zwei Belohnungs-Coins: eine Farmer-Belohnung von 1/8 und eine Pool-Belohnung von 7/8 (derzeit 0,125 und 0,875 XCH nach dem Halving 2024; die Summe halbiert sich erneut 2027 und 2030 und bleibt ab 2033 bei 0,125 XCH). Die <blocks>Block-Seite</blocks> listet die Belohnungs-Claims auf, die ein Transaktionsblock enthält, und die <pools>Pools-Seite</pools> ordnet die Pool-Belohnung dem Pool zu, an den sie ausgezahlt wurde.",
     poolsTitle: "Pools",
     pools:
-      "Mit einer kleinen Farm vergehen womöglich Monate ohne Gewinn. Ein <strong>Pool</strong> gleicht das aus: Ihr Plot-NFT verweist auf den Pool, der Pool erhält die Belohnung von 1,5 XCH, sobald irgendein Mitglied gewinnt, und bezahlt die Mitglieder nach ihrem Anteil an eingereichten Teilbeweisen (Partials). Weil Pooling Teil des Protokolls ist, behalten Sie Ihre Schlüssel und wechseln den Pool, indem Sie Ihr Plot-NFT ausgeben – eine normale Transaktion, die Sie wie jede andere im Mempool finden.",
+      "Mit einer kleinen Farm vergehen womöglich Monate ohne Gewinn. Ein <strong>Pool</strong> gleicht das aus: Ihr Plot-NFT verweist auf den Pool, der Pool erhält die Pool-Belohnung von 0,875 XCH, sobald irgendein Mitglied gewinnt, und bezahlt die Mitglieder nach ihrem Anteil an eingereichten Teilbeweisen (Partials). Weil Pooling Teil des Protokolls ist, behalten Sie Ihre Schlüssel und wechseln den Pool, indem Sie Ihr Plot-NFT ausgeben – eine normale Transaktion, die Sie wie jede andere im Mempool finden.",
     hereTitle: "Was Sie hier sehen können",
     hereNetspace:
       "<dashboard>Netspace</dashboard>: der gesamte geplottete Speicherplatz, den das Netzwerk aus der jüngsten Schwierigkeit schätzt.",
