@@ -26,6 +26,9 @@ test.describe("vaults", () => {
     const singleton = page.getByTestId("vault-singleton");
     await expect(singleton).toContainText("current coin unspent");
     await expect(singleton).toContainText("#8,969,947");
+    // Funds come from the p2 puzzle hash derived from the launcher id (TASK-086).
+    await expect(singleton).toContainText("41,991 XCH");
+    await expect(singleton).toContainText("1 unspent coin");
     await expect(singleton.getByRole("link", { name: "open on the scanner" })).toHaveAttribute(
       "href",
       `https://vaults.xchplorer.com/vault/${VAULT_LAUNCHER}`
@@ -44,7 +47,7 @@ test.describe("vaults", () => {
     await expect(page.getByText(/No vault recovery seen/)).toBeVisible();
   });
 
-  test("/prefarm still answers, and a custom node can only look vaults up by address", async ({
+  test("/prefarm still answers, and a custom node shows a vault's funds but not its singleton", async ({
     page,
   }) => {
     await mockCustomNode(page);
@@ -52,6 +55,7 @@ test.describe("vaults", () => {
     await expect(page.getByRole("heading", { level: 2, name: "Chia Vaults" })).toBeVisible();
     await page.getByRole("textbox", { name: "Vault launcher id or address" }).fill(VAULT_LAUNCHER);
     await page.getByRole("button", { name: "Look up" }).click();
-    await expect(page.getByText(/need Coinset; with a custom node paste/)).toBeVisible();
+    await expect(page.getByText(/singleton needs Coinset to look up/)).toBeVisible();
+    await expect(page.getByTestId("vault-funds")).toContainText("41,991 XCH");
   });
 });

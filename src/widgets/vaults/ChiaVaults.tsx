@@ -6,6 +6,7 @@ import { queryKeys } from "@/shared/api/queryKeys";
 import { decodeBech32m, puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { normaliseId32 } from "@/shared/lib/chia/hex";
+import { vaultP2PuzzleHash } from "@/shared/lib/chia/vault";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
@@ -64,7 +65,7 @@ function loadEvents(): VaultEvent[] {
 }
 
 type Lookup =
-  | { kind: "launcher"; id: string }
+  | { kind: "launcher"; id: string; puzzleHash: string }
   | { kind: "address"; address: string; puzzleHash: string }
   | { kind: "invalid"; reason: string }
   | null;
@@ -79,7 +80,8 @@ function parseLookup(raw: string): Lookup {
     return { kind: "invalid", reason: "That looks like an address but its checksum is wrong." };
   }
   const id = normaliseId32(input);
-  if (id) return { kind: "launcher", id };
+  // A vault's funds sit at a puzzle hash derived from its launcher id (TASK-086).
+  if (id) return { kind: "launcher", id, puzzleHash: vaultP2PuzzleHash(id) };
   return {
     kind: "invalid",
     reason: "Paste a vault launcher id (64 hex characters) or the vault's xch address.",
@@ -133,19 +135,13 @@ export function ChiaVaults() {
     queryFn: ({ signal }) => client.getSingletonInfo((lookup as { id: string }).id, signal),
     retry: false,
   });
+  const fundsPuzzleHash =
+    lookup?.kind === "launcher" || lookup?.kind === "address" ? lookup.puzzleHash : null;
   const coins = useQuery({
-    queryKey: [
-      ...queryKeys.chainRoot(network),
-      "vaultCoins",
-      lookup?.kind === "address" ? lookup.puzzleHash : "",
-    ],
-    enabled: lookup?.kind === "address",
+    queryKey: [...queryKeys.chainRoot(network), "vaultCoins", fundsPuzzleHash ?? ""],
+    enabled: fundsPuzzleHash !== null,
     queryFn: ({ signal }) =>
-      client.getCoinRecordsByPuzzleHash(
-        (lookup as { puzzleHash: string }).puzzleHash,
-        false,
-        signal
-      ),
+      client.getCoinRecordsByPuzzleHash(fundsPuzzleHash as string, false, signal),
     retry: false,
   });
 
@@ -163,6 +159,10 @@ export function ChiaVaults() {
     | null
     | undefined;
   const balance = coins.data ? coins.data.reduce((s, c) => s + c.coin.amount, 0n) : null;
+  const vaultAddress =
+    lookup?.kind === "launcher"
+      ? puzzleHashToAddress(lookup.puzzleHash, networkConfig.addressPrefix)
+      : null;
 
   return (
     <section className="flex flex-col gap-4">
@@ -209,10 +209,30 @@ export function ChiaVaults() {
           ) : null}
           {lookup?.kind === "launcher" ? (
             !client.hasIndexed ? (
-              <p className="text-sm text-fg-muted">
-                Singleton lookups by launcher id need Coinset; with a custom node paste the
-                vault&apos;s address instead.
-              </p>
+              <div className="flex flex-col gap-2 text-sm" data-testid="vault-funds">
+                <p className="text-fg-muted">
+                  The vault&apos;s singleton needs Coinset to look up; its funds are read from your
+                  node at the address derived from the launcher id.
+                </p>
+                {coins.isLoading ? (
+                  <Skeleton className="h-20 w-full" />
+                ) : coins.error ? (
+                  <p className="text-danger">{errorMessage(coins.error)}</p>
+                ) : (
+                  <FundsTiles coins={coins.data ?? []} balance={balance} />
+                )}
+                {vaultAddress ? (
+                  <p className="text-xs text-fg-faint">
+                    Vault address{" "}
+                    <Hash
+                      value={vaultAddress}
+                      href={routes.address(vaultAddress)}
+                      head={12}
+                      tail={6}
+                    />
+                  </p>
+                ) : null}
+              </div>
             ) : singleton.isLoading ? (
               <Skeleton className="h-20 w-full" />
             ) : singleton.error ? (
@@ -246,13 +266,34 @@ export function ChiaVaults() {
                   />
                   <StatTile
                     label="Funds"
-                    value="—"
-                    sub="need the vault address"
-                    hint="A vault's coins sit at a puzzle hash derived from the launcher id by the vault puzzle, which this app cannot compute yet (TASK-086). Paste the vault address, or open it on the scanner."
+                    value={
+                      coins.isLoading
+                        ? "…"
+                        : coins.error || balance === null
+                          ? "—"
+                          : formatAmount(balance)
+                    }
+                    sub={
+                      coins.error
+                        ? "could not load the vault's coins"
+                        : coins.data
+                          ? `${formatNumber(coins.data.length)} unspent coin${coins.data.length === 1 ? "" : "s"}`
+                          : undefined
+                    }
+                    hint="A vault's funds sit at a puzzle hash derived from its launcher id (the vault's p2 singleton puzzle), computed here in the browser. This is the balance of the vault's main address; coins the vault moved to other addresses are not included."
                   />
                 </div>
                 <p className="text-xs text-fg-faint">
-                  Launcher <Hash value={lookup.id} head={10} tail={6} copy /> · current coin at{" "}
+                  Launcher <Hash value={lookup.id} head={10} tail={6} copy /> · funds at{" "}
+                  {vaultAddress ? (
+                    <Hash
+                      value={vaultAddress}
+                      href={routes.address(vaultAddress)}
+                      head={10}
+                      tail={6}
+                    />
+                  ) : null}{" "}
+                  · current coin at{" "}
                   <Hash
                     value={puzzleHashToAddress(
                       String(record.coin.puzzle_hash ?? "").replace(/^0x/, ""),
@@ -279,23 +320,7 @@ export function ChiaVaults() {
               <p className="text-sm text-danger">{errorMessage(coins.error)}</p>
             ) : (
               <div className="flex flex-col gap-2 text-sm" data-testid="vault-address">
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                  <StatTile
-                    label="Balance"
-                    value={balance !== null ? formatAmount(balance) : "—"}
-                    tone="primary"
-                    sub="unspent coins at this address"
-                  />
-                  <StatTile label="Coins" value={formatNumber(coins.data?.length ?? 0)} />
-                  <StatTile
-                    label="Newest coin"
-                    value={
-                      coins.data && coins.data.length > 0
-                        ? `#${formatNumber(Math.max(...coins.data.map((c) => c.confirmedBlockIndex)))}`
-                        : "—"
-                    }
-                  />
-                </div>
+                <FundsTiles coins={coins.data ?? []} balance={balance} />
                 <p className="text-xs text-fg-faint">
                   {lookup.address === EXAMPLE.address ? `${EXAMPLE.label} · ` : ""}
                   <Hash
@@ -366,5 +391,33 @@ export function ChiaVaults() {
         </CardBody>
       </Card>
     </section>
+  );
+}
+
+function FundsTiles({
+  coins,
+  balance,
+}: {
+  coins: readonly { confirmedBlockIndex: number }[];
+  balance: bigint | null;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+      <StatTile
+        label="Balance"
+        value={balance !== null ? formatAmount(balance) : "—"}
+        tone="primary"
+        sub="unspent coins at this address"
+      />
+      <StatTile label="Coins" value={formatNumber(coins.length)} />
+      <StatTile
+        label="Newest coin"
+        value={
+          coins.length > 0
+            ? `#${formatNumber(Math.max(...coins.map((c) => c.confirmedBlockIndex)))}`
+            : "—"
+        }
+      />
+    </div>
   );
 }
