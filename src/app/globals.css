@@ -37,6 +37,9 @@
   --primary-strong: #3aac59;
   --primary-soft: rgba(94, 206, 123, 0.14);
   --primary-fg: #06210f;
+  /* Fresh-row flash behind text: the most green a row can carry while --fg-faint and every other
+     row colour keep 4.5:1 (TASK-095). --primary-soft (14%) left the faint fee text at 4.2:1. */
+  --row-flash: rgba(94, 206, 123, 0.06);
 
   --accent: #7dd3fc;
   --warning: #f5c542;
@@ -99,6 +102,8 @@
   --primary-strong: #237a3b;
   --primary-soft: rgba(47, 154, 77, 0.12);
   --primary-fg: #ffffff;
+  /* Accent links sit at 4.6:1 on white, so any tint behind them fails AA: the edge bar alone. */
+  --row-flash: transparent;
   --accent: #0a7ea4;
   --warning: #b78a00;
   --danger: #c93a47;
@@ -110,6 +115,14 @@
   --block-top: #eef1f8;
   --block-empty: #e8ecf6;
   --projected-face: #d5e9f5;
+  /* Asset-kind hues darkened for light surfaces: each keeps 4.5:1 as badge text on its own
+     15-20% tint over white or --surface-2 (the dark hues fell to 1.8:1 here; TASK-095). */
+  --kind-xch: #1f6432;
+  --kind-cat: #3d51b1;
+  --kind-nft: #7b3e91;
+  --kind-did: #705400;
+  --kind-offer: #08607d;
+  --kind-unknown: #52586b;
   --shadow: 0 10px 30px rgba(20, 30, 60, 0.12);
 }
 
@@ -231,12 +244,17 @@ a {
   animation: block-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* A fresh row flashes a green edge bar (rows using it pad their left edge to keep it clear of
+   the text) plus a tint light enough that the text stays AA. The bar is inset because the lists
+   sit in scroll containers, which clip anything drawn outside the row. */
 @keyframes row-in {
   from {
-    background: var(--primary-soft);
+    background: var(--row-flash);
+    box-shadow: inset 3px 0 0 var(--primary);
   }
   to {
     background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
   }
 }
 

@@ -91,6 +91,31 @@ test.describe("accessibility", () => {
     });
   }
 
+  test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "markup check, runs once on desktop");
+    // A row only carries the flash for 1.6s after it arrives, which made the sweep on / flaky
+    // (TASK-095). Freeze every feed row at the flash's first frame and check it in both themes.
+    await page.goto("/");
+    await settled(page);
+    const rows = page.locator('ul[aria-relevant="additions"] > li');
+    await expect(rows.first()).toBeVisible();
+    await page.addStyleTag({
+      content:
+        'ul[aria-relevant="additions"] > li { animation: row-in 1s linear 0s paused both !important; }',
+    });
+    for (const theme of ["dark", "light"]) {
+      await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
+      const results = await new AxeBuilder({ page })
+        .include('ul[aria-relevant="additions"]')
+        .withRules(["color-contrast"])
+        .analyze();
+      expect(results.violations, `${theme}: ${report(results.violations)}`).toEqual([]);
+    }
+  });
+
   test("axe passes on the phone's own navigation markup", async ({ page, isMobile }) => {
     test.skip(!isMobile, "mobile project only");
     await page.goto("/");

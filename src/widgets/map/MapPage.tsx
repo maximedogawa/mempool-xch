@@ -542,7 +542,7 @@ export function MapPage() {
                 {activity.feed.map((e) => (
                   <li
                     key={e.id}
-                    className="animate-row-in flex flex-wrap items-center justify-between gap-2 py-1.5"
+                    className="animate-row-in flex flex-wrap items-center justify-between gap-2 py-1.5 pl-2"
                   >
                     {e.kind === "block" ? (
                       <span>
