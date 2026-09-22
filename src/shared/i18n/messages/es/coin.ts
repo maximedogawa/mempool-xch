@@ -7,14 +7,14 @@ const messages: Translation<typeof en> = {
   unspent: "Sin gastar",
   retry: "Reintentar",
   noId: {
-    title: "Sin id de moneda",
+    title: "Sin ID de moneda",
     description:
-      "Abre una moneda desde una transacción o pega un id de moneda en el cuadro de búsqueda.",
+      "Abre una moneda desde una transacción o pega un ID de moneda en el cuadro de búsqueda.",
   },
   notFound: {
     title: "Moneda no encontrada",
     description:
-      "No existe ninguna moneda con este id en esta red. Las monedas creadas por un spend bundle pendiente solo aparecen cuando el bundle se confirma.",
+      "No existe ninguna moneda con este ID en esta red. Las monedas creadas por un spend bundle pendiente solo aparecen cuando el bundle se confirma.",
   },
   loadError: "No se pudo cargar la moneda",
   stats: {
@@ -32,7 +32,7 @@ const messages: Translation<typeof en> = {
   },
   record: {
     title: "Registro de la moneda",
-    coinId: "Id de moneda",
+    coinId: "ID de moneda",
     parentCoin: "Moneda padre",
     noParent: "(recompensa: sin moneda padre)",
     puzzleHash: "Puzzle hash",
@@ -52,9 +52,9 @@ const messages: Translation<typeof en> = {
       "La clasificación de monedas (XCH, CAT, NFT, DID) requiere un endpoint de Coinset; el nodo propio actual solo proporciona el registro sin procesar.",
     kind: "Tipo",
     custodyPuzzle: "Puzzle de custodia",
-    catAssetId: "Id de activo CAT",
+    catAssetId: "ID de activo CAT",
     nft: "NFT",
-    launcherId: "Id de launcher",
+    launcherId: "Launcher ID",
     notClassified:
       "Coinset no ha clasificado esta moneda (su endpoint de detalles de monedas no está disponible o la moneda aún no está indexada). Las monedas XCH simples no suelen necesitar clasificación.",
   },
@@ -71,7 +71,7 @@ const messages: Translation<typeof en> = {
     titleCount: "Hijas ({count})",
     noneSpent: "No se encontraron monedas hijas para esta moneda.",
     noneUnspent: "Las monedas sin gastar aún no tienen hijas.",
-    coinId: "Id de moneda",
+    coinId: "ID de moneda",
     address: "Dirección",
     amount: "Importe",
     status: "Estado",

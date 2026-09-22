@@ -29,7 +29,7 @@ const messages: Translation<typeof en> = {
     combine: "合并",
     split: "拆分",
     pool: "矿池",
-    revoke: "撤销",
+    revoke: "撤回",
     clawback: "追回",
     unknown: "未知",
   },

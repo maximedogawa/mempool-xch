@@ -9,7 +9,7 @@ const messages: Translation<typeof en> = {
   height: "Höhe",
   type: "Typ",
   age: "Alter",
-  rewardClaims: "Belohnungsabholungen",
+  rewardClaims: "Belohnungs-Claims",
   fees: "Gebühren",
   xchMoved: "XCH bewegt",
   pool: "Pool",

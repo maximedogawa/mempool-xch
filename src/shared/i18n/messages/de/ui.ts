@@ -53,7 +53,7 @@ const messages: Translation<typeof en> = {
   },
   chart: {
     notEnough: "Noch nicht genug Daten.",
-    collecting: "Stichproben werden gesammelt … der Verlauf beginnt, sobald die App geöffnet ist.",
+    collecting: "Stichproben werden gesammelt… Der Verlauf beginnt, sobald die App geöffnet wird.",
     lineSummary: {
       one: "{label}. {count} Punkt von {from} bis {to}. Zuletzt {latest}.",
       other: "{label}. {count} Punkte von {from} bis {to}. Zuletzt {latest}.",

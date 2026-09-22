@@ -4,7 +4,7 @@ import type en from "../en/arcade";
 const messages: Translation<typeof en> = {
   title: "Arcade",
   titleHint:
-    "Juegos creados con el protocolo de juegos de Chia: dos jugadores bloquean una apuesta en un canal de estado en la cadena, juegan fuera de la cadena con equidad criptográfica (mental poker para las cartas) y liquidan el resultado de vuelta en la cadena. Para jugar necesitas una billetera de Chia con el protocolo de juegos; cada juego se abre en el sitio del propio tracker.",
+    "Juegos creados con el protocolo de juegos de Chia: dos jugadores bloquean una apuesta en un canal de estado en la cadena, juegan fuera de la cadena con equidad criptográfica (póker mental para las cartas) y liquidan el resultado de vuelta en la cadena. Para jugar necesitas una billetera de Chia con el protocolo de juegos; cada juego se abre en el sitio del propio tracker.",
   games: "Juegos",
   filterByGenre: "Filtrar por género",
   allGenres: "todos",
@@ -31,7 +31,7 @@ const messages: Translation<typeof en> = {
     phases: {
       waiting: "Esperando rival",
       playing: "En juego",
-      closed: "Cerradas",
+      closed: "Cerrada",
     },
     countOf: "{shown} de {total}",
     noMatch: "Sin resultados.",
@@ -49,7 +49,7 @@ const messages: Translation<typeof en> = {
       other: "<b>{count}</b> salas anunciadas en el tracker{breakdown}.",
     },
     breakdown: " ({list})",
-    openArcade: "Abrir la arcade",
+    openArcade: "Abrir el arcade",
   },
   potato: {
     hint: "Un juego de la patata caliente totalmente en la cadena: quien tenga la moneda patata durante {hours} horas se queda con el bote. Antes de eso, cualquiera puede arrebatarla pagando {price} al bote más {royalty} a cada poseedor anterior. El estado que ves aquí se lee solo del linaje de la moneda en Coinset.",

@@ -79,7 +79,7 @@ const messages: Translation<typeof en> = {
     fromSage: "来自 Sage",
     intro:
       "余额、资产、交易和币来自您的 Sage 钱包；内存池、区块和其他地址仍通过已配置的节点来自 {network}。",
-    openAddress: "<link>在浏览器中打开此地址</link>。",
+    openAddress: "<link>在区块浏览器中打开此地址</link>。",
     noAnswerTitle: "Sage 未响应",
     noAnswerDescription: "无法连接钱包桥接。请从 Sage 的应用列表重新打开此应用。",
     receiveAddress: "收款地址",

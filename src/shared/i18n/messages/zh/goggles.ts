@@ -14,7 +14,7 @@ const messages: Translation<typeof en> = {
     offer: "报价",
     did: "DID",
     pool: "矿池",
-    singleton: "Singleton",
+    singleton: "单例",
   },
   empty: "内存池为空：下一个交易区块将不包含任何花费。",
   ariaLabel: {
@@ -33,7 +33,7 @@ const messages: Translation<typeof en> = {
   zeroFee: "0 手续费",
   bandChip: "{band} m/c",
   showOnly: "仅显示",
-  onlyNew: "新的",
+  onlyNew: "新增",
   onlyYours: "您的",
   cellLabel: "花费包 {id}，{kind}，{amount}，成本 {cost}，每单位成本 {rate} mojo",
   cellLabelYours: "您的花费包 {id}，{kind}，{amount}，成本 {cost}，每单位成本 {rate} mojo",
@@ -46,7 +46,7 @@ const messages: Translation<typeof en> = {
   legendSize: "大小 = 成本",
   legendFee: "颜色 = 费率区间",
   legendKind: "颜色 = 资产类型",
-  legendNew: "白色圆环 = 新",
+  legendNew: "白色圆环 = 新增",
   legendBandTitle: "{band} mojo/成本",
 };
 

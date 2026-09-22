@@ -31,7 +31,7 @@ const messages: Translation<typeof en> = {
     newMints: "Nuevos mints",
     allMints: "Todos los mints →",
     searchHint:
-      "¿Tienes un ID de NFT o un launcher id? Búscalo arriba o abre <mono>{path}</mono> directamente.",
+      "¿Tienes un ID de NFT o un launcher ID? Búscalo arriba o abre <mono>{path}</mono> directamente.",
   },
   collections: {
     title: "Colecciones NFT",
@@ -66,12 +66,12 @@ const messages: Translation<typeof en> = {
   mints: {
     title: "Nuevos mints",
     intro:
-      "NFTs recién minteados en todas las colecciones que indexa MintGarden, primero los más recientes.",
+      "NFT recién minteados en todas las colecciones que indexa MintGarden, primero los más recientes.",
     card: "Mints",
   },
   event: {
     kinds: { mint: "Mint", transfer: "Transferencia", trade: "Venta", burn: "Quema" },
-    uncategorised: "Sin colección",
+    uncategorised: "Sin categoría",
     block: "bloque {height}",
   },
   offers: {
@@ -90,7 +90,7 @@ const messages: Translation<typeof en> = {
       "Abre el recuento de NFT en la página de una dirección o de un DID para ver sus tenencias.",
     backToDid: "Volver al DID",
     backToAddress: "Volver a la dirección",
-    title: "NFTs en posesión",
+    title: "NFT en posesión",
     heldBy: "En posesión de <owner></owner>",
     mainnetTitle: "La galería de NFT está disponible en mainnet",
     mainnetDescription:

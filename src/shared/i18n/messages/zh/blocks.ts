@@ -34,7 +34,7 @@ const messages: Translation<typeof en> = {
     cost: "成本",
     feePerCost: "手续费 / 成本",
     value: "价值",
-    seen: "出现时间",
+    seen: "发现时间",
     showingFirst: "显示前 {shown} 个，共 {total} 个。<link>打开完整的内存池表格</link>。",
   },
   recent: {

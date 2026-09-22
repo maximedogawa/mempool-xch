@@ -9,7 +9,7 @@ const messages: Translation<typeof en> = {
       "Einige Dinge, die diese Version kann und die andere Chia-Explorer, mit denen wir sie verglichen haben, beim letzten Check nicht konnten:",
     sage: "Eine Wallet-Seite in der Sage-App: Ihre ausstehenden Transaktionen auf der Übersicht mit Position in der Warteschlange und einem Bestätigungston.",
     projected:
-      "Prognostizierte nächste Blöcke, gepackt so, wie der Node sie tatsächlich füllt (nach Kosten sortiert), statt nur einer Warteschlangenlänge.",
+      "Voraussichtliche nächste Blöcke, gepackt so, wie der Node sie tatsächlich füllt (nach Kosten sortiert), statt nur einer Warteschlangenlänge.",
     cats: "Jeder CAT erhält Namen und Icon aus der Dexie-Registry, auf jeder Seite, die ihn zeigt, nicht nur auf einer Nachschlageseite.",
     a11y: "Barrierefreiheit auf jeder Route geprüft: automatisierte axe-AA-Prüfungen und ein vollständiger Tastaturdurchlauf in der Testsuite, nicht nur behauptet.",
     openSource:
@@ -20,16 +20,16 @@ const messages: Translation<typeof en> = {
   reading: {
     title: "Die Übersicht lesen",
     projected: {
-      q: "Was sind die Blöcke links der gestrichelten Linie?",
+      q: "Was sind die Blöcke links der gepunkteten Linie?",
       a: "Es gibt sie noch nicht. Sie sind die nächsten Transaktionsblöcke, so wie das Netzwerk sie voraussichtlich füllen wird: jedes ausstehende Spend Bundle, sortiert nach der Gebühr, die es pro Kosteneinheit zahlt, gepackt in Blöcke mit 11 Milliarden Kosten. Der Block direkt an der Linie ist der nächste; die weiter links folgen danach. Jeder zeigt den typischen Gebührensatz darin, die Gebührenspanne, die Gesamtgebühren, wie viele Spend Bundles er enthält und ungefähr, wann er gefarmt wird. Klicken Sie auf einen, um seinen Inhalt zu sehen.",
     },
     confirmed: {
       q: "Und die Blöcke rechts?",
-      a: "Die gerade bestätigten Transaktionsblöcke, neueste zuerst, mit ihren Gebühren, Reward Claims, ihrem Alter und dem Farmer, der sie gewonnen hat. Chia farmt etwa alle 19 Sekunden einen Block, aber nur jeder dritte enthält Transaktionen; die kleinen +N-Markierungen zählen die leeren dazwischen.",
+      a: "Die gerade bestätigten Transaktionsblöcke, neueste zuerst, mit ihren Gebühren, Belohnungs-Claims, ihrem Alter und dem Farmer, der sie gewonnen hat. Chia farmt etwa alle 19 Sekunden einen Block, aber nur jeder dritte enthält Transaktionen; die kleinen +N-Markierungen zählen die leeren dazwischen.",
     },
     zeroFee: {
       q: "Warum ist die Gebührenschätzung meist 0?",
-      a: "Chia ist nicht Bitcoin. Gebühren werden pro Einheit CLVM-Kosten gezahlt, und der Mempool nimmt Ausgaben ganz ohne Gebühr an, solange er Platz hat. Der Kapazitätsbalken zeigt, wie voll er ist (Kosten im Umfang von zehn Blöcken). Wenn er sich füllt, bringt Sie eine Gebühr vor den Rückstau ohne Gebühr, und die Karten zeigen den Satz, mit dem Sie in den nächsten Block kommen, in fünf oder in zehn Minuten.",
+      a: "Chia ist nicht Bitcoin. Gebühren werden pro Einheit CLVM-Kosten gezahlt, und der Mempool nimmt Ausgaben ganz ohne Gebühr an, solange er Platz hat. Der Kapazitätsbalken zeigt, wie voll er ist (Kosten im Umfang von zehn Blöcken). Wenn er sich füllt, bringt Sie eine Gebühr am gebührenfreien Rückstau vorbei, und die Karten zeigen den Satz, mit dem Sie in den nächsten Block kommen, in fünf oder in zehn Minuten.",
     },
     nextBlock: {
       q: "Was zeigt „Nächster Block“?",
@@ -37,7 +37,7 @@ const messages: Translation<typeof en> = {
     },
     graph: {
       q: "Was ist das Mempool-Diagramm?",
-      a: "Wie viel Kosten warten, aufgeteilt nach Gebührenband, über die letzten zwei Stunden. Es wird von Ihrem Browser erfasst, solange die Seite offen ist, und beginnt daher, als Sie die App zum ersten Mal geöffnet haben.",
+      a: "Wie viel an Kosten wartet, aufgeteilt nach Gebührenband, über die letzten zwei Stunden. Es wird von Ihrem Browser erfasst, solange die Seite offen ist, und beginnt daher mit dem ersten Öffnen der App.",
     },
   },
   search: {
@@ -48,11 +48,11 @@ const messages: Translation<typeof en> = {
     },
     handle: {
       q: "Was ist ein Handle?",
-      a: "XCHandles (xchandles.com) ist ein Namensregister auf Chia: Ein Handle wie <mono>@maximedogawa</mono> ist ein Registereintrag, der auf ein Namens-NFT verweist, und die Adresse dieses NFTs ist das Ziel einer Zahlung an den Namen. Seine Seite zeigt, worauf es heute verweist, wer es hält und wann die Registrierung ausläuft, und es lässt sich wie eine Adresse beobachten. Handle-Daten stammen aus der eigenen, schreibgeschützten API des Registers, nur im Mainnet.",
+      a: "XCHandles (xchandles.com) ist ein Namensregister auf Chia: Ein Handle wie <mono>@maximedogawa</mono> ist ein Registereintrag, der auf ein Namens-NFT verweist, und die Adresse dieses NFTs ist das Ziel einer Zahlung an den Namen. Seine Seite zeigt, worauf er heute verweist, wer ihn hält und wann die Registrierung ausläuft, und er lässt sich wie eine Adresse beobachten. Handle-Daten stammen aus der eigenen, schreibgeschützten API des Registers, nur im Mainnet.",
     },
     sent: {
       q: "Ich habe eine Transaktion gesendet. Wo ist sie?",
-      a: "Fügen Sie ihre ID oder Ihre Adresse ein. Eine ausstehende Transaktion zeigt, in welchem prognostizierten Block sie liegt, und eine geschätzte Zeit; nach der Bestätigung zeigt sie den Block, die Bestätigungen und was zwischen welchen Adressen bewegt wurde. Die Adressseite listet Ihre ausstehenden Transaktionen oben auf und aktualisiert sich von selbst.",
+      a: "Fügen Sie ihre ID oder Ihre Adresse ein. Eine ausstehende Transaktion zeigt, in welchem voraussichtlichen Block sie liegt, und eine geschätzte Zeit; nach der Bestätigung zeigt sie den Block, die Bestätigungen und was zwischen welchen Adressen bewegt wurde. Die Adressseite listet Ihre ausstehenden Transaktionen oben auf und aktualisiert sich von selbst.",
     },
     notClassified: {
       q: "Warum steht auf einer Coin-Seite „nicht klassifiziert“?",
@@ -63,7 +63,7 @@ const messages: Translation<typeof en> = {
     title: "Nutzung in der Sage-Wallet",
     install: {
       q: "Wie installiere ich es?",
-      a: "Öffnen Sie in Sage 0.13 oder neuer <em>Apps → Install from URL</em> und fügen Sie <mono>{site}</mono> ein. Sage lädt die App herunter und prüft sie; danach folgt sie dem Netzwerk und Theme Ihrer Wallet, und ein Eintrag <em>Meine Wallet</em> öffnet Ihre eigene Adressseite, sobald Sie ihr erlauben, Ihre Empfangsadresse zu lesen.",
+      a: "Öffnen Sie in Sage 0.13 oder neuer <em>Apps → Install from URL</em> und fügen Sie <mono>{site}</mono> ein. Sage lädt die App herunter und prüft sie; danach folgt sie dem Netzwerk und Design Ihrer Wallet, und ein Eintrag <em>Meine Wallet</em> öffnet Ihre eigene Adressseite, sobald Sie ihr erlauben, Ihre Empfangsadresse zu lesen.",
     },
     network: {
       q: "Warum sieht der Netzwerkschalter deaktiviert aus?",
@@ -82,7 +82,7 @@ const messages: Translation<typeof en> = {
     },
     mine: {
       q: "Ich möchte trotzdem meinen eigenen verwenden.",
-      a: "Einstellungen → Full-Node-RPC-Endpunkte akzeptiert jede Chia-Full-Node-RPC über HTTPS. Ein Standard-Node lauscht auf <mono>https://localhost:8555</mono> mit Client-Zertifikat-TLS und ohne CORS-Header, womit ein Browser nicht direkt sprechen kann; setzen Sie daher einen kleinen Proxy davor:",
+      a: "Einstellungen → Full-Node-RPC-Endpunkte akzeptiert jeden Chia-Full-Node-RPC über HTTPS. Ein Standard-Node lauscht auf <mono>https://localhost:8555</mono> mit Client-Zertifikat-TLS und ohne CORS-Header, womit ein Browser nicht direkt sprechen kann; setzen Sie daher einen kleinen Proxy davor:",
     },
     changes: {
       q: "Was ändert sich mit meinem eigenen Node?",
@@ -92,7 +92,7 @@ const messages: Translation<typeof en> = {
       q: "Woher kommen Live-Updates?",
       a: "Die Verbindungsanzeige (mit der Maus darüberfahren), die Fußzeile und die Einstellungen nennen den Kanal, den Ihr Tab nutzt. Dazwischen gibt es keinen Server: Diese Website hostet nur die App selbst, und jeder Tab spricht direkt mit dem Chain-Endpunkt.",
       socket:
-        "<strong>Coinset socket</strong>: Ihr Tab streamt Peak-Höhe und Transaktionsereignisse direkt über den WebSocket von Coinset. Der normale Modus auf mempoolxch.space und im In-App-Snapshot von Sage.",
+        "<strong>Coinset-Socket</strong>: Ihr Tab streamt Peak-Höhe und Transaktionsereignisse direkt über den WebSocket von Coinset. Der normale Modus auf mempoolxch.space und im In-App-Snapshot von Sage.",
       polling:
         "<strong>Polling</strong>: Es ist kein Stream verfügbar, daher fragt der Tab den Endpunkt alle paar Sekunden ab. Immer der Fall bei einem eigenen Node und der Fallback, wenn der Socket keine Verbindung herstellen kann.",
     },

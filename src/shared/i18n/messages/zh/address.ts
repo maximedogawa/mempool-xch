@@ -2,7 +2,7 @@ import type { Translation } from "../../translate";
 import type en from "../en/address";
 
 const messages: Translation<typeof en> = {
-  notAvailable: "不适用",
+  notAvailable: "暂无",
   needsCoinset: "需要 Coinset",
   loading: "加载中…",
   loadMore: "加载更多",
@@ -21,7 +21,7 @@ const messages: Translation<typeof en> = {
     qrLabel: "{address} 的二维码",
     qrTitle: "此地址的二维码",
     didId: "DID ID",
-    launcherId: "启动器 ID",
+    launcherId: "launcher ID",
     puzzleHash: "谜题哈希",
     handles: "XCHandles",
     moreHandles: "另有 {count} 个解析到此处",
@@ -37,12 +37,12 @@ const messages: Translation<typeof en> = {
     nfts: "NFT",
     didNftsSub: "持有 · 查看 NFT →",
     needsMainnet: "需要主网",
-    didNftsHint: "由 MintGarden 归属于此 DID 的 NFT，而非提示到其启动器 ID 的币。",
+    didNftsHint: "由 MintGarden 归属于此 DID 的 NFT，而非提示到其 launcher ID 的币。",
     ownedNftsSub: "拥有 · 查看 NFT →",
     unspentCoins: "未花费的币",
     unspentSub: "{xch} XCH · {hinted}",
     hinted: "{count} 个带提示",
-    hintedNa: "带提示：不适用",
+    hintedNa: "带提示：暂无",
     unspentHint: "锁定到此谜题哈希的币，以及提示到它的 CAT、NFT 和 DID 币。",
   },
   cats: {

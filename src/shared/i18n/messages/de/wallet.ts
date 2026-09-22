@@ -14,7 +14,7 @@ const messages: Translation<typeof en> = {
     pending: "Ausstehend",
     inFlight: "Transaktionen unterwegs",
     coins: "Coins",
-    unspentInWallet: "unausgegeben in der Wallet",
+    unspentInWallet: "nicht ausgegeben in der Wallet",
     sync: "Sync",
     syncedCoins: "{synced} von {total} Coins",
     history: "Verlauf",
@@ -31,7 +31,7 @@ const messages: Translation<typeof en> = {
     created: "Erstellt",
     spent: "Ausgegeben",
     pending: "ausstehend",
-    unspent: "unausgegeben",
+    unspent: "nicht ausgegeben",
     blockHeight: "Blockhöhe",
     stillInWallet: "noch in der Wallet",
   },
@@ -83,14 +83,14 @@ const messages: Translation<typeof en> = {
     openAddress: "<link>Diese Adresse im Explorer öffnen</link>.",
     noAnswerTitle: "Sage hat nicht geantwortet",
     noAnswerDescription:
-      "Die Wallet-Brücke war nicht erreichbar. Öffnen Sie die App erneut aus der App-Liste von Sage.",
+      "Die Wallet-Bridge war nicht erreichbar. Öffnen Sie die App erneut aus der App-Liste von Sage.",
     receiveAddress: "Empfangsadresse",
     pendingTitle: "Ausstehend · {count}",
     transactions: "Transaktionen",
     newestFirst: "neueste zuerst",
     noTransactions: "Noch keine Transaktionen.",
     coins: "Coins",
-    unspentNewestFirst: "unausgegeben, neueste zuerst",
+    unspentNewestFirst: "nicht ausgegeben, neueste zuerst",
     noCoins: "Keine Coins vorhanden.",
     colCoin: "Coin",
     colAddress: "Adresse",
@@ -111,7 +111,8 @@ const messages: Translation<typeof en> = {
     allowNotice:
       "Erlauben Sie Sage, ausstehende Transaktionen zu teilen, um sie hier zu verfolgen.",
     reading: "Wallet wird gelesen…",
-    empty: "Nichts unterwegs. Neue Sendungen erscheinen hier mit ihrem Platz in der Warteschlange.",
+    empty:
+      "Nichts unterwegs. Neue Überweisungen erscheinen hier mit ihrem Platz in der Warteschlange.",
   },
 };
 

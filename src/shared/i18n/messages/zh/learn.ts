@@ -5,7 +5,7 @@ const messages: Translation<typeof en> = {
   index: {
     title: "学习",
     intro:
-      "对这个浏览器所展示内容的简短讲解，面向使用 Chia 的人，而不是开发 Chia 的人。每篇文章都会链接到可以实时观察该概念的页面。",
+      "对本区块浏览器所展示内容的简短讲解，面向使用 Chia 的人，而不是开发 Chia 的人。每篇文章都会链接到可以实时观察该概念的页面。",
     alsoWorth:
       "另外也值得一看：<prefarm>预挖追踪</prefarm>、介绍本站的<docs>帮助页面</docs>，以及显示本站所依赖服务的<status>状态页面</status>。",
   },
@@ -26,7 +26,7 @@ const messages: Translation<typeof en> = {
       "Chia 不在账户中记录余额。价值存在于<strong>币</strong>（coin）中，每个币都有一个以 mojo 计的金额（1 XCH 等于 1 万亿 mojo）和一个<strong>谜题哈希</strong>（puzzle hash），即决定该币如何被花费的小程序的哈希。花费一个币会销毁它并创建新的币；地址只是用更友好的形式书写的谜题哈希。当本站显示「地址余额」时，它是在累加共享同一谜题哈希的所有未花费币。",
     programsTitle: "币就是程序",
     programs:
-      "币背后的程序用 <strong>Chialisp</strong> 编写，运行在 CLVM 上，这是每个节点都会执行的微型虚拟机。正因如此，代币（<tokens>CAT</tokens>）、NFT、去中心化身份和<offers>报价</offers>都无需协议特殊处理即可实现：它们只是带有特定谜题的币。这也解释了您在这里随处可见的<em>成本</em>一词：每笔花费都有 CLVM 成本，而一个区块最多只能容纳 110 亿。",
+      "币背后的程序用 <strong>Chialisp</strong> 编写，运行在 CLVM 上，这是每个节点都会执行的微型虚拟机。正因如此，代币（<tokens>CAT</tokens>）、NFT、去中心化身份和<offers>报价</offers>都无需协议特殊处理即可实现：它们只是带有特定谜题的币。这也解释了您在这里随处可见的<em>成本</em>一词：每笔花费都有 CLVM 成本，而一个区块最多只能容纳 110 亿单位成本。",
     blocksTitle: "每九秒一个区块，其中三分之一包含交易",
     blocks:
       "平均每 18.75 秒产生一个新区块，但大约只有三分之一是真正包含花费的<strong>交易区块</strong>；其余区块只携带维持链前进的证明。<dashboard>概览</dashboard>会同时显示这两类区块，并倒计时到下一个交易区块。",
@@ -58,7 +58,7 @@ const messages: Translation<typeof en> = {
       "绘图文件是一个通常约 100 GB 的文件，由绘图程序一次性生成，然后被耕种多年。生成它需要构建并排序七张哈希表，这需要一段时间和大量临时空间；这项工作就是 Chia 移出日常运行的「工作量证明」，从而让耕种的持续成本接近于零。绘图文件绑定到一个<strong>绘图 NFT</strong>（plot NFT）或您自己的密钥，这决定了绘图文件获胜时谁会得到报酬。",
     farmingTitle: "耕种",
     farming:
-      "农民运行一个全节点，并在每台存有绘图文件的机器上运行一个<em>收割机</em>（harvester）。在每个标牌点，收割机会在每个绘图文件中查找挑战；如果存在质量足够好的证明，农民就会构建一个区块并广播出去。全节点验证其他所有人的区块，并保存本浏览器通过<settings>节点或 Coinset</settings> 读取的链副本。",
+      "农民运行一个全节点，并在每台存有绘图文件的机器上运行一个<em>收割机</em>（harvester）。在每个标牌点，收割机会在每个绘图文件中查找挑战；如果存在质量足够好的证明，农民就会构建一个区块并广播出去。全节点验证其他所有人的区块，并保存本区块浏览器通过<settings>节点或 Coinset</settings> 读取的链副本。",
     rewardsTitle: "奖励",
     rewards:
       "每个区块会创建两个奖励币：农民奖励和矿池奖励（2033 年第三次减半后为 0.25 和 0.75 XCH，目前为 0.5 和 1.5）。<blocks>区块页面</blocks>列出交易区块所包含的奖励领取，<pools>矿池页面</pools>则把矿池奖励归属到其支付对象所在的矿池。",
@@ -74,7 +74,7 @@ const messages: Translation<typeof en> = {
     title: "什么是内存池？",
     summary: "花费包在哪里等待，节点如何为区块挑选它们，以及本站为您展示了哪些相关信息。",
     intro:
-      "钱包发送交易时，交易不会立即进入区块。它会被广播到全节点，每个全节点都会验证它并将其放入自己的<strong>内存池</strong>：这是有效但尚未确认的花费的候车室。下一个赢得交易区块的农民会从这个候车室中取出花费来填满区块。本站就是一扇窥视其所读取节点内存池的窗口。",
+      "钱包发送交易时，交易不会立即进入区块。它会被广播到全节点，每个全节点都会验证它并将其放入自己的<strong>内存池</strong>：这是有效但尚未确认的花费的候车室。下一个赢得交易区块的农民会从这个候车室中取出花费来填满区块。本站就是观察其所读取节点内存池的一扇窗口。",
     bundlesTitle: "是花费包，而不是交易",
     bundles:
       "在内存池中等待的是<strong>花费包</strong>（spend bundle）：一组币的花费加上一个聚合签名。一笔简单的付款会花费一到两个币并创建两个币（付款和找零）；接受一个报价或一次代币兑换可能会花费几十个币。它的 ID 是该花费包的哈希，您把它粘贴到搜索框中即可追踪。",
@@ -87,8 +87,8 @@ const messages: Translation<typeof en> = {
       "当某个区块包含了花费包（<em>已确认</em>）、它的某个币先被另一个花费包花掉，或者节点在重组后或因其不再有效而将其丢弃（<em>已移除</em>）时，花费包就会离开内存池。如果 Coinset 记录过被移除的花费包，交易页面仍会继续显示其中的币；而节点本身会忘记被丢弃的花费包。",
     graphsTitle: "如何阅读图表",
     graphsCost: "<strong>已用成本</strong>表示内存池容量被占用了多少，按费率区间划分。",
-    graphsIncoming: "<strong>流入</strong>是本浏览器观察到的每分钟花费包数量。",
-    graphsProjected: "<strong>预测区块</strong>按照节点挑选的顺序将队列分组为区块。",
+    graphsIncoming: "<strong>流入</strong>是此浏览器观察到的每分钟花费包数量。",
+    graphsProjected: "<strong>预计区块</strong>按照节点挑选的顺序将队列分组为区块。",
   },
   offersAndTrading: {
     title: "报价与交易",
@@ -102,21 +102,21 @@ const messages: Translation<typeof en> = {
     onChain:
       "报价一旦被接受，就是一个普通的花费包：在它的<mempool>内存池</mempool>页面和交易页面上，您会看到它被标记为报价或兑换，并列出每个参与方发送和收到的资产。在此之前，只有市场知道它的存在；Coinset 会索引它看到的报价，本站会在<tokens>代币</tokens>、NFT 和地址页面上显示它们的状态，在您知道报价 ID 后也会在报价自己的页面上显示。",
     lifecycleTitle: "报价生命周期",
-    lifecycleOpen: "<strong>开放</strong>：已发布，币尚未花费。",
-    lifecycleTaking: "<strong>接受中</strong>：吃单方的花费包已在内存池中。",
-    lifecycleTaken: "<strong>已接受</strong>：已在区块中确认。",
+    lifecycleOpen: "<strong>未成交</strong>：已发布，币尚未花费。",
+    lifecycleTaking: "<strong>成交中</strong>：吃单方的花费包已在内存池中。",
+    lifecycleTaken: "<strong>已成交</strong>：已在区块中确认。",
     lifecycleCancelled:
       "<strong>已取消</strong>或<strong>已过期</strong>：挂单方以其他方式花掉了这些币，或已过到期时间。",
-    clawbackTitle: "可撤回付款",
+    clawbackTitle: "可追回付款",
     clawback:
-      "一个相关的概念是<strong>可撤回付款</strong>（clawback）：在接收方可以领取之前的一段设定时间内，发送方可以撤回这笔付款，这是防止转错地址的安全网。这类币会带着其时间锁显示在<address>地址页面</address>上，直到被领取或撤回。",
+      "一个相关的概念是<strong>可追回付款</strong>（clawback）：在接收方可以领取之前的一段设定时间内，发送方可以追回这笔付款，这是防止转错地址的安全网。这类币会带着其时间锁显示在<address>地址页面</address>上，直到被领取或撤回。",
   },
   questions: {
     title: "常见问题",
     summary: "对大家最常问的问题的简短回答：手续费、确认、币、地址和重组。",
     pending: {
       q: "我的交易待确认，需要多长时间？",
-      a: "查一下就知道：交易页面会显示预测区块及其预计时间，依据是按每单位成本的手续费对内存池排序后该花费包所处的位置。内存池为空时，零手续费的花费会进入下一个交易区块，通常在一分钟之内。",
+      a: "查一下就知道：交易页面会显示它所在的预计区块和预计时间，依据是按每单位成本的手续费对内存池排序后该花费包所处的位置。内存池为空时，零手续费的花费会进入下一个交易区块，通常在一分钟之内。",
     },
     fee: {
       q: "我应该付多少手续费？",

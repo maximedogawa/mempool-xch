@@ -4,7 +4,7 @@ import type en from "../en/tx";
 const messages: Translation<typeof en> = {
   heading: "交易",
   retry: "重试",
-  notAvailable: "不适用",
+  notAvailable: "暂无",
   unknown: "未知",
   noId: {
     title: "缺少交易 ID",

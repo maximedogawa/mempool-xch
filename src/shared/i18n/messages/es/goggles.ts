@@ -16,7 +16,7 @@ const messages: Translation<typeof en> = {
     pool: "Pool",
     singleton: "Singleton",
   },
-  empty: "El mempool está vacío: el próximo bloque de transacciones no incluirá gastos.",
+  empty: "La mempool está vacía: el próximo bloque de transacciones no incluirá gastos.",
   ariaLabel: {
     one: "Composición del próximo bloque: {count} spend bundle, {cost} de {max} de coste ({percent} lleno), {eta}",
     other:
@@ -35,7 +35,7 @@ const messages: Translation<typeof en> = {
   filterFee: "Filtrar por franja de comisión",
   anyFee: "Cualquier comisión",
   bandTitle: "{band} mojo por unidad de coste",
-  zeroFee: "0 comisión",
+  zeroFee: "0 de comisión",
   bandChip: "{band} m/c",
   showOnly: "Mostrar solo",
   onlyNew: "Nuevos",

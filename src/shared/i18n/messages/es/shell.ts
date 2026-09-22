@@ -62,7 +62,7 @@ const messages: Translation<typeof en> = {
     network: "Red",
     vaults: "Bóvedas",
     status: "Estado",
-    changelog: "Novedades",
+    changelog: "Registro de cambios",
     settings: "Ajustes",
     dataByCoinset: "Datos de Coinset",
     disclaimer:

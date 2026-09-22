@@ -89,7 +89,7 @@ const messages: Translation<typeof en> = {
     },
   },
   reach: {
-    title: "Accesibilidad",
+    title: "Conectividad",
     action: "ventana de rastreo de cinco días",
     ipv4: "IPv4",
     ipv6: "IPv6",
@@ -122,7 +122,7 @@ const messages: Translation<typeof en> = {
     showsMainnet:
       "<b>Qué muestra.</b> Poblaciones de nodos completos por país del panel Peer Info de Chia, capturadas para mainnet, además de los pares conectados de un nodo configurado. El tamaño del marcador es el número de nodos; el color, la región.",
     notShows:
-      "<b>Qué no es.</b> Chia no publica las coordenadas de los nodos, ni dónde se cultivó un bloque ni de dónde vino un spend bundle. Los marcadores están en un punto representativo por país, y los arcos de alcance y los pulsos son un modelo de propagación, no una ruta de paquetes.",
+      "<b>Qué no es.</b> Chia no publica las coordenadas de los nodos, ni dónde se farmeó un bloque ni de dónde vino un spend bundle. Los marcadores están en un punto representativo por país, y los arcos de alcance y los pulsos son un modelo de propagación, no una ruta de paquetes.",
   },
   source:
     "Fuente: <link>panel Peer Info de Chia</link>, observado el {observed} UTC. El panel de países abarca {placed} de los {total} nodos que informa el panel de población. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",

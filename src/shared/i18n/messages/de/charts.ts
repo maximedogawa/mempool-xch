@@ -4,9 +4,9 @@ import type en from "../en/charts";
 const messages: Translation<typeof en> = {
   title: "Diagramme",
   tooltipCoinset:
-    "Datenreihen werden bei Bedarf aus Coinset erzeugt — auf unserem Server wird nichts gespeichert. Reihen, die noch kein Anbieter liefern kann, werden nicht aufgeführt.",
+    "Datenreihen werden bei Bedarf aus Coinset erzeugt – auf unserem Server wird nichts gespeichert. Reihen, die noch kein Anbieter liefern kann, werden nicht aufgeführt.",
   tooltipCustom:
-    "Datenreihen werden bei Bedarf aus Ihrem konfigurierten Endpunkt erzeugt — auf unserem Server wird nichts gespeichert. Reihen, die noch kein Anbieter liefern kann, werden nicht aufgeführt.",
+    "Datenreihen werden bei Bedarf aus Ihrem konfigurierten Endpunkt erzeugt – auf unserem Server wird nichts gespeichert. Reihen, die noch kein Anbieter liefern kann, werden nicht aufgeführt.",
   sections: {
     market: "Markt",
     mempool: "Mempool",
@@ -51,7 +51,7 @@ const messages: Translation<typeof en> = {
     title: "Genutzte Kosten",
     definition: "Gesamte CLVM-Kosten aller ausstehenden Spend Bundles.",
     technical:
-      "In diesem Browser bei jeder Aktualisierung der Mempool-Übersicht aufgezeichnet; 2 Stunden lang aufbewahrt.",
+      "In diesem Browser bei jeder Aktualisierung der Mempool-Zusammenfassung aufgezeichnet; 2 Stunden lang aufbewahrt.",
     unavailable:
       "Nur die letzten 2 Stunden werden in diesem Browser aufgezeichnet (Coinset hat keinen Endpunkt für den Mempool-Verlauf); wählen Sie 6h oder 24h, um sie zu sehen.",
   },
@@ -83,7 +83,7 @@ const messages: Translation<typeof en> = {
     technical:
       "Nicht im Diagrammmaßstab erfasst: Die genauen Kosten erfordern einen vollständigen get_block-Abruf pro Block, zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache. Die genauen Kosten eines Blocks stehen auf seiner eigenen Seite.",
     unavailable:
-      "Nicht im Diagrammmaßstab erfasst — erfordert einen vollständigen Abruf pro Block. Die genauen Kosten eines Blocks stehen auf seiner eigenen Seite.",
+      "Nicht im Diagrammmaßstab erfasst – erfordert einen vollständigen Abruf pro Block. Die genauen Kosten eines Blocks stehen auf seiner eigenen Seite.",
   },
   txBlocksPerHour: {
     title: "Transaktionsblöcke pro Stunde",
@@ -95,7 +95,7 @@ const messages: Translation<typeof en> = {
     technical:
       "Nicht im Diagrammmaßstab erfasst: Erfordert pro Block einen indexierten oder additions/removals-Abruf, zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache. Die Ausgaben eines Blocks stehen auf seiner eigenen Seite.",
     unavailable:
-      "Nicht im Diagrammmaßstab erfasst — erfordert einen Abruf pro Block. Die Ausgaben eines Blocks stehen auf seiner eigenen Seite.",
+      "Nicht im Diagrammmaßstab erfasst – erfordert einen Abruf pro Block. Die Ausgaben eines Blocks stehen auf seiner eigenen Seite.",
   },
   shareOfTxBlocks: {
     title: "Anteil der Transaktionsblöcke",
@@ -110,7 +110,7 @@ const messages: Translation<typeof en> = {
     title: "Netspace",
     definition: "Geschätzter Gesamtspeicherplatz, der im Netzwerk farmt.",
     technical:
-      "get_network_space zwischen dem ersten und letzten Block jedes Stichprobenfensters — die schwierigkeitsbasierte Schätzung des Nodes selbst, nicht von uns abgeleitet.",
+      "get_network_space zwischen dem ersten und letzten Block jedes Stichprobenfensters – die schwierigkeitsbasierte Schätzung des Nodes selbst, nicht von uns abgeleitet.",
   },
   difficulty: {
     title: "Schwierigkeit",
@@ -118,14 +118,14 @@ const messages: Translation<typeof en> = {
     technical:
       "Kein geprüfter Weg, die historische Schwierigkeit aus get_block_records zu gewinnen; get_blockchain_state meldet nur den aktuellen Wert.",
     unavailable:
-      "Aus den verfügbaren Endpunkten nicht ohne ungeprüfte Berechnungen ableitbar — eine falsche Zahl wäre schlimmer als keine. get_blockchain_state zeigt den aktuellen Wert in den Einstellungen.",
+      "Aus den verfügbaren Endpunkten nicht ohne ungeprüfte Berechnungen ableitbar – eine falsche Zahl wäre schlimmer als keine. get_blockchain_state zeigt den aktuellen Wert in den Einstellungen.",
   },
   blocksPerHour: {
     title: "Blöcke pro Stunde",
     definition: "Alle Blöcke (mit und ohne Transaktionen) pro Stunde.",
   },
   unspentCoins: {
-    title: "Unausgegebene Coins",
+    title: "Nicht ausgegebene Coins",
     definition: "Gesamtzahl der noch nicht ausgegebenen Coins.",
   },
   activePuzzleHashes: {
@@ -134,7 +134,7 @@ const messages: Translation<typeof en> = {
   },
   coinAge: {
     title: "Coin-Alter",
-    definition: "Durchschnittliches Alter unausgegebener Coins.",
+    definition: "Durchschnittliches Alter nicht ausgegebener Coins.",
   },
 };
 

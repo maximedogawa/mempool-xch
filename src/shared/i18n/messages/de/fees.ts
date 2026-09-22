@@ -4,7 +4,7 @@ import type en from "../en/fees";
 const messages: Translation<typeof en> = {
   cards: {
     title: "Transaktionsgebühren",
-    hint: "Chia-Gebühren werden pro CLVM-Kosten gezahlt, nicht pro Byte. Die Schätzungen gelten für eine Referenzausgabe mit {cost} Kosten (eine typische einfache XCH-Überweisung). Multiplizieren Sie den Satz in Mojo pro Kosteneinheit mit den Kosten Ihrer Ausgabe, um die Gebühr zu erhalten.",
+    hint: "Chia-Gebühren werden pro CLVM-Kosteneinheit gezahlt, nicht pro Byte. Die Schätzungen gelten für eine Referenzausgabe mit {cost} Kosten (eine typische einfache XCH-Überweisung). Multiplizieren Sie den Satz in Mojo pro Kosteneinheit mit den Kosten Ihrer Ausgabe, um die Gebühr zu erhalten.",
     targets: {
       nextBlock: "Nächster Block",
       fiveMinutes: "~5 Minuten",
@@ -14,11 +14,11 @@ const messages: Translation<typeof en> = {
     notAvailable: "k. A.",
     capacityAvailable: "Kapazität verfügbar.",
     zeroFeeAccepted: "Ausgaben ohne Gebühr werden angenommen.",
-    aboveToEnter: "Über {rate} Mojo/Kosten für die Aufnahme.",
+    aboveToEnter: "Für die Aufnahme mehr als {rate} Mojo/Kosten nötig.",
     nearCapacity: "Nahezu ausgelastet.",
     fullMempool:
-      "Ein voller Mempool nimmt nur mindestens 5 Mojo/Kosten an, und nur über den günstigsten Ausgaben, die er verdrängen kann.",
-    paidAhead: "Bezahlte Ausgaben ziehen am Rückstau ohne Gebühr vorbei.",
+      "Ein voller Mempool nimmt Ausgaben erst ab 5 Mojo/Kosten an, und nur, wenn sie über den günstigsten Ausgaben liegen, die er verdrängen kann.",
+    paidAhead: "Ausgaben mit Gebühr ziehen am gebührenfreien Rückstau vorbei.",
     lastBlock:
       "Der letzte Transaktionsblock zahlte {fees} an Gebühren bei {rate} Mojo/Kosten · aktueller Satz {current} Mojo/Kosten.",
   },
@@ -50,12 +50,12 @@ const messages: Translation<typeof en> = {
       title: "Median-Gebührensatz",
       definition: "Der mittlere Gebührensatz der Transaktionen in einem Block im Zeitverlauf.",
       technical:
-        "Nicht im Diagrammmaßstab erfasst: Dafür wären die Kosten jeder einzelnen Transaktion pro Block nötig (ein indizierter Abruf pro Block), zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache.",
+        "Nicht im Diagrammmaßstab erfasst: Dafür wären die Kosten jeder einzelnen Transaktion pro Block nötig (ein indexierter Abruf pro Block), zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache.",
       unavailable:
-        "Nicht im Diagrammmaßstab erfasst — erfordert einen indizierten Abruf pro Block. Die Gebührensätze der Bundles im Mempool-Feed und auf den Transaktionsseiten sind exakt.",
+        "Nicht im Diagrammmaßstab erfasst – erfordert einen indexierten Abruf pro Block. Die Gebührensätze der Bundles im Mempool-Feed und auf den Transaktionsseiten sind exakt.",
     },
     footer:
-      "Die an anderer Stelle gezeigten Sätze — im Mempool-Feed, auf Transaktions- und Blockseiten — sind exakte Werte pro Eintrag, keine Stichproben.",
+      "Die an anderer Stelle gezeigten Sätze – im Mempool-Feed, auf Transaktions- und Blockseiten – sind exakte Werte pro Eintrag, keine Stichproben.",
   },
   transfers: {
     plain: "Einfache Überweisung",

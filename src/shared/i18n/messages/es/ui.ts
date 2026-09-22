@@ -6,7 +6,7 @@ const messages: Translation<typeof en> = {
   copyToClipboard: "{label} al portapapeles",
   yours: "tuya",
   capacity: {
-    label: "Capacidad del mempool",
+    label: "Capacidad de la mempool",
     costOf: "{used} de {max} de coste",
     blocks: "{percent} · {filled}/{segments} bloques",
     valueText: "{used} de {max} de coste, {percent}",
@@ -26,8 +26,8 @@ const messages: Translation<typeof en> = {
     swap: "Intercambio",
     mint: "Acuñación",
     melt: "Fundición",
-    combine: "Combinar",
-    split: "Dividir",
+    combine: "Combinación",
+    split: "División",
     pool: "Pool",
     revoke: "Revocación",
     clawback: "Clawback",
@@ -37,7 +37,7 @@ const messages: Translation<typeof en> = {
     pending: "Pendiente",
     confirmed: "Confirmada",
     removed: "Descartada",
-    unknown: "Desconocido",
+    unknown: "Desconocida",
   },
   image: {
     noImage: "{alt} (sin imagen)",

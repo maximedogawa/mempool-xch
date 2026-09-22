@@ -28,7 +28,7 @@ const messages: Translation<typeof en> = {
     reset: "Auf Coinset zurücksetzen",
     ok: "Spitze {height} in {ms} ms",
     okCustom:
-      "Spitze {height} in {ms} ms · eigener Node: Indexed API, WebSocket und Summary API aus",
+      "Spitze {height} in {ms} ms · eigener Node: indexierte API, WebSocket und Summary-API aus",
     sageHttpsOnly: "In Sage können nur https-Endpunkte freigegeben werden.",
     sageRefused: "Sage hat diesen Host nicht zugelassen; der Endpunkt wurde nicht gespeichert.",
     sageAllowed: "Sage hat diesen Host zugelassen.",

@@ -17,8 +17,8 @@ const messages: Translation<typeof en> = {
   pendingTitle: "Spend bundles pendientes",
   updating: "actualizando…",
   live: "en vivo",
-  loadError: "No se pudo cargar el mempool",
-  emptyTitle: "El mempool está vacío",
+  loadError: "No se pudo cargar la mempool",
+  emptyTitle: "La mempool está vacía",
   emptyDescription: "Todos los spend bundles se han incluido en un bloque.",
   columns: {
     txId: "ID de tx",
@@ -29,7 +29,7 @@ const messages: Translation<typeof en> = {
     cost: "Coste",
     age: "Antigüedad",
   },
-  firstSeenTitle: "Visto por primera vez por el servidor de mempoolxch.space",
+  firstSeenTitle: "Detectado por primera vez por el servidor de mempoolxch.space",
   showing: "Mostrando {shown} de {total}",
   showMore: "Mostrar más",
 };

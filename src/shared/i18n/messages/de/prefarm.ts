@@ -8,9 +8,9 @@ const messages: Translation<typeof en> = {
   mainnetOnly:
     "Die Prefarm-Vaults gibt es nur im Mainnet; wechseln Sie das Netzwerk, um sie zu sehen.",
   tracked: "On-Chain erfasst",
-  trackedSub: "{percent} des Prefarms von {total} XCH",
+  trackedSub: "{percent} der Prefarm von {total} XCH",
   trackedHint:
-    "Summe der Singleton-Coins der vier Vaults und der unausgegebenen Coins an ihren bekannten Puzzle-Hashes.",
+    "Summe der Singleton-Coins der vier Vaults und der nicht ausgegebenen Coins an ihren bekannten Puzzle-Hashes.",
   cold: "Kalte Vaults",
   coldSub: "Verwahrung mit 90 Tagen Clawback",
   warm: "Warme Vaults",
@@ -18,7 +18,7 @@ const messages: Translation<typeof en> = {
   elsewhere: "Nicht an diesen Adressen",
   elsewhereSub: "ausgegeben, verkauft oder an Adressen bewegt, die diese Seite nicht kennt",
   elsewhereHint:
-    "Der Prefarm hat seit 2021 Käufe, Market Making und Förderungen finanziert, und ein Vault-Rekey ändert seinen Puzzle-Hash. Was nicht an den bekannten Adressen liegt, wird hier ausgewiesen, nicht geschätzt.",
+    "Die Prefarm hat seit 2021 Käufe, Market Making und Förderungen finanziert, und ein Rekey ändert den Puzzle-Hash eines Vaults. Was nicht an den bekannten Adressen liegt, wird hier ausgewiesen, nicht geschätzt.",
   tier: {
     cold: "kalt",
     warm: "warm",

@@ -5,7 +5,7 @@ const messages: Translation<typeof en> = {
   channel: {
     customName: "Sondeo (nodo propio)",
     customDetail:
-      "Consultando tu nodo en {host} cada pocos segundos; sin stream, el mempool se carga en el navegador.",
+      "Consultando tu nodo en {host} cada pocos segundos; sin stream, la mempool se carga en el navegador.",
     offlineName: "Sin conexión",
     offlineDetail: "Sin conexión con {host}.",
     socketName: "Socket de Coinset",
@@ -27,17 +27,17 @@ const messages: Translation<typeof en> = {
     nfts: { one: "{count} NFT", other: "{count} NFT" },
     dids: { one: "{count} DID", other: "{count} DID" },
     singletons: { one: "{count} singleton", other: "{count} singletons" },
-    poolClaims: { one: "{count} reclamación de pool", other: "{count} reclamaciones de pool" },
+    poolClaims: { one: "{count} cobro de pool", other: "{count} cobros de pool" },
   },
   sensitivity: {
     title: "Contenido sensible",
     summary: "{title}. Motivo: {reason}",
   },
   pending: {
-    broadcast: "Enviada a la red, aún no vista en el mempool",
-    waiting: "En el mempool, detrás de los bloques proyectados",
+    broadcast: "Enviada a la red, aún no vista en la mempool",
+    waiting: "En la mempool, detrás de los bloques previstos",
     nextBlock: "Próximo bloque · posición {position} de {size}",
-    projectedBlock: "Bloque proyectado {block} · posición {position} de {size}",
+    projectedBlock: "Bloque previsto {block} · posición {position} de {size}",
     confirmed: "Confirmada",
     gone: "Ya no está pendiente en la billetera",
   },

@@ -21,13 +21,13 @@ const messages: Translation<typeof en> = {
     summary:
       "Una blockchain protegida por espacio en disco en lugar de electricidad o stake, con monedas que son pequeños programas.",
     intro:
-      "Chia es una blockchain pública que se lanzó en 2021. Su moneda nativa es XCH. Como Bitcoin, no hay ninguna empresa que decida quién puede hacer transacciones, y cada nodo completo guarda una copia de todo el historial. A diferencia de Bitcoin, no se protege quemando electricidad: la red se protege con <strong>espacio en disco</strong> (consulta <pos>prueba de espacio y tiempo</pos>). Cualquiera con almacenamiento libre puede participar en la producción de bloques, lo que Chia llama <em>farming</em>.",
+      "Chia es una blockchain pública que se lanzó en 2021. Su moneda nativa es XCH. Como en Bitcoin, no hay ninguna empresa que decida quién puede hacer transacciones, y cada nodo completo guarda una copia de todo el historial. A diferencia de Bitcoin, no se protege quemando electricidad: la red se protege con <strong>espacio en disco</strong> (consulta <pos>prueba de espacio y tiempo</pos>). Cualquiera con almacenamiento libre puede participar en la producción de bloques, lo que Chia llama <em>farming</em>.",
     coinsTitle: "Monedas, no cuentas",
     coins:
       "Chia no guarda saldos en cuentas. El valor vive en <strong>monedas</strong> (coins), cada una con un importe en mojos (un XCH son un billón de mojos) y un <strong>puzzle hash</strong>, el hash del pequeño programa que decide cómo se puede gastar la moneda. Gastar una moneda la destruye y crea monedas nuevas; una dirección es simplemente un puzzle hash escrito de forma más legible. Cuando este sitio muestra un «saldo de la dirección», está sumando las monedas no gastadas que comparten un mismo puzzle hash.",
     programsTitle: "Las monedas son programas",
     programs:
-      "El programa detrás de una moneda está escrito en <strong>Chialisp</strong> y se ejecuta en la CLVM, una pequeña máquina virtual que ejecuta cada nodo. Eso es lo que hace posibles los tokens (<tokens>CATs</tokens>), los NFT, las identidades descentralizadas y las <offers>ofertas</offers> sin tratarlos como casos especiales en el protocolo: son solo monedas con puzzles concretos. También explica la palabra <em>coste</em> que verás por todas partes aquí: cada gasto tiene un coste CLVM, y un bloque puede llevar como máximo 11 000 millones.",
+      "El programa detrás de una moneda está escrito en <strong>Chialisp</strong> y se ejecuta en la CLVM, una pequeña máquina virtual que ejecuta cada nodo. Eso es lo que hace posibles los tokens (<tokens>CAT</tokens>), los NFT, las identidades descentralizadas y las <offers>ofertas</offers> sin tratarlos como casos especiales en el protocolo: son solo monedas con puzzles concretos. También explica la palabra <em>coste</em> que verás por todas partes aquí: cada gasto tiene un coste CLVM, y un bloque puede llevar como máximo 11 mil millones.",
     blocksTitle: "Bloques cada nueve segundos, transacciones en un tercio de ellos",
     blocks:
       "Llega un bloque nuevo de media cada 18,75 segundos, pero solo alrededor de uno de cada tres es un <strong>bloque de transacciones</strong> que realmente incluye gastos; los demás solo llevan las pruebas que mantienen la cadena en marcha. El <dashboard>panel</dashboard> muestra ambos tipos y hace una cuenta atrás hasta el siguiente bloque de transacciones.",
@@ -72,7 +72,7 @@ const messages: Translation<typeof en> = {
       "<dashboard>Netspace</dashboard>: el espacio total en plots que la red estima a partir de la dificultad reciente.",
     herePools: "<pools>Cuota de pools</pools>: quién hizo farming de los bloques del último día.",
     hereMap:
-      "<map>Mapa de nodos</map>: dónde se encuentran los nodos completos que reparten los introducers.",
+      "<map>Mapa de nodos</map>: dónde se encuentran los nodos completos que reparten los introductores DNS.",
   },
   whatIsTheMempool: {
     title: "¿Qué es la mempool?",
@@ -82,9 +82,9 @@ const messages: Translation<typeof en> = {
       "Cuando una billetera envía una transacción, no entra directamente en un bloque. Se difunde a los nodos completos, y cada uno la valida y la pone en su <strong>mempool</strong>: la sala de espera de los gastos que son válidos pero aún no están confirmados. El próximo farmer que gane un bloque de transacciones lo llena desde esa sala. Este sitio es una ventana a la mempool del nodo del que lee.",
     bundlesTitle: "Spend bundles, no transacciones",
     bundles:
-      "Lo que espera en la mempool es un <strong>spend bundle</strong>: un conjunto de gastos de monedas más una firma agregada. Un pago sencillo gasta una o dos monedas y crea dos (el pago y el cambio); aceptar una oferta o un swap de tokens puede gastar docenas. Su id es el hash del bundle, y eso es lo que pegas en la búsqueda para seguirlo.",
+      "Lo que espera en la mempool es un <strong>spend bundle</strong>: un conjunto de gastos de monedas más una firma agregada. Un pago sencillo gasta una o dos monedas y crea dos (el pago y el cambio); aceptar una oferta o un swap de tokens puede gastar docenas. Su ID es el hash del bundle, y eso es lo que pegas en la búsqueda para seguirlo.",
     fillTitle: "Cómo se llena un bloque",
-    fill: "Un bloque tiene espacio para 11 000 millones de unidades de <strong>coste</strong>, y cada bundle usa parte de él. El nodo ordena los bundles en espera por <strong>comisión por coste</strong> (mojos por unidad de coste), toma primero los que mejor pagan y se detiene cuando el bloque está lleno. La vista <dashboard>siguiente bloque</dashboard> del panel aplica el mismo empaquetado a la mempool en vivo, para que veas aproximadamente en qué bloque entrará tu gasto y cómo se llena el bloque a medida que llegan bundles.",
+    fill: "Un bloque tiene espacio para 11 mil millones de unidades de <strong>coste</strong>, y cada bundle usa parte de él. El nodo ordena los bundles en espera por <strong>comisión por coste</strong> (mojos por unidad de coste), toma primero los que mejor pagan y se detiene cuando el bloque está lleno. La vista <dashboard>próximo bloque</dashboard> del panel aplica el mismo empaquetado a la mempool en vivo, para que veas aproximadamente en qué bloque entrará tu gasto y cómo se llena el bloque a medida que llegan bundles.",
     feesTitle: "Comisiones",
     fees: "La mayor parte del tiempo la mempool no está llena y los gastos sin comisión se confirman en pocos bloques. Las comisiones empiezan a importar en dos situaciones: cuando la mempool contiene más que el límite del nodo (el coste de diez bloques), de modo que solo se aceptan gastos que pagan, y cuando esperan más bundles de los que puede llevar el siguiente bloque. La <fees>página de comisiones</fees> muestra la estimación del propio nodo para entrar en un bloque en uno, cinco o diez minutos y lo que cuesta una transferencia típica a esa tasa.",
     leavingTitle: "Salir de la mempool",
@@ -96,20 +96,20 @@ const messages: Translation<typeof en> = {
     graphsIncoming:
       "<strong>Entrantes</strong> son los bundles por minuto tal como los ve este navegador.",
     graphsProjected:
-      "<strong>Bloques proyectados</strong> agrupan la cola en bloques en el orden en que el nodo los elegiría.",
+      "<strong>Bloques previstos</strong> agrupan la cola en bloques en el orden en que el nodo los elegiría.",
   },
   offersAndTrading: {
     title: "Ofertas y trading",
     summary:
-      "Intercambios peer-to-peer de XCH, CATs y NFT sin un exchange, y cómo se ven en la cadena.",
+      "Intercambios peer-to-peer de XCH, CAT y NFT sin un exchange, y cómo se ven en la cadena.",
     intro:
       "Una <strong>oferta</strong> es una transacción a medio hacer: el maker firma gastos de monedas que entregan algo (por ejemplo 10 XCH) con la condición de que se le pague otra cosa (por ejemplo 1000 unidades de un token) en el mismo bundle. La oferta es un archivo, que normalmente se comparte a través de un mercado como Dexie. No hace nada en la cadena hasta que un <em>taker</em> completa la otra mitad y envía el bundle entero; entonces ambos lados se liquidan de forma atómica o no se liquidan.",
     noExchangeTitle: "Por qué no necesita un exchange",
     noExchange:
-      "Como las monedas del maker solo se pueden gastar junto con el pago del taker, nadie tiene que confiar en un intermediario. El maker conserva la custodia hasta el momento del intercambio, puede cancelar gastando él mismo las monedas ofrecidas y puede fijar una caducidad. Esto funciona igual para XCH, CATs y NFT, y así es como Chia tiene ventas de NFT, mercados de tokens e incluso bundles de varios activos sin un exchange custodio.",
+      "Como las monedas del maker solo se pueden gastar junto con el pago del taker, nadie tiene que confiar en un intermediario. El maker conserva la custodia hasta el momento del intercambio, puede cancelar gastando él mismo las monedas ofrecidas y puede fijar una caducidad. Esto funciona igual para XCH, CAT y NFT, y así es como Chia tiene ventas de NFT, mercados de tokens e incluso bundles de varios activos sin un exchange custodio.",
     onChainTitle: "Cómo se ve una oferta en la cadena",
     onChain:
-      "Una vez aceptada, una oferta es un spend bundle normal: en sus páginas de <mempool>mempool</mempool> y de transacción la verás marcada como oferta o swap, con los activos enviados y recibidos por cada participante. Antes de eso, solo el mercado sabe que existe; Coinset indexa las ofertas que ve y este sitio muestra su estado en las páginas de <tokens>token</tokens>, NFT y dirección, y en la página propia de la oferta una vez que conoces su id.",
+      "Una vez aceptada, una oferta es un spend bundle normal: en sus páginas de <mempool>mempool</mempool> y de transacción la verás marcada como oferta o swap, con los activos enviados y recibidos por cada participante. Antes de eso, solo el mercado sabe que existe; Coinset indexa las ofertas que ve y este sitio muestra su estado en las páginas de <tokens>token</tokens>, NFT y dirección, y en la página propia de la oferta una vez que conoces su ID.",
     lifecycleTitle: "Ciclo de vida de una oferta",
     lifecycleOpen: "<strong>Abierta</strong>: publicada, monedas aún sin gastar.",
     lifecycleTaking: "<strong>Aceptándose</strong>: el bundle de un taker está en la mempool.",
@@ -126,7 +126,7 @@ const messages: Translation<typeof en> = {
       "Respuestas breves a lo que más se pregunta: comisiones, confirmaciones, monedas, direcciones y reorgs.",
     pending: {
       q: "Mi transacción está pendiente. ¿Cuánto tardará?",
-      a: "Búscala: la página de la transacción muestra el bloque proyectado y su tiempo estimado, según dónde queda el bundle cuando la mempool se ordena por comisión por coste. Con la mempool vacía, un gasto sin comisión entra en el siguiente bloque de transacciones, normalmente en menos de un minuto.",
+      a: "Búscala: la página de la transacción muestra el bloque previsto y su tiempo estimado, según dónde queda el bundle cuando la mempool se ordena por comisión por coste. Con la mempool vacía, un gasto sin comisión entra en el siguiente bloque de transacciones, normalmente en menos de un minuto.",
     },
     fee: {
       q: "¿Cuánta comisión debo pagar?",
@@ -137,12 +137,12 @@ const messages: Translation<typeof en> = {
       a: "Los reorgs de Chia casi siempre tienen un solo bloque de profundidad, así que la mayoría de las billeteras consideran definitivo un gasto tras unos pocos bloques; los exchanges esperan más. La página del bloque muestra cuántos bloques hay encima de uno dado.",
     },
     ids: {
-      q: "¿Qué diferencia hay entre un id de moneda, un id de transacción y un puzzle hash?",
-      a: "Un <strong>id de moneda</strong> identifica una moneda (hash del padre, el puzzle hash y el importe). Un <strong>id de transacción</strong> identifica un spend bundle. Un <strong>puzzle hash</strong> es lo que codifica una dirección: la regla de gasto a la que están bloqueadas las monedas. La búsqueda acepta los tres y averigua cuál es cuál.",
+      q: "¿Qué diferencia hay entre un ID de moneda, un ID de transacción y un puzzle hash?",
+      a: "Un <strong>ID de moneda</strong> identifica una moneda (hash del padre, el puzzle hash y el importe). Un <strong>ID de transacción</strong> identifica un spend bundle. Un <strong>puzzle hash</strong> es lo que codifica una dirección: la regla de gasto a la que están bloqueadas las monedas. La búsqueda acepta los tres y averigua cuál es cuál.",
     },
     coins: {
       q: "¿Por qué mi dirección muestra más monedas que transacciones?",
-      a: "Las billeteras dividen el cambio en varias monedas, y los CATs, NFT y DID son monedas envueltas que solo hacen <em>referencia</em> (hint) a tu dirección. La página de la dirección cuenta tanto las monedas XCH simples como las referenciadas.",
+      a: "Las billeteras dividen el cambio en varias monedas, y los CAT, NFT y DID son monedas envueltas que solo hacen <em>referencia</em> (hint) a tu dirección. La página de la dirección cuenta tanto las monedas XCH simples como las referenciadas.",
     },
     reorg: {
       q: "¿Qué es un reorg? ¿He perdido mi transacción?",

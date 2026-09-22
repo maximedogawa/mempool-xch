@@ -7,16 +7,16 @@ const messages: Translation<typeof en> = {
   notAvailable: "n/d",
   unknown: "desconocido",
   noId: {
-    title: "Sin id de transacción",
-    description: "Abre una transacción desde el panel o pega un id en el cuadro de búsqueda.",
+    title: "Sin ID de transacción",
+    description: "Abre una transacción desde el panel o pega un ID en el cuadro de búsqueda.",
   },
   loadError: "No se pudo cargar la transacción",
   notFound: {
     title: "Transacción no encontrada",
     coinset:
-      "No hay ningún spend bundle pendiente con este id en la mempool y Coinset no tiene ninguna transacción confirmada o descartada con él. Los nodos no conservan los spend bundles que salieron de la mempool sin confirmarse, así que no se pueden mostrar.",
+      "No hay ningún spend bundle pendiente con este ID en la mempool y Coinset no tiene ninguna transacción confirmada o descartada con él. Los nodos no conservan los spend bundles que salieron de la mempool sin confirmarse, así que no se pueden mostrar.",
     customNode:
-      "No hay ningún spend bundle pendiente con este id en la mempool. Los nodos no conservan los spend bundles que salieron de la mempool sin confirmarse, así que no se pueden mostrar. Para consultar transacciones confirmadas hace falta un endpoint de Coinset; con un nodo propio, busca los ids de las monedas.",
+      "No hay ningún spend bundle pendiente con este ID en la mempool. Los nodos no conservan los spend bundles que salieron de la mempool sin confirmarse, así que no se pueden mostrar. Para consultar transacciones confirmadas hace falta un endpoint de Coinset; con un nodo propio, busca los ID de las monedas.",
   },
   pendingInIndex:
     "Pendiente en el índice. Esperando a que el nodo entregue el spend bundle; se comprueba cada 10 segundos.",
@@ -63,7 +63,7 @@ const messages: Translation<typeof en> = {
     projectedPosition: "{eta} · posición {position} de {total}",
     notInSummary: "aún no está en la mempool resumida",
     projectedHint:
-      "Dónde cae este bundle cuando la mempool se empaqueta por comisión por coste en bloques de 11 mil millones de coste.",
+      "Dónde quedaría este bundle si la mempool se empaquetara por comisión por coste en bloques de 11 mil millones de coste.",
     block: "Bloque",
     dropped: "Descartada",
     confirmations: {
@@ -77,7 +77,7 @@ const messages: Translation<typeof en> = {
     verdict: "Valoración",
   },
   pending: {
-    line: "{coinSpends} · {removals} eliminadas → {additions} añadidas · mueve <amount></amount><assets></assets> · se actualiza en vivo; se refresca cada 10 s mientras está pendiente.",
+    line: "{coinSpends} · {removals} eliminadas → {additions} añadidas · gasta <amount></amount><assets></assets> · se actualiza en vivo; se refresca cada 10 s mientras está pendiente.",
     coinSpends: {
       one: "{count} gasto de moneda",
       other: "{count} gastos de monedas",
@@ -103,9 +103,9 @@ const messages: Translation<typeof en> = {
     inferredHint:
       "Coinset nunca vio este bundle en la mempool; los gastos se reconstruyen a partir del bloque en el que entró, así que la comisión y el coste son los que registra el bloque.",
     lineMempool:
-      "{spent} gastadas → {created} creadas · {cost} de coste · mueve <amount></amount> · tal como se vio en la mempool",
+      "{spent} gastadas → {created} creadas · {cost} de coste · gasta <amount></amount> · tal como se vio en la mempool",
     lineInferred:
-      "{spent} gastadas → {created} creadas · {cost} de coste · mueve <amount></amount> · reconstruido a partir del bloque",
+      "{spent} gastadas → {created} creadas · {cost} de coste · gasta <amount></amount> · reconstruido a partir del bloque",
     coins: {
       one: "{count} moneda",
       other: "{count} monedas",

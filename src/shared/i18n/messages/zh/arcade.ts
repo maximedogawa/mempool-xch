@@ -4,12 +4,12 @@ import type en from "../en/arcade";
 const messages: Translation<typeof en> = {
   title: "游戏厅",
   titleHint:
-    "基于 Chia 游戏协议构建的游戏：两名玩家在链上的状态通道中锁定赌注，以密码学保证的公平性在链下对局（纸牌使用心理扑克），再把结果结算回链上。游戏需要支持该游戏协议的 Chia 钱包；每个游戏都会在 tracker 自己的网站上打开。",
+    "基于 Chia 游戏协议构建的游戏：两名玩家在链上的状态通道中锁定赌注，以密码学保证的公平性在链下对局（纸牌使用心理扑克），再把结果结算回链上。游戏需要支持该游戏协议的 Chia 钱包；每个游戏都会在追踪器（tracker）自己的网站上打开。",
   games: "游戏",
   filterByGenre: "按类型筛选",
   allGenres: "全部",
   disclaimer:
-    "游戏按其开发者在 <link>{tracker} tracker</link> 上登记的内容列出；mempoolxch.space 不对其进行审核，赌注是真实的 XCH。",
+    "游戏按其开发者在 <link>{tracker} 追踪器</link> 上登记的内容列出；mempoolxch.space 不对其进行审核，赌注是真实的 XCH。",
   game: {
     verified: "已验证",
     developer: "开发者",
@@ -45,7 +45,7 @@ const messages: Translation<typeof en> = {
     wager: "赌注 {amount}",
     gamesPlayed: { other: "{count} 局" },
     announced: {
-      other: "tracker 上共公布了 <b>{count}</b> 个房间{breakdown}。",
+      other: "追踪器上共公布了 <b>{count}</b> 个房间{breakdown}。",
     },
     breakdown: "（{list}）",
     openArcade: "打开游戏厅",
@@ -72,7 +72,7 @@ const messages: Translation<typeof en> = {
     taken: "抢得时间",
     inBlock: "位于区块 <link>#{height}</link>",
     coinNote:
-      "土豆币 <hash></hash> · 持有者被包装在回拨（clawback）中，因此链上显示的是默克尔根而不是地址。",
+      "土豆币 <hash></hash> · 持有者被包裹在追回（clawback）谜题中，因此链上显示的是默克尔根而不是地址。",
   },
 };
 

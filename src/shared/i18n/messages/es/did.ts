@@ -8,8 +8,8 @@ const messages: Translation<typeof en> = {
   unnamed: "Perfil sin nombre",
   verified: "Verificado",
   noProfile:
-    "Este DID no tiene perfil en MintGarden. Aun así puede tener NFTs que MintGarden no ha indexado.",
-  nftsHeld: { one: "{count} NFT en posesión", other: "{count} NFTs en posesión" },
+    "Este DID no tiene perfil en MintGarden. Aun así puede tener NFT que MintGarden no ha indexado.",
+  nftsHeld: { one: "{count} NFT en posesión", other: "{count} NFT en posesión" },
   website: "Sitio web",
   collectionsHeld: "Colecciones en posesión",
   more: "+{count} más",

@@ -25,7 +25,7 @@ const messages: Translation<typeof en> = {
   expired: "Caducó",
   expires: "Caduca",
   nameNft: "NFT del nombre",
-  ownerLauncherId: "Launcher id del propietario",
+  ownerLauncherId: "Launcher ID del propietario",
   syncing:
     "El índice del registro va por detrás de la cadena y prefiere avisarlo antes que responder con datos desactualizados. Inténtalo de nuevo en un momento.",
   unreachable: "No se pudo acceder al registro de XCHandles.",

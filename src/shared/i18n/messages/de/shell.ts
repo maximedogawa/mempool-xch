@@ -2,7 +2,7 @@ import type { Translation } from "../../translate";
 import type en from "../en/shell";
 
 const messages: Translation<typeof en> = {
-  home: "mempoolxch.space Startseite",
+  home: "Startseite von mempoolxch.space",
   primaryNav: "Hauptnavigation",
   mobileNav: "Mobile Navigation",
   morePages: "Weitere Seiten",
@@ -38,10 +38,10 @@ const messages: Translation<typeof en> = {
   skipToContent: "Zum Inhalt springen",
   connection: {
     live: "Live",
-    connecting: "Verbinde",
+    connecting: "Verbindet",
     offline: "Offline",
     noData: "noch keine Daten",
-    connectingHint: "Verbinde: {channel}…",
+    connectingHint: "Verbindet: {channel}…",
     hint: "{channel}: {detail} Letzte Aktualisierung {age}.",
     srStatus: "{label} über {channel}, Spitze {peak}, letzte Aktualisierung {age}",
     unknownPeak: "unbekannt",
@@ -62,7 +62,7 @@ const messages: Translation<typeof en> = {
     network: "Netzwerk",
     vaults: "Vaults",
     status: "Status",
-    changelog: "Änderungen",
+    changelog: "Changelog",
     settings: "Einstellungen",
     dataByCoinset: "Daten von Coinset",
     disclaimer:

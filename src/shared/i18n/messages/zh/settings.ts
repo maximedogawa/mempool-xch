@@ -8,7 +8,7 @@ const messages: Translation<typeof en> = {
     title: "网络",
     active: "当前网络",
     intro:
-      "整个应用都跟随当前网络：地址前缀、浏览器链接、实时数据流和内存池摘要。当前端点：<endpoint>{url}</endpoint>",
+      "整个应用都跟随当前网络：地址前缀、区块浏览器链接、实时数据流和内存池摘要。当前端点：<endpoint>{url}</endpoint>",
   },
   endpoints: {
     title: "全节点 RPC 端点",

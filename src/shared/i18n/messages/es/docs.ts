@@ -9,7 +9,7 @@ const messages: Translation<typeof en> = {
       "Algunas cosas que hace esta versión y que otros exploradores de Chia con los que la comparamos no hacían en la última revisión:",
     sage: "Una página de billetera dentro de Sage: tus transacciones pendientes en el panel, con su posición en la cola y un aviso sonoro al confirmarse.",
     projected:
-      "Próximos bloques proyectados empaquetados como el nodo los llena realmente (ordenados por coste), no solo la longitud de una cola.",
+      "Próximos bloques previstos empaquetados como el nodo los llena realmente (ordenados por coste), no solo la longitud de una cola.",
     cats: "Cada CAT recibe nombre e icono del registro de Dexie, en todas las páginas que lo muestran, no solo en una página de consulta.",
     a11y: "Accesibilidad comprobada en cada ruta: pruebas automáticas axe AA y un recorrido completo con teclado en la batería de tests, no solo prometida.",
     openSource:
@@ -21,7 +21,7 @@ const messages: Translation<typeof en> = {
     title: "Cómo leer el panel",
     projected: {
       q: "¿Qué son los bloques a la izquierda de la línea discontinua?",
-      a: "Todavía no existen. Son los próximos bloques de transacciones tal como probablemente los llenará la red: cada spend bundle pendiente, ordenado por la comisión que paga por unidad de coste, empaquetado en bloques de 11 000 millones de coste. El bloque justo al lado de la línea es el siguiente; los que están más a la izquierda vienen después. Cada uno muestra la tasa de comisión típica en su interior, el rango de comisiones, las comisiones totales, cuántos spend bundles contiene y aproximadamente cuándo se hará su farming. Haz clic en uno para ver lo que contiene.",
+      a: "Todavía no existen. Son los próximos bloques de transacciones tal como probablemente los llenará la red: cada spend bundle pendiente, ordenado por la comisión que paga por unidad de coste, empaquetado en bloques de 11 mil millones de coste. El bloque justo al lado de la línea es el siguiente; los que están más a la izquierda vienen después. Cada uno muestra la tasa de comisión típica en su interior, el rango de comisiones, las comisiones totales, cuántos spend bundles contiene y cuándo se farmeará, aproximadamente. Haz clic en uno para ver lo que contiene.",
     },
     confirmed: {
       q: "¿Y los bloques de la derecha?",
@@ -32,7 +32,7 @@ const messages: Translation<typeof en> = {
       a: "Chia no es Bitcoin. Las comisiones se pagan por unidad de coste CLVM, y la mempool acepta gastos sin ninguna comisión mientras tenga espacio. La barra de capacidad muestra lo llena que está (el coste de diez bloques). Cuando se llena, pagar una comisión te adelanta a la cola de gastos sin comisión, y las tarjetas muestran la tasa que te mete en el siguiente bloque, en cinco minutos o en diez.",
     },
     nextBlock: {
-      q: "¿Qué muestra «Siguiente bloque»?",
+      q: "¿Qué muestra «Próximo bloque»?",
       a: "La composición del bloque que está a punto de generarse: una celda por spend bundle, con tamaño según su coste, coloreada según su franja de comisión y con borde según el tipo de activo. Usa los chips para resaltar gastos de XCH, CAT, NFT, ofertas o DID. Pasa el cursor sobre una celda para ver los detalles y haz clic para abrir la transacción.",
     },
     graph: {
@@ -44,15 +44,15 @@ const messages: Translation<typeof en> = {
     title: "Encontrar tu transacción",
     paste: {
       q: "¿Qué puedo pegar en el cuadro de búsqueda?",
-      a: "Un id de transacción (spend bundle), una altura de bloque o hash de cabecera, una dirección xch o txch, un id de moneda, un id de activo CAT, un id nft1 o un id did:chia:. Una palabra suelta se busca como handle de XCHandles y, al mismo tiempo, como nombre de NFT o de colección. Pulsa <kbd>/</kbd> en cualquier sitio para saltar al cuadro. Si un id hexadecimal de 64 caracteres puede ser varias cosas, la app comprueba la mempool, las transacciones, las monedas y los bloques y te muestra los candidatos.",
+      a: "Un ID de transacción (spend bundle), una altura de bloque o hash de cabecera, una dirección xch o txch, un ID de moneda, un ID de activo CAT, un ID nft1 o un ID did:chia:. Una palabra suelta se busca como handle de XCHandles y, al mismo tiempo, como nombre de NFT o de colección. Pulsa <kbd>/</kbd> en cualquier sitio para saltar al cuadro. Si un ID hexadecimal de 64 caracteres puede ser varias cosas, la app comprueba la mempool, las transacciones, las monedas y los bloques y te muestra los candidatos.",
     },
     handle: {
       q: "¿Qué es un handle?",
-      a: "XCHandles (xchandles.com) es un registro de nombres en Chia: un handle como <mono>@maximedogawa</mono> es una entrada del registro que resuelve a un NFT de nombre, y la dirección de ese NFT es adonde va un pago al nombre. Su página muestra a qué resuelve hoy, quién lo tiene y cuándo vence el registro, y se puede vigilar como una dirección. Los datos de handles vienen de la propia API de solo lectura del registro, solo en mainnet.",
+      a: "XCHandles (xchandles.com) es un registro de nombres en Chia: un handle como <mono>@maximedogawa</mono> es una entrada del registro que resuelve a un NFT de nombre, y la dirección de ese NFT es adonde va un pago al nombre. Su página muestra a qué resuelve hoy, quién lo tiene y cuándo vence el registro, y se puede seguir como una dirección. Los datos de handles vienen de la propia API de solo lectura del registro, solo en mainnet.",
     },
     sent: {
       q: "He enviado una transacción. ¿Dónde está?",
-      a: "Pega su id o tu dirección. Una transacción pendiente muestra en qué bloque proyectado se encuentra y un tiempo estimado; una vez confirmada muestra el bloque, las confirmaciones y qué se movió entre qué direcciones. La página de la dirección lista tus transacciones pendientes arriba y se actualiza sola.",
+      a: "Pega su ID o tu dirección. Una transacción pendiente muestra en qué bloque previsto se encuentra y un tiempo estimado; una vez confirmada muestra el bloque, las confirmaciones y qué se movió entre qué direcciones. La página de la dirección lista tus transacciones pendientes arriba y se actualiza sola.",
     },
     notClassified: {
       q: "¿Por qué la página de una moneda dice «sin clasificar»?",
@@ -92,7 +92,7 @@ const messages: Translation<typeof en> = {
       q: "¿De dónde vienen las actualizaciones en vivo?",
       a: "El indicador de conexión (pasa el cursor por encima), el pie de página y los ajustes indican el canal que usa tu pestaña. No hay ningún servidor intermedio: este sitio solo aloja la app, y cada pestaña habla directamente con el endpoint de la cadena.",
       socket:
-        "<strong>Coinset socket</strong>: tu pestaña recibe en streaming la altura del pico y los eventos de transacciones directamente del WebSocket de Coinset. Es el modo normal en mempoolxch.space y dentro de la instantánea integrada en Sage.",
+        "<strong>Socket de Coinset</strong>: tu pestaña recibe en streaming la altura del pico y los eventos de transacciones directamente del WebSocket de Coinset. Es el modo normal en mempoolxch.space y dentro de la instantánea integrada en Sage.",
       polling:
         "<strong>Sondeo</strong>: no hay stream disponible, así que la pestaña consulta el endpoint cada pocos segundos. Siempre es así con un nodo propio, y es la alternativa si el socket no puede conectarse.",
     },

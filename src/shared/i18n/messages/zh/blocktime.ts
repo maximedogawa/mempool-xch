@@ -3,7 +3,7 @@ import type en from "../en/blocktime";
 
 const messages: Translation<typeof en> = {
   title: "出块时间",
-  hint: "Chia 大约每 18.75 秒产出一个区块，但只有约三分之一包含交易。进度条会一直计到交易区块之间的预期间隔。",
+  hint: "Chia 大约每 18.75 秒产出一个区块，但只有约三分之一包含交易。进度条以交易区块之间的预期间隔为满格计时。",
   sinceLast: "距上一个交易区块",
   expectedGap: "预期间隔",
   progressLabel: "距预期下一个交易区块的进度",

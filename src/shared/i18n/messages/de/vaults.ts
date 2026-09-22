@@ -6,10 +6,10 @@ const messages: Translation<typeof en> = {
   actions: {
     initiateRecovery: "Wiederherstellung gestartet",
     finishRecovery: "Wiederherstellung abgeschlossen",
-    clawbackRecovery: "Wiederherstellung zurückgeholt",
+    clawbackRecovery: "Wiederherstellung per Clawback abgebrochen",
   },
   invalid: {
-    checksum: "Das sieht nach einer Adresse aus, aber die Prüfsumme ist falsch.",
+    checksum: "Das sieht nach einer Adresse aus, aber die Prüfsumme stimmt nicht.",
     format:
       "Fügen Sie eine Vault-Launcher-ID (64 Hex-Zeichen) oder die xch-Adresse des Vaults ein.",
   },
@@ -31,13 +31,16 @@ const messages: Translation<typeof en> = {
     singleton: "Singleton",
     singletonFallback: "Singleton",
     coinSpent: "aktueller Coin ausgegeben",
-    coinUnspent: "aktueller Coin unausgegeben",
+    coinUnspent: "aktueller Coin nicht ausgegeben",
     coinSince: "Aktueller Coin seit",
     coinAmount: "Coin-Betrag",
     coinAmountSub: "das Singleton selbst, nicht die Mittel des Vaults",
     funds: "Mittel",
     fundsError: "Die Coins des Vaults konnten nicht geladen werden",
-    unspentCoins: { one: "{count} unausgegebener Coin", other: "{count} unausgegebene Coins" },
+    unspentCoins: {
+      one: "{count} nicht ausgegebener Coin",
+      other: "{count} nicht ausgegebene Coins",
+    },
     fundsHint:
       "Die Mittel eines Vaults liegen an einem Puzzle-Hash, der aus seiner Launcher-ID abgeleitet wird (dem p2-Singleton-Puzzle des Vaults), hier im Browser berechnet. Das ist das Guthaben der Hauptadresse des Vaults; Coins, die der Vault an andere Adressen bewegt hat, sind nicht enthalten.",
     launcher:
@@ -46,7 +49,7 @@ const messages: Translation<typeof en> = {
   },
   funds: {
     balance: "Guthaben",
-    balanceSub: "unausgegebene Coins an dieser Adresse",
+    balanceSub: "nicht ausgegebene Coins an dieser Adresse",
     coins: "Coins",
     newestCoin: "Neuester Coin",
   },

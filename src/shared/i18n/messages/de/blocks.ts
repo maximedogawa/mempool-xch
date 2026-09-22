@@ -13,7 +13,7 @@ const messages: Translation<typeof en> = {
     mempool: "Mempool",
     listLabel: "Voraussichtliche nächste Blöcke",
     cubeLabel:
-      "Voraussichtlicher Block {n}: {bundles}{yours}{watched}, {percent} % voll, Gebührensatz {min} bis {max} mojo pro Kosteneinheit, {eta}",
+      "Voraussichtlicher Block {n}: {bundles}{yours}{watched}, {percent} % voll, Gebührensatz {min} bis {max} Mojo pro Kosteneinheit, {eta}",
     bundles: { one: "{count} Spend Bundle", other: "{count} Spend Bundles" },
     yoursPart: ", {count} von Ihnen",
     watchedPart: ", {count} beobachtet",
@@ -46,7 +46,7 @@ const messages: Translation<typeof en> = {
     farmerHash: "Farmer {hash}",
     totalFees: "Gebühren gesamt",
     moved: "{amount} bewegt",
-    rewardClaims: { one: "{count} Belohnungsabholung", other: "{count} Belohnungsabholungen" },
+    rewardClaims: { one: "{count} Belohnungs-Claim", other: "{count} Belohnungs-Claims" },
     poolTitle: "{pool} · Farmer {hash}",
     farmerTitle: "Farmer {hash}",
     gap: {

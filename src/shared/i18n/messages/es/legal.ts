@@ -67,12 +67,12 @@ const messages: Translation<typeof en> = {
     },
     noAdvice: {
       title: "2. Sin asesoramiento",
-      body: "Todo lo que aparece en el Servicio es información general. Nada de ello constituye asesoramiento financiero, de inversión, fiscal o jurídico, una recomendación ni una oferta de compra o venta de ningún activo. Los criptoactivos son muy volátiles y puedes perder todo el dinero que inviertas. Las transacciones en blockchain no se pueden revertir. Investiga por tu cuenta y comprueba importes, direcciones, IDs de activos y comisiones en tu propia billetera antes de actuar.",
+      body: "Todo lo que aparece en el Servicio es información general. Nada de ello constituye asesoramiento financiero, de inversión, fiscal o jurídico, una recomendación ni una oferta de compra o venta de ningún activo. Los criptoactivos son muy volátiles y puedes perder todo el dinero que inviertas. Las transacciones en blockchain no se pueden revertir. Investiga por tu cuenta y comprueba importes, direcciones, ID de activos y comisiones en tu propia billetera antes de actuar.",
     },
     data: {
       title: "3. Datos: tal cual y según disponibilidad",
       intro:
-        "El Servicio muestra datos de terceros (por defecto Coinset, Dexie y MintGarden, o un nodo que configures tú mismo) y cifras que deriva de esos datos, como bloques proyectados, estimaciones de comisiones, tiempos de confirmación esperados, nombres de activos, iconos y precios. Esa información:",
+        "El Servicio muestra datos de terceros (por defecto Coinset, Dexie y MintGarden, o un nodo que configures tú mismo) y cifras que deriva de esos datos, como bloques previstos, estimaciones de comisiones, tiempos de confirmación esperados, nombres de activos, iconos y precios. Esa información:",
       items: {
         delayed: "puede estar retrasada, incompleta, en caché, desactualizada o ser errónea;",
         estimates:
@@ -202,7 +202,7 @@ const messages: Translation<typeof en> = {
     },
     storage: {
       title: "3. Almacenamiento en tu navegador",
-      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e IDs de transacción si añades alguno, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
+      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e ID de transacción si añades alguno, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
       notifications:
         "Si activas las notificaciones del navegador para tu lista de seguimiento, es tu navegador quien concede ese permiso a este sitio y puedes retirarlo allí en cualquier momento; el operador nunca ve si lo activaste.",
     },
@@ -222,12 +222,12 @@ const messages: Translation<typeof en> = {
         coinset:
           "Coinset (api.coinset.org): todos los datos de la cadena (la mempool, los bloques, las transacciones, las direcciones, las monedas y los activos que consultas, y las actualizaciones en vivo), a menos que introduzcas otro nodo a continuación.",
         node: "Un nodo completo que introduzcas en Ajustes: todos los datos de la cadena provienen entonces de él en lugar de Coinset.",
-        map: "Solo mientras la página del mapa de la red está abierta: Cloudflare DNS (cloudflare-dns.com, con dns.google como alternativa) responde a las consultas DNS de los introducers de Chia, y GeoJS (get.geojs.io) estima la ubicación de las direcciones de nodos que contienen esas respuestas. Solo se envían direcciones de nodos para la consulta, nunca la tuya; las direcciones obtenidas se guardan en el almacenamiento local de tu navegador durante una semana.",
+        map: "Solo mientras la página del mapa de la red está abierta: Cloudflare DNS (cloudflare-dns.com, con dns.google como alternativa) responde a las consultas DNS de los introductores de Chia, y GeoJS (get.geojs.io) estima la ubicación de las direcciones de nodos que contienen esas respuestas. Solo se envían direcciones de nodos para la consulta, nunca la tuya; las direcciones obtenidas se guardan en el almacenamiento local de tu navegador durante una semana.",
       },
       basis:
         "Base jurídica: art. 6.1.f) RGPD; el interés legítimo es mostrar el contenido de la blockchain que solicitas. Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo, por ejemplo en los Estados Unidos, donde el nivel de protección de datos puede ser inferior. Se aplican sus propias políticas de privacidad.",
       publicData:
-        "Las direcciones, los IDs de transacción y los IDs de moneda son públicos en la blockchain. Si consultas tu propia dirección, el servicio que responde a la consulta podría vincularla a tu dirección IP.",
+        "Las direcciones, los ID de transacción y los ID de moneda son públicos en la blockchain. Si consultas tu propia dirección, el servicio que responde a la consulta podría vincularla a tu dirección IP.",
     },
     sage: {
       title: "5. Dentro de la billetera Sage",
@@ -286,7 +286,7 @@ const messages: Translation<typeof en> = {
         },
         tokens: {
           purpose: "Lista en caché de nombres e iconos de CAT, para no descargarla en cada visita",
-          lifetime: "Se actualiza cada 24 horas",
+          lifetime: "Se actualiza pasadas 24 horas",
         },
         history: {
           purpose:
@@ -299,7 +299,7 @@ const messages: Translation<typeof en> = {
           lifetime: "Se ignora después de una hora; se reemplaza mientras la página está abierta",
         },
         watchlist: {
-          purpose: "Direcciones e IDs de transacción que has decidido seguir",
+          purpose: "Direcciones e ID de transacción que has decidido seguir",
           lifetime: "Hasta que los elimines o lo borres",
         },
         sageRefused: {

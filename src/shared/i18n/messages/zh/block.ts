@@ -18,7 +18,7 @@ const messages: Translation<typeof en> = {
     invalidTitle: "无效的区块 ID",
     invalidDescription: "请使用区块高度（例如 9295514）或 64 位区块头哈希。",
     notFoundTitle: "未找到区块",
-    notFoundDescription: "在{network}上没有与 {id} 匹配的区块。",
+    notFoundDescription: "在 {network} 上没有与 {id} 匹配的区块。",
     loadError: "无法加载该区块",
     heading: "区块 <height></height>",
     transactionBlock: "交易区块",
@@ -64,7 +64,7 @@ const messages: Translation<typeof en> = {
     rewardClaims: "奖励领取",
     to: "至",
     generator: "生成器",
-    present: "存在",
+    present: "有",
     generatorExplained:
       "农民将所有打包的花费包合并为一个带有单一聚合签名的区块生成器，因此区块本身不再显示一笔交易在哪里结束、下一笔从哪里开始。下方的交易是根据花费重建的。",
     generatorEmpty: "空（仅奖励）",
@@ -82,7 +82,7 @@ const messages: Translation<typeof en> = {
       "实际易手的净额：每个参与方收到的 XCH 或 CAT 减去其发送的数量后求和。退回发送方的找零和手续费不计入。",
     transactions: { other: "{count} 笔交易" },
     transactionsPartial: { other: "{count} 笔交易（前 200 笔）" },
-    coinSpends: { other: "{count} 笔币花费" },
+    coinSpends: { other: "{count} 个币花费" },
     grossSpent: "花费总额",
     netTransferred: "净转移",
     catTransfers: "CAT 转账",
@@ -134,7 +134,7 @@ const messages: Translation<typeof en> = {
     noBundles: "该交易区块不包含花费包（仅有农民和矿池奖励）。",
     customNode: {
       other:
-        "语义化交易摘要需要 Coinset。使用自定义节点时，本区块的 {count} 笔币花费会逐条列出，类型根据各自的谜题推测。",
+        "语义化交易摘要需要 Coinset。使用自定义节点时，本区块的 {count} 个币花费会逐条列出，类型根据各自的谜题推测。",
     },
     spentCoin: "被花费的币",
     parent: "（父币）",

@@ -44,11 +44,10 @@ const messages: Translation<typeof en> = {
     previousBlock: "Vorheriger Block",
     previousTxBlock: "Vorheriger Transaktionsblock",
     farmedBy: "Gefarmt von",
-    selfPooledClaim:
-      "Selbst-poolender Farmer (PlotNFT), Belohnungen abgeholt an <address></address>",
-    unnamedPoolClaim: "Unbenannter Pool, Belohnungen abgeholt an <address></address>",
+    selfPooledClaim: "Farmer im Self-Pooling (PlotNFT), Belohnungen gehen an <address></address>",
+    unnamedPoolClaim: "Unbenannter Pool, Belohnungen gehen an <address></address>",
     sameAddress: "Nicht identifiziert; Pool- und Farmer-Belohnung gehen an dieselbe Adresse",
-    unclaimed: "Nicht identifiziert; die Pool-Belohnung wurde noch nicht abgeholt",
+    unclaimed: "Nicht identifiziert; die Pool-Belohnung wurde noch nicht eingefordert",
     poolPayout: "Pool-Auszahlungsadresse <address></address>",
     farmerAddress: "Farmer-Belohnungsadresse",
     blockReward: "Blockbelohnung",
@@ -65,7 +64,7 @@ const messages: Translation<typeof en> = {
     contentsCoins: { one: "{count} neuer Coin", other: "{count} neue Coins" },
     unavailable: "Nicht verfügbar",
     totalFees: "Gebühren gesamt",
-    rewardClaims: "Belohnungsabholungen",
+    rewardClaims: "Belohnungs-Claims",
     to: "an",
     generator: "Generator",
     present: "Vorhanden",
@@ -74,7 +73,7 @@ const messages: Translation<typeof en> = {
     generatorEmpty: "Leer (nur Belohnungen)",
     transactions: "Transaktionen",
     nonTxExplained:
-      "Dies ist ein Nicht-Transaktionsblock: Er treibt den Proof of Space and Time der Chain voran, enthält aber keine Ausgaben, Gebühren oder Belohnungsabholungen. Etwa zwei von drei Chia-Blöcken sind so.",
+      "Dies ist ein Nicht-Transaktionsblock: Er treibt den Proof of Space and Time der Chain voran, enthält aber keine Ausgaben, Gebühren oder Belohnungs-Claims. Etwa zwei von drei Chia-Blöcken sind so.",
     previousTxLink: "← Vorheriger Transaktionsblock <height></height>",
     nextTxLink: "Nächster Transaktionsblock <height></height> →",
     noNextTx: "Nach dieser Höhe noch kein Transaktionsblock",
@@ -161,7 +160,7 @@ const messages: Translation<typeof en> = {
         "Treemap von {count} Transaktionen, Größe nach Kosten ({used} von {max}), Farbe nach Gebühr pro Kosten",
     },
     cell: "Transaktion {id}, Kosten {cost}, Gebühr {fee}",
-    tooltip: "Kosten {cost} · Gebühr {fee} · {rate} mojo/Kosten",
+    tooltip: "Kosten {cost} · Gebühr {fee} · {rate} Mojo/Kosten",
   },
 };
 

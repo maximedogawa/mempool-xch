@@ -43,12 +43,12 @@ const messages: Translation<typeof en> = {
       "Chias Konsens beantwortet dieselbe Frage wie das Mining bei Bitcoin – <em>wer darf den nächsten Block anhängen?</em> –, aber mit einer Lotterie, an der man teilnimmt, indem man Daten speichert, statt so schnell wie möglich Hashes zu berechnen.",
     spaceTitle: "Proof of Space",
     space:
-      "Ein Farmer füllt Festplatten mit <strong>Plots</strong>: großen Dateien mit vorberechneten Hash-Tabellen. Alle paar Sekunden veröffentlicht das Netzwerk eine zufällige <strong>Challenge</strong>. Jeder Plot wird dagegen geprüft; ein Plot „gewinnt“, wenn er einen Beweis enthält, dessen Qualität eine durch die aktuelle <strong>Difficulty</strong> festgelegte Schwelle übertrifft. Je mehr Speicherplatz Sie haben, desto mehr Lose halten Sie: Ihre Gewinnchance entspricht Ihrem Anteil am gesamten Speicherplatz, dem <em>Netspace</em>, der auf der <dashboard>Übersicht</dashboard> angezeigt wird. Einen Plot zu prüfen ist billig, daher verbraucht Farming etwa so viel Strom wie ein Computer im Leerlauf.",
+      "Ein Farmer füllt Festplatten mit <strong>Plots</strong>: großen Dateien mit vorberechneten Hash-Tabellen. Alle paar Sekunden veröffentlicht das Netzwerk eine zufällige <strong>Challenge</strong>. Jeder Plot wird dagegen geprüft; ein Plot „gewinnt“, wenn er einen Beweis enthält, dessen Qualität eine durch die aktuelle <strong>Schwierigkeit</strong> festgelegte Schwelle übertrifft. Je mehr Speicherplatz Sie haben, desto mehr Lose halten Sie: Ihre Gewinnchance entspricht Ihrem Anteil am gesamten Speicherplatz, dem <em>Netspace</em>, der auf der <dashboard>Übersicht</dashboard> angezeigt wird. Einen Plot zu prüfen ist billig, daher verbraucht Farming etwa so viel Strom wie ein Computer im Leerlauf.",
     timeTitle: "Proof of Time",
     time: "Speicherplatz allein reicht nicht: Ein Farmer mit einer schnellen Maschine könnte versuchen, die Historie umzuschreiben, indem er Alternativen durchprobiert. Chia verzahnt deshalb jeden Block mit einer <strong>verifizierbaren Verzögerungsfunktion</strong> (VDF), die von <em>Timelords</em> berechnet wird. Eine VDF braucht eine feste Menge sequenzieller Rechenzeit, egal wie viele Prozessoren man hat, lässt sich aber schnell überprüfen. Die Chain kommt nur so schnell voran, wie echte Zeit vergeht – und genau das macht die zeitliche Position eines Blocks vertrauenswürdig.",
     signageTitle: "Signage Points und Infusion",
     signage:
-      "Die Zeit ist in <strong>Sub-Slots</strong> aus je 64 Signage Points eingeteilt, jeder etwa 10 Minuten lang. Challenges werden an Signage Points ausgegeben; ein gewinnender Beweis muss einige Signage Points später in die Chain <em>infundiert</em> werden, sobald der Timelord die zugehörige VDF erzeugt hat. Deshalb zeigt die Seite eines Blocks einen Signage-Point-Index, und deshalb können mehrere Farmer nahezu denselben Slot gewinnen: Das Protokoll lässt es zu, und die Chain wählt den schwereren Zweig. Wenn zwei Zweige kurz konkurrieren, sehen Sie auf der <blocks>Blöcke-Seite</blocks> einen <strong>Reorg</strong>; bei Chia sind diese meist nur einen Block tief.",
+      "Die Zeit ist in <strong>Sub-Slots</strong> von jeweils etwa 10 Minuten eingeteilt, die je 64 Signage Points umfassen. Challenges werden an Signage Points ausgegeben; ein gewinnender Beweis muss einige Signage Points später in die Chain <em>infundiert</em> werden, sobald der Timelord die zugehörige VDF erzeugt hat. Deshalb zeigt die Seite eines Blocks einen Signage-Point-Index, und deshalb können mehrere Farmer nahezu denselben Slot gewinnen: Das Protokoll lässt es zu, und die Chain wählt den schwereren Zweig. Wenn zwei Zweige kurz konkurrieren, sehen Sie auf der <blocks>Blöcke-Seite</blocks> einen <strong>Reorg</strong>; bei Chia sind diese meist nur einen Block tief.",
     youTitle: "Warum das für Sie wichtig ist",
     you: "Nichts an Ihrer Transaktion ändert, wie Blöcke gefunden werden. Was Sie steuern, ist die <strong>Gebühr</strong>: Sie entscheidet, wie schnell ein Farmer Ihre Ausgabe aufnimmt, sobald sie im <mempool>Mempool</mempool> liegt.",
   },
@@ -64,13 +64,13 @@ const messages: Translation<typeof en> = {
       "Ein Farmer betreibt einen Full Node plus einen <em>Harvester</em> auf jedem Rechner mit Plots. An jedem Signage Point sucht der Harvester die Challenge in jedem Plot, und wenn ein Beweis von ausreichender Qualität existiert, baut der Farmer einen Block und verbreitet ihn. Der Full Node validiert die Blöcke aller anderen und hält die Kopie der Chain, die dieser Explorer über <settings>einen Node oder Coinset</settings> liest.",
     rewardsTitle: "Belohnungen",
     rewards:
-      "Jeder Block erzeugt zwei Belohnungs-Coins: eine Farmer-Belohnung und eine Pool-Belohnung (0,25 und 0,75 XCH nach dem dritten Halving 2033, derzeit 0,5 und 1,5). Die <blocks>Block-Seite</blocks> listet die Reward Claims auf, die ein Transaktionsblock enthält, und die <pools>Pools-Seite</pools> ordnet die Pool-Belohnung dem Pool zu, an den sie ausgezahlt wurde.",
+      "Jeder Block erzeugt zwei Belohnungs-Coins: eine Farmer-Belohnung und eine Pool-Belohnung (0,25 und 0,75 XCH nach dem dritten Halving 2033, derzeit 0,5 und 1,5). Die <blocks>Block-Seite</blocks> listet die Belohnungs-Claims auf, die ein Transaktionsblock enthält, und die <pools>Pools-Seite</pools> ordnet die Pool-Belohnung dem Pool zu, an den sie ausgezahlt wurde.",
     poolsTitle: "Pools",
     pools:
       "Mit einer kleinen Farm vergehen womöglich Monate ohne Gewinn. Ein <strong>Pool</strong> gleicht das aus: Ihr Plot-NFT verweist auf den Pool, der Pool erhält die Belohnung von 1,5 XCH, sobald irgendein Mitglied gewinnt, und bezahlt die Mitglieder nach ihrem Anteil an eingereichten Teilbeweisen (Partials). Weil Pooling Teil des Protokolls ist, behalten Sie Ihre Schlüssel und wechseln den Pool, indem Sie Ihr Plot-NFT ausgeben – eine normale Transaktion, die Sie wie jede andere im Mempool finden.",
     hereTitle: "Was Sie hier sehen können",
     hereNetspace:
-      "<dashboard>Netspace</dashboard>: der gesamte geplottete Speicherplatz, den das Netzwerk aus der jüngsten Difficulty schätzt.",
+      "<dashboard>Netspace</dashboard>: der gesamte geplottete Speicherplatz, den das Netzwerk aus der jüngsten Schwierigkeit schätzt.",
     herePools: "<pools>Pool-Anteil</pools>: wer die Blöcke des letzten Tages gefarmt hat.",
     hereMap:
       "<map>Node-Karte</map>: wo sich die Full Nodes befinden, die die Introducer herausgeben.",
@@ -93,11 +93,11 @@ const messages: Translation<typeof en> = {
       "Ein Bundle verlässt den Mempool, wenn ein Block es aufnimmt (<em>bestätigt</em>), wenn einer seiner Coins zuerst von einem anderen Bundle ausgegeben wird, oder wenn der Node es nach einem Reorg verwirft oder weil es nicht mehr gültig ist (<em>entfernt</em>). Eine Transaktionsseite zeigt die Coins eines entfernten Bundles weiterhin an, wenn Coinset es erfasst hat; die Nodes selbst vergessen verworfene Bundles.",
     graphsTitle: "Die Diagramme lesen",
     graphsCost:
-      "<strong>Belegte Kosten</strong> zeigt, wie viel der Mempool-Kapazität belegt ist, aufgeteilt nach Gebührenband.",
+      "<strong>Genutzte Kosten</strong> zeigt, wie viel der Mempool-Kapazität belegt ist, aufgeteilt nach Gebührenband.",
     graphsIncoming:
       "<strong>Eingehend</strong> sind Bundles pro Minute, wie dieser Browser sie sieht.",
     graphsProjected:
-      "<strong>Prognostizierte Blöcke</strong> gruppieren die Warteschlange in Blöcke, in der Reihenfolge, in der der Node sie auswählen würde.",
+      "<strong>Voraussichtliche Blöcke</strong> gruppieren die Warteschlange in Blöcke, in der Reihenfolge, in der der Node sie auswählen würde.",
   },
   offersAndTrading: {
     title: "Offers und Handel",
@@ -119,7 +119,7 @@ const messages: Translation<typeof en> = {
       "<strong>Storniert</strong> oder <strong>abgelaufen</strong>: Der Maker hat die Coins anderweitig ausgegeben, oder das Ablaufdatum ist verstrichen.",
     clawbackTitle: "Clawbacks",
     clawback:
-      "Eine verwandte Idee ist der <strong>Clawback</strong>: eine Zahlung, die der Absender für eine festgelegte Zeit zurückholen kann, bevor der Empfänger sie beanspruchen darf – ein Sicherheitsnetz gegen Zahlungen an die falsche Adresse. Solche Coins erscheinen auf einer <address>Adressseite</address> mit ihrer Zeitsperre, bis sie beansprucht oder zurückgerufen werden.",
+      "Eine verwandte Idee ist der <strong>Clawback</strong>: eine Zahlung, die der Absender für eine festgelegte Zeit zurückholen kann, bevor der Empfänger sie beanspruchen darf – ein Sicherheitsnetz gegen Zahlungen an die falsche Adresse. Solche Coins erscheinen auf einer <address>Adressseite</address> mit ihrem Timelock, bis sie beansprucht oder widerrufen werden.",
   },
   questions: {
     title: "Häufige Fragen",
@@ -127,11 +127,11 @@ const messages: Translation<typeof en> = {
       "Kurze Antworten auf das, was am häufigsten gefragt wird: Gebühren, Bestätigungen, Coins, Adressen und Reorgs.",
     pending: {
       q: "Meine Transaktion ist ausstehend. Wie lange dauert es?",
-      a: "Schlagen Sie sie nach: Die Transaktionsseite zeigt den prognostizierten Block und die voraussichtliche Zeit, je nachdem, wo das Bundle steht, wenn der Mempool nach Gebühr pro Kosten sortiert ist. Bei leerem Mempool landet eine Ausgabe ohne Gebühr im nächsten Transaktionsblock, meist innerhalb einer Minute.",
+      a: "Schlagen Sie sie nach: Die Transaktionsseite zeigt den voraussichtlichen Block und die voraussichtliche Zeit, je nachdem, wo das Bundle steht, wenn der Mempool nach Gebühr pro Kosten sortiert ist. Bei leerem Mempool landet eine Ausgabe ohne Gebühr im nächsten Transaktionsblock, meist innerhalb einer Minute.",
     },
     fee: {
       q: "Wie viel Gebühr sollte ich zahlen?",
-      a: "Meist gar keine. Wenn der Mempool voll ist, zeigt die <fees>Gebührenseite</fees> die Schätzung des Nodes pro Zielzeit; 5 Mojos pro Kosteneinheit ist der Satz, ab dem eine Ausgabe eine günstigere ersetzt, und eine typische Überweisung kostet einige Millionen Kosteneinheiten – selbst eine „hohe“ Gebühr ist also ein Bruchteil eines Cents.",
+      a: "Meist gar keine. Wenn der Mempool ausgelastet ist, zeigt die <fees>Gebührenseite</fees> die Schätzung des Nodes pro Zielzeit; 5 Mojos pro Kosteneinheit ist der Satz, ab dem eine Ausgabe eine günstigere ersetzt, und eine typische Überweisung kostet einige Millionen Kosteneinheiten – selbst eine „hohe“ Gebühr ist also ein Bruchteil eines Cents.",
     },
     confirmations: {
       q: "Wie viele Bestätigungen brauche ich?",
@@ -139,7 +139,7 @@ const messages: Translation<typeof en> = {
     },
     ids: {
       q: "Was ist der Unterschied zwischen einer Coin-ID, einer Transaktions-ID und einem Puzzle-Hash?",
-      a: "Eine <strong>Coin-ID</strong> bezeichnet einen Coin (Hash aus Parent, Puzzle-Hash und Betrag). Eine <strong>Transaktions-ID</strong> bezeichnet ein Spend Bundle. Ein <strong>Puzzle-Hash</strong> ist das, was eine Adresse kodiert: die Ausgaberegel, an die Coins gebunden sind. Die Suche akzeptiert alle drei und erkennt selbst, was was ist.",
+      a: "Eine <strong>Coin-ID</strong> bezeichnet einen Coin (Hash aus Eltern-Coin, Puzzle-Hash und Betrag). Eine <strong>Transaktions-ID</strong> bezeichnet ein Spend Bundle. Ein <strong>Puzzle-Hash</strong> ist das, was eine Adresse kodiert: die Ausgaberegel, an die Coins gebunden sind. Die Suche akzeptiert alle drei und erkennt selbst, was was ist.",
     },
     coins: {
       q: "Warum zeigt meine Adresse mehr Coins als Transaktionen?",

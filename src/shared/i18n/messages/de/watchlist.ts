@@ -22,14 +22,14 @@ const messages: Translation<typeof en> = {
     notificationsOn: "Browser-Benachrichtigungen an",
     notificationsOff: "Browser-Benachrichtigungen aus",
     intro:
-      "Verfolgen Sie eingehende Assets und Bestätigungen. Beobachtete Transaktionen werden in den Blöcken oben markiert, eine beobachtete DID zeigt die NFTs, die sie hält, und ein beobachtetes @handle, wohin es zeigt.",
+      "Verfolgen Sie eingehende Assets und Bestätigungen. Beobachtete Transaktionen werden in den Blöcken oben markiert, eine beobachtete DID zeigt die NFTs, die sie hält, und ein beobachteter @handle, wohin er zeigt.",
     addLabel: "Adresse, @handle, DID oder Transaktions-ID zur Beobachtungsliste hinzufügen",
     placeholder: "Adresse, @handle, DID oder Transaktions-ID",
     watch: "Beobachten",
     invalid:
-      "Fügen Sie eine Adresse, eine did:chia:-ID, ein @handle oder eine 64-stellige Transaktions-ID ein.",
+      "Fügen Sie eine Adresse, eine did:chia:-ID, einen @handle oder eine 64-stellige Transaktions-ID ein.",
     empty:
-      "Noch nichts beobachtet. Fügen Sie oben eine Adresse, ein @handle, eine DID oder eine Transaktion hinzu oder nutzen Sie die Schaltfläche „Beobachten“ auf der jeweiligen Seite.",
+      "Noch nichts beobachtet. Fügen Sie oben eine Adresse, einen @handle, eine DID oder eine Transaktion hinzu oder nutzen Sie die Schaltfläche „Beobachten“ auf der jeweiligen Seite.",
     notifyConfirmed: "Bestätigt: {label}",
     notifyIncoming: "Eingang an {label}",
   },
@@ -69,7 +69,7 @@ const messages: Translation<typeof en> = {
   did: {
     avatarAlt: "DID-Avatar",
     nftCount: { one: "{count} NFT", other: "{count} NFTs" },
-    mainnetNote: "DID-Bestände stammen von MintGarden, das nur das Mainnet indiziert.",
+    mainnetNote: "DID-Bestände stammen von MintGarden, das nur das Mainnet indexiert.",
     moreCollections: "+{count} weitere",
     viewNfts: "Die NFTs dieser DID anzeigen →",
     loadingHoldings: "Bestände werden geladen…",
@@ -86,7 +86,7 @@ const messages: Translation<typeof en> = {
     registered: "Registriert",
     mainnetNote: "XCHandles ist eine Mainnet-Registry.",
     resolvesTo: "Verweist auf",
-    nobodyRegistered: "Niemand hat dieses Handle registriert.",
+    nobodyRegistered: "Niemand hat diesen Handle registriert.",
     resolving: "Wird aufgelöst…",
     noAddress: "Keine Adresse hinterlegt.",
     expiredWhen: "Abgelaufen {when}",

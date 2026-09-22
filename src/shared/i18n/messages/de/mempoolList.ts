@@ -10,7 +10,7 @@ const messages: Translation<typeof en> = {
   updated: "Aktualisiert",
   source: {
     server: "Summary-API",
-    snapshot: "von Ihrem letzten Besuch, synchronisiert",
+    snapshot: "von Ihrem letzten Besuch, wird synchronisiert",
     syncing: "erste Synchronisierung läuft",
     node: "direkt vom Node",
   },

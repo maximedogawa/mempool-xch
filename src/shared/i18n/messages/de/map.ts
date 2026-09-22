@@ -55,7 +55,7 @@ const messages: Translation<typeof en> = {
       one: "{country}: {count} Node, Rang {rank}",
       other: "{country}: {count} Nodes, Rang {rank}",
     },
-    peer: "Verbundener Peer {host} bei {place}",
+    peer: "Verbundener Peer {host} in der Nähe von {place}",
   },
   activity: {
     title: "Live-Aktivität aus Sicht dieses Nodes",
@@ -98,7 +98,7 @@ const messages: Translation<typeof en> = {
     reliableHint:
       "Nodes, die stabil genug sind, dass der Crawler sie über die DNS-Introducer weitergibt.",
     overlap:
-      "Die Anteile von IPv4 und IPv6 überschneiden sich: Ein Dual-Stack-Node zählt in beiden, daher ergeben sie zusammen mehr als den Bestand.",
+      "Die Anteile von IPv4 und IPv6 überschneiden sich: Ein Dual-Stack-Node zählt in beiden, daher ergeben sie zusammen mehr als der Bestand.",
   },
   countries: {
     title: "Länder",

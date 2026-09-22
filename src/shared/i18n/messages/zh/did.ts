@@ -11,7 +11,7 @@ const messages: Translation<typeof en> = {
   nftsHeld: { other: "持有 {count} 个 NFT" },
   website: "网站",
   collectionsHeld: "持有的系列",
-  more: "还有 {count} 个",
+  more: "另有 {count} 个",
 };
 
 export default messages;

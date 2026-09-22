@@ -30,7 +30,7 @@ const messages: Translation<typeof en> = {
   singletonAt: "· moneda singleton en #{height}",
   addresses: "Direcciones",
   footnote:
-    "Los launcher ids de las bóvedas son los que Chia Network publica para sus propias herramientas de auditoría (<alert>prefarm-alert</alert>); las reglas de custodia se describen en la <guide>guía de auditoría del prefarm</guide>. Un rekey de bóveda mueve los fondos a un nuevo puzzle hash; cuando ocurre, el saldo aquí baja hasta que se añade la nueva dirección, por eso la cifra «fuera de estas direcciones» se muestra aparte en lugar de sumarse a un total.",
+    "Los launcher ID de las bóvedas son los que Chia Network publica para sus propias herramientas de auditoría (<alert>prefarm-alert</alert>); las reglas de custodia se describen en la <guide>guía de auditoría del prefarm</guide>. Un rekey de bóveda mueve los fondos a un nuevo puzzle hash; cuando ocurre, el saldo aquí baja hasta que se añade la nueva dirección, por eso la cifra «fuera de estas direcciones» se muestra aparte en lugar de sumarse a un total.",
 };
 
 export default messages;

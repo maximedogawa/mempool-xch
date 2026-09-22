@@ -41,7 +41,7 @@ const messages: Translation<typeof en> = {
     creatingTx: "Erstellende Transaktion",
     spendingTx: "Ausgebende Transaktion",
     rewardCoin: "keine (Belohnungs-Coin)",
-    notAvailable: "derzeit nicht von Coinset verfügbar",
+    notAvailable: "derzeit nicht über Coinset verfügbar",
     needsCoinset: "erfordert Coinset",
     block: "Block {height}",
     unspent: "nicht ausgegeben",

@@ -11,7 +11,7 @@ const messages: Translation<typeof en> = {
   severalMatches: "Mehrere Treffer, bitte wählen",
   bestGuess: "Bester Treffer",
   noMatches:
-    "Keine Treffer für „{query}“. Versuchen Sie eine genaue Blockhöhe, Tx-ID, Adresse, Coin-ID, eine nft1-ID, eine CAT-Asset-ID oder ein @Handle.",
+    "Keine Treffer für „{query}“. Versuchen Sie eine genaue Blockhöhe, Tx-ID, Adresse, Coin-ID, eine nft1-ID, eine CAT-Asset-ID oder einen @handle.",
   invalid: {
     empty: "Geben Sie einen Suchbegriff ein.",
     addressChecksum: "Das sieht nach einer Adresse aus, aber die Prüfsumme stimmt nicht.",
@@ -31,7 +31,7 @@ const messages: Translation<typeof en> = {
     collection: "Kollektion",
     cat: "CAT-Asset",
     address: "Adresse (Puzzle-Hash)",
-    expiredHandle: "{handle} (abgelaufenes Handle)",
+    expiredHandle: "{handle} (abgelaufener Handle)",
   },
 };
 

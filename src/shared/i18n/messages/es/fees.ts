@@ -4,7 +4,7 @@ import type en from "../en/fees";
 const messages: Translation<typeof en> = {
   cards: {
     title: "Comisiones de transacción",
-    hint: "En Chia las comisiones se pagan por coste CLVM, no por byte. Las estimaciones son para un gasto de referencia de {cost} de coste (un envío típico de XCH). Multiplica la tasa en mojo por unidad de coste por el coste de tu gasto para obtener la comisión.",
+    hint: "En Chia las comisiones se pagan por coste CLVM, no por byte. Las estimaciones son para un gasto de referencia de {cost} de coste (un envío simple típico de XCH). Multiplica la tasa en mojo por unidad de coste por el coste de tu gasto para obtener la comisión.",
     targets: {
       nextBlock: "Próximo bloque",
       fiveMinutes: "~5 minutos",
@@ -17,7 +17,7 @@ const messages: Translation<typeof en> = {
     aboveToEnter: "Más de {rate} mojo/coste para entrar.",
     nearCapacity: "Casi al límite.",
     fullMempool:
-      "Un mempool lleno solo acepta al menos 5 mojo/coste y solo por encima de los gastos más baratos que puede desalojar.",
+      "Una mempool llena exige al menos 5 mojo/coste y, además, pagar más que los gastos más baratos que pueda desalojar.",
     paidAhead: "Los gastos con comisión pasan por delante de la cola sin comisión.",
     lastBlock:
       "El último bloque de transacciones pagó {fees} en comisiones a {rate} mojo/coste · tasa actual {current} mojo/coste.",
@@ -25,7 +25,7 @@ const messages: Translation<typeof en> = {
   page: {
     title: "Comisiones",
     intro:
-      "Lo que el nodo estima para una transferencia de {cost} de coste, la distribución actual de tasas en el mempool y lo que cuestan los tipos de gasto más comunes a la tasa actual. Se consulta a Coinset bajo demanda; no se guarda nada en nuestro servidor.",
+      "Lo que el nodo estima para una transferencia de {cost} de coste, la distribución actual de tasas en la mempool y lo que cuestan los tipos de gasto más comunes a la tasa actual. Se consulta a Coinset bajo demanda; no se guarda nada en nuestro servidor.",
     nodeEstimate: "Estimación del nodo",
     withinMinutes: { one: "En {count} min", other: "En {count} min" },
     rateSub: "{rate} mojo/coste",
@@ -53,10 +53,10 @@ const messages: Translation<typeof en> = {
       technical:
         "No se muestrea a escala de gráfico: requiere los costes por transacción de cada bloque (una consulta indexada por bloque), demasiado pesado para muestrear un rango sin una caché en el servidor.",
       unavailable:
-        "No se muestrea a escala de gráfico — requiere una consulta indexada por bloque. Las tasas de los bundles en el feed del mempool y en las páginas de transacción son exactas.",
+        "No se muestrea a escala de gráfico — requiere una consulta indexada por bloque. Las tasas de los bundles en el feed de la mempool y en las páginas de transacción son exactas.",
     },
     footer:
-      "Las tasas que se muestran en otros sitios — el feed del mempool y las páginas de transacciones y bloques — son cifras exactas por elemento, no muestreadas.",
+      "Las tasas que se muestran en otros sitios — el feed de la mempool y las páginas de transacciones y bloques — son cifras exactas por elemento, no muestreadas.",
   },
   transfers: {
     plain: "Transferencia simple",

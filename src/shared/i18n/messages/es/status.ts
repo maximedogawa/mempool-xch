@@ -4,7 +4,7 @@ import type en from "../en/status";
 const messages: Translation<typeof en> = {
   title: "Estado",
   tooltip:
-    "Medido ahora mismo desde tu navegador, igual que las páginas obtienen sus datos. No hay monitor en el servidor ni historial; una fila roja significa que tu conexión no puede alcanzar ese servicio en este momento.",
+    "Medido ahora mismo desde tu navegador, igual que las páginas obtienen sus datos. No hay monitor en el servidor ni historial; una fila roja significa que tu conexión no puede acceder a ese servicio en este momento.",
   health: {
     ok: "Operativo",
     degraded: "Degradado",
@@ -30,7 +30,7 @@ const messages: Translation<typeof en> = {
     dns: "Introductores DNS de Chia",
   },
   what: {
-    noIndexed: "no disponible con un nodo personalizado",
+    noIndexed: "no disponible con un nodo propio",
     pollingOnly: "solo sondeo",
     viaDns: "vía cloudflare-dns.com",
   },

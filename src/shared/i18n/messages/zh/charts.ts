@@ -100,7 +100,7 @@ const messages: Translation<typeof en> = {
     technical: "按每个采样窗口根据 get_block_records 的时间戳求平均。",
   },
   netspace: {
-    title: "全网算力（Netspace）",
+    title: "全网空间（Netspace）",
     definition: "估算的全网耕种总空间。",
     technical:
       "对每个采样窗口的首尾区块调用 get_network_space——这是节点自身基于难度的估算，并非由我们推导。",

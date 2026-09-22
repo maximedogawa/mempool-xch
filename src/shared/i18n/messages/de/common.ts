@@ -36,9 +36,9 @@ const messages: Translation<typeof en> = {
   },
   pending: {
     broadcast: "An das Netzwerk gesendet, noch nicht im Mempool gesehen",
-    waiting: "Im Mempool, hinter den prognostizierten Blöcken",
+    waiting: "Im Mempool, hinter den voraussichtlichen Blöcken",
     nextBlock: "Nächster Block · Position {position} von {size}",
-    projectedBlock: "Prognostizierter Block {block} · Position {position} von {size}",
+    projectedBlock: "Voraussichtlicher Block {block} · Position {position} von {size}",
     confirmed: "Bestätigt",
     gone: "In der Wallet nicht mehr ausstehend",
   },

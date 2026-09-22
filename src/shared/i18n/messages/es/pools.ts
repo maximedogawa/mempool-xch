@@ -4,7 +4,7 @@ import type en from "../en/pools";
 const messages: Translation<typeof en> = {
   title: "Pools",
   group: {
-    selfPooled: "Farmer en self-pooling",
+    selfPooled: "Farmer con pool propio",
     unnamed: "Pool sin nombre",
     unknown: "Desconocido",
     everyoneElse: "todos los demás",
@@ -31,7 +31,7 @@ const messages: Translation<typeof en> = {
     search: "Buscar pool o dirección",
     loadError: "No se pudo cargar la cuota de pools",
     noClaims:
-      "Los cobros de recompensas vienen de la API indexada de Coinset, que un nodo personalizado no ofrece: aquí los farmers con PlotNFT aparecen uno a uno en lugar de bajo su pool.",
+      "Los cobros de recompensas vienen de la API indexada de Coinset, que un nodo propio no ofrece: aquí los farmers con PlotNFT aparecen uno a uno en lugar de bajo su pool.",
     resolving: {
       one: "Comprobando dónde cobra sus recompensas {count} dirección de pago; los pools crecen a medida que llegan resultados. Tu navegador los recuerda para la próxima visita.",
       other:

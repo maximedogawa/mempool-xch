@@ -12,7 +12,7 @@ const messages: Translation<typeof en> = {
   base: {
     title: "Basis-URLs",
     intro:
-      "Jede der folgenden Methoden ist ein <code>POST</code> an <code>{base}/{method}</code> mit JSON-Body, ohne Authentifizierung, CORS offen. Die Full-Node-RPC und die indexierte API von Coinset teilen sich denselben Host.",
+      "Jede der folgenden Methoden ist ein <code>POST</code> an <code>{base}/{method}</code> mit JSON-Body, ohne Authentifizierung, CORS offen. Der Full-Node-RPC und die indexierte API von Coinset teilen sich denselben Host.",
     mainnet: "Mainnet:",
     testnet: "Testnet11:",
     websocket: "WebSocket (Peak- und Transaktionsereignisse):",
@@ -29,11 +29,11 @@ const messages: Translation<typeof en> = {
   },
   endpoints: {
     get_blockchain_state:
-      "Peak-Höhe und -Hash, Mempool-Größe und -Kosten, maximale Blockkosten, Difficulty, Sync-Status.",
+      "Peak-Höhe und -Hash, Mempool-Größe und -Kosten, maximale Blockkosten, Schwierigkeit, Sync-Status.",
     get_fee_estimate: "Gebühr-pro-Kosten-Schätzung für eine oder mehrere Ziel-Bestätigungszeiten.",
     get_all_mempool_tx_ids: "Alle Spend-Bundle-IDs, die sich gerade im Mempool befinden.",
     get_all_mempool_items:
-      "Alle ausstehenden Spend Bundles vollständig. Groß (zig MB); die App gleicht sie mit den bereits bekannten IDs ab, statt alles neu zu laden.",
+      "Alle ausstehenden Spend Bundles vollständig. Groß (mehrere Dutzend MB); die App gleicht sie mit den bereits bekannten IDs ab, statt alles neu zu laden.",
     get_mempool_item_by_tx_id: "Ein ausstehendes Spend Bundle nach ID.",
     get_mempool_items_by_coin_name: "Ausstehende Spend Bundles, die einen Coin betreffen.",
     get_network_space: "Geschätzter Netspace zwischen zwei Header-Hashes.",
@@ -41,7 +41,7 @@ const messages: Translation<typeof en> = {
       "Block-Records in einem Höhenbereich, Ende exklusiv. Coinset begrenzt einen einzelnen Aufruf auf 1.000 Records.",
     get_block_record_by_height: "Ein Block-Record nach Höhe.",
     get_block_record: "Ein Block-Record nach Header-Hash.",
-    get_block: "Der vollständige Block (Generator-Infos, Reward-Claims) nach Header-Hash.",
+    get_block: "Der vollständige Block (Generator-Infos, Belohnungs-Claims) nach Header-Hash.",
     get_block_spends: "Coin-Ausgaben in einem Block (Fallback für eigene Nodes beim Coin-Fluss).",
     get_additions_and_removals:
       "In einem Block erzeugte und entfernte Coins, für die Coin-Fluss-Ansicht.",
@@ -60,7 +60,7 @@ const messages: Translation<typeof en> = {
     get_coin_records_by_puzzle_hash: "Coin-Records, die an einen Puzzle-Hash gezahlt wurden.",
     get_coin_records_by_hint: "Coin-Records nach Memo-Hint (so finden Wallets ihre eigenen Coins).",
     get_coin_records_by_parent_ids:
-      "Coin-Records, die von einer Liste von Parent-Coin-IDs erzeugt wurden.",
+      "Coin-Records, die von einer Liste von Eltern-Coin-IDs erzeugt wurden.",
     get_puzzle_and_solution: "Reveal und Solution, mit denen ein Coin ausgegeben wurde.",
     get_memos_by_coin_name: "Memo-Strings, die an die Ausgabe eines Coins angehängt sind.",
     get_coin_details: "Coin-Semantik (Art, Asset-ID), sofern Coinset ihn klassifizieren kann.",
@@ -74,7 +74,7 @@ const messages: Translation<typeof en> = {
       "Lebenszyklus-Status eines Offers nach ID: beide Seiten, Maker, die annehmende oder stornierende Transaktion.",
     get_offers_by_p2:
       "Offers, die von einem Puzzle-Hash erstellt wurden, ein Lebenszyklus-Status pro Aufruf.",
-    get_offers_by_cat_asset_id: "Offers, die ein CAT anbieten oder anfragen.",
+    get_offers_by_cat_asset_id: "Offers, die einen CAT anbieten oder anfragen.",
     get_offers_by_nft_id: "Offers, die ein NFT anbieten oder anfragen.",
     get_clawback_coins_by_receiver:
       "An einen Puzzle-Hash gesendete Clawback-Coins, mit Timelock und ob der Absender sie noch zurückholen kann.",
@@ -91,7 +91,7 @@ const messages: Translation<typeof en> = {
   },
   embeds: {
     title: "Embeds und Badges",
-    theme: "Embed-Theme",
+    theme: "Embed-Design",
     dark: "dunkel",
     light: "hell",
     intro:
@@ -100,7 +100,7 @@ const messages: Translation<typeof en> = {
     items: {
       blocks: {
         title: "Block-Warteschlange",
-        what: "Die prognostizierten nächsten Blöcke und die letzten drei Transaktionsblöcke.",
+        what: "Die voraussichtlichen nächsten Blöcke und die letzten drei Transaktionsblöcke.",
       },
       fees: {
         title: "Gebührenkarten",

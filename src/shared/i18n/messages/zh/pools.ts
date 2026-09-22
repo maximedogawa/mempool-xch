@@ -7,7 +7,7 @@ const messages: Translation<typeof en> = {
     selfPooled: "自建矿池的农民",
     unnamed: "未命名矿池",
     unknown: "未知",
-    everyoneElse: "其他所有",
+    everyoneElse: "其他",
   },
   bar: {
     label: "最近 {count} 个区块的份额：{summary}",

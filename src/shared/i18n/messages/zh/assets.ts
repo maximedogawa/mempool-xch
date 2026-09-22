@@ -35,7 +35,7 @@ const messages: Translation<typeof en> = {
     metadataMissing: "无法从 MintGarden 获取元数据。",
     mainnetOnly: "NFT 元数据查询仅支持主网。",
     nftId: "NFT ID",
-    launcherId: "Launcher ID",
+    launcherId: "launcher ID",
     currentOwner: "当前持有者",
     unknown: "未知",
     unknownNeedsCoinset: "未知（需要 Coinset）",
@@ -52,7 +52,7 @@ const messages: Translation<typeof en> = {
   txList: {
     incoming: "转入",
     outgoing: "转出",
-    self: "自转",
+    self: "自转账",
     loadError: "无法加载交易",
     refreshError: "无法刷新或加载更多交易，请重试。",
     noNetChange: "无净变化",

@@ -4,7 +4,7 @@ import type en from "../en/arcade";
 const messages: Translation<typeof en> = {
   title: "Arcade",
   titleHint:
-    "Spiele auf Basis des Chia-Gaming-Protokolls: Zwei Spieler sperren einen Einsatz in einem State Channel on chain, spielen off chain mit kryptografischer Fairness (Mental Poker für Karten) und rechnen das Ergebnis wieder on chain ab. Zum Spielen brauchen Sie eine Chia-Wallet mit Gaming-Protokoll; jedes Spiel öffnet sich auf der Website des Trackers.",
+    "Spiele auf Basis des Chia-Gaming-Protokolls: Zwei Spieler sperren einen Einsatz in einem State Channel on-chain, spielen off-chain mit kryptografischer Fairness (Mental Poker für Karten) und rechnen das Ergebnis wieder on-chain ab. Zum Spielen brauchen Sie eine Chia-Wallet mit Gaming-Protokoll; jedes Spiel öffnet sich auf der Website des Trackers.",
   games: "Spiele",
   filterByGenre: "Nach Genre filtern",
   allGenres: "alle",
@@ -52,7 +52,7 @@ const messages: Translation<typeof en> = {
     openArcade: "Arcade öffnen",
   },
   potato: {
-    hint: "Ein Heiße-Kartoffel-Spiel komplett on chain: Wer den Kartoffel-Coin {hours} Stunden lang hält, behält den Pot. Vorher kann ihn jeder schnappen, indem er {price} in den Pot zahlt plus {royalty} an jeden vorherigen Halter. Der Zustand hier wird ausschließlich aus der Coin-Abstammung auf Coinset gelesen.",
+    hint: "Ein Heiße-Kartoffel-Spiel komplett on-chain: Wer den Kartoffel-Coin {hours} Stunden lang hält, behält den Pot. Vorher kann ihn jeder schnappen, indem er {price} in den Pot und {royalty} an jeden vorherigen Halter zahlt. Der Zustand hier wird ausschließlich aus der Coin-Abstammung auf Coinset gelesen.",
     live: "folgt dem Coin live",
     unreachable: "Coinset nicht erreichbar, Snapshot wird angezeigt",
     snapshot: "Snapshot {date}",
@@ -62,7 +62,7 @@ const messages: Translation<typeof en> = {
     ripe: "reif",
     ended: "Die Kartoffel wurde beansprucht oder durchgereicht; die Runde ist beendet.",
     ripeNote:
-      "Die Frist ist abgelaufen: Der Pot ist jetzt XCH des Halters, es gibt nichts zu beanspruchen.",
+      "Die Frist ist abgelaufen: Der Pot gehört jetzt dem Halter, es gibt nichts zu beanspruchen.",
     deadline: "Frist {date} · plus/minus {buffer} s, der Zeitstempel des Schnappens entscheidet",
     meter: "Bereits abgelaufener Anteil der Haltezeit",
     held: "gehalten {time}",

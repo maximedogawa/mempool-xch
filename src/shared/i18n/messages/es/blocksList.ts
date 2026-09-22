@@ -13,7 +13,7 @@ const messages: Translation<typeof en> = {
   fees: "Comisiones",
   xchMoved: "XCH movidos",
   pool: "Pool",
-  headerHash: "Header hash",
+  headerHash: "Hash de cabecera",
   txBlock: "bloque tx",
   noTx: "sin tx",
   poolTitle: "{pool} · pago {hash}",

@@ -20,7 +20,7 @@ const messages: Translation<typeof en> = {
       "Im Mempool liegt kein ausstehendes Spend Bundle mit dieser ID. Spend Bundles, die ohne Bestätigung aus dem Mempool entfernt wurden, bewahren Nodes nicht auf, daher können sie nicht angezeigt werden. Bestätigte Transaktionen lassen sich nur über einen Coinset-Endpunkt abfragen; suchen Sie mit einem eigenen Node stattdessen nach den Coin-IDs.",
   },
   pendingInIndex:
-    "Im Index als ausstehend geführt. Warte darauf, dass der Node das Spend Bundle liefert; Prüfung alle 10 Sekunden.",
+    "Im Index als ausstehend geführt. Wartet darauf, dass der Node das Spend Bundle liefert; Prüfung alle 10 Sekunden.",
   rawJson: {
     show: "Roh-JSON anzeigen",
     hide: "Roh-JSON ausblenden",
@@ -59,7 +59,7 @@ const messages: Translation<typeof en> = {
     clvmCost: "{cost} CLVM-Kosten",
     costHint: "Gesamte CLVM-Kosten des Spend Bundles; ein Block fasst 11 Mrd. Kosten.",
     feePerCost: "Gebühr / Kosten",
-    mojoPerCost: "mojo pro Kosteneinheit",
+    mojoPerCost: "Mojo pro Kosteneinheit",
     projectedBlock: "Voraussichtlicher Block",
     projectedPosition: "{eta} · Position {position} von {total}",
     notInSummary: "noch nicht im zusammengefassten Mempool",
@@ -73,7 +73,7 @@ const messages: Translation<typeof en> = {
     },
     removedFromMempool: "aus dem Mempool entfernt",
     time: "Zeit",
-    feeRate: "{rate} mojo / Kosten",
+    feeRate: "{rate} Mojo / Kosten",
     inferredCost: "aus der Chain abgeleitet (keine Kosten erfasst)",
     verdict: "Einschätzung",
   },
@@ -128,8 +128,8 @@ const messages: Translation<typeof en> = {
     share: "{percent} eines Blocks",
     noFeeLabel: "Keine Gebühr gezahlt",
     noFeeDetail:
-      "Belegte {share}; der Farmer hat sie kostenlos aufgenommen, oder sie war klein genug, um trotzdem hineinzupassen.",
-    paidDetail: "Belegte {share} für diesen Gebührensatz.",
+      "Belegt {share}; der Farmer hat sie kostenlos aufgenommen, oder sie war klein genug, um trotzdem hineinzupassen.",
+    paidDetail: "Belegt {share} bei diesem Gebührensatz.",
   },
 };
 

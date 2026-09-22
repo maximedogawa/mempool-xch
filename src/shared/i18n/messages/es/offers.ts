@@ -75,7 +75,7 @@ const messages: Translation<typeof en> = {
     beingTaken: "Se está aceptando en la transacción <tx></tx>.",
     beingTakenBlock:
       "Se está aceptando en la transacción <tx></tx> en el bloque <block>#{height}</block>.",
-    notSettled: "Nada ha aceptado ni cancelado esta oferta on-chain todavía.",
+    notSettled: "Todavía nadie ha aceptado ni cancelado esta oferta on-chain.",
     noOfferFile:
       "Coinset indexa el estado de la oferta pero no el archivo de oferta, así que esta página no puede pasarlo a una billetera. Búscala en <link>Dexie</link> para aceptarla.",
   },

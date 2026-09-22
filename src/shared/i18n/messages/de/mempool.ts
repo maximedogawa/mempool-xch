@@ -6,7 +6,7 @@ const messages: Translation<typeof en> = {
   viewAll: "Alle anzeigen →",
   spendBundles: "Spend Bundles",
   summarised: "{count} zusammengefasst",
-  summarisedSyncing: "{count} zusammengefasst · synchronisiert",
+  summarisedSyncing: "{count} zusammengefasst · wird synchronisiert",
   spendBundlesHint:
     "Vom Node gemeldete Anzahl. Holt die Zusammenfassung nach einem Neustart noch auf, ist die zusammengefasste Zahl für einige Sekunden niedriger.",
   costUsed: "Genutzte Kosten",

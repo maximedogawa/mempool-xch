@@ -34,7 +34,7 @@ const messages: Translation<typeof en> = {
       "La API indexada de Coinset no tiene un endpoint agregado para esto (verificado con su especificación OpenAPI); un futuro proveedor como nodexch podría añadirlo.",
     needsCoinsetAggregate: "Necesitaría un endpoint agregado de Coinset.",
     sampledOnly:
-      "Solo se muestrean las últimas 2 horas en este navegador; elige 6h o 24h para verlo.",
+      "Solo se muestrean las últimas 2 horas en este navegador; elige 6 h o 24 h para verlo.",
     sameSample: "La misma muestra de 2 horas del navegador que Coste usado.",
     perWindow: "Contado por ventana de muestreo a partir de get_block_records.",
     noNetspace:
@@ -53,7 +53,7 @@ const messages: Translation<typeof en> = {
     technical:
       "Muestreado en este navegador cada vez que se actualiza el resumen de la mempool; se conserva durante 2 horas.",
     unavailable:
-      "Solo se muestrean las últimas 2 horas en este navegador (Coinset no tiene endpoint de historial de la mempool); elige 6h o 24h para verlo.",
+      "Solo se muestrean las últimas 2 horas en este navegador (Coinset no tiene endpoint de historial de la mempool); elige 6 h o 24 h para verlo.",
   },
   waitingBundles: {
     title: "Bundles en espera",
@@ -110,13 +110,13 @@ const messages: Translation<typeof en> = {
   },
   netspace: {
     title: "Netspace",
-    definition: "Espacio total estimado que hace farming en la red.",
+    definition: "Espacio total estimado dedicado al farming en la red.",
     technical:
       "get_network_space entre el primer y el último bloque de cada ventana de muestreo — la propia estimación del nodo basada en la dificultad, no calculada por nosotros.",
   },
   difficulty: {
     title: "Dificultad",
-    definition: "El objetivo de dificultad de prueba de espacio actual del nodo.",
+    definition: "El objetivo actual de dificultad de la prueba de espacio del nodo.",
     technical:
       "No hay una forma verificada de recuperar la dificultad histórica desde get_block_records; get_blockchain_state solo informa del valor actual.",
     unavailable:
