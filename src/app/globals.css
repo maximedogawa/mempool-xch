@@ -4,8 +4,14 @@
  * mempoolxch.space design tokens: mempool.space's dark navy base with the accent
  * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
  * Every colour used by components is a token here so Sage's theme can remap them later.
+ *
+ * `html:root`, not `:root`: inside Sage, sage-app-sdk's getSageClient() mounts the wallet's
+ * shadcn variables in a late `:root { --primary: …; --accent: …; --border: …; --radius: … }`
+ * style, whose names collide with ours. Same specificity would let it win and turn the dark
+ * theme's green white; one extra type selector keeps ours, and `:root[data-theme="light"]`
+ * below still outranks this block (TASK-095).
  */
-:root {
+html:root {
   color-scheme: dark;
 
   --bg: #0f1220;
