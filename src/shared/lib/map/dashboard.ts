@@ -36,9 +36,7 @@ function record(value: unknown): UnknownRecord | null {
 }
 
 function finiteValues(value: unknown): number[] {
-  return Array.isArray(value)
-    ? value.map(Number).filter((item) => Number.isFinite(item))
-    : [];
+  return Array.isArray(value) ? value.map(Number).filter((item) => Number.isFinite(item)) : [];
 }
 
 function frameSeries(frame: unknown): DashboardSeries | null {
@@ -59,7 +57,9 @@ function frameSeries(frame: unknown): DashboardSeries | null {
   const times = finiteValues(timeIndex >= 0 ? columns[timeIndex] : []);
   const valueField = record(fields[valueIndex >= 0 ? valueIndex : fields.length - 1]);
   const labels = record(valueField?.labels) ?? {};
-  const key = String(labels.country_display ?? labels.country ?? labels.version ?? labels.network ?? "value");
+  const key = String(
+    labels.country_display ?? labels.country ?? labels.version ?? labels.network ?? "value"
+  );
   const label = String(
     valueField?.config && record(valueField.config)?.displayNameFromDS
       ? record(valueField.config)?.displayNameFromDS

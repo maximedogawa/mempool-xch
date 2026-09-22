@@ -6,7 +6,12 @@ function frame(label: Record<string, string>, values: unknown[], times: unknown[
     schema: {
       fields: [
         { name: "Time", type: "time" },
-        { name: "Value", type: "number", labels: label, config: { displayNameFromDS: Object.values(label)[0] } },
+        {
+          name: "Value",
+          type: "number",
+          labels: label,
+          config: { displayNameFromDS: Object.values(label)[0] },
+        },
       ],
     },
     data: { values: [times, values] },
