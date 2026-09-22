@@ -35,6 +35,45 @@ const messages: Translation<typeof en> = {
     liveChain: "实时链上",
     you: "我的",
   },
+  skipToContent: "跳到主要内容",
+  connection: {
+    live: "实时",
+    connecting: "连接中",
+    offline: "离线",
+    noData: "暂无数据",
+    connectingHint: "正在连接：{channel}…",
+    hint: "{channel}：{detail} 最后更新 {age}。",
+    srStatus: "{label}，通过 {channel}，最新高度 {peak}，最后更新 {age}",
+    unknownPeak: "未知",
+  },
+  network: {
+    label: "网络",
+    followsSage: "网络跟随 Sage 钱包",
+  },
+  footer: {
+    source: "{network}，通过 <host>{url}</host>",
+    sourceCustom: "{network}，通过 <host>{url}</host>（自定义节点）",
+    sourceSage: "钱包数据来自 Sage · 链上数据：{network}，通过 <host>{url}</host>",
+    sourceSageCustom:
+      "钱包数据来自 Sage · 链上数据：{network}，通过 <host>{url}</host>（自定义节点）",
+    live: "实时：{channel}",
+    learn: "学习",
+    help: "帮助",
+    network: "网络",
+    vaults: "金库",
+    status: "状态",
+    changelog: "更新日志",
+    settings: "设置",
+    dataByCoinset: "数据来自 Coinset",
+    disclaimer:
+      "仅为一般信息，不构成财务、投资、税务或法律建议；请自行研究。链上数据按原样并视可用情况显示，可能存在延迟、不完整或错误，且不保证可用性。mempoolxch.space 是一个独立项目，与 Chia Network Inc. 无关联，也未获其认可。",
+    legal: "法律信息",
+    terms: "使用条款",
+    notice: "法律声明",
+    privacy: "隐私政策",
+    cookies: "Cookie 政策",
+    cookieSettings: "Cookie 设置",
+  },
 };
 
 export default messages;

@@ -2,8 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { queryKeys } from "@/shared/api/queryKeys";
+import { formatFixed } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
@@ -37,16 +39,21 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { useMapNames } from "./useMapNames";
 import { WorldMap, type MapHandle, type MapPulse, type PeerMarker } from "./WorldMap";
 
-const CONNECTION_TYPE: Record<number, string> = {
-  0: "Full node",
-  1: "Harvester",
-  2: "Farmer",
-  3: "Timelord",
-  4: "Introducer",
-  5: "Wallet",
-};
+const CONNECTION_TYPE = {
+  0: "fullNode",
+  1: "harvester",
+  2: "farmer",
+  3: "timelord",
+  4: "introducer",
+  5: "wallet",
+} as const satisfies Record<number, string>;
+
+function isKnownType(type: number): type is keyof typeof CONNECTION_TYPE {
+  return type in CONNECTION_TYPE;
+}
 const COUNTRY_ROWS = 15;
 const FEED_LIMIT = 10;
 const PULSE_MS = 1_600;
@@ -54,8 +61,8 @@ const DASHBOARD = dashboardSnapshot as DashboardSnapshot;
 
 function byteRate(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024) return `${formatFixed(bytes / 1024, 1)} KB`;
+  return `${formatFixed(bytes / (1024 * 1024), 1)} MB`;
 }
 
 interface FeedEntry {
@@ -165,6 +172,8 @@ function useActivity(rows: CountryRow[]) {
 }
 
 export function MapPage() {
+  const t = useT("map");
+  const names = useMapNames();
   const { client, endpoints } = useSettings();
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -199,11 +208,13 @@ export function MapPage() {
         if (!trimmed) return true;
         return (
           row.label.toLowerCase().includes(trimmed) ||
+          names.country(row).toLowerCase().includes(trimmed) ||
           row.code.toLowerCase() === trimmed ||
-          String(row.region).toLowerCase().includes(trimmed)
+          String(row.region).toLowerCase().includes(trimmed) ||
+          names.region(row.region).toLowerCase().includes(trimmed)
         );
       }),
-    [rows, trimmed, regionFilter]
+    [rows, trimmed, regionFilter, names]
   );
   const matched = useMemo(() => new Set(matchedRows.map((row) => row.key)), [matchedRows]);
   const matchedNodes = matchedRows.reduce((sum, row) => sum + row.nodes, 0);
@@ -292,76 +303,79 @@ export function MapPage() {
   const snapshotAge = forNetwork ? formatAge(new Date(DASHBOARD.observedAt).getTime()) : "—";
   const visibleCountries = showAllCountries ? matchedRows : matchedRows.slice(0, COUNTRY_ROWS);
 
+  const bold = (c: ReactNode) => <strong className="text-fg">{c}</strong>;
+
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Network map</h1>
-          <Tooltip
-            text="Every figure on this page comes from Chia's published Peer Info dashboard snapshot. Country markers show aggregate node populations at representative points; no browser crawler or address harvesting is needed."
-            placement="bottom"
-          />
+          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <Tooltip text={t("titleHint")} placement="bottom" />
         </div>
-        <p className="max-w-3xl text-sm text-fg-muted">
-          Where the Chia full-node population sits, what it runs and what the network is doing right
-          now. Search or pick a region to narrow the map, then click a country for its detail.
-        </p>
+        <p className="max-w-3xl text-sm text-fg-muted">{t("intro")} </p>
       </header>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <StatTile
-          label="Full nodes"
+          label={t("stats.fullNodes")}
           value={formatNumber(forNetwork ? DASHBOARD.total : 0)}
-          sub={forNetwork ? `seen in the last 5 days` : "mainnet only"}
+          sub={forNetwork ? t("stats.fullNodesSub") : t("stats.mainnetOnly")}
           tone="primary"
-          hint="Full-node population reported by Chia's Peer Info dashboard over a five-day window."
+          hint={t("stats.fullNodesHint")}
         />
         <StatTile
-          label="Reliable"
+          label={t("stats.reliable")}
           value={DASHBOARD.capacity !== null ? formatNumber(DASHBOARD.capacity) : "—"}
           sub={
             DASHBOARD.capacity !== null
-              ? `${formatPercent(DASHBOARD.capacity / DASHBOARD.total, 1)} of the network`
+              ? t("stats.reliableSub", {
+                  share: formatPercent(DASHBOARD.capacity / DASHBOARD.total, 1),
+                })
               : undefined
           }
-          hint="Nodes stable enough that the crawler hands them out through the DNS introducers."
+          hint={t("stats.reliableHint")}
         />
         <StatTile
-          label="IPv6"
+          label={t("stats.ipv6")}
           value={DASHBOARD.ipv6 !== null ? formatPercent(DASHBOARD.ipv6 / DASHBOARD.total, 1) : "—"}
-          sub={DASHBOARD.ipv6 !== null ? `${formatNumber(DASHBOARD.ipv6)} nodes` : undefined}
-          hint="Share of the population the crawler reached over IPv6. A node can answer on both."
+          sub={DASHBOARD.ipv6 !== null ? t("stats.ipv6Sub", { count: DASHBOARD.ipv6 }) : undefined}
+          hint={t("stats.ipv6Hint")}
         />
         <StatTile
-          label="Countries"
+          label={t("stats.countries")}
           value={formatNumber(rows.length)}
-          sub={`${formatNumber(placed)} nodes placed`}
-          hint="Countries the crawler reported, all of them with a representative point on the map."
+          sub={t("stats.countriesSub", { count: placed })}
+          hint={t("stats.countriesHint")}
         />
         <StatTile
-          label="Concentration"
+          label={t("stats.concentration")}
           value={
-            spread.countriesForHalf > 0 ? `${formatNumber(spread.countriesForHalf)} countries` : "—"
+            spread.countriesForHalf > 0
+              ? t("stats.concentrationValue", { count: spread.countriesForHalf })
+              : "—"
           }
           sub={
-            spread.topLabel
-              ? `${spread.topLabel} holds ${formatPercent(spread.topShare, 1)}`
+            spread.topLabel && rows[0]
+              ? t("stats.concentrationSub", {
+                  country: names.country(rows[0]),
+                  share: formatPercent(spread.topShare, 1),
+                })
               : undefined
           }
           tone={spread.countriesForHalf > 0 && spread.countriesForHalf <= 3 ? "warning" : "default"}
-          hint="How many of the largest countries it takes to hold half of all full nodes."
+          hint={t("stats.concentrationHint")}
         />
         <StatTile
-          label="Snapshot"
+          label={t("stats.snapshot")}
           value={snapshotAge}
-          sub={forNetwork ? "last observed" : "unavailable"}
-          hint="Age of the dashboard capture this page is drawn from."
+          sub={forNetwork ? t("stats.snapshotSub") : t("stats.unavailable")}
+          hint={t("stats.snapshotHint")}
         />
       </div>
 
       <Card>
         <CardHeader
-          title="Chia full nodes — live"
+          title={t("mapCard.title")}
           action={
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -370,12 +384,12 @@ export function MapPage() {
                 className={`map-toggle ${showArcs ? "map-toggle-active" : ""}`}
                 onClick={() => setShowArcs((on) => !on)}
               >
-                Modelled reach
+                {t("mapCard.modelledReach")}
               </button>
               <div className="flex overflow-hidden rounded-sm border border-border bg-bg-elevated">
                 <button
                   type="button"
-                  aria-label="Zoom in"
+                  aria-label={t("mapCard.zoomIn")}
                   className="map-control"
                   onClick={() => map.current?.zoomBy(1.4)}
                 >
@@ -383,7 +397,7 @@ export function MapPage() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Zoom out"
+                  aria-label={t("mapCard.zoomOut")}
                   className="map-control"
                   onClick={() => map.current?.zoomBy(1 / 1.4)}
                 >
@@ -391,7 +405,7 @@ export function MapPage() {
                 </button>
                 <button
                   type="button"
-                  aria-label="Reset map view"
+                  aria-label={t("mapCard.resetView")}
                   className="map-control map-control-wide"
                   onClick={() => {
                     setQuery("");
@@ -401,7 +415,7 @@ export function MapPage() {
                     map.current?.reset();
                   }}
                 >
-                  reset
+                  {t("mapCard.reset")}
                 </button>
               </div>
             </div>
@@ -411,7 +425,7 @@ export function MapPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
             <div className="relative min-w-0 flex-1">
               <label htmlFor="map-location-search" className="sr-only">
-                Filter the map by country or region
+                {t("mapCard.searchLabel")}
               </label>
               <input
                 id="map-location-search"
@@ -423,7 +437,7 @@ export function MapPage() {
                 onKeyDown={(event) => {
                   if (event.key === "Escape") setSuggest(false);
                 }}
-                placeholder="filter the map — country, code or region"
+                placeholder={t("mapCard.searchPlaceholder")}
                 className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-faint focus:border-primary"
               />
               {suggest && trimmed && matchedRows.length > 0 ? (
@@ -433,7 +447,7 @@ export function MapPage() {
                       key={row.key}
                       type="button"
                       onClick={() => {
-                        setQuery(row.label);
+                        setQuery(names.country(row));
                         setSuggest(false);
                         selectCountry(row.key);
                       }}
@@ -445,10 +459,12 @@ export function MapPage() {
                           style={{ background: regionColor(row.region) }}
                           aria-hidden="true"
                         />
-                        <span className="text-accent">{row.label}</span>
+                        <span className="text-accent">{names.country(row)}</span>
                         <span className="text-fg-faint">#{row.rank}</span>
                       </span>
-                      <span className="tabular text-fg-faint">{formatNumber(row.nodes)} nodes</span>
+                      <span className="tabular text-fg-faint">
+                        {t("mapCard.suggestionNodes", { count: row.nodes })}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -474,7 +490,7 @@ export function MapPage() {
                       style={{ background: regionColor(region.region) }}
                       aria-hidden="true"
                     />
-                    {region.region}
+                    {names.region(region.region)}
                     <span className="tabular text-fg-faint">{formatNumber(region.nodes)}</span>
                   </button>
                 );
@@ -485,11 +501,19 @@ export function MapPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-fg-faint">
             <span>
               {filtered
-                ? `${formatNumber(matchedRows.length)} of ${formatNumber(rows.length)} countries · ${formatNumber(matchedNodes)} nodes (${formatPercent(DASHBOARD.total > 0 ? matchedNodes / DASHBOARD.total : 0, 1)})`
-                : `${formatNumber(DASHBOARD.total)} full nodes · ${formatNumber(rows.length)} countries`}
+                ? t("mapCard.filteredSummary", {
+                    shown: matchedRows.length,
+                    total: rows.length,
+                    nodes: matchedNodes,
+                    share: formatPercent(
+                      DASHBOARD.total > 0 ? matchedNodes / DASHBOARD.total : 0,
+                      1
+                    ),
+                  })
+                : t("mapCard.summary", { nodes: DASHBOARD.total, countries: rows.length })}
             </span>
             <span className="tabular">
-              drag to pan · double-click or ⌘/ctrl + wheel to zoom · {scale.toFixed(1)}×
+              {t("mapCard.controls", { scale: formatFixed(scale, 1) })}
             </span>
           </div>
 
@@ -515,7 +539,7 @@ export function MapPage() {
             {filtered && matchedRows.length === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <span className="rounded-sm border border-border bg-bg-elevated/95 px-3 py-2 text-xs text-fg-muted shadow-card">
-                  No country matches “{query}”.
+                  {t("mapCard.noMatch", { query })}
                 </span>
               </div>
             ) : null}
@@ -526,17 +550,19 @@ export function MapPage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader
-            title="Live activity as seen by this node"
+            title={t("activity.title")}
             action={
               <span className="tabular text-xs text-fg-faint">
-                {formatNumber(activity.counts.blocks)} blocks ·{" "}
-                {formatNumber(activity.counts.bundles)} bundles
+                {t("activity.counts", {
+                  blocks: activity.counts.blocks,
+                  bundles: activity.counts.bundles,
+                })}
               </span>
             }
           />
           <CardBody className="flex flex-col gap-3">
             {activity.feed.length === 0 ? (
-              <p className="py-4 text-center text-sm text-fg-faint">Waiting for the first event…</p>
+              <p className="py-4 text-center text-sm text-fg-faint">{t("activity.waiting")}</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border/60 text-sm" aria-live="polite">
                 {activity.feed.map((e) => (
@@ -546,13 +572,17 @@ export function MapPage() {
                   >
                     {e.kind === "block" ? (
                       <span>
-                        New peak{" "}
-                        <Link
-                          href={routes.block(e.height!)}
-                          className="text-accent hover:underline"
-                        >
-                          #{formatNumber(e.height!)}
-                        </Link>
+                        {t.rich("activity.newPeak", {
+                          height: formatNumber(e.height!),
+                          link: (c) => (
+                            <Link
+                              href={routes.block(e.height!)}
+                              className="text-accent hover:underline"
+                            >
+                              {c}
+                            </Link>
+                          ),
+                        })}
                       </span>
                     ) : (
                       <span className="flex flex-wrap items-center gap-1.5">
@@ -577,18 +607,16 @@ export function MapPage() {
 
         <Card>
           <CardHeader
-            title="Node versions"
+            title={t("versions.title")}
             action={
               <span className="tabular text-xs text-fg-faint">
-                {formatNumber(versions.reporting)} nodes report a version
+                {t("versions.reporting", { count: versions.reporting })}
               </span>
             }
           />
           <CardBody className="flex flex-col gap-3">
             {versions.rows.length === 0 ? (
-              <p className="py-6 text-center text-sm text-fg-faint">
-                The snapshot carries no version panel.
-              </p>
+              <p className="py-6 text-center text-sm text-fg-faint">{t("versions.empty")}</p>
             ) : (
               <>
                 <ul className="flex flex-col gap-2">
@@ -614,9 +642,16 @@ export function MapPage() {
                   ))}
                 </ul>
                 <p className="text-xs text-fg-faint">
-                  Shares are of the {formatNumber(versions.reporting)} nodes whose version the
-                  crawler knows ({formatPercent(versions.coverage, 1)} of the population)
-                  {versions.newest ? `; ${versions.newest} is the newest build reported` : ""}.
+                  {versions.newest
+                    ? t("versions.noteNewest", {
+                        reporting: versions.reporting,
+                        coverage: formatPercent(versions.coverage, 1),
+                        newest: versions.newest,
+                      })
+                    : t("versions.note", {
+                        reporting: versions.reporting,
+                        coverage: formatPercent(versions.coverage, 1),
+                      })}
                 </p>
               </>
             )}
@@ -627,8 +662,8 @@ export function MapPage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader
-            title="Regions"
-            action={<span className="text-xs text-fg-faint">click to filter the map</span>}
+            title={t("regions.title")}
+            action={<span className="text-xs text-fg-faint">{t("regions.action")}</span>}
           />
           <CardBody>
             <ul className="flex flex-col gap-2">
@@ -650,7 +685,9 @@ export function MapPage() {
                         style={{ background: regionColor(region.region) }}
                         aria-hidden="true"
                       />
-                      <span className="w-32 shrink-0 truncate text-fg">{region.region}</span>
+                      <span className="w-32 shrink-0 truncate text-fg">
+                        {names.region(region.region)}
+                      </span>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
                         <div
                           className="h-full rounded-full transition-[width] duration-500"
@@ -676,16 +713,16 @@ export function MapPage() {
 
         <Card>
           <CardHeader
-            title="Reachability"
-            action={<span className="text-xs text-fg-faint">five-day crawler window</span>}
+            title={t("reach.title")}
+            action={<span className="text-xs text-fg-faint">{t("reach.action")}</span>}
           />
           <CardBody className="flex flex-col gap-3">
             <ul className="flex flex-col gap-2">
               {transport.map((row) => (
-                <li key={row.label} className="flex items-center gap-3 text-sm">
+                <li key={row.id} className="flex items-center gap-3 text-sm">
                   <span className="flex w-24 shrink-0 items-center gap-1 text-fg">
-                    {row.label}
-                    <Tooltip text={row.hint} />
+                    {t(`reach.${row.id}`)}
+                    <Tooltip text={t(`reach.${row.id}Hint`)} />
                   </span>
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
                     <div
@@ -702,41 +739,41 @@ export function MapPage() {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-fg-faint">
-              IPv4 and IPv6 shares overlap: a dual-stack node is counted in both, so they add up to
-              more than the population.
-            </p>
+            <p className="text-xs text-fg-faint">{t("reach.overlap")}</p>
           </CardBody>
         </Card>
       </div>
 
       <Card>
         <CardHeader
-          title={filtered ? "Countries — filtered" : "Countries"}
+          title={filtered ? t("countries.titleFiltered") : t("countries.title")}
           action={
             <span className="text-xs text-fg-faint">
-              {formatNumber(matchedNodes)} nodes in {formatNumber(matchedRows.length)} countries
+              {t("countries.action", { nodes: matchedNodes, countries: matchedRows.length })}
             </span>
           }
         />
         <CardBody>
           {matchedRows.length === 0 ? (
             <p className="py-6 text-center text-sm text-fg-faint">
-              {rows.length === 0
-                ? "No dashboard snapshot for this network."
-                : "No country matches the current filter."}
+              {rows.length === 0 ? t("countries.noSnapshot") : t("countries.noMatch")}
             </p>
           ) : (
             <>
-              <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Countries">
+              <div
+                className="overflow-x-auto"
+                tabIndex={0}
+                role="region"
+                aria-label={t("countries.tableLabel")}
+              >
                 <Table>
                   <thead>
                     <tr>
                       <Th className="text-right">#</Th>
-                      <Th>Country</Th>
-                      <Th className="hidden sm:table-cell">Region</Th>
-                      <Th className="text-right">Nodes</Th>
-                      <Th className="w-2/5">Share</Th>
+                      <Th>{t("countries.country")}</Th>
+                      <Th className="hidden sm:table-cell">{t("countries.region")}</Th>
+                      <Th className="text-right">{t("countries.nodes")}</Th>
+                      <Th className="w-2/5">{t("countries.share")}</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -759,10 +796,12 @@ export function MapPage() {
                             <span className="mono text-[10px] font-semibold uppercase text-fg-faint">
                               {row.code}
                             </span>
-                            {row.label}
+                            {names.country(row)}
                           </span>
                         </Td>
-                        <Td className="hidden text-xs text-fg-muted sm:table-cell">{row.region}</Td>
+                        <Td className="hidden text-xs text-fg-muted sm:table-cell">
+                          {names.region(row.region)}
+                        </Td>
                         <Td className="tabular text-right">{formatNumber(row.nodes)}</Td>
                         <Td>
                           <div className="flex items-center gap-2">
@@ -792,8 +831,8 @@ export function MapPage() {
                   onClick={() => setShowAllCountries((open) => !open)}
                 >
                   {showAllCountries
-                    ? "Show the top 15 only"
-                    : `Show all ${formatNumber(matchedRows.length)} countries`}
+                    ? t("countries.showTop", { count: COUNTRY_ROWS })
+                    : t("countries.showAll", { count: matchedRows.length })}
                 </button>
               ) : null}
             </>
@@ -811,46 +850,37 @@ export function MapPage() {
       ) : null}
 
       <Card>
-        <CardHeader title="What this map is" />
+        <CardHeader title={t("about.title")} />
         <CardBody className="grid gap-3 text-sm text-fg-muted sm:grid-cols-2">
           <p>
-            <strong className="text-fg">What it shows.</strong> Country-level full-node populations
-            from Chia&apos;s Peer Info dashboard, captured{" "}
-            {forNetwork ? snapshotAge : "for mainnet"}, plus the connected peers of a configured
-            node. Marker size is the node count; colour is the region.
+            {forNetwork
+              ? t.rich("about.shows", { age: snapshotAge, b: bold })
+              : t.rich("about.showsMainnet", { b: bold })}
           </p>
-          <p>
-            <strong className="text-fg">What it is not.</strong> Chia does not publish node
-            coordinates, nor where a block was farmed or a spend bundle came from. Markers sit at
-            one representative point per country, and the reach arcs and pulses are a model of
-            propagation, not a packet route.
-          </p>
+          <p>{t.rich("about.notShows", { b: bold })}</p>
         </CardBody>
       </Card>
 
       <p className="text-xs text-fg-faint">
-        Source:{" "}
-        <a
-          href={DASHBOARD.source}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-accent hover:underline"
-        >
-          Chia Peer Info dashboard
-        </a>
-        , observed{" "}
-        {forNetwork
-          ? new Date(DASHBOARD.observedAt).toISOString().slice(0, 16).replace("T", " ")
-          : "—"}{" "}
-        UTC. The country panel accounts for {formatNumber(placed)} of the{" "}
-        {formatNumber(DASHBOARD.total)} nodes the population panel reports
-        {unaccounted !== 0
-          ? `; the ${formatNumber(Math.abs(unaccounted))}-node gap is between two separate dashboard queries, not a rounding error`
-          : ""}
-        . Only node addresses are ever sent to a geolocation service, never the visitor&apos;s.{" "}
-        {endpoints.isCoinset
-          ? "Point Settings at your own node to also see its connected peers here."
-          : null}
+        {t.rich(unaccounted !== 0 ? "sourceGap" : "source", {
+          observed: forNetwork
+            ? new Date(DASHBOARD.observedAt).toISOString().slice(0, 16).replace("T", " ")
+            : "—",
+          placed,
+          total: DASHBOARD.total,
+          gap: Math.abs(unaccounted),
+          link: (c) => (
+            <a
+              href={DASHBOARD.source}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-accent hover:underline"
+            >
+              {c}
+            </a>
+          ),
+        })}
+        {endpoints.isCoinset ? ` ${t("ownNodeHint")}` : null}
       </p>
     </div>
   );
@@ -858,6 +888,8 @@ export function MapPage() {
 
 /** Hover/selection read-out over the map: everything the snapshot knows about one country. */
 function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }) {
+  const t = useT("map");
+  const names = useMapNames();
   return (
     <div
       role="status"
@@ -870,21 +902,23 @@ function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }
           style={{ background: row ? regionColor(row.region) : "transparent" }}
           aria-hidden="true"
         />
-        <span className="truncate text-sm font-medium text-fg">{row?.label ?? "—"}</span>
+        <span className="truncate text-sm font-medium text-fg">
+          {row ? names.country(row) : "—"}
+        </span>
         <span className="mono ml-auto text-[10px] uppercase text-fg-faint">{row?.code ?? ""}</span>
       </div>
       <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
-        <dt className="text-fg-faint">Nodes</dt>
+        <dt className="text-fg-faint">{t("detail.nodes")}</dt>
         <dd className="tabular text-right text-fg">{row ? formatNumber(row.nodes) : "—"}</dd>
-        <dt className="text-fg-faint">Share</dt>
+        <dt className="text-fg-faint">{t("detail.share")}</dt>
         <dd className="tabular text-right text-fg">{row ? formatPercent(row.share, 2) : "—"}</dd>
-        <dt className="text-fg-faint">Rank</dt>
+        <dt className="text-fg-faint">{t("detail.rank")}</dt>
         <dd className="tabular text-right text-fg">{row ? `#${row.rank}` : "—"}</dd>
-        <dt className="text-fg-faint">Region</dt>
-        <dd className="truncate text-right text-fg">{row?.region ?? "—"}</dd>
+        <dt className="text-fg-faint">{t("detail.region")}</dt>
+        <dd className="truncate text-right text-fg">{row ? names.region(row.region) : "—"}</dd>
         {peers > 0 ? (
           <>
-            <dt className="text-fg-faint">Your peers</dt>
+            <dt className="text-fg-faint">{t("detail.yourPeers")}</dt>
             <dd className="tabular text-right text-accent">{formatNumber(peers)}</dd>
           </>
         ) : null}
@@ -898,9 +932,7 @@ function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }
           }}
         />
       </div>
-      <p className="mt-1.5 text-[10px] leading-tight text-fg-faint">
-        Dashboard estimate at a representative point, not a located node.
-      </p>
+      <p className="mt-1.5 text-[10px] leading-tight text-fg-faint">{t("detail.note")}</p>
     </div>
   );
 }
@@ -916,12 +948,17 @@ function PeerTables({
   loading: boolean;
   error: unknown;
 }) {
+  const t = useT("map");
+  const typeName = (type: number) =>
+    isKnownType(type)
+      ? t(`peers.types.${CONNECTION_TYPE[type]}`)
+      : t("peers.unknownType", { type: String(type) });
   if (error) {
     return (
       <EmptyState
         tone="danger"
-        title="Could not read connections"
-        description="Your node did not answer get_connections."
+        title={t("peers.errorTitle")}
+        description={t("peers.errorDescription")}
       />
     );
   }
@@ -945,38 +982,43 @@ function PeerTables({
         {[...byType.entries()].map(([type, count]) => (
           <div key={type} className="rounded-sm border border-border bg-bg-elevated px-3 py-2">
             <div className="text-[11px] uppercase tracking-wider text-fg-muted">
-              {CONNECTION_TYPE[type] ?? `Type ${type}`}
+              {typeName(type)}
             </div>
             <div className="tabular text-lg font-semibold">{formatNumber(count)}</div>
           </div>
         ))}
         {rows.length === 0 ? (
-          <p className="col-span-full py-2 text-sm text-fg-faint">No peer connections reported.</p>
+          <p className="col-span-full py-2 text-sm text-fg-faint">{t("peers.none")}</p>
         ) : null}
       </div>
 
       {rows.length > 0 ? (
         <Card>
           <CardHeader
-            title="Your node's connections"
+            title={t("peers.title")}
             action={
               <span className="text-xs text-fg-faint">
-                {formatNumber(rows.length)} peers · refreshes every 15 s
+                {t("peers.action", { count: rows.length })}
               </span>
             }
           />
           <CardBody>
-            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Connections">
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label={t("peers.tableLabel")}
+            >
               <Table>
                 <thead>
                   <tr>
-                    <Th>Peer</Th>
-                    <Th>Type</Th>
-                    <Th className="hidden lg:table-cell">Location</Th>
-                    <Th className="hidden xl:table-cell">Network</Th>
-                    <Th className="hidden text-right md:table-cell">Peak height</Th>
-                    <Th className="hidden text-right sm:table-cell">Sent / received</Th>
-                    <Th className="hidden text-right lg:table-cell">Connected</Th>
+                    <Th>{t("peers.peer")}</Th>
+                    <Th>{t("peers.type")}</Th>
+                    <Th className="hidden lg:table-cell">{t("peers.location")}</Th>
+                    <Th className="hidden xl:table-cell">{t("peers.network")}</Th>
+                    <Th className="hidden text-right md:table-cell">{t("peers.peakHeight")}</Th>
+                    <Th className="hidden text-right sm:table-cell">{t("peers.sentReceived")}</Th>
+                    <Th className="hidden text-right lg:table-cell">{t("peers.connected")}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -988,7 +1030,7 @@ function PeerTables({
                         <Td className="mono text-xs">
                           {p.peerHost}:{p.peerPort}
                         </Td>
-                        <Td>{CONNECTION_TYPE[p.type] ?? `Type ${p.type}`}</Td>
+                        <Td>{typeName(p.type)}</Td>
                         <Td className="hidden text-xs lg:table-cell">
                           {place ? (
                             <span className="flex items-center gap-1.5">

@@ -19,6 +19,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // The UI follows the browser language when none is chosen; pin it so text assertions hold.
+    locale: "en-US",
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

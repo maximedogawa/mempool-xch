@@ -25,6 +25,7 @@ import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon, Button, Card, CardBody, CardHeader, Hash } from "@/shared/ui";
+import { useT } from "@/shared/i18n/useT";
 import { kindOf, WalletAmount } from "./amounts";
 
 /** Confirmed rows stay on the dashboard this long. */
@@ -65,20 +66,24 @@ function MiniQueue({ status }: { status: PendingStatus }) {
 }
 
 function StatusLine({ status, confirmed }: { status: PendingStatus; confirmed: Confirmed | null }) {
+  const t = useT("wallet");
   if (confirmed) {
     return (
       <span className="inline-flex flex-wrap items-center gap-1.5 text-primary">
         <CheckCircle2 size={14} aria-hidden="true" />
-        {confirmed.height ? (
-          <>
-            Confirmed in block{" "}
-            <Link href={routes.block(confirmed.height)} className="font-semibold hover:underline">
-              {formatNumber(confirmed.height)}
-            </Link>
-          </>
-        ) : (
-          "Confirmed"
-        )}
+        {confirmed.height
+          ? t.rich("pending.confirmedIn", {
+              height: formatNumber(confirmed.height),
+              link: (c) => (
+                <Link
+                  href={routes.block(confirmed.height!)}
+                  className="font-semibold hover:underline"
+                >
+                  {c}
+                </Link>
+              ),
+            })
+          : t("pending.confirmed")}
         <span className="text-fg-faint">· {formatAge(confirmed.at)}</span>
       </span>
     );
@@ -134,6 +139,7 @@ function PendingRow({
   const received = tx.created.filter(mine);
   const sent = tx.spent.filter(mine);
   const primary = sent[0] ?? received[0];
+  const t = useT("wallet");
   return (
     <li
       className={cn(
@@ -160,11 +166,13 @@ function PendingRow({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate font-medium">
-          {sent.length && !received.length
-            ? "Sent"
-            : received.length && !sent.length
-              ? "Received"
-              : "Transaction"}
+          {t(
+            sent.length && !received.length
+              ? "direction.sent"
+              : received.length && !sent.length
+                ? "direction.received"
+                : "direction.transaction"
+          )}
           {tx.id ? (
             <>
               {" "}
@@ -180,7 +188,7 @@ function PendingRow({
           {tx.timestamp ? (
             <span className="font-normal text-fg-faint">
               {" "}
-              · submitted {formatAge(tx.timestamp * 1000)}
+              · {t("pending.submitted", { age: formatAge(tx.timestamp * 1000) })}
             </span>
           ) : null}
         </span>
@@ -206,6 +214,7 @@ function PendingRow({
  * one lands in a block. Renders nothing outside Sage.
  */
 export function WalletPending() {
+  const t = useT("wallet");
   const { inSage, walletAddress } = useSage();
   const { client, endpoints, settings, update } = useSettings();
   const txBatch = useLiveValue("txBatch");
@@ -324,9 +333,7 @@ export function WalletPending() {
     .map(([id, c]) => ({ id, c }))
     .sort((a, b) => b.c.at - a.c.at);
   const items = projected.summary?.items;
-  const title = rows.length
-    ? `Your transactions in flight · ${rows.length}`
-    : "Your transactions in flight";
+  const title = rows.length ? t("pending.titleCount", { count: rows.length }) : t("pending.title");
 
   return (
     <Card>
@@ -338,12 +345,8 @@ export function WalletPending() {
               type="button"
               onClick={toggleSound}
               aria-pressed={settings.sounds}
-              aria-label={
-                settings.sounds
-                  ? "Mute the confirmation chime"
-                  : "Play a chime when a transaction confirms"
-              }
-              title={settings.sounds ? "Chime on when a transaction confirms" : "Chime off"}
+              aria-label={settings.sounds ? t("pending.mute") : t("pending.unmute")}
+              title={settings.sounds ? t("pending.chimeOn") : t("pending.chimeOff")}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-fg-muted hover:text-fg"
             >
               {settings.sounds ? (
@@ -353,7 +356,7 @@ export function WalletPending() {
               )}
             </button>
             <Link href={routes.wallet()} className="text-xs text-accent hover:underline">
-              Wallet
+              {t("pending.walletLink")}
             </Link>
           </span>
         }
@@ -361,16 +364,14 @@ export function WalletPending() {
       <CardBody>
         {capability.refused && !capability.granted ? (
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-fg-muted">
-            <span>Allow Sage to share pending transactions to follow them here.</span>
+            <span>{t("pending.allowNotice")}</span>
             <Button size="sm" onClick={() => void capability.enable()}>
-              Enable in Sage
+              {t("enableInSage")}
             </Button>
           </div>
         ) : rows.length === 0 && confirmedRows.length === 0 ? (
           <p className="py-2 text-center text-sm text-fg-faint">
-            {pending.isLoading
-              ? "Reading the wallet…"
-              : "Nothing in flight. New sends show up here with their place in the queue."}
+            {pending.isLoading ? t("pending.reading") : t("pending.empty")}
           </p>
         ) : (
           <ul className="divide-y divide-border/60">

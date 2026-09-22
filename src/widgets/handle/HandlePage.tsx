@@ -29,14 +29,15 @@ import {
 } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { WatchButton } from "@/widgets/watchlist/WatchButton";
+import { useT } from "@/shared/i18n/useT";
 import { useHandle } from "./useHandle";
 
-const STATUS: Record<HandleStatus, { label: string; tone: "primary" | "warning" | "neutral" }> = {
-  active: { label: "Registered", tone: "primary" },
-  expired: { label: "Expired", tone: "warning" },
-  unknown: { label: "Not registered", tone: "neutral" },
-  syncing: { label: "Registry syncing", tone: "warning" },
-  unavailable: { label: "Registry unreachable", tone: "warning" },
+const STATUS_TONE: Record<HandleStatus, "primary" | "warning" | "neutral"> = {
+  active: "primary",
+  expired: "warning",
+  unknown: "neutral",
+  syncing: "warning",
+  unavailable: "warning",
 };
 
 /**
@@ -45,6 +46,7 @@ const STATUS: Record<HandleStatus, { label: string; tone: "primary" | "warning" 
  * artwork, so a miss there leaves the page intact.
  */
 export function HandlePage() {
+  const t = useT("handle");
   const raw = useDetailId("handle") ?? "";
   const { networkConfig } = useSettings();
   const handle = useMemo(() => parseHandle(raw), [raw]);
@@ -54,17 +56,12 @@ export function HandlePage() {
     return (
       <EmptyState
         tone="danger"
-        title="Not a valid handle"
-        description={`An XCHandles handle is 3 to 63 lowercase letters and digits, written @name, with no dots or dashes. Got: ${raw || "(empty)"}`}
+        title={t("invalidTitle")}
+        description={t("invalidDescription", { raw: raw || t("empty") })}
       />
     );
   if (!available)
-    return (
-      <EmptyState
-        title="Handles are a mainnet registry"
-        description="XCHandles runs on mainnet only. Switch the network back to mainnet to resolve a handle."
-      />
-    );
+    return <EmptyState title={t("mainnetTitle")} description={t("mainnetDescription")} />;
 
   const status = record?.status ?? "unavailable";
   const address = record?.p2PuzzleHash
@@ -77,10 +74,10 @@ export function HandlePage() {
     <div className="flex flex-col gap-5">
       <Card>
         <CardHeader
-          title="Handle"
+          title={t("title")}
           action={
             <span className="flex flex-wrap items-center gap-2">
-              <Badge tone={STATUS[status].tone}>{STATUS[status].label}</Badge>
+              <Badge tone={STATUS_TONE[status]}>{t(`status.${status}`)}</Badge>
               <a
                 href={xchandlesUrl(handle)}
                 target="_blank"
@@ -98,7 +95,7 @@ export function HandlePage() {
           {art?.thumbnailUrl ? (
             <AssetImage
               urls={[art.thumbnailUrl]}
-              alt={`Name NFT of ${formatHandle(handle)}`}
+              alt={t("artAlt", { handle: formatHandle(handle) })}
               className="h-28 w-28 shrink-0 self-center sm:self-start"
             />
           ) : (
@@ -109,7 +106,7 @@ export function HandlePage() {
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                Handle
+                {t("handle")}
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-base">
                 {formatHandle(handle)}
@@ -118,7 +115,7 @@ export function HandlePage() {
             </div>
             <div className="min-w-0">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                Resolves to
+                {t("resolvesTo")}
               </dt>
               <dd className="min-w-0 text-sm">
                 {isLoading ? (
@@ -132,9 +129,7 @@ export function HandlePage() {
                   </span>
                 ) : (
                   <span className="text-fg-faint">
-                    {status === "unknown"
-                      ? "Nobody has registered this handle."
-                      : "No address to resolve to."}
+                    {status === "unknown" ? t("nobodyRegistered") : t("noAddress")}
                   </span>
                 )}
               </dd>
@@ -142,7 +137,7 @@ export function HandlePage() {
             {expiry && expiration !== null ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {expiry.expired ? "Expired" : "Expires"}
+                  {expiry.expired ? t("expired") : t("expires")}
                 </dt>
                 <dd
                   className={
@@ -159,7 +154,7 @@ export function HandlePage() {
             {art?.nftId ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Name NFT
+                  {t("nameNft")}
                 </dt>
                 <dd className="min-w-0">
                   <Hash value={art.nftId} href={routes.nft(art.nftId)} head={14} tail={8} copy />
@@ -169,7 +164,7 @@ export function HandlePage() {
             {record?.ownerLauncherId ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Owner launcher id
+                  {t("ownerLauncherId")}
                 </dt>
                 <dd className="mono min-w-0 break-all text-xs text-fg-muted">
                   0x{record.ownerLauncherId}
@@ -185,13 +180,11 @@ export function HandlePage() {
         <Card>
           <CardBody className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-fg-muted">
-              {status === "syncing"
-                ? "The registry index is behind the chain and would rather say so than answer from stale state. Try again in a moment."
-                : "The XCHandles registry could not be reached."}
+              {status === "syncing" ? t("syncing") : t("unreachable")}
             </p>
             <Button size="sm" onClick={refetch}>
               <RefreshCw size={14} aria-hidden="true" />
-              Retry
+              {t("retry")}
             </Button>
           </CardBody>
         </Card>
@@ -199,26 +192,26 @@ export function HandlePage() {
 
       {registration ? (
         <Card>
-          <CardHeader title="Registry" />
+          <CardHeader title={t("registry")} />
           <CardBody>
             <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Last action
+                  {t("lastAction")}
                 </dt>
                 <dd className="capitalize">{registration.actionKind}</dd>
               </div>
               {registration.confirmationHeight !== null ? (
                 <div>
                   <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                    Confirmed in
+                    {t("confirmedIn")}
                   </dt>
                   <dd>
                     <Link
                       href={routes.block(registration.confirmationHeight)}
                       className="tabular text-accent hover:underline"
                     >
-                      Block {formatNumber(registration.confirmationHeight)}
+                      {t("block", { height: formatNumber(registration.confirmationHeight) })}
                     </Link>
                   </dd>
                 </div>
@@ -226,11 +219,13 @@ export function HandlePage() {
               {registration.protocolFee !== null ? (
                 <div>
                   <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                    Protocol fee
+                    {t("protocolFee")}
                   </dt>
                   <dd className="tabular">
-                    {formatNumber(registration.protocolFee)}{" "}
-                    <span className="text-fg-faint">mojos of the payment CAT</span>
+                    {t.rich("protocolFeeValue", {
+                      fee: formatNumber(registration.protocolFee),
+                      faint: (c) => <span className="text-fg-faint">{c}</span>,
+                    })}
                   </dd>
                 </div>
               ) : null}
@@ -241,8 +236,8 @@ export function HandlePage() {
 
       {status === "unknown" ? (
         <EmptyState
-          title={`${formatHandle(handle)} is not registered`}
-          description="No live slot in the registry resolves this handle. It can be registered on xchandles.com."
+          title={t("notRegisteredTitle", { handle: formatHandle(handle) })}
+          description={t("notRegisteredDescription")}
           action={
             <a
               href={xchandlesUrl(handle)}
@@ -251,7 +246,7 @@ export function HandlePage() {
               className="inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
             >
               <Wallet size={14} aria-hidden="true" />
-              Open it on XCHandles
+              {t("openOnXchandles")}
             </a>
           }
         />

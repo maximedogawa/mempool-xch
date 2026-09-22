@@ -11,11 +11,13 @@ import {
   type RefObject,
   type WheelEvent,
 } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { regionColor } from "@/shared/lib/map/colors";
 import { LAND_RUNS } from "@/shared/lib/map/landDots";
 import { cellCenter, GRID_STEP, MAP_HEIGHT, MAP_WIDTH, project } from "@/shared/lib/map/projection";
 import type { CountryRow } from "@/shared/lib/map/stats";
+import { useMapNames } from "./useMapNames";
 
 export interface MapPulse {
   id: number;
@@ -107,6 +109,8 @@ export function WorldMap({
   handleRef?: RefObject<MapHandle | null>;
   onViewChange?: (scale: number) => void;
 }) {
+  const t = useT("map");
+  const names = useMapNames();
   const [view, setView] = useState<View>(WORLD);
   /** The live view, ahead of React state while a drag is in flight. */
   const viewRef = useRef<View>(WORLD);
@@ -335,7 +339,7 @@ export function WorldMap({
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
         role="group"
-        aria-label={`World map of ${formatNumber(total)} observed Chia nodes in ${countries.length} countries`}
+        aria-label={t("worldMap.label", { nodes: total, countries: countries.length })}
         className="map-canvas block h-auto w-full select-none"
         tabIndex={0}
         style={{
@@ -437,7 +441,11 @@ export function WorldMap({
                   tabIndex={dim ? -1 : 0}
                   role="button"
                   aria-pressed={selected === marker.key}
-                  aria-label={`${marker.label}: ${formatNumber(marker.nodes)} node${marker.nodes === 1 ? "" : "s"}, rank ${marker.rank}`}
+                  aria-label={t("worldMap.marker", {
+                    country: names.country(marker),
+                    count: marker.nodes,
+                    rank: marker.rank,
+                  })}
                 >
                   {active ? (
                     <circle
@@ -472,7 +480,7 @@ export function WorldMap({
                       textAnchor="middle"
                       style={{ fontSize: `${11 / view.scale}px` }}
                     >
-                      {marker.code !== "—" ? marker.code : marker.label} ·{" "}
+                      {marker.code !== "—" ? marker.code : names.country(marker)} ·{" "}
                       {formatNumber(marker.nodes)}
                     </text>
                   ) : null}
@@ -489,7 +497,7 @@ export function WorldMap({
                   key={peer.host}
                   className="map-peer"
                   role="img"
-                  aria-label={`Connected peer ${peer.host} near ${peer.label}`}
+                  aria-label={t("worldMap.peer", { host: peer.host, place: peer.label })}
                 >
                   <circle
                     className="map-peer-ring"

@@ -1,4 +1,6 @@
 /** Chart range presets, shared by every chart on /charts. */
+import { plainT } from "@/shared/i18n/plain";
+
 export type RangeId = "6h" | "24h" | "7d" | "30d" | "1y" | "all";
 
 export interface RangeDef {
@@ -19,7 +21,15 @@ export const RANGES: readonly RangeDef[] = [
   { id: "7d", label: "7d", ms: 7 * DAY, windows: 14 },
   { id: "30d", label: "30d", ms: 30 * DAY, windows: 20 },
   { id: "1y", label: "1y", ms: 365 * DAY, windows: 24 },
-  { id: "all", label: "All", ms: null, windows: 24 },
+  {
+    id: "all",
+    // A getter so the label follows the UI language at render time.
+    get label() {
+      return plainT("common")("range.all");
+    },
+    ms: null,
+    windows: 24,
+  },
 ];
 
 export function rangeById(id: RangeId): RangeDef {

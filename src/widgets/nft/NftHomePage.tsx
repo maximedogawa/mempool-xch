@@ -7,11 +7,13 @@ import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader, EmptyState, Skeleton, StatTile } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents, useTopCollections } from "./useNftSection";
 
 export function NftHomePage() {
+  const t = useT("nft");
   const collections = useTopCollections("30", 6);
   const activity = useNftEvents(undefined, 8);
   const mints = useNftEvents(["mint"], 6);
@@ -36,57 +38,50 @@ export function NftHomePage() {
           <h1 className="text-lg font-semibold tracking-tight">
             NFT<span className="text-kind-nft">s</span>
           </h1>
-          <Tooltip
-            text="Collections, activity and mints from MintGarden (mainnet only) and open offers from Dexie — read on request, nothing stored on our server. Figures below are the top 6 collections by 30-day volume, not a platform-wide total: neither provider publishes one."
-            placement="bottom"
-          />
+          <Tooltip text={t("home.intro")} placement="bottom" />
         </div>
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
-          label="Top collections, 30d volume"
+          label={t("home.topVolume")}
           value={
             collections.data ? formatXchDecimal(totalVolume30d) : <Skeleton className="h-6 w-20" />
           }
-          hint="Sum of the 6 busiest collections' 30-day trade volume."
+          hint={t("home.topVolumeHint")}
         />
         <StatTile
-          label="Trades, top collections"
+          label={t("home.topTrades")}
           value={
             collections.data ? formatNumber(totalTrades30d) : <Skeleton className="h-6 w-16" />
           }
         />
         <StatTile
-          label="Recent activity"
+          label={t("home.recentActivity")}
           value={
             activity.data ? formatNumber(activityEvents.length) : <Skeleton className="h-6 w-12" />
           }
-          sub="events shown below"
+          sub={t("home.eventsShown")}
         />
         <StatTile
-          label="Recent mints"
+          label={t("home.recentMints")}
           value={mints.data ? formatNumber(mintEvents.length) : <Skeleton className="h-6 w-12" />}
-          sub="mints shown below"
+          sub={t("home.mintsShown")}
         />
       </div>
 
       <Card>
         <CardHeader
-          title="Collections in the spotlight"
+          title={t("home.spotlight")}
           action={
             <Link href={routes.nftCollections()} className="text-xs text-accent hover:underline">
-              All collections →
+              {t("home.allCollections")}
             </Link>
           }
         />
         <CardBody>
           {collections.error ? (
-            <EmptyState
-              tone="danger"
-              title="Could not load collections"
-              description="MintGarden did not answer."
-            />
+            <EmptyState tone="danger" title={t("collectionsError")} description={t("noAnswer")} />
           ) : collections.isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {Array.from({ length: 6 }, (_, i) => (
@@ -105,7 +100,7 @@ export function NftHomePage() {
                 >
                   <AssetImage
                     urls={c.thumbnailUrl ? [c.thumbnailUrl] : []}
-                    alt={c.name ?? "collection"}
+                    alt={c.name ?? t("home.collectionAlt")}
                     rounded=""
                     sensitivity={c.sensitivity}
                     veilDetail={false}
@@ -117,19 +112,19 @@ export function NftHomePage() {
                   />
                   <div className="relative z-10 flex flex-col gap-0.5 p-2.5">
                     <span className="truncate text-sm font-semibold text-white">
-                      {c.name ?? "Untitled"}
+                      {c.name ?? t("untitled")}
                     </span>
                     <span className="tabular text-[11px] font-medium text-white/75">
                       {c.floorPriceXch !== null
-                        ? `${formatXchDecimal(c.floorPriceXch)} floor`
-                        : "no floor"}
+                        ? t("home.floor", { price: formatXchDecimal(c.floorPriceXch) })
+                        : t("home.noFloor")}
                     </span>
                   </div>
                 </a>
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-fg-faint">No collection data available.</p>
+            <p className="py-4 text-center text-sm text-fg-faint">{t("home.noCollections")}</p>
           )}
         </CardBody>
       </Card>
@@ -137,20 +132,16 @@ export function NftHomePage() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Card>
           <CardHeader
-            title="Recent activity"
+            title={t("home.recentActivity")}
             action={
               <Link href={routes.nftActivity()} className="text-xs text-accent hover:underline">
-                All activity →
+                {t("home.allActivity")}
               </Link>
             }
           />
           <CardBody>
             {activity.error ? (
-              <EmptyState
-                tone="danger"
-                title="Could not load activity"
-                description="MintGarden did not answer."
-              />
+              <EmptyState tone="danger" title={t("activityError")} description={t("noAnswer")} />
             ) : activity.isLoading ? (
               <div className="flex flex-col gap-2">
                 {Array.from({ length: 4 }, (_, i) => (
@@ -164,26 +155,22 @@ export function NftHomePage() {
                 ))}
               </ul>
             ) : (
-              <p className="py-4 text-center text-sm text-fg-faint">No recent activity.</p>
+              <p className="py-4 text-center text-sm text-fg-faint">{t("home.noActivity")}</p>
             )}
           </CardBody>
         </Card>
         <Card>
           <CardHeader
-            title="New mints"
+            title={t("home.newMints")}
             action={
               <Link href={routes.nftMints()} className="text-xs text-accent hover:underline">
-                All mints →
+                {t("home.allMints")}
               </Link>
             }
           />
           <CardBody>
             {mints.error ? (
-              <EmptyState
-                tone="danger"
-                title="Could not load mints"
-                description="MintGarden did not answer."
-              />
+              <EmptyState tone="danger" title={t("mintsError")} description={t("noAnswer")} />
             ) : mints.isLoading ? (
               <div className="flex flex-col gap-2">
                 {Array.from({ length: 4 }, (_, i) => (
@@ -197,14 +184,16 @@ export function NftHomePage() {
                 ))}
               </ul>
             ) : (
-              <p className="py-4 text-center text-sm text-fg-faint">No recent mints.</p>
+              <p className="py-4 text-center text-sm text-fg-faint">{t("noRecentMints")}</p>
             )}
           </CardBody>
         </Card>
       </div>
       <p className="text-xs text-fg-faint">
-        Have an NFT id or a launcher id? Search it above, or open{" "}
-        <span className="mono">/nft/&lt;id&gt;</span> directly.
+        {t.rich("home.searchHint", {
+          path: "/nft/<id>",
+          mono: (c) => <span className="mono">{c}</span>,
+        })}
       </p>
     </div>
   );

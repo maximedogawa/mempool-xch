@@ -136,10 +136,10 @@ export function versionBreakdown(snapshot: DashboardSnapshot): VersionBreakdown 
 }
 
 export interface TransportRow {
-  label: string;
+  /** Which panel; the page translates it into a label and an explanation. */
+  id: "ipv4" | "ipv6" | "reliable";
   nodes: number | null;
   share: number | null;
-  hint: string;
 }
 
 /**
@@ -150,24 +150,9 @@ export function transportRows(snapshot: DashboardSnapshot): TransportRow[] {
   const share = (value: number | null) =>
     value !== null && snapshot.total > 0 ? value / snapshot.total : null;
   return [
-    {
-      label: "IPv4",
-      nodes: snapshot.ipv4,
-      share: share(snapshot.ipv4),
-      hint: "Nodes the crawler reached over IPv4 in the last five days.",
-    },
-    {
-      label: "IPv6",
-      nodes: snapshot.ipv6,
-      share: share(snapshot.ipv6),
-      hint: "Nodes the crawler reached over IPv6 in the last five days.",
-    },
-    {
-      label: "Reliable",
-      nodes: snapshot.capacity,
-      share: share(snapshot.capacity),
-      hint: "Nodes stable enough for the crawler to hand out through the DNS introducers.",
-    },
+    { id: "ipv4", nodes: snapshot.ipv4, share: share(snapshot.ipv4) },
+    { id: "ipv6", nodes: snapshot.ipv6, share: share(snapshot.ipv6) },
+    { id: "reliable", nodes: snapshot.capacity, share: share(snapshot.capacity) },
   ];
 }
 

@@ -19,17 +19,19 @@ import {
 } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { useCollectionsList } from "./useNftSection";
 
-const INTERVALS: readonly { id: CollectionInterval; label: string }[] = [
-  { id: "1", label: "24h" },
-  { id: "7", label: "7d" },
-  { id: "30", label: "30d" },
-  { id: "all", label: "All time" },
+const INTERVALS: readonly { id: CollectionInterval; label: "d1" | "d7" | "d30" | "all" }[] = [
+  { id: "1", label: "d1" },
+  { id: "7", label: "d7" },
+  { id: "30", label: "d30" },
+  { id: "all", label: "all" },
 ];
 
 export function NftCollectionsPage() {
+  const t = useT("nft");
   const [interval, setInterval] = useState<CollectionInterval>("30");
   const [search, setSearch] = useState("");
   const query = useCollectionsList(interval, search);
@@ -39,24 +41,21 @@ export function NftCollectionsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">NFT collections</h1>
-          <Tooltip
-            text="Sorted by trade volume in the window, from MintGarden. Floor price is MintGarden's own lowest active listing."
-            placement="bottom"
-          />
+          <h1 className="text-lg font-semibold">{t("collections.title")}</h1>
+          <Tooltip text={t("collections.intro")} placement="bottom" />
         </div>
       </header>
 
       <Card>
         <CardHeader
-          title="Collections"
+          title={t("collections.card")}
           action={
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search collections"
-              aria-label="Search collections"
+              placeholder={t("collections.search")}
+              aria-label={t("collections.search")}
               className="h-8 w-48 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
             />
           }
@@ -64,9 +63,13 @@ export function NftCollectionsPage() {
         <CardBody className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">
-              Window
+              {t("collections.window")}
             </span>
-            <div role="radiogroup" aria-label="Window" className="flex flex-wrap gap-1">
+            <div
+              role="radiogroup"
+              aria-label={t("collections.window")}
+              className="flex flex-wrap gap-1"
+            >
               {INTERVALS.map((opt) => (
                 <button
                   key={opt.id}
@@ -81,18 +84,14 @@ export function NftCollectionsPage() {
                       : "border-border bg-bg text-fg-muted hover:text-fg"
                   )}
                 >
-                  {opt.label}
+                  {t(`collections.intervals.${opt.label}`)}
                 </button>
               ))}
             </div>
           </div>
 
           {query.error ? (
-            <EmptyState
-              tone="danger"
-              title="Could not load collections"
-              description="MintGarden did not answer."
-            />
+            <EmptyState tone="danger" title={t("collectionsError")} description={t("noAnswer")} />
           ) : query.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 8 }, (_, i) => (
@@ -101,18 +100,25 @@ export function NftCollectionsPage() {
             </div>
           ) : collections.length === 0 ? (
             <p className="py-6 text-center text-sm text-fg-faint">
-              No collections match &quot;{search}&quot;.
+              {t("collections.noMatch", { query: search })}
             </p>
           ) : (
-            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Collections">
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label={t("collections.card")}
+            >
               <Table>
                 <thead>
                   <tr>
-                    <Th>Collection</Th>
-                    <Th className="hidden text-right md:table-cell">Items</Th>
-                    <Th className="text-right">Floor</Th>
-                    <Th className="text-right">Volume</Th>
-                    <Th className="hidden text-right sm:table-cell">Trades</Th>
+                    <Th>{t("collections.colCollection")}</Th>
+                    <Th className="hidden text-right md:table-cell">{t("collections.colItems")}</Th>
+                    <Th className="text-right">{t("collections.colFloor")}</Th>
+                    <Th className="text-right">{t("collections.colVolume")}</Th>
+                    <Th className="hidden text-right sm:table-cell">
+                      {t("collections.colTrades")}
+                    </Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,7 +139,7 @@ export function NftCollectionsPage() {
                             sensitivity={c.sensitivity}
                             veilDetail={false}
                           />
-                          <span className="truncate font-medium">{c.name ?? "Untitled"}</span>
+                          <span className="truncate font-medium">{c.name ?? t("untitled")}</span>
                         </a>
                       </Td>
                       <Td className="tabular hidden text-right md:table-cell">
@@ -162,7 +168,7 @@ export function NftCollectionsPage() {
               disabled={query.isFetchingNextPage}
               onClick={() => void query.fetchNextPage()}
             >
-              {query.isFetchingNextPage ? "Loading…" : "Show more"}
+              {query.isFetchingNextPage ? t("loading") : t("showMore")}
             </Button>
           ) : null}
         </CardBody>

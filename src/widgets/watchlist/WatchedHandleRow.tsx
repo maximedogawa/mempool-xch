@@ -11,6 +11,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Hash } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { useHandle } from "@/widgets/handle/useHandle";
+import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchStatus } from "./WatchlistParts";
 
 /**
@@ -19,6 +20,7 @@ import { RemoveWatch, WatchStatus } from "./WatchlistParts";
  * once the registry's last 30 days are reached.
  */
 export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove: () => void }) {
+  const t = useT("watchlist");
   const { networkConfig } = useSettings();
   // The id is the registry's bare key; the @ is how it is written back out.
   const handle = item.id;
@@ -37,7 +39,7 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
         {art?.thumbnailUrl ? (
           <AssetImage
             urls={[art.thumbnailUrl]}
-            alt={`Name NFT of ${shown}`}
+            alt={t("handle.artAlt", { handle: shown })}
             className="h-10 w-10 shrink-0"
             rounded="rounded-xl"
           />
@@ -49,23 +51,23 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-              Handle
+              {t("handle.kind")}
             </span>
             <WatchStatus pending={!!flagged}>
               <Eye size={11} aria-hidden="true" />
               {!available
-                ? "Mainnet only"
+                ? t("common.mainnetOnly")
                 : isLoading
-                  ? "Checking…"
+                  ? t("common.checking")
                   : status === "unknown"
-                    ? "Not registered"
+                    ? t("handle.notRegistered")
                     : status === "expired"
-                      ? "Expired"
+                      ? t("handle.expired")
                       : status === "syncing"
-                        ? "Registry syncing"
+                        ? t("handle.registrySyncing")
                         : status === "unavailable"
-                          ? "Registry unreachable"
-                          : "Registered"}
+                          ? t("handle.registryUnreachable")
+                          : t("handle.registered")}
             </WatchStatus>
           </div>
           <Link
@@ -79,22 +81,22 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
       </div>
       <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
         {!available ? (
-          <p className="text-xs text-fg-muted">XCHandles is a mainnet registry.</p>
+          <p className="text-xs text-fg-muted">{t("handle.mainnetNote")}</p>
         ) : (
           <>
             {address ? (
               <p className="flex min-w-0 items-center gap-1.5 text-xs text-fg-muted">
                 <Wallet size={13} aria-hidden="true" />
-                <span className="shrink-0">Resolves to</span>
+                <span className="shrink-0">{t("handle.resolvesTo")}</span>
                 <Hash value={address} href={routes.address(address)} head={10} tail={6} />
               </p>
             ) : (
               <p className="text-xs text-fg-faint">
                 {status === "unknown"
-                  ? "Nobody has registered this handle."
+                  ? t("handle.nobodyRegistered")
                   : isLoading
-                    ? "Resolving…"
-                    : "No address to resolve to."}
+                    ? t("handle.resolving")
+                    : t("handle.noAddress")}
               </p>
             )}
             {expiry ? (
@@ -106,7 +108,9 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
                 }
               >
                 <Clock3 size={13} aria-hidden="true" />
-                {expiry.expired ? `Expired ${expiry.text}` : `Expires ${expiry.text}`}
+                {expiry.expired
+                  ? t("handle.expiredWhen", { when: expiry.text })
+                  : t("handle.expiresWhen", { when: expiry.text })}
               </p>
             ) : null}
           </>

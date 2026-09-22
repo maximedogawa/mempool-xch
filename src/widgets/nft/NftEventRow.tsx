@@ -7,14 +7,9 @@ import { routes } from "@/shared/lib/routes";
 import type { NftEvent, NftEventKind } from "@/shared/lib/nft/mintgarden";
 import { Badge } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
+import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 
-const KIND_LABEL: Record<NftEventKind, string> = {
-  mint: "Mint",
-  transfer: "Transfer",
-  trade: "Sale",
-  burn: "Burn",
-};
 const KIND_TONE: Record<NftEventKind, "primary" | "info" | "xch" | "danger"> = {
   mint: "primary",
   transfer: "info",
@@ -23,6 +18,7 @@ const KIND_TONE: Record<NftEventKind, "primary" | "info" | "xch" | "danger"> = {
 };
 
 export function NftEventRow({ event }: { event: NftEvent }) {
+  const t = useT("nft");
   const nftId = launcherIdToNftId(event.nftId);
   return (
     <li className="group flex items-center gap-3 py-2.5 text-sm">
@@ -47,20 +43,20 @@ export function NftEventRow({ event }: { event: NftEvent }) {
           {event.nftName ?? nftId}
         </Link>
         <span className="truncate text-xs text-fg-faint">
-          {event.collectionName ?? "Uncategorised"}
+          {event.collectionName ?? t("event.uncategorised")}
           {event.blockHeight ? (
             <>
               {" "}
               ·{" "}
               <Link href={routes.block(event.blockHeight)} className="hover:underline">
-                block {event.blockHeight}
+                {t("event.block", { height: String(event.blockHeight) })}
               </Link>
             </>
           ) : null}
         </span>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-0.5">
-        <Badge tone={KIND_TONE[event.kind]}>{KIND_LABEL[event.kind]}</Badge>
+        <Badge tone={KIND_TONE[event.kind]}>{t(`event.kinds.${event.kind}`)}</Badge>
         <span className="text-xs text-fg-faint">
           {event.kind === "trade" && event.xchPrice !== null
             ? `${formatXchDecimal(event.xchPrice)} · `

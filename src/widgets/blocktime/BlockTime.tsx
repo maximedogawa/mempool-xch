@@ -13,6 +13,8 @@ import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 import { useReorgs } from "@/widgets/blocks/ReorgHistory";
+import { formatFixed, numberFormat } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 
 function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -29,6 +31,7 @@ function useNow(ms = 1000) {
  * the observed average block time, and how many recent blocks carried transactions.
  */
 export function BlockTime() {
+  const t = useT("blocktime");
   const { settings } = useSettings();
   const state = useBlockchainState();
   const recent = useRecentBlocks(settings.recentBlocks);
@@ -69,12 +72,7 @@ export function BlockTime() {
 
   return (
     <Card>
-      <CardHeader
-        title="Block time"
-        action={
-          <Tooltip text="Chia farms a block roughly every 18.75 seconds, but only about one in three carries transactions. The bar counts up to the expected gap between transaction blocks." />
-        }
-      />
+      <CardHeader title={t("title")} action={<Tooltip text={t("hint")} />} />
       <CardBody className="flex flex-col gap-3">
         {!state.data ? (
           <Skeleton className="h-16 w-full" />
@@ -83,7 +81,7 @@ export function BlockTime() {
             <div className="flex items-end justify-between gap-3">
               <div>
                 <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Since last transaction block
+                  {t("sinceLast")}
                 </div>
                 <div
                   className={cn(
@@ -96,7 +94,7 @@ export function BlockTime() {
               </div>
               <div className="text-right">
                 <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Expected gap
+                  {t("expectedGap")}
                 </div>
                 <div className="tabular text-lg font-semibold leading-tight">
                   ~{formatDuration(expectedInterval)}
@@ -105,7 +103,7 @@ export function BlockTime() {
             </div>
             <div
               role="meter"
-              aria-label="Progress toward the expected next transaction block"
+              aria-label={t("progressLabel")}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(progress * 100)}
@@ -126,19 +124,25 @@ export function BlockTime() {
             <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  Avg block
+                  {t("avgBlock")}
                 </dt>
-                <dd className="tabular text-sm font-semibold">{avgBlock.toFixed(1)} s</dd>
+                <dd className="tabular text-sm font-semibold">
+                  {t("seconds", { seconds: formatFixed(avgBlock, 1) })}
+                </dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  Tx blocks
+                  {t("txBlocks")}
                 </dt>
-                <dd className="tabular text-sm font-semibold">{Math.round(txShare * 100)}%</dd>
+                <dd className="tabular text-sm font-semibold">
+                  {numberFormat(undefined, { style: "percent", maximumFractionDigits: 0 }).format(
+                    txShare
+                  )}
+                </dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  Observed gap
+                  {t("observedGap")}
                 </dt>
                 <dd className="tabular text-sm font-semibold">
                   ~{formatDuration(observedInterval)}
@@ -148,12 +152,15 @@ export function BlockTime() {
                 className="rounded-sm border border-border bg-bg px-2 py-2"
                 title={
                   pushed
-                    ? `Pushed by Coinset ${formatAge(pushed.at)} · difficulty ${formatNumber(pushed.difficulty)}`
-                    : "From get_blockchain_state"
+                    ? t("pushedTitle", {
+                        age: formatAge(pushed.at),
+                        difficulty: formatNumber(pushed.difficulty),
+                      })
+                    : t("fromState")
                 }
               >
                 <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  Netspace
+                  {t("netspace")}
                 </dt>
                 <dd className="tabular text-sm font-semibold" data-testid="netspace">
                   {netspace !== null ? formatBytes(Number(netspace)) : "…"}
@@ -161,8 +168,11 @@ export function BlockTime() {
               </div>
             </dl>
             <p className="text-[11px] text-fg-faint">
-              Peak {peak !== undefined ? formatNumber(peak) : "…"} · last transaction block{" "}
-              {last ? formatNumber(last.height) : "…"} · window of {all.length} blocks
+              {t("footer", {
+                peak: peak !== undefined ? formatNumber(peak) : "…",
+                last: last ? formatNumber(last.height) : "…",
+                count: all.length,
+              })}
               {latestReorg ? (
                 <>
                   {" · "}
@@ -174,9 +184,11 @@ export function BlockTime() {
                     )}
                     data-testid="reorg-indicator"
                   >
-                    {recentReorg ? "reorg " : "last reorg "}
-                    {formatAge(latestReorg.at)} ({latestReorg.depth} block
-                    {latestReorg.depth === 1 ? "" : "s"} at #{formatNumber(latestReorg.height)})
+                    {t(recentReorg ? "reorgRecent" : "reorgLast", {
+                      age: formatAge(latestReorg.at),
+                      count: latestReorg.depth,
+                      height: formatNumber(latestReorg.height),
+                    })}
                   </Link>
                 </>
               ) : null}

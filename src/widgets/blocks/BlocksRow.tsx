@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { useProjectedBlocks, useRecentBlocks } from "@/shared/api/hooks";
 import { useWatchedActivity } from "@/widgets/watchlist/useWatchedActivity";
 import { CHIA } from "@/shared/config/networks";
+import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ProjectedBlockDetails } from "./ProjectedBlockDetails";
 import { ProjectedBlocks } from "./ProjectedBlocks";
@@ -15,6 +16,7 @@ import { RecentBlocks } from "./RecentBlocks";
  * in view (next block and newest block side by side) and can be dragged with the pointer.
  */
 export function BlocksRow() {
+  const t = useT("blocks");
   const { settings } = useSettings();
   const watched = useWatchedActivity();
   const projected = useProjectedBlocks(8);
@@ -69,7 +71,7 @@ export function BlocksRow() {
 
   return (
     <section
-      aria-label="Blocks"
+      aria-label={t("row.label")}
       className="rounded-card border border-border/60 bg-[linear-gradient(180deg,var(--bg-elevated),color-mix(in_srgb,var(--bg)_85%,black))]"
     >
       <div
@@ -92,7 +94,7 @@ export function BlocksRow() {
         <div className="flex min-w-max items-end gap-4">
           <div className="flex flex-col items-end gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              Projected · next blocks
+              {t("row.projected")}
             </span>
             <ProjectedBlocks
               watchedIds={watched.pendingIds}
@@ -112,7 +114,7 @@ export function BlocksRow() {
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              Confirmed · recent transaction blocks
+              {t("row.confirmed")}
             </span>
             <RecentBlocks
               watchedConfirmed={watched.confirmed}

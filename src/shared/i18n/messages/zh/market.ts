@@ -1,6 +1,60 @@
 import type { Translation } from "../../translate";
 import type en from "../en/market";
 
-const messages: Translation<typeof en> = {};
+const messages: Translation<typeof en> = {
+  title: "市场",
+  intro: "XCH 流动性的实时战场，涵盖公开订单簿和 Dexie 报价。市场数据仅供参考，不构成投资建议。",
+  quoteCurrency: "计价货币",
+  animate: "开启动画",
+  reduceMotion: "减少动画",
+  bestBid: "最高买价",
+  bestAsk: "最低卖价",
+  exchangesLive: "{live}/3 个交易所实时在线",
+  noLiveBooks: "无实时订单簿",
+  crossSpread: "跨交易所价差",
+  bidToAsk: "最高买价到最低卖价",
+  sources: "数据源",
+  updated: "更新于 {time}",
+  waiting: "等待中",
+  cexBooks: "中心化交易所订单簿",
+  cexIntro: "Gate、OKX 和 HTX 的公开 XCH 订单簿。",
+  live: "实时",
+  stale: "过期",
+  notAvailable: "不可用",
+  bid: "买价",
+  ask: "卖价",
+  spread: "价差",
+  bids: "买单",
+  asks: "卖单",
+  amountPrice: "数量 · 价格",
+  priceAmount: "价格 · 数量",
+  sourceUnavailable: "数据源不可用",
+  sourceExcluded: "在收到新的订单簿之前，它不计入汇总。",
+  dexieQuoteAsset: "Dexie 计价资产",
+  assetDescriptions: {
+    byc: "Circuit 去中心化美元稳定币",
+    wusdc: "warp.green 的 USDC CAT",
+  },
+  dexiePair: "Dexie 交易对",
+  dexBid: "DEX 买价",
+  dexAsk: "DEX 卖价",
+  dexStatus: "DEX 状态",
+  dexStatusSub: "未成交报价，最优价格",
+  source: "数据源",
+  publicOffersApi: "公开报价 API",
+  dexCexSpread: "DEX / CEX 价差",
+  selectUsdc: "选择 USDC 以进行比较",
+  differentQuote: "计价资产不同；已禁用比较",
+  waitingBoth: "正在等待两边的订单簿",
+  dexNote:
+    "Dexie 报价以 {asset} 计价。除非两者使用相同的计价资产，否则无法与 {quote} 直接比较。上方的中心化交易所订单簿以 {quote} 计价。",
+  howToRead: "如何解读",
+  howToReadBody:
+    "买方与卖方在中间价附近交锋。最高买价是买方当前给出的最高价格；最低卖价是卖方的最低价格。过期的数据源会显示其最后更新时间，并且绝不会影响跨交易所汇总。",
+  inspired:
+    "灵感来自 <link>XCHMempool Battlefield</link> 的战场布局；本页的实现和视觉设计均为原创。",
+  emptyBook: "订单簿为空",
+  unavailable: "不可用",
+};
 
 export default messages;

@@ -6,6 +6,7 @@
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { findProjectedPosition, type ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { feeBandFor, type FeeBand } from "@/shared/lib/mempool/feeBands";
+import { plainT } from "@/shared/i18n/plain";
 
 export type PendingPhase =
   /** Sage reports it pending but the summarised mempool has not seen it yet. */
@@ -102,18 +103,23 @@ export function trackPending(
 }
 
 export function pendingLine(s: PendingStatus): string {
+  const t = plainT("common");
   switch (s.phase) {
     case "broadcast":
-      return "Sent to the network, not seen in the mempool yet";
+      return t("pending.broadcast");
     case "waiting":
-      return "In the mempool, behind the projected blocks";
+      return t("pending.waiting");
     case "queued":
       return s.blockIndex === 0
-        ? `Next block · position ${s.position} of ${s.blockSize}`
-        : `Projected block ${(s.blockIndex ?? 0) + 1} · position ${s.position} of ${s.blockSize}`;
+        ? t("pending.nextBlock", { position: s.position ?? 0, size: s.blockSize ?? 0 })
+        : t("pending.projectedBlock", {
+            block: (s.blockIndex ?? 0) + 1,
+            position: s.position ?? 0,
+            size: s.blockSize ?? 0,
+          });
     case "confirmed":
-      return "Confirmed";
+      return t("pending.confirmed");
     case "gone":
-      return "No longer pending in the wallet";
+      return t("pending.gone");
   }
 }

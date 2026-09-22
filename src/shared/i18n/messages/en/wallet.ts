@@ -1,3 +1,115 @@
-const messages = {};
+/** Sage wallet page, wallet panels and the pending-transaction tracker (src/widgets/wallet). */
+const messages = {
+  sageBadge: "from your Sage wallet",
+  enableInSage: "Enable in Sage",
+  direction: {
+    sent: "Sent",
+    received: "Received",
+    transaction: "Transaction",
+  },
+  stats: {
+    balance: "Balance",
+    pending: "Pending",
+    inFlight: "transactions in flight",
+    coins: "Coins",
+    unspentInWallet: "unspent in the wallet",
+    sync: "Sync",
+    syncedCoins: "{synced} of {total} coins",
+    history: "History",
+    historySub: "transactions · {coins} coins",
+  },
+  addressPanel: {
+    title: "Your wallet",
+    open: "Open My wallet →",
+  },
+  coinPanel: {
+    title: "Your coin",
+    amount: "Amount",
+    address: "Address",
+    created: "Created",
+    spent: "Spent",
+    pending: "pending",
+    unspent: "unspent",
+    blockHeight: "block height",
+    stillInWallet: "still in the wallet",
+  },
+  priceChip: {
+    title: "XCH price from your Sage wallet, {age}",
+  },
+  txRow: {
+    pending: "Pending · {kind}",
+    block: "block {height}",
+    inMempool: "in the mempool",
+  },
+  loadMore: {
+    transactions: "{loaded} of {total} transactions",
+    coins: "{loaded} of {total} coins",
+    loading: "Loading…",
+    more: "Load more",
+  },
+  enable: {
+    assetBalances: "Sage access to asset balances is off.",
+    balanceAddress: "Sage access to your balance and address is off.",
+    history: "Sage access to your transaction history is off.",
+    coins: "Sage access to your coins is off.",
+  },
+  tabs: {
+    label: "Wallet sections",
+    assets: "Assets",
+    transactions: "Transactions",
+    coins: "Coins",
+  },
+  asset: {
+    owned: "{count} owned",
+    txCount: "{count} tx",
+    coins: { one: "{count} coin", other: "{count} coins" },
+  },
+  assets: {
+    title: "Assets · {count}",
+    partial:
+      "seen in the first {loaded} of {total} transactions · scroll Transactions to find more",
+  },
+  page: {
+    outsideTitle: "Open mempoolxch.space inside the Sage wallet",
+    outsideDescription:
+      "This page reads balances, pending transactions, assets and coins directly from your wallet. In a browser, search for your address instead.",
+    backToDashboard: "Back to the dashboard",
+    title: "My wallet",
+    fromSage: "from Sage",
+    intro:
+      "Balances, assets, transactions and coins come from your Sage wallet; the mempool, blocks and other addresses still come from {network} via the configured node.",
+    openAddress: "<link>Open this address in the explorer</link>.",
+    noAnswerTitle: "Sage did not answer",
+    noAnswerDescription:
+      "The wallet bridge could not be reached. Reopen the app from Sage's app list.",
+    receiveAddress: "Receive address",
+    pendingTitle: "Pending · {count}",
+    transactions: "Transactions",
+    newestFirst: "newest first",
+    noTransactions: "No transactions yet.",
+    coins: "Coins",
+    unspentNewestFirst: "unspent, newest first",
+    noCoins: "No coins to show.",
+    colCoin: "Coin",
+    colAddress: "Address",
+    colAmount: "Amount",
+    colCreated: "Created",
+  },
+  pending: {
+    title: "Your transactions in flight",
+    titleCount: "Your transactions in flight · {count}",
+    confirmedIn: "Confirmed in block <link>{height}</link>",
+    confirmed: "Confirmed",
+    submitted: "submitted {age}",
+    mute: "Mute the confirmation chime",
+    unmute: "Play a chime when a transaction confirms",
+    chimeOn: "Chime on when a transaction confirms",
+    chimeOff: "Chime off",
+    walletLink: "Wallet",
+    allowNotice: "Allow Sage to share pending transactions to follow them here.",
+    reading: "Reading the wallet…",
+    empty: "Nothing in flight. New sends show up here with their place in the queue.",
+  },
+};
 
 export default messages;

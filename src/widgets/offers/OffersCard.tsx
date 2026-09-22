@@ -13,9 +13,12 @@ import type { OfferList, OfferState, OfferStatus } from "@/shared/lib/rpc/types"
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Button, Card, CardBody, CardHeader, Hash, Skeleton } from "@/shared/ui";
 import { usePagedList } from "@/widgets/assets/usePagedList";
-import { OFFER_STATUS_LABEL, OfferSideView, OfferStatusBadge } from "./OfferParts";
+import { useT } from "@/shared/i18n/useT";
+import { OFFER_STATUS, OfferSideView, OfferStatusBadge } from "./OfferParts";
 
-const STATUS_TABS: OfferStatus[] = ["open", "confirmed", "cancelled", "expired", "pending"];
+type TabStatus = Extract<OfferStatus, "open" | "confirmed" | "cancelled" | "expired" | "pending">;
+
+const STATUS_TABS: TabStatus[] = ["open", "confirmed", "cancelled", "expired", "pending"];
 
 export type OfferScope =
   | { kind: "address"; p2: string }
@@ -31,9 +34,10 @@ function scopeKey(scope: OfferScope): string {
  * at a time (Coinset lists per status), newest first with "load more". Rendered nowhere on a
  * custom node: the offer index is Coinset-only.
  */
-export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; title?: string }) {
+export function OffersCard({ scope, title }: { scope: OfferScope; title?: string }) {
+  const t = useT("offers");
   const { client, endpoints, networkConfig } = useSettings();
-  const [status, setStatus] = useState<OfferStatus>("open");
+  const [status, setStatus] = useState<TabStatus>("open");
   const id = scopeKey(scope);
   const network = endpoints.network;
   const list = usePagedList<OfferState>({
@@ -70,9 +74,9 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
   return (
     <Card>
       <CardHeader
-        title={title}
+        title={title ?? t("card.title")}
         action={
-          <div role="group" aria-label="Offer status" className="flex flex-wrap gap-1">
+          <div role="group" aria-label={t("card.statusGroup")} className="flex flex-wrap gap-1">
             {STATUS_TABS.map((s) => (
               <button
                 key={s}
@@ -86,7 +90,7 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
                     : "border-border text-fg-muted hover:text-fg"
                 )}
               >
-                {OFFER_STATUS_LABEL[s].label}
+                {t(`status.${OFFER_STATUS[s].key}`)}
               </button>
             ))}
           </div>
@@ -103,8 +107,9 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
           <p className="py-4 text-center text-sm text-danger">{errorMessage(list.error)}</p>
         ) : list.items.length === 0 ? (
           <p className="py-4 text-center text-sm text-fg-faint">
-            No {OFFER_STATUS_LABEL[status].label.toLowerCase()} offers indexed
-            {scope.kind === "address" ? " with this address as maker" : " for this asset"}.
+            {scope.kind === "address"
+              ? t(`card.emptyAddress.${status}`)
+              : t(`card.emptyAsset.${status}`)}
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-border/60 text-sm" data-testid="offers-list">
@@ -121,22 +126,29 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <OfferStatusBadge status={o.status} />
                     <span className="inline-flex flex-wrap items-center gap-1.5">
-                      <span className="text-fg-faint">offers</span>
-                      <OfferSideView side={o.offered} />
-                      <ArrowRight size={13} aria-hidden="true" className="text-fg-faint" />
-                      <span className="text-fg-faint">for</span>
-                      <OfferSideView side={o.requested} />
+                      {t.rich("card.trade", {
+                        muted: (c) => <span className="text-fg-faint">{c}</span>,
+                        offered: () => <OfferSideView side={o.offered} />,
+                        arrow: () => (
+                          <ArrowRight size={13} aria-hidden="true" className="text-fg-faint" />
+                        ),
+                        requested: () => <OfferSideView side={o.requested} />,
+                      })}
                     </span>
                   </div>
                   <span className="flex flex-wrap items-center gap-x-3 text-xs text-fg-faint">
                     {maker && scope.kind !== "address" ? (
                       <span>
-                        by <Hash value={maker} href={routes.address(maker)} head={7} tail={4} />
+                        {t.rich("card.by", {
+                          maker: () => (
+                            <Hash value={maker} href={routes.address(maker)} head={7} tail={4} />
+                          ),
+                        })}
                       </span>
                     ) : null}
                     <span>{formatAge(when)}</span>
                     <Link href={routes.offer(o.offerId)} className="text-accent hover:underline">
-                      details
+                      {t("card.details")}
                     </Link>
                   </span>
                 </li>
@@ -152,7 +164,7 @@ export function OffersCard({ scope, title = "Offers" }: { scope: OfferScope; tit
             disabled={list.loadingMore}
             className="self-center"
           >
-            {list.loadingMore ? "Loading…" : "Load more"}
+            {list.loadingMore ? t("card.loading") : t("card.loadMore")}
           </Button>
         ) : null}
       </CardBody>

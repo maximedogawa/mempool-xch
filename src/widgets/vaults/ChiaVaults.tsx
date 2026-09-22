@@ -24,6 +24,7 @@ import {
   Tooltip,
 } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { useT } from "@/shared/i18n/useT";
 
 const SCANNER = "https://vaults.xchplorer.com";
 const EVENTS_KEY = "mempool-xch:vault-events:v1";
@@ -33,7 +34,6 @@ const EVENTS_LIMIT = 30;
 const EXAMPLE = {
   launcherId: "a4860e521551d49691d6985eb1b88dde44e38c5f7ac1ce39f3a33c4371005201",
   address: "xch1lv34uumcyg892zrv35rhrx87hu5nx87em7zcag5nc2vjecupkdzspc9xn6",
-  label: "Chia Network's Buy XCH hot wallet",
 };
 
 interface VaultEvent {
@@ -44,11 +44,17 @@ interface VaultEvent {
   at: number;
 }
 
-const ACTION_LABEL: Record<string, string> = {
-  initiate_recovery: "Recovery started",
-  finish_recovery: "Recovery finished",
-  clawback_recovery: "Recovery clawed back",
-};
+const ACTION_LABEL = {
+  initiate_recovery: "actions.initiateRecovery",
+  finish_recovery: "actions.finishRecovery",
+  clawback_recovery: "actions.clawbackRecovery",
+} as const;
+
+function actionLabel(action: string): (typeof ACTION_LABEL)[keyof typeof ACTION_LABEL] | null {
+  return Object.hasOwn(ACTION_LABEL, action)
+    ? ACTION_LABEL[action as keyof typeof ACTION_LABEL]
+    : null;
+}
 
 function loadEvents(): VaultEvent[] {
   try {
@@ -67,7 +73,7 @@ function loadEvents(): VaultEvent[] {
 type Lookup =
   | { kind: "launcher"; id: string; puzzleHash: string }
   | { kind: "address"; address: string; puzzleHash: string }
-  | { kind: "invalid"; reason: string }
+  | { kind: "invalid"; reason: "checksum" | "format" }
   | null;
 
 function parseLookup(raw: string): Lookup {
@@ -77,15 +83,12 @@ function parseLookup(raw: string): Lookup {
     const decoded = decodeBech32m(input);
     if (decoded && (decoded.prefix === "xch" || decoded.prefix === "txch"))
       return { kind: "address", address: input, puzzleHash: decoded.hash };
-    return { kind: "invalid", reason: "That looks like an address but its checksum is wrong." };
+    return { kind: "invalid", reason: "checksum" };
   }
   const id = normaliseId32(input);
   // A vault's funds sit at a puzzle hash derived from its launcher id (TASK-086).
   if (id) return { kind: "launcher", id, puzzleHash: vaultP2PuzzleHash(id) };
-  return {
-    kind: "invalid",
-    reason: "Paste a vault launcher id (64 hex characters) or the vault's xch address.",
-  };
+  return { kind: "invalid", reason: "format" };
 }
 
 /**
@@ -95,6 +98,7 @@ function parseLookup(raw: string): Lookup {
  * live stream reports; the full directory lives on the community scanner.
  */
 export function ChiaVaults() {
+  const t = useT("vaults");
   const { client, endpoints, networkConfig } = useSettings();
   const lastVault = useLiveValue("lastVault");
   const [input, setInput] = useState("");
@@ -168,52 +172,48 @@ export function ChiaVaults() {
     <section className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Chia Vaults</h2>
-          <Tooltip
-            text="A Chia Vault keeps the right to spend outside the coins: a passkey, hardware key or m-of-n signers control a singleton, and a recovery path lets the owner regain access after a delay the vault can claw back. Coinset streams recovery steps but has no vault directory; the scanner linked below indexes all of them."
-            placement="bottom"
-          />
+          <h2 className="text-lg font-semibold">{t("title")}</h2>
+          <Tooltip text={t("tooltip")} placement="bottom" />
         </div>
         <p className="text-sm text-fg-muted">
-          Look a vault up by its launcher id or its address, or browse them all on the{" "}
-          <ExternalLink href={SCANNER} className="text-accent hover:underline">
-            community vault scanner
-          </ExternalLink>
-          .
+          {t.rich("intro", {
+            link: (c) => (
+              <ExternalLink href={SCANNER} className="text-accent hover:underline">
+                {c}
+              </ExternalLink>
+            ),
+          })}
         </p>
       </header>
 
       <Card>
-        <CardHeader title="Vault lookup" />
+        <CardHeader title={t("lookup.title")} />
         <CardBody className="flex flex-col gap-3">
           <form
             onSubmit={submit}
             className="flex flex-col gap-2 sm:flex-row"
             role="search"
-            aria-label="Vault lookup"
+            aria-label={t("lookup.title")}
           >
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Vault launcher id or xch address"
-              aria-label="Vault launcher id or address"
+              placeholder={t("lookup.placeholder")}
+              aria-label={t("lookup.inputLabel")}
               className="mono min-w-0 flex-1 rounded-sm border border-border bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
             />
-            <Button type="submit">Look up</Button>
+            <Button type="submit">{t("lookup.submit")}</Button>
             <Button type="button" variant="ghost" onClick={() => setInput(EXAMPLE.address)}>
-              Try an example
+              {t("lookup.example")}
             </Button>
           </form>
           {lookup?.kind === "invalid" ? (
-            <p className="text-sm text-danger">{lookup.reason}</p>
+            <p className="text-sm text-danger">{t(`invalid.${lookup.reason}`)}</p>
           ) : null}
           {lookup?.kind === "launcher" ? (
             !client.hasIndexed ? (
               <div className="flex flex-col gap-2 text-sm" data-testid="vault-funds">
-                <p className="text-fg-muted">
-                  The vault&apos;s singleton needs Coinset to look up; its funds are read from your
-                  node at the address derived from the launcher id.
-                </p>
+                <p className="text-fg-muted">{t("lookup.needsCoinset")}</p>
                 {coins.isLoading ? (
                   <Skeleton className="h-20 w-full" />
                 ) : coins.error ? (
@@ -223,13 +223,16 @@ export function ChiaVaults() {
                 )}
                 {vaultAddress ? (
                   <p className="text-xs text-fg-faint">
-                    Vault address{" "}
-                    <Hash
-                      value={vaultAddress}
-                      href={routes.address(vaultAddress)}
-                      head={12}
-                      tail={6}
-                    />
+                    {t.rich("lookup.vaultAddress", {
+                      hash: () => (
+                        <Hash
+                          value={vaultAddress}
+                          href={routes.address(vaultAddress)}
+                          head={12}
+                          tail={6}
+                        />
+                      ),
+                    })}
                   </p>
                 ) : null}
               </div>
@@ -238,20 +241,18 @@ export function ChiaVaults() {
             ) : singleton.error ? (
               <p className="text-sm text-danger">{errorMessage(singleton.error)}</p>
             ) : !record?.coin ? (
-              <p className="text-sm text-fg-muted">
-                Coinset knows no singleton with this launcher id.
-              </p>
+              <p className="text-sm text-fg-muted">{t("lookup.noSingleton")}</p>
             ) : (
               <div className="flex flex-col gap-2 text-sm" data-testid="vault-singleton">
                 <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   <StatTile
-                    label="Singleton"
-                    value={singleton.data?.singletonType ?? "singleton"}
-                    sub={record.spent ? "current coin spent" : "current coin unspent"}
+                    label={t("lookup.singleton")}
+                    value={singleton.data?.singletonType ?? t("lookup.singletonFallback")}
+                    sub={record.spent ? t("lookup.coinSpent") : t("lookup.coinUnspent")}
                     tone="primary"
                   />
                   <StatTile
-                    label="Current coin since"
+                    label={t("lookup.coinSince")}
                     value={
                       record.confirmed_block_index
                         ? `#${formatNumber(record.confirmed_block_index)}`
@@ -260,12 +261,12 @@ export function ChiaVaults() {
                     sub={record.timestamp ? formatAge(record.timestamp * 1000) : undefined}
                   />
                   <StatTile
-                    label="Coin amount"
+                    label={t("lookup.coinAmount")}
                     value={formatAmount(BigInt(String(record.coin.amount ?? 0)))}
-                    sub="the singleton itself, not the vault's funds"
+                    sub={t("lookup.coinAmountSub")}
                   />
                   <StatTile
-                    label="Funds"
+                    label={t("lookup.funds")}
                     value={
                       coins.isLoading
                         ? "…"
@@ -275,40 +276,45 @@ export function ChiaVaults() {
                     }
                     sub={
                       coins.error
-                        ? "could not load the vault's coins"
+                        ? t("lookup.fundsError")
                         : coins.data
-                          ? `${formatNumber(coins.data.length)} unspent coin${coins.data.length === 1 ? "" : "s"}`
+                          ? t("lookup.unspentCoins", { count: coins.data.length })
                           : undefined
                     }
-                    hint="A vault's funds sit at a puzzle hash derived from its launcher id (the vault's p2 singleton puzzle), computed here in the browser. This is the balance of the vault's main address; coins the vault moved to other addresses are not included."
+                    hint={t("lookup.fundsHint")}
                   />
                 </div>
                 <p className="text-xs text-fg-faint">
-                  Launcher <Hash value={lookup.id} head={10} tail={6} copy /> · funds at{" "}
-                  {vaultAddress ? (
-                    <Hash
-                      value={vaultAddress}
-                      href={routes.address(vaultAddress)}
-                      head={10}
-                      tail={6}
-                    />
-                  ) : null}{" "}
-                  · current coin at{" "}
-                  <Hash
-                    value={puzzleHashToAddress(
-                      String(record.coin.puzzle_hash ?? "").replace(/^0x/, ""),
-                      networkConfig.addressPrefix
-                    )}
-                    head={10}
-                    tail={6}
-                  />{" "}
-                  ·{" "}
-                  <ExternalLink
-                    href={`${SCANNER}/vault/${lookup.id}`}
-                    className="text-accent hover:underline"
-                  >
-                    open on the scanner
-                  </ExternalLink>
+                  {t.rich("lookup.launcher", {
+                    launcher: () => <Hash value={lookup.id} head={10} tail={6} copy />,
+                    funds: () =>
+                      vaultAddress ? (
+                        <Hash
+                          value={vaultAddress}
+                          href={routes.address(vaultAddress)}
+                          head={10}
+                          tail={6}
+                        />
+                      ) : null,
+                    current: () => (
+                      <Hash
+                        value={puzzleHashToAddress(
+                          String(record.coin?.puzzle_hash ?? "").replace(/^0x/, ""),
+                          networkConfig.addressPrefix
+                        )}
+                        head={10}
+                        tail={6}
+                      />
+                    ),
+                    scanner: (c) => (
+                      <ExternalLink
+                        href={`${SCANNER}/vault/${lookup.id}`}
+                        className="text-accent hover:underline"
+                      >
+                        {c}
+                      </ExternalLink>
+                    ),
+                  })}
                 </p>
               </div>
             )
@@ -322,14 +328,17 @@ export function ChiaVaults() {
               <div className="flex flex-col gap-2 text-sm" data-testid="vault-address">
                 <FundsTiles coins={coins.data ?? []} balance={balance} />
                 <p className="text-xs text-fg-faint">
-                  {lookup.address === EXAMPLE.address ? `${EXAMPLE.label} · ` : ""}
-                  <Hash
-                    value={lookup.address}
-                    href={routes.address(lookup.address)}
-                    head={12}
-                    tail={6}
-                  />{" "}
-                  · full history on the address page.
+                  {lookup.address === EXAMPLE.address ? `${t("exampleLabel")} · ` : ""}
+                  {t.rich("lookup.fullHistory", {
+                    hash: () => (
+                      <Hash
+                        value={lookup.address}
+                        href={routes.address(lookup.address)}
+                        head={12}
+                        tail={6}
+                      />
+                    ),
+                  })}
                 </p>
               </div>
             )
@@ -339,19 +348,16 @@ export function ChiaVaults() {
 
       <Card>
         <CardHeader
-          title="Recovery activity"
+          title={t("activity.title")}
           action={
             <span className="text-xs text-fg-faint">
-              {endpoints.isCoinset ? "from Coinset's vault stream" : "needs the Coinset stream"}
+              {endpoints.isCoinset ? t("activity.fromStream") : t("activity.needsStream")}
             </span>
           }
         />
         <CardBody>
           {events.length === 0 ? (
-            <p className="py-4 text-center text-sm text-fg-faint">
-              No vault recovery seen on this connection yet. Recoveries are rare; events stay listed
-              here across visits once one arrives.
-            </p>
+            <p className="py-4 text-center text-sm text-fg-faint">{t("activity.empty")}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border/60 text-sm" aria-live="polite">
               {events.map((e) => (
@@ -369,7 +375,7 @@ export function ChiaVaults() {
                             : "warning"
                       }
                     >
-                      {ACTION_LABEL[e.action] ?? e.action}
+                      {actionLabel(e.action) ? t(actionLabel(e.action)!) : e.action}
                     </Badge>
                     <Hash value={e.vaultId} head={10} tail={6} />
                     {e.txId ? (
@@ -401,17 +407,18 @@ function FundsTiles({
   coins: readonly { confirmedBlockIndex: number }[];
   balance: bigint | null;
 }) {
+  const t = useT("vaults");
   return (
     <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
       <StatTile
-        label="Balance"
+        label={t("funds.balance")}
         value={balance !== null ? formatAmount(balance) : "—"}
         tone="primary"
-        sub="unspent coins at this address"
+        sub={t("funds.balanceSub")}
       />
-      <StatTile label="Coins" value={formatNumber(coins.length)} />
+      <StatTile label={t("funds.coins")} value={formatNumber(coins.length)} />
       <StatTile
-        label="Newest coin"
+        label={t("funds.newestCoin")}
         value={
           coins.length > 0
             ? `#${formatNumber(Math.max(...coins.map((c) => c.confirmedBlockIndex)))}`

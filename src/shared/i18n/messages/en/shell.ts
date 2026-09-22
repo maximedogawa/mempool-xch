@@ -33,6 +33,45 @@ const messages = {
     liveChain: "Live chain",
     you: "You",
   },
+  skipToContent: "Skip to content",
+  connection: {
+    live: "Live",
+    connecting: "Connecting",
+    offline: "Offline",
+    noData: "no data yet",
+    connectingHint: "Connecting: {channel}…",
+    hint: "{channel}: {detail} Last update {age}.",
+    srStatus: "{label} via {channel}, peak {peak}, last update {age}",
+    unknownPeak: "unknown",
+  },
+  network: {
+    label: "Network",
+    followsSage: "The network follows the Sage wallet",
+  },
+  footer: {
+    source: "{network} via <host>{url}</host>",
+    sourceCustom: "{network} via <host>{url}</host> (custom node)",
+    sourceSage: "wallet data from Sage · chain data: {network} via <host>{url}</host>",
+    sourceSageCustom:
+      "wallet data from Sage · chain data: {network} via <host>{url}</host> (custom node)",
+    live: "live: {channel}",
+    learn: "Learn",
+    help: "Help",
+    network: "Network",
+    vaults: "Vaults",
+    status: "Status",
+    changelog: "Changelog",
+    settings: "Settings",
+    dataByCoinset: "Data by Coinset",
+    disclaimer:
+      "General information only, not financial, investment, tax or legal advice; do your own research. Chain data is shown as is and as available, may be delayed, incomplete or wrong, and availability is not guaranteed. mempoolxch.space is an independent project, not affiliated with or endorsed by Chia Network Inc.",
+    legal: "Legal",
+    terms: "Terms of use",
+    notice: "Legal notice",
+    privacy: "Privacy policy",
+    cookies: "Cookie policy",
+    cookieSettings: "Cookie settings",
+  },
 };
 
 export default messages;

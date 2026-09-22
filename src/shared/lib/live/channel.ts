@@ -2,6 +2,7 @@
  * Human wording for the live channel a tab is on: the pill tooltip, the footer and
  * the settings page all use the same description so the user sees the same words everywhere.
  */
+import { plainT } from "@/shared/i18n/plain";
 import type { LiveStatus, LiveTransport } from "./stream";
 
 export interface ChannelDescription {
@@ -28,22 +29,27 @@ const host = (url: string) => {
 };
 
 export function describeChannel(input: ChannelInput): ChannelDescription {
+  const t = plainT("common");
   const rpcHost = host(input.rpcUrl);
   if (!input.isCoinset) {
     return {
-      name: "Polling (custom node)",
-      detail: `Polling your node at ${rpcHost} every few seconds; no stream, mempool fetched in the browser.`,
+      name: t("channel.customName"),
+      detail: t("channel.customDetail", { host: rpcHost }),
     };
   }
   if (input.status === "offline")
-    return { name: "Offline", detail: `No connection to ${rpcHost}.` };
+    return {
+      name: t("channel.offlineName"),
+      detail: t("channel.offlineDetail", { host: rpcHost }),
+    };
   if (input.transport === "websocket" && input.wsUrl) {
+    const wsHost = host(input.wsUrl);
     return input.status === "live"
-      ? {
-          name: "Coinset socket",
-          detail: `Streaming peak and transaction events from ${host(input.wsUrl)} directly.`,
-        }
-      : { name: "Coinset socket (reconnecting)", detail: `Reconnecting to ${host(input.wsUrl)}.` };
+      ? { name: t("channel.socketName"), detail: t("channel.socketDetail", { host: wsHost }) }
+      : {
+          name: t("channel.reconnectingName"),
+          detail: t("channel.reconnectingDetail", { host: wsHost }),
+        };
   }
-  return { name: "Polling", detail: `Polling ${rpcHost} every few seconds.` };
+  return { name: t("channel.pollingName"), detail: t("channel.pollingDetail", { host: rpcHost }) };
 }

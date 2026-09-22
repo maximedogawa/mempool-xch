@@ -15,6 +15,8 @@ import { normaliseId32, stripHexPrefix } from "@/shared/lib/chia/hex";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { formatFixed } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import {
   Badge,
   Card,
@@ -49,6 +51,7 @@ type Raw = Record<string, unknown>;
 const obj = (v: unknown): Raw => (v && typeof v === "object" ? (v as Raw) : {});
 
 export function NftPage() {
+  const t = useT("assets");
   const raw = useDetailId("nft") ?? "";
   const ids = useMemo(() => resolveNftId(raw), [raw]);
   const { client, endpoints, networkConfig } = useSettings();
@@ -89,8 +92,8 @@ export function NftPage() {
     return (
       <EmptyState
         tone="danger"
-        title="Not a valid NFT id"
-        description={`Expected an nft1… id or a 32-byte launcher id. Got: ${raw || "(empty)"}`}
+        title={t("nft.invalidTitle")}
+        description={t("nft.invalidDescription", { raw: raw || t("empty") })}
       />
     );
   }
@@ -119,7 +122,7 @@ export function NftPage() {
         <CardBody className="grid grid-cols-1 gap-5 md:grid-cols-[280px_minmax(0,1fr)]">
           <AssetImage
             urls={metadata.data?.imageUrls ?? []}
-            alt={name ?? "NFT image"}
+            alt={name ?? t("nft.imageAlt")}
             sensitivity={metadata.data?.sensitivity}
             videoUrl={metadata.data?.videoUrl}
             className="aspect-square w-full max-w-[280px] justify-self-center md:justify-self-start"
@@ -130,7 +133,9 @@ export function NftPage() {
                 {name ?? <Skeleton className="h-7 w-48" />}
               </h1>
               {metadata.data?.collectionName ? (
-                <p className="text-sm text-fg-muted">Collection: {metadata.data.collectionName}</p>
+                <p className="text-sm text-fg-muted">
+                  {t("nft.collection", { name: metadata.data.collectionName })}
+                </p>
               ) : null}
               {metadata.data?.description ? (
                 <p className="mt-1 line-clamp-4 text-sm text-fg-faint [overflow-wrap:anywhere]">
@@ -138,16 +143,16 @@ export function NftPage() {
                 </p>
               ) : null}
               {!metadata.isLoading && !metadata.data && network === "mainnet" ? (
-                <p className="text-xs text-fg-faint">Metadata not available from MintGarden.</p>
+                <p className="text-xs text-fg-faint">{t("nft.metadataMissing")}</p>
               ) : null}
               {network !== "mainnet" ? (
-                <p className="text-xs text-fg-faint">NFT metadata lookup is mainnet only.</p>
+                <p className="text-xs text-fg-faint">{t("nft.mainnetOnly")}</p>
               ) : null}
             </div>
             <dl className="grid grid-cols-1 gap-3 text-sm">
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  NFT id
+                  {t("nft.nftId")}
                 </dt>
                 <dd className="mono flex items-center gap-1 break-all">
                   {ids.nftId}
@@ -156,7 +161,7 @@ export function NftPage() {
               </div>
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Launcher id
+                  {t("nft.launcherId")}
                 </dt>
                 <dd className="mono flex items-center gap-1 break-all text-xs text-fg-muted">
                   0x{ids.launcherId}
@@ -165,7 +170,7 @@ export function NftPage() {
               </div>
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Current owner
+                  {t("nft.currentOwner")}
                 </dt>
                 <dd className="mono break-all">
                   {ownerAddress ? (
@@ -179,7 +184,7 @@ export function NftPage() {
                     <Skeleton className="h-5 w-64" />
                   ) : (
                     <span className="text-fg-faint">
-                      unknown{!client.hasIndexed ? " (needs Coinset)" : ""}
+                      {client.hasIndexed ? t("nft.unknown") : t("nft.unknownNeedsCoinset")}
                     </span>
                   )}
                 </dd>
@@ -188,7 +193,7 @@ export function NftPage() {
             <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Current coin
+                  {t("nft.currentCoin")}
                 </dt>
                 <dd>
                   {typeof coin.puzzle_hash === "string" &&
@@ -201,7 +206,7 @@ export function NftPage() {
               </div>
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Last moved
+                  {t("nft.lastMoved")}
                 </dt>
                 <dd className="tabular">
                   {confirmedAt ? `${formatAge(confirmedAt)} · ${formatDateTime(confirmedAt)}` : "—"}
@@ -209,17 +214,17 @@ export function NftPage() {
               </div>
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Royalty
+                  {t("nft.royalty")}
                 </dt>
                 <dd className="tabular">
                   {royaltyBps !== null && royaltyBps !== undefined
-                    ? `${(royaltyBps / 100).toFixed(2)}%`
+                    ? `${formatFixed(royaltyBps / 100, 2)}%`
                     : "—"}
                 </dd>
               </div>
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Standard
+                  {t("nft.standard")}
                 </dt>
                 <dd>
                   <Badge tone="nft">
@@ -237,7 +242,7 @@ export function NftPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
               >
-                View on MintGarden <ExternalLink size={12} aria-hidden="true" />
+                {t("nft.viewOnMintGarden")} <ExternalLink size={12} aria-hidden="true" />
               </a>
             ) : null}
           </div>
@@ -245,23 +250,23 @@ export function NftPage() {
       </Card>
 
       <NftOffersCard nftId={ids.nftId} enabled={network === "mainnet"} />
-      <OffersCard scope={{ kind: "nft", nftId: ids.nftId }} title="Offer history on chain" />
+      <OffersCard scope={{ kind: "nft", nftId: ids.nftId }} title={t("nft.offerHistory")} />
 
       <Card>
-        <CardHeader title="Transfer history" />
+        <CardHeader title={t("nft.transferHistory")} />
         <CardBody>
           {client.hasIndexed ? (
             <TxSummaryList
               transactions={history.transactions}
               loading={history.isLoading}
               error={history.error}
-              emptyText="No transfers indexed for this NFT."
+              emptyText={t("nft.noTransfers")}
               hasMore={history.hasMore}
               onLoadMore={history.loadMore}
               loadingMore={history.loadingMore}
             />
           ) : (
-            <CoinsetNotice what="transfers by NFT id and the current owner are indexed queries" />
+            <CoinsetNotice what={t("nft.coinsetWhat")} />
           )}
         </CardBody>
       </Card>

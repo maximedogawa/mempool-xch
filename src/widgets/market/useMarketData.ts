@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MarketBook, MarketQuote, MarketSource } from "@/shared/lib/market/orderbook";
 import { parseGateBook, parseHtxBook, parseOkxBook } from "@/shared/lib/market/orderbook";
+import { plainT } from "@/shared/i18n/plain";
 
 const REFRESH_MS = 10_000;
 const DEX_REFRESH_MS = 30_000;
@@ -11,18 +12,18 @@ export type DexQuoteAsset = "BYC" | "wUSDC.b";
 
 export const DEX_QUOTE_ASSETS: Record<
   DexQuoteAsset,
-  { assetId: string; label: string; description: string; pairUrl: string }
+  { assetId: string; label: string; description: "byc" | "wusdc"; pairUrl: string }
 > = {
   BYC: {
     assetId: "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
     label: "ByteCash (BYC)",
-    description: "Circuit decentralized USD stablecoin",
+    description: "byc",
     pairUrl: "https://dexie.space/offers/XCH/BYC",
   },
   "wUSDC.b": {
     assetId: "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
     label: "wUSDC.b",
-    description: "warp.green USDC CAT",
+    description: "wusdc",
     pairUrl: "https://dexie.space/offers/XCH/wUSDC.b",
   },
 };
@@ -73,11 +74,7 @@ function parse(exchange: string, raw: unknown, quote: MarketQuote, at: number): 
   return parseHtxBook(raw, quote, at);
 }
 
-async function fetchDex(
-  signal: AbortSignal,
-  at: number,
-  asset: DexQuoteAsset
-): Promise<DexQuote> {
+async function fetchDex(signal: AbortSignal, at: number, asset: DexQuoteAsset): Promise<DexQuote> {
   const base = "https://api.dexie.space/v1/offers?status=0&page_size=1&compact=true";
   const assetId = DEX_QUOTE_ASSETS[asset].assetId;
   const [asks, bids] = await Promise.all([
@@ -122,7 +119,8 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
             quote,
             at
           );
-          if (book.bids.length === 0 || book.asks.length === 0) throw new Error("Empty order book");
+          if (book.bids.length === 0 || book.asks.length === 0)
+            throw new Error(plainT("market")("emptyBook"));
           return book;
         })
       );
@@ -135,7 +133,10 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
               exchange,
               quote,
               book: null,
-              error: result.reason instanceof Error ? result.reason.message : "Unavailable",
+              error:
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : plainT("market")("unavailable"),
               at: null,
             };
       });
@@ -145,7 +146,10 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
         try {
           dex = await fetchDex(controller.signal, at, asset);
         } catch (error) {
-          dex = { ...dex, error: error instanceof Error ? error.message : "Unavailable" };
+          dex = {
+            ...dex,
+            error: error instanceof Error ? error.message : plainT("market")("unavailable"),
+          };
         }
       }
       dexRef.current = dex;

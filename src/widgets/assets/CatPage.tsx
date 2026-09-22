@@ -11,6 +11,7 @@ import { normaliseId32 } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { useT } from "@/shared/i18n/useT";
 import {
   Badge,
   Card,
@@ -33,15 +34,19 @@ import { useTokenList } from "@/shared/api/useTokenList";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 
 export function CoinsetNotice({ what }: { what: string }) {
+  const t = useT("assets");
   return (
     <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)] px-3 py-2 text-xs text-fg-muted">
-      <span className="font-semibold text-warning">History unavailable without Coinset:</span>{" "}
-      {what}. The configured endpoint is a custom node without the indexed API.
+      {t.rich("coinsetNotice", {
+        what,
+        b: (c) => <span className="font-semibold text-warning">{c}</span>,
+      })}
     </p>
   );
 }
 
 export function CatPage() {
+  const t = useT("assets");
   const raw = useDetailId("cat") ?? "";
   const assetId = normaliseId32(raw);
   const { client, endpoints } = useSettings();
@@ -72,8 +77,8 @@ export function CatPage() {
     return (
       <EmptyState
         tone="danger"
-        title="Not a valid CAT asset id"
-        description={`Expected a 32-byte hex asset id. Got: ${raw || "(empty)"}`}
+        title={t("cat.invalidTitle")}
+        description={t("cat.invalidDescription", { raw: raw || t("empty") })}
       />
     );
   }
@@ -82,17 +87,17 @@ export function CatPage() {
   return (
     <div className="flex flex-col gap-5">
       <Card>
-        <CardHeader title="CAT token" action={<KindBadge kind="cat" />} />
+        <CardHeader title={t("cat.title")} action={<KindBadge kind="cat" />} />
         <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <AssetImage
             urls={[token?.iconUrl ?? dexieIconUrl(assetId)]}
-            alt={token?.name ?? "Token icon"}
+            alt={token?.name ?? t("cat.iconAlt")}
             className="h-20 w-20 shrink-0"
             rounded="rounded-full"
           />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <h1 className="text-2xl font-semibold">
-              {tokens.isLoading ? "Loading token…" : tokenLabel(token, assetId)}
+              {tokens.isLoading ? t("cat.loading") : tokenLabel(token, assetId)}
             </h1>
             {token?.description ? (
               <p
@@ -105,13 +110,11 @@ export function CatPage() {
               </p>
             ) : null}
             {!tokens.isLoading && !token ? (
-              <p className="text-sm text-fg-faint">
-                Not on Dexie's asset list; shown by asset id only.
-              </p>
+              <p className="text-sm text-fg-faint">{t("cat.notListed")}</p>
             ) : null}
             <dl className="text-sm">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                Asset id
+                {t("cat.assetId")}
               </dt>
               <dd className="mono flex items-center gap-1 break-all">
                 0x{assetId}
@@ -135,20 +138,24 @@ export function CatPage() {
 
       <Card>
         <CardHeader
-          title={`Pending transfers${pending.length ? ` (${pending.length})` : ""}`}
-          action={<span className="text-[11px] text-fg-faint">from the live mempool</span>}
+          title={
+            pending.length
+              ? t("cat.pendingTitleCount", { count: pending.length })
+              : t("cat.pendingTitle")
+          }
+          action={<span className="text-[11px] text-fg-faint">{t("cat.fromMempool")}</span>}
         />
         <CardBody>
           {pending.length === 0 ? (
-            <EmptyState title="No pending spends of this token in the mempool." />
+            <EmptyState title={t("cat.noPending")} />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Tx id</Th>
-                  <Th className="text-right">Fee</Th>
-                  <Th className="text-right">Cost</Th>
-                  <Th className="text-right">Seen</Th>
+                  <Th>{t("cat.colTxId")}</Th>
+                  <Th className="text-right">{t("cat.colFee")}</Th>
+                  <Th className="text-right">{t("cat.colCost")}</Th>
+                  <Th className="text-right">{t("cat.colSeen")}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -172,10 +179,12 @@ export function CatPage() {
 
       <Card>
         <CardHeader
-          title="Recent transactions"
+          title={t("cat.recentTitle")}
           action={
             history.transactions.length ? (
-              <Badge tone="neutral">{formatNumber(history.transactions.length)} loaded</Badge>
+              <Badge tone="neutral">
+                {t("cat.loaded", { count: formatNumber(history.transactions.length) })}
+              </Badge>
             ) : null
           }
         />
@@ -186,18 +195,18 @@ export function CatPage() {
               loading={history.isLoading}
               error={history.error}
               tokens={tokens.data}
-              emptyText="No transactions indexed for this asset."
+              emptyText={t("cat.noTransactions")}
               hasMore={history.hasMore}
               onLoadMore={history.loadMore}
               loadingMore={history.loadingMore}
             />
           ) : (
-            <CoinsetNotice what="transactions by CAT asset id are an indexed query" />
+            <CoinsetNotice what={t("cat.coinsetWhat")} />
           )}
         </CardBody>
       </Card>
 
-      <OffersCard scope={{ kind: "cat", assetId }} title="Offers involving this token" />
+      <OffersCard scope={{ kind: "cat", assetId }} title={t("cat.offersTitle")} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useMempoolSummary, useRecentBlocks } from "@/shared/api/hooks";
 import { formatAmount, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
@@ -32,6 +33,7 @@ function useTicker(ms: number) {
 
 /** Newest spend bundles entering the mempool. Pauses while hovered so rows stay clickable. */
 export function LiveTransactions() {
+  const t = useT("feed");
   const summary = useMempoolSummary();
   const mine = useWalletPendingIds();
   const [paused, setPaused] = useState(false);
@@ -58,17 +60,17 @@ export function LiveTransactions() {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Latest transactions
+            {t("latestTransactions")}
             {paused ? (
               <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] normal-case tracking-normal text-fg-faint">
-                paused
+                {t("paused")}
               </span>
             ) : null}
           </span>
         }
         action={
           <Link href={routes.mempool()} className="text-xs font-medium text-accent hover:underline">
-            Mempool →
+            {t("mempoolLink")}
           </Link>
         }
       />
@@ -87,7 +89,7 @@ export function LiveTransactions() {
               ))}
             </div>
           ) : shown.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-faint">The mempool is empty.</p>
+            <p className="py-6 text-center text-sm text-fg-faint">{t("empty")}</p>
           ) : (
             <ul className="divide-y divide-border/60" aria-live="polite" aria-relevant="additions">
               {shown.map((item) => (
@@ -108,17 +110,17 @@ export function LiveTransactions() {
                   />
                   <span
                     className="tabular w-20 text-right text-fg-muted"
-                    title={`${formatCost(item.cost)} cost`}
+                    title={t("costTitle", { cost: formatCost(item.cost) })}
                   >
                     {BigInt(item.fee) === 0n ? (
-                      <span className="text-fg-faint">0 fee</span>
+                      <span className="text-fg-faint">{t("zeroFee")}</span>
                     ) : (
-                      `${formatFeeRate(item.feeRate)} m/c`
+                      t("feeRate", { rate: formatFeeRate(item.feeRate) })
                     )}
                   </span>
                   <span
                     className="tabular w-14 text-right text-xs text-fg-faint"
-                    title="First observed by the mempoolxch.space server (not the network's first-seen time)"
+                    title={t("firstSeenTitle")}
                   >
                     {formatAge(item.firstSeen)}
                   </span>
@@ -133,6 +135,7 @@ export function LiveTransactions() {
 }
 
 export function LatestBlocks() {
+  const t = useT("feed");
   const { settings } = useSettings();
   const recent = useRecentBlocks(settings.recentBlocks);
   useTicker(10_000);
@@ -140,10 +143,10 @@ export function LatestBlocks() {
   return (
     <Card>
       <CardHeader
-        title="Latest blocks"
+        title={t("latestBlocks")}
         action={
           <Link href={routes.blocks()} className="text-xs font-medium text-accent hover:underline">
-            Blocks →
+            {t("blocksLink")}
           </Link>
         }
       />
@@ -166,11 +169,11 @@ export function LatestBlocks() {
                 </Link>
                 {b.isTransactionBlock ? (
                   <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
-                    tx block
+                    {t("txBlock")}
                   </span>
                 ) : (
                   <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-fg-faint">
-                    no tx
+                    {t("noTx")}
                   </span>
                 )}
                 <span className="tabular ml-auto text-fg-muted">

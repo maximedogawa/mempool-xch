@@ -35,6 +35,45 @@ const messages: Translation<typeof en> = {
     liveChain: "Live-Chain",
     you: "Persönlich",
   },
+  skipToContent: "Zum Inhalt springen",
+  connection: {
+    live: "Live",
+    connecting: "Verbinde",
+    offline: "Offline",
+    noData: "noch keine Daten",
+    connectingHint: "Verbinde: {channel}…",
+    hint: "{channel}: {detail} Letzte Aktualisierung {age}.",
+    srStatus: "{label} über {channel}, Spitze {peak}, letzte Aktualisierung {age}",
+    unknownPeak: "unbekannt",
+  },
+  network: {
+    label: "Netzwerk",
+    followsSage: "Das Netzwerk folgt der Sage-Wallet",
+  },
+  footer: {
+    source: "{network} über <host>{url}</host>",
+    sourceCustom: "{network} über <host>{url}</host> (eigener Node)",
+    sourceSage: "Wallet-Daten von Sage · Chain-Daten: {network} über <host>{url}</host>",
+    sourceSageCustom:
+      "Wallet-Daten von Sage · Chain-Daten: {network} über <host>{url}</host> (eigener Node)",
+    live: "Live: {channel}",
+    learn: "Lernen",
+    help: "Hilfe",
+    network: "Netzwerk",
+    vaults: "Vaults",
+    status: "Status",
+    changelog: "Änderungen",
+    settings: "Einstellungen",
+    dataByCoinset: "Daten von Coinset",
+    disclaimer:
+      "Nur allgemeine Informationen, keine Finanz-, Anlage-, Steuer- oder Rechtsberatung; recherchieren Sie selbst. Chain-Daten werden ohne Gewähr und nach Verfügbarkeit angezeigt, können verzögert, unvollständig oder falsch sein, und die Verfügbarkeit ist nicht garantiert. mempoolxch.space ist ein unabhängiges Projekt, das nicht mit Chia Network Inc. verbunden ist oder von ihr unterstützt wird.",
+    legal: "Rechtliches",
+    terms: "Nutzungsbedingungen",
+    notice: "Impressum",
+    privacy: "Datenschutzerklärung",
+    cookies: "Cookie-Richtlinie",
+    cookieSettings: "Cookie-Einstellungen",
+  },
 };
 
 export default messages;

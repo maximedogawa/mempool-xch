@@ -12,6 +12,7 @@ import { routes } from "@/shared/lib/routes";
 import { Hash } from "@/shared/ui";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useTransaction } from "@/widgets/tx/useTransaction";
+import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchQueue, WatchStatus } from "./WatchlistParts";
 
 export function WatchedTxRow({
@@ -27,6 +28,7 @@ export function WatchedTxRow({
   onConfirmed: (item: WatchItem, height: number | null) => void;
   onRemove: () => void;
 }) {
+  const t = useT("watchlist");
   const tx = useTransaction(item.id);
   const { client } = useSettings();
   const previous = useRef<string | null>(null);
@@ -50,20 +52,20 @@ export function WatchedTxRow({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-              Transaction
+              {t("tx.kind")}
             </span>
             <WatchStatus pending={status === "pending" && !tx.isError}>
               {tx.isError
-                ? "Connection issue"
+                ? t("common.connectionIssue")
                 : status === "pending"
-                  ? "Pending"
+                  ? t("tx.pending")
                   : status === "confirmed"
-                    ? "Confirmed"
+                    ? t("tx.confirmed")
                     : status === "removed"
-                      ? "Dropped"
+                      ? t("tx.dropped")
                       : status === "not_found"
-                        ? "Not found yet"
-                        : "Checking…"}
+                        ? t("tx.notFoundYet")
+                        : t("common.checking")}
             </WatchStatus>
           </div>
           <Hash
@@ -80,9 +82,9 @@ export function WatchedTxRow({
       <div className="mt-3 border-t border-border/60 pt-3">
         {tx.isError ? (
           <p role="status" className="text-xs text-danger">
-            Could not refresh transaction.{" "}
+            {t("tx.refreshError")}{" "}
             <button className="underline" onClick={() => void tx.refetch()}>
-              Retry
+              {t("common.retry")}
             </button>
           </p>
         ) : status === "pending" ? (
@@ -90,26 +92,24 @@ export function WatchedTxRow({
         ) : view?.status === "confirmed" ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-primary">
             <CheckCircle2 size={13} aria-hidden="true" />
-            Included on chain
+            {t("tx.included")}
             {view.summary.confirmedHeight !== null ? (
               <Link
                 href={routes.block(view.summary.confirmedHeight)}
                 className="tabular ml-1 font-semibold hover:underline"
               >
-                Block {formatNumber(view.summary.confirmedHeight)}
+                {t("common.block", { height: formatNumber(view.summary.confirmedHeight) })}
               </Link>
             ) : null}
           </span>
         ) : status === "removed" ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-fg-faint">
             <XCircle size={13} aria-hidden="true" />
-            Dropped from the mempool without confirming
+            {t("tx.droppedLong")}
           </span>
         ) : (
           <span className="text-xs text-fg-faint">
-            {status === "not_found"
-              ? "No record at the current node."
-              : "Checking transaction status…"}
+            {status === "not_found" ? t("tx.noRecord") : t("tx.checkingStatus")}
           </span>
         )}
       </div>

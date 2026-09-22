@@ -1,6 +1,113 @@
 import type { Translation } from "../../translate";
 import type en from "../en/address";
 
-const messages: Translation<typeof en> = {};
+const messages: Translation<typeof en> = {
+  notAvailable: "n/d",
+  needsCoinset: "requiere Coinset",
+  loading: "Cargando…",
+  loadMore: "Cargar más",
+  retry: "Reintentar",
+  unavailable:
+    "<b>No disponible con un nodo propio:</b> {what} requieren la API indexada de Coinset. Vuelve a cambiar el endpoint a Coinset en <link>ajustes</link> para verlos.",
+  unavailableWhat:
+    "Los saldos por activo, el número de NFTs y el historial de transacciones pendientes y confirmadas",
+  invalid: {
+    title: "No es una dirección válida",
+    description:
+      "Se esperaba una dirección {prefix}1…, un puzzle hash de 32 bytes o un id did:chia:. Recibido: {raw}",
+    empty: "(vacío)",
+  },
+  header: {
+    did: "DID",
+    address: "Dirección",
+    qrLabel: "Código QR de {address}",
+    qrTitle: "Código QR de esta dirección",
+    didId: "Id de DID",
+    launcherId: "Id de launcher",
+    puzzleHash: "Puzzle hash",
+    handles: "XCHandles",
+    moreHandles: "+{count} más apuntan aquí",
+    otherPrefix: "Prefijo de la otra red",
+  },
+  stats: {
+    xchBalance: "Saldo de XCH",
+    pending: "pendiente {amount}",
+    noPendingChange: "sin cambios pendientes",
+    fromUnspent: "de monedas sin gastar",
+    catBalances: "Saldos de CAT",
+    tokensHeld: "tokens en posesión",
+    nfts: "NFTs",
+    didNftsSub: "en posesión · Ver NFTs →",
+    needsMainnet: "requiere mainnet",
+    didNftsHint:
+      "NFTs que MintGarden atribuye a este DID, no monedas con un hint a su id de launcher.",
+    ownedNftsSub: "en propiedad · Ver NFTs →",
+    unspentCoins: "Monedas sin gastar",
+    unspentSub: "{xch} XCH · {hinted}",
+    hinted: "{count} con hint",
+    hintedNa: "con hint n/d",
+    unspentHint:
+      "Monedas bloqueadas a este puzzle hash, más las monedas CAT, NFT y DID con un hint hacia él.",
+  },
+  cats: {
+    title: "Saldos de CAT",
+    token: "Token",
+    tokenAlt: "token",
+    assetId: "Id de activo",
+    confirmed: "Confirmado",
+    pending: "Pendiente",
+  },
+  pending: {
+    title: "Transacciones pendientes",
+    titleCount: "Transacciones pendientes ({count})",
+    refreshes: "se actualiza cada 10 s",
+    empty: "No hay transacciones pendientes para esta dirección.",
+  },
+  history: {
+    title: "Historial de transacciones",
+    unspentTitle: "Monedas sin gastar",
+    empty: "No se encontraron transacciones confirmadas para esta dirección.",
+  },
+  offersTitle: "Ofertas creadas desde esta dirección",
+  coins: {
+    empty: "No hay monedas sin gastar.",
+    coin: "Moneda",
+    type: "Tipo",
+    amount: "Importe",
+    confirmed: "Confirmada",
+    hintedAsset: "activo con hint",
+  },
+  nfts: {
+    didRegion: "NFTs del DID",
+    addressRegion: "NFTs de la dirección",
+    title: "NFTs en posesión",
+    perPage: "{count} por página · MintGarden",
+    filterPage: "Filtrar los NFTs de esta página",
+    filterPlaceholder: "Filtra esta página por nombre o ID de NFT",
+    filterCollection: "Filtrar NFTs por colección",
+    allCollections: "Todas las colecciones",
+    help: "La búsqueda filtra esta página. Elige una colección vista en una página visitada para explorar todo lo que tienes de ella.",
+    loadError: "No se pudieron cargar los NFTs.",
+    noCollection: "Sin colección",
+    noMatch: "Ningún NFT de esta página coincide. Prueba otra página o borra el filtro.",
+    empty: "No hay NFTs en esta página.",
+    page: "Página {page}",
+    pageShown: "Página {page} · {count} mostrados",
+    previous: "Anterior",
+    next: "Siguientes {count}",
+  },
+  clawbacks: {
+    title: "Monedas con clawback",
+    hint: "Monedas enviadas a esta dirección con un timelock de clawback: el remitente puede recuperarlas hasta que termine el timelock y después el destinatario puede reclamarlas.",
+    revocable: "{count} revocables",
+    coin: "Moneda",
+    amount: "Importe",
+    from: "De",
+    timelock: "Timelock",
+    state: "Estado",
+    canClawBack: "el remitente puede recuperarla",
+    claimable: "reclamable",
+  },
+};
 
 export default messages;

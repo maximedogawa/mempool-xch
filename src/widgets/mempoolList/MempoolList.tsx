@@ -31,18 +31,21 @@ import {
 } from "@/shared/ui";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { YoursChip } from "@/shared/ui/YoursChip";
+import { useT } from "@/shared/i18n/useT";
 import { sortMempoolItems, type MempoolSortKey, type SortDirection } from "./sort";
 
 const PAGE = 100;
 
-const COLUMNS: { key: MempoolSortKey; label: string; className?: string }[] = [
-  { key: "feeRate", label: "Fee / cost", className: "text-right" },
-  { key: "fee", label: "Fee", className: "hidden text-right sm:table-cell" },
-  { key: "cost", label: "Cost", className: "hidden text-right md:table-cell" },
-  { key: "age", label: "Age", className: "text-right" },
+/** Sortable columns; each key is also its label key under `columns`. */
+const COLUMNS: { key: MempoolSortKey; className?: string }[] = [
+  { key: "feeRate", className: "text-right" },
+  { key: "fee", className: "hidden text-right sm:table-cell" },
+  { key: "cost", className: "hidden text-right md:table-cell" },
+  { key: "age", className: "text-right" },
 ];
 
 export function MempoolList() {
+  const t = useT("mempoolList");
   const mine = useWalletPendingIds();
   const summary = useMempoolSummary();
   const [sortKey, setSortKey] = useState<MempoolSortKey>("feeRate");
@@ -78,50 +81,53 @@ export function MempoolList() {
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatTile
-          label="Spend bundles"
+          label={t("spendBundles")}
           value={state ? formatNumber(state.mempoolSize) : "…"}
           sub={
             state && items.length !== state.mempoolSize
-              ? `${formatNumber(items.length)} summarised`
+              ? t("summarised", { count: formatNumber(items.length) })
               : undefined
           }
         />
         <StatTile
-          label="Cost used"
+          label={t("costUsed")}
           value={state ? formatPercent(fill) : "…"}
           sub={
             state
-              ? `${formatCost(state.mempoolCost)} of ${formatCost(state.mempoolMaxTotalCost)}`
+              ? t("costOf", {
+                  used: formatCost(state.mempoolCost),
+                  max: formatCost(state.mempoolMaxTotalCost),
+                })
               : undefined
           }
           tone={fill > 0.9 ? "danger" : fill > 0.6 ? "warning" : "default"}
         />
         <StatTile
-          label="Total fees"
+          label={t("totalFees")}
           value={state ? formatAmount(BigInt(state.mempoolFees)) : "…"}
         />
         <StatTile
-          label="Updated"
+          label={t("updated")}
           value={summary.data ? formatAge(summary.data.generatedAt, now) : "…"}
           sub={
             summary.data
               ? summary.data.source === "server"
-                ? "summary API"
+                ? t("source.server")
                 : summary.data.source === "snapshot"
-                  ? "from your last visit, syncing"
+                  ? t("source.snapshot")
                   : summary.data.source === "syncing"
-                    ? "first sync in progress"
-                    : "direct from node"
+                    ? t("source.syncing")
+                    : t("source.node")
               : undefined
           }
         />
       </div>
       <Card>
         <CardHeader
-          title="Pending spend bundles"
+          title={t("pendingTitle")}
           action={
             <span className="text-xs text-fg-faint">
-              {summary.isFetching ? "updating…" : "live"}
+              {summary.isFetching ? t("updating") : t("live")}
             </span>
           }
         />
@@ -129,7 +135,7 @@ export function MempoolList() {
           {summary.error && items.length === 0 ? (
             <EmptyState
               tone="danger"
-              title="Could not load the mempool"
+              title={t("loadError")}
               description={String((summary.error as Error).message)}
             />
           ) : summary.isLoading && items.length === 0 ? (
@@ -139,17 +145,14 @@ export function MempoolList() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <EmptyState
-              title="The mempool is empty"
-              description="Every spend bundle has been included in a block."
-            />
+            <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Tx id</Th>
-                  <Th>Kind</Th>
-                  <Th className="hidden text-right lg:table-cell">Value</Th>
+                  <Th>{t("columns.txId")}</Th>
+                  <Th>{t("columns.kind")}</Th>
+                  <Th className="hidden text-right lg:table-cell">{t("columns.value")}</Th>
                   {COLUMNS.map((c) => (
                     <Th
                       key={c.key}
@@ -170,7 +173,7 @@ export function MempoolList() {
                           sortKey === c.key && "text-fg"
                         )}
                       >
-                        {c.label}
+                        {t(`columns.${c.key}`)}
                         {sortKey === c.key ? (
                           direction === "desc" ? (
                             <ArrowDown size={12} aria-hidden="true" />
@@ -219,7 +222,7 @@ export function MempoolList() {
                     </Td>
                     <Td
                       className="tabular whitespace-nowrap text-right text-fg-faint"
-                      title="First observed by the mempoolxch.space server"
+                      title={t("firstSeenTitle")}
                     >
                       {formatAge(item.firstSeen, now)}
                     </Td>
@@ -230,11 +233,9 @@ export function MempoolList() {
           )}
           {sorted.length > shown.length ? (
             <div className="flex items-center justify-between text-xs text-fg-faint">
-              <span>
-                Showing {shown.length} of {sorted.length}
-              </span>
+              <span>{t("showing", { shown: shown.length, total: sorted.length })}</span>
               <Button size="sm" onClick={() => setLimit((l) => l + PAGE)}>
-                Show more
+                {t("showMore")}
               </Button>
             </div>
           ) : null}

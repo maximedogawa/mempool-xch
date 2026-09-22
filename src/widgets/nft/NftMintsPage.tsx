@@ -2,10 +2,12 @@
 
 import { Button, Card, CardBody, CardHeader, EmptyState, Skeleton } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { useT } from "@/shared/i18n/useT";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents } from "./useNftSection";
 
 export function NftMintsPage() {
+  const t = useT("nft");
   const query = useNftEvents(["mint"]);
   const events = query.data?.pages.flatMap((p) => p.events) ?? [];
 
@@ -13,23 +15,16 @@ export function NftMintsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">New mints</h1>
-          <Tooltip
-            text="NFTs freshly minted across every collection MintGarden indexes, newest first."
-            placement="bottom"
-          />
+          <h1 className="text-lg font-semibold">{t("mints.title")}</h1>
+          <Tooltip text={t("mints.intro")} placement="bottom" />
         </div>
       </header>
 
       <Card>
-        <CardHeader title="Mints" />
+        <CardHeader title={t("mints.card")} />
         <CardBody className="flex flex-col gap-3">
           {query.error ? (
-            <EmptyState
-              tone="danger"
-              title="Could not load mints"
-              description="MintGarden did not answer."
-            />
+            <EmptyState tone="danger" title={t("mintsError")} description={t("noAnswer")} />
           ) : query.isLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 8 }, (_, i) => (
@@ -37,7 +32,7 @@ export function NftMintsPage() {
               ))}
             </div>
           ) : events.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-faint">No recent mints.</p>
+            <p className="py-6 text-center text-sm text-fg-faint">{t("noRecentMints")}</p>
           ) : (
             <ul className="divide-y divide-border/60">
               {events.map((e) => (
@@ -53,7 +48,7 @@ export function NftMintsPage() {
               disabled={query.isFetchingNextPage}
               onClick={() => void query.fetchNextPage()}
             >
-              {query.isFetchingNextPage ? "Loading…" : "Show more"}
+              {query.isFetchingNextPage ? t("loading") : t("showMore")}
             </Button>
           ) : null}
         </CardBody>

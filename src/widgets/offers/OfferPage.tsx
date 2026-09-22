@@ -22,7 +22,8 @@ import {
   Skeleton,
   StatTile,
 } from "@/shared/ui";
-import { OFFER_STATUS_LABEL, OfferSideView, OfferStatusBadge } from "./OfferParts";
+import { useT } from "@/shared/i18n/useT";
+import { OFFER_STATUS, OfferSideView, OfferStatusBadge } from "./OfferParts";
 
 const DEXIE_OFFER_LOOKUP = "https://dexie.space/offers";
 
@@ -32,6 +33,7 @@ const DEXIE_OFFER_LOOKUP = "https://dexie.space/offers";
  * does not return it), so taking the offer happens on Dexie or in a wallet.
  */
 export function OfferPage() {
+  const t = useT("offers");
   const raw = useDetailId("offer") ?? "";
   const offerId = normaliseId32(raw);
   const { client, endpoints, networkConfig } = useSettings();
@@ -53,25 +55,22 @@ export function OfferPage() {
     return (
       <EmptyState
         tone="danger"
-        title="Not a valid offer id"
-        description={`Expected a 32-byte hex offer id. Got: ${raw || "(empty)"}`}
+        title={t("page.invalidTitle")}
+        description={t("page.invalidDescription", { raw: raw || t("page.empty") })}
       />
     );
   }
   if (!client.hasIndexed) {
     return (
       <EmptyState
-        title="Offers need Coinset"
-        description={
-          <>
-            The offer index is part of Coinset&apos;s indexed API, which a custom node does not
-            have. Switch the endpoint back to Coinset in{" "}
+        title={t("page.needsCoinsetTitle")}
+        description={t.rich("page.needsCoinsetDescription", {
+          link: (c) => (
             <Link href={routes.settings()} className="text-accent hover:underline">
-              settings
-            </Link>{" "}
-            to look offers up.
-          </>
-        }
+              {c}
+            </Link>
+          ),
+        })}
       />
     );
   }
@@ -93,8 +92,8 @@ export function OfferPage() {
       <div className="flex flex-col gap-4">
         <Heading id={offerId} />
         <EmptyState
-          title="Offer not indexed"
-          description="Coinset has not seen an offer with this id. Offers are indexed once they are published (for example on Dexie) or once a spend that takes or cancels them reaches the mempool; an offer file that was never shared cannot be looked up by id."
+          title={t("page.notIndexedTitle")}
+          description={t("page.notIndexedDescription")}
         />
       </div>
     );
@@ -103,32 +102,39 @@ export function OfferPage() {
     return (
       <EmptyState
         tone="danger"
-        title="Could not load the offer"
+        title={t("page.loadError")}
         description={errorMessage(query.error)}
-        action={<Button onClick={() => void query.refetch()}>Retry</Button>}
+        action={<Button onClick={() => void query.refetch()}>{t("page.retry")}</Button>}
       />
     );
   }
   const offer = query.data;
-  const status = OFFER_STATUS_LABEL[offer.status];
+  const status = OFFER_STATUS[offer.status];
   const settledTx = offer.confirmedTxId ?? offer.cancelledByTxId ?? offer.pendingTxId;
   const settledAt = offer.confirmedAtMs ?? offer.cancelledAtMs;
   const addr = (p2: string) => puzzleHashToAddress(p2, networkConfig.addressPrefix);
+  const settledKey = offer.confirmedTxId
+    ? "takenIn"
+    : offer.cancelledByTxId
+      ? "cancelledBy"
+      : "beingTaken";
+  // A settling transaction lands in one block: the take's or the cancel's.
+  const settledHeight = offer.confirmedHeight ?? offer.cancelledHeight;
 
   return (
     <div className="flex flex-col gap-4">
       <Heading id={offerId} status={offer.status} />
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <StatTile
-          label="Status"
-          value={status.label}
+          label={t("page.status")}
+          value={t(`status.${status.key}`)}
           sub={
             offer.status === "open"
-              ? "can still be taken"
+              ? t("page.canBeTaken")
               : offer.status === "pending"
-                ? "take is in the mempool"
+                ? t("page.takeInMempool")
                 : offer.status === "cancel_pending"
-                  ? "cancel is in the mempool"
+                  ? t("page.cancelInMempool")
                   : undefined
           }
           tone={
@@ -140,23 +146,23 @@ export function OfferPage() {
           }
         />
         <StatTile
-          label="First seen"
+          label={t("page.firstSeen")}
           value={formatAge(offer.firstSeenMs)}
           sub={formatDateTime(offer.firstSeenMs)}
         />
         <StatTile
           label={
             offer.status === "cancelled"
-              ? "Cancelled"
+              ? t("page.cancelled")
               : offer.status === "confirmed"
-                ? "Taken"
-                : "Expires"
+                ? t("page.taken")
+                : t("page.expires")
           }
           value={
             settledAt
               ? formatAge(settledAt)
               : offer.expiresBeforeHeight !== null
-                ? `before #${formatNumber(offer.expiresBeforeHeight)}`
+                ? t("page.beforeHeight", { height: formatNumber(offer.expiresBeforeHeight) })
                 : offer.expiresBeforeTimeMs !== null
                   ? formatAge(offer.expiresBeforeTimeMs)
                   : "—"
@@ -165,27 +171,31 @@ export function OfferPage() {
             settledAt
               ? formatDateTime(settledAt)
               : offer.expiresBeforeHeight !== null || offer.expiresBeforeTimeMs !== null
-                ? "as set by the maker"
-                : "no expiry set"
+                ? t("page.setByMaker")
+                : t("page.noExpiry")
           }
         />
-        <StatTile label="Fee" value={formatAmount(offer.feeMojos)} sub="offered by the maker" />
+        <StatTile
+          label={t("page.fee")}
+          value={formatAmount(offer.feeMojos)}
+          sub={t("page.offeredByMaker")}
+        />
       </div>
 
       <Card>
-        <CardHeader title="Trade" />
+        <CardHeader title={t("page.trade")} />
         <CardBody>
           <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
             <div className="rounded-sm border border-border bg-bg p-3">
               <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                Maker offers
+                {t("page.makerOffers")}
               </div>
               <OfferSideView side={offer.offered} className="text-base font-medium" />
             </div>
             <ArrowRight aria-hidden="true" className="mx-auto hidden text-fg-faint md:block" />
             <div className="rounded-sm border border-border bg-bg p-3">
               <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                Maker requests
+                {t("page.makerRequests")}
               </div>
               <OfferSideView side={offer.requested} className="text-base font-medium" />
             </div>
@@ -195,10 +205,10 @@ export function OfferPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title={`Maker address${offer.makerP2s.length === 1 ? "" : "es"}`} />
+          <CardHeader title={t("page.makerAddresses", { count: offer.makerP2s.length })} />
           <CardBody>
             {offer.makerP2s.length === 0 ? (
-              <p className="text-sm text-fg-faint">Unknown.</p>
+              <p className="text-sm text-fg-faint">{t("page.unknown")}</p>
             ) : (
               <ul className="flex flex-col gap-1 text-sm">
                 {offer.makerP2s.map((p2) => (
@@ -217,60 +227,44 @@ export function OfferPage() {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="Settlement" />
+          <CardHeader title={t("page.settlement")} />
           <CardBody className="flex flex-col gap-2 text-sm">
             {settledTx ? (
               <p>
-                {offer.confirmedTxId
-                  ? "Taken in"
-                  : offer.cancelledByTxId
-                    ? "Cancelled by"
-                    : "Being taken by"}{" "}
-                transaction{" "}
-                <Hash value={settledTx} href={routes.tx(settledTx)} head={10} tail={6} />
-                {offer.confirmedHeight !== null ? (
-                  <>
-                    {" "}
-                    in block{" "}
-                    <Link
-                      href={routes.block(offer.confirmedHeight)}
-                      className="text-accent hover:underline"
-                    >
-                      #{formatNumber(offer.confirmedHeight)}
-                    </Link>
-                  </>
-                ) : null}
-                {offer.cancelledHeight !== null ? (
-                  <>
-                    {" "}
-                    in block{" "}
-                    <Link
-                      href={routes.block(offer.cancelledHeight)}
-                      className="text-accent hover:underline"
-                    >
-                      #{formatNumber(offer.cancelledHeight)}
-                    </Link>
-                  </>
-                ) : null}
-                .
+                {t.rich(`page.${settledKey}${settledHeight !== null ? "Block" : ""}` as const, {
+                  height: settledHeight !== null ? formatNumber(settledHeight) : "",
+                  tx: () => (
+                    <Hash value={settledTx} href={routes.tx(settledTx)} head={10} tail={6} />
+                  ),
+                  block: (c) =>
+                    settledHeight !== null ? (
+                      <Link
+                        href={routes.block(settledHeight)}
+                        className="text-accent hover:underline"
+                      >
+                        {c}
+                      </Link>
+                    ) : (
+                      c
+                    ),
+                })}
               </p>
             ) : (
-              <p className="text-fg-faint">
-                Nothing has taken or cancelled this offer on chain yet.
-              </p>
+              <p className="text-fg-faint">{t("page.notSettled")}</p>
             )}
             <p className="text-xs text-fg-faint">
-              Coinset indexes the offer&apos;s state but not the offer file, so this page cannot
-              hand it to a wallet. Look it up on{" "}
-              <a
-                href={DEXIE_OFFER_LOOKUP}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-accent hover:underline"
-              >
-                Dexie <ExternalLink size={11} aria-hidden="true" />
-              </a>{" "}
-              to take it.
+              {t.rich("page.noOfferFile", {
+                link: (c) => (
+                  <a
+                    href={DEXIE_OFFER_LOOKUP}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-accent hover:underline"
+                  >
+                    {c} <ExternalLink size={11} aria-hidden="true" />
+                  </a>
+                ),
+              })}
             </p>
           </CardBody>
         </Card>
@@ -286,10 +280,11 @@ function Heading({
   id: string;
   status?: Parameters<typeof OfferStatusBadge>[0]["status"];
 }) {
+  const t = useT("offers");
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">Offer</h1>
+        <h1 className="text-xl font-semibold">{t("page.heading")}</h1>
         {status ? <OfferStatusBadge status={status} /> : null}
       </div>
       <Hash value={id} full copy className="text-sm text-fg-muted" />

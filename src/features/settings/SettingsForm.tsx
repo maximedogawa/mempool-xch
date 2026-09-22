@@ -4,6 +4,9 @@ import { CheckCircle2, Loader2, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK_IDS, NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
+import { LOCALE_NAMES, LOCALES, type LocalePreference } from "@/shared/i18n/config";
+import { formatInteger } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
@@ -25,6 +28,7 @@ type TestState =
 
 /** Which live channel this tab is on and where the data comes from (same words as the pill and footer). */
 function ChannelLine() {
+  const t = useT("settings");
   const { endpoints } = useSettings();
   const status = useLiveValue("status");
   const transport = useLiveValue("transport");
@@ -37,13 +41,17 @@ function ChannelLine() {
   });
   return (
     <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
-      <strong className="text-fg">Live channel: {channel.name}.</strong> {channel.detail} Everything
-      is read from the endpoint directly.
+      {t.rich("channel", {
+        name: channel.name,
+        detail: channel.detail,
+        strong: (c) => <strong className="text-fg">{c}</strong>,
+      })}
     </p>
   );
 }
 
 function EndpointRow({ network }: { network: NetworkId }) {
+  const t = useT("settings");
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
@@ -75,7 +83,9 @@ function EndpointRow({ network }: { network: NetworkId }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label htmlFor={`rpc-${network}`} className="text-sm font-semibold">
           {config.label}{" "}
-          <span className="font-normal text-fg-faint">({config.addressPrefix} addresses)</span>
+          <span className="font-normal text-fg-faint">
+            {t("endpoint.addresses", { prefix: config.addressPrefix })}
+          </span>
         </label>
         <span
           className={cn(
@@ -85,7 +95,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
               : "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning"
           )}
         >
-          {isDefault ? "Coinset default" : isCoinsetUrl(network, value) ? "Coinset" : "Custom node"}
+          {isDefault
+            ? t("endpoint.coinsetDefault")
+            : isCoinsetUrl(network, value)
+              ? "Coinset"
+              : t("endpoint.customNode")}
         </span>
       </div>
       <input
@@ -105,7 +119,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
           {test.status === "testing" ? (
             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
           ) : null}{" "}
-          Test connection
+          {t("endpoint.test")}
         </Button>
         <Button
           size="sm"
@@ -120,7 +134,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
                 setTest({
                   status: "whitelist",
                   ok: false,
-                  message: "Inside Sage only https endpoints can be whitelisted.",
+                  message: t("endpoint.sageHttpsOnly"),
                 });
                 return;
               }
@@ -128,11 +142,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
                 setTest({
                   status: "whitelist",
                   ok: false,
-                  message: "Sage did not allow this host; the endpoint was not saved.",
+                  message: t("endpoint.sageRefused"),
                 });
                 return;
               }
-              setTest({ status: "whitelist", ok: true, message: "Sage allowed this host." });
+              setTest({ status: "whitelist", ok: true, message: t("endpoint.sageAllowed") });
             }
             update((prev) => ({
               ...prev,
@@ -140,7 +154,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
             }));
           }}
         >
-          Save
+          {t("endpoint.save")}
         </Button>
         <Button
           size="sm"
@@ -155,13 +169,15 @@ function EndpointRow({ network }: { network: NetworkId }) {
             }));
           }}
         >
-          <RotateCcw size={14} aria-hidden="true" /> Reset to Coinset
+          <RotateCcw size={14} aria-hidden="true" /> {t("endpoint.reset")}
         </Button>
         {test.status === "ok" ? (
           <span role="status" className="inline-flex items-center gap-1 text-xs text-primary">
-            <CheckCircle2 size={14} aria-hidden="true" /> Peak {test.height.toLocaleString("en-US")}{" "}
-            in {test.ms} ms
-            {test.coinset ? "" : " · custom node: indexed API, WebSocket and summary API off"}
+            <CheckCircle2 size={14} aria-hidden="true" />{" "}
+            {t(test.coinset ? "endpoint.ok" : "endpoint.okCustom", {
+              height: formatInteger(test.height),
+              ms: test.ms,
+            })}
           </span>
         ) : null}
         {test.status === "whitelist" ? (
@@ -191,14 +207,15 @@ function EndpointRow({ network }: { network: NetworkId }) {
 }
 
 export function SettingsForm() {
+  const t = useT("settings");
   const { settings, update, reset, endpoints } = useSettings();
   const { inSage } = useSage();
   return (
     <div className="flex flex-col gap-5">
       <Card>
-        <CardHeader title="Network" />
+        <CardHeader title={t("network.title")} />
         <CardBody className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Active network">
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("network.active")}>
             {NETWORK_IDS.map((id) => (
               <button
                 key={id}
@@ -218,73 +235,85 @@ export function SettingsForm() {
             ))}
           </div>
           <p className="text-xs text-fg-faint">
-            The whole app follows the active network: address prefixes, explorer links, the live
-            stream and the mempool summary. Active endpoint:{" "}
-            <span className="mono text-fg-muted">{endpoints.rpcUrl}</span>
+            {t.rich("network.intro", {
+              url: endpoints.rpcUrl,
+              endpoint: (c) => <span className="mono text-fg-muted">{c}</span>,
+            })}
           </p>
           <ChannelLine />
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader title="Full-node RPC endpoints" />
+        <CardHeader title={t("endpoints.title")} />
         <CardBody className="flex flex-col gap-3">
           {inSage ? (
             <p className="rounded-sm border border-primary/40 bg-primary-soft px-3 py-2 text-xs text-fg-muted">
-              <strong className="text-primary">Inside Sage:</strong> your balance, coins and
-              transactions come from the wallet itself. Sage&apos;s app bridge has no node RPC (no
-              peak, mempool or block queries), so chain-wide data comes from the endpoint below; a
-              custom endpoint is whitelisted in Sage when you save it.
+              {t.rich("endpoints.sage", {
+                strong: (c) => <strong className="text-primary">{c}</strong>,
+              })}
             </p>
           ) : null}
           <p className="text-sm text-fg-muted">
-            By default mempoolxch.space reads the chain through{" "}
-            <a
-              href="https://coinset.org"
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent hover:underline"
-            >
-              Coinset
-            </a>
-            &apos;s public full-node RPC, so no own node is needed, straight from your browser. You
-            can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead.
-            Coinset-only features (semantic transaction summaries, address history and the WebSocket
-            stream) switch off automatically for custom endpoints and the app falls back to polling
-            and to fetching the raw mempool in the browser.
+            {t.rich("endpoints.intro", {
+              coinset: (c) => (
+                <a
+                  href="https://coinset.org"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-accent hover:underline"
+                >
+                  {c}
+                </a>
+              ),
+            })}
           </p>
           {NETWORK_IDS.map((id) => (
             <EndpointRow key={id} network={id} />
           ))}
           <div className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] p-3 text-xs text-fg-muted">
-            <strong className="text-warning">Using your own node?</strong> A stock Chia full node
-            listens on <span className="mono">https://localhost:8555</span> with mutual TLS: it
-            requires the node&apos;s client certificate, which a browser cannot present, and it
-            sends no CORS headers. Put a small reverse proxy in front of it that terminates TLS with
-            the client certificate and adds{" "}
-            <span className="mono">Access-Control-Allow-Origin</span>, then enter the proxy URL
-            here.{" "}
-            <Link href={`${routes.docs()}#custom-node`} className="text-accent hover:underline">
-              Step-by-step guide
-            </Link>
-            .
+            {t.rich("endpoints.ownNode", {
+              strong: (c) => <strong className="text-warning">{c}</strong>,
+              code: (c) => <span className="mono">{c}</span>,
+              guide: (c) => (
+                <Link href={`${routes.docs()}#custom-node`} className="text-accent hover:underline">
+                  {c}
+                </Link>
+              ),
+            })}
           </div>
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader title="Appearance" />
+        <CardHeader title={t("appearance.title")} />
         <CardBody className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium">Theme</span>
+            <span className="font-medium">{t("appearance.theme")}</span>
             <select
               value={settings.theme}
               onChange={(e) => update({ theme: e.target.value as ThemePreference })}
               className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
             >
-              <option value="dark">Dark (mempool.space style)</option>
-              <option value="light">Light</option>
-              <option value="system">Follow system</option>
+              <option value="dark">{t("appearance.dark")}</option>
+              <option value="light">{t("appearance.light")}</option>
+              <option value="system">{t("appearance.system")}</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium">{t("appearance.language")}</span>
+            <select
+              value={settings.locale}
+              onChange={(e) => update({ locale: e.target.value as LocalePreference })}
+              data-testid="settings-language"
+              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
+            >
+              <option value="auto">{t("appearance.languageAuto")}</option>
+              {LOCALES.map((id) => (
+                <option key={id} value={id} lang={id}>
+                  {LOCALE_NAMES[id]}
+                </option>
+              ))}
             </select>
           </label>
           <label className="flex items-center gap-3 text-sm">
@@ -295,15 +324,12 @@ export function SettingsForm() {
               className="h-4 w-4 accent-[var(--primary)]"
             />
             <span>
-              <span className="font-medium">Confirmation chime</span>
-              <span className="block text-xs text-fg-muted">
-                A soft coin sound when one of your wallet&apos;s transactions lands in a block (Sage
-                only).
-              </span>
+              <span className="font-medium">{t("appearance.chime")}</span>
+              <span className="block text-xs text-fg-muted">{t("appearance.chimeHint")}</span>
             </span>
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium">Recent blocks on the dashboard</span>
+            <span className="font-medium">{t("appearance.recentBlocks")}</span>
             <input
               type="number"
               min={3}
@@ -318,7 +344,7 @@ export function SettingsForm() {
 
       <div>
         <Button variant="danger" size="sm" onClick={reset}>
-          Reset all settings
+          {t("resetAll")}
         </Button>
       </div>
     </div>

@@ -35,6 +35,45 @@ const messages: Translation<typeof en> = {
     liveChain: "Cadena en vivo",
     you: "Personal",
   },
+  skipToContent: "Saltar al contenido",
+  connection: {
+    live: "En vivo",
+    connecting: "Conectando",
+    offline: "Sin conexión",
+    noData: "aún sin datos",
+    connectingHint: "Conectando: {channel}…",
+    hint: "{channel}: {detail} Última actualización {age}.",
+    srStatus: "{label} vía {channel}, pico {peak}, última actualización {age}",
+    unknownPeak: "desconocido",
+  },
+  network: {
+    label: "Red",
+    followsSage: "La red sigue a la billetera Sage",
+  },
+  footer: {
+    source: "{network} vía <host>{url}</host>",
+    sourceCustom: "{network} vía <host>{url}</host> (nodo propio)",
+    sourceSage: "datos de billetera de Sage · datos de la cadena: {network} vía <host>{url}</host>",
+    sourceSageCustom:
+      "datos de billetera de Sage · datos de la cadena: {network} vía <host>{url}</host> (nodo propio)",
+    live: "en vivo: {channel}",
+    learn: "Aprender",
+    help: "Ayuda",
+    network: "Red",
+    vaults: "Bóvedas",
+    status: "Estado",
+    changelog: "Novedades",
+    settings: "Ajustes",
+    dataByCoinset: "Datos de Coinset",
+    disclaimer:
+      "Solo información general, no es asesoramiento financiero, de inversión, fiscal ni legal; investiga por tu cuenta. Los datos de la cadena se muestran tal cual y según disponibilidad, pueden estar retrasados, incompletos o ser erróneos, y no se garantiza la disponibilidad. mempoolxch.space es un proyecto independiente, sin afiliación ni respaldo de Chia Network Inc.",
+    legal: "Legal",
+    terms: "Términos de uso",
+    notice: "Aviso legal",
+    privacy: "Política de privacidad",
+    cookies: "Política de cookies",
+    cookieSettings: "Ajustes de cookies",
+  },
 };
 
 export default messages;

@@ -7,6 +7,7 @@ import { mintGardenCollectionUrl, mintGardenProfileUrl } from "@/shared/lib/nft/
 import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
+import { useT } from "@/shared/i18n/useT";
 import { useDidHoldings } from "./useDidProfile";
 
 /**
@@ -15,15 +16,14 @@ import { useDidHoldings } from "./useDidProfile";
  * actually got back.
  */
 export function DidProfileCard({ launcherId, didId }: { launcherId: string; didId: string }) {
+  const t = useT("did");
   const { profile, collections, isLoading, available } = useDidHoldings(launcherId);
   if (!available)
     return (
       <Card>
-        <CardHeader title="Profile" />
+        <CardHeader title={t("title")} />
         <CardBody>
-          <p className="text-sm text-fg-muted">
-            Profiles and NFT holdings come from MintGarden, which indexes mainnet only.
-          </p>
+          <p className="text-sm text-fg-muted">{t("mainnetOnly")}</p>
         </CardBody>
       </Card>
     );
@@ -31,7 +31,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
   return (
     <Card>
       <CardHeader
-        title="Profile"
+        title={t("title")}
         action={
           <a
             href={mintGardenProfileUrl(didId)}
@@ -52,7 +52,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
             {profile?.avatarUrl ? (
               <AssetImage
                 urls={[profile.avatarUrl]}
-                alt={profile.name ?? "DID avatar"}
+                alt={profile.name ?? t("avatarAlt")}
                 className="h-14 w-14 shrink-0"
                 rounded="rounded-full"
               />
@@ -63,18 +63,15 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
             )}
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-1.5 text-base font-semibold">
-                {profile?.name ?? "Unnamed profile"}
+                {profile?.name ?? t("unnamed")}
                 {profile?.verified ? (
-                  <BadgeCheck size={15} className="text-primary" aria-label="Verified" />
+                  <BadgeCheck size={15} className="text-primary" aria-label={t("verified")} />
                 ) : null}
               </p>
               {profile?.bio ? (
                 <p className="mt-1 whitespace-pre-line text-sm text-fg-muted">{profile.bio}</p>
               ) : !known ? (
-                <p className="mt-1 text-sm text-fg-faint">
-                  No MintGarden profile for this DID. It may still hold NFTs that MintGarden has not
-                  indexed.
-                </p>
+                <p className="mt-1 text-sm text-fg-faint">{t("noProfile")}</p>
               ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                 {profile?.ownedNfts !== null && profile?.ownedNfts !== undefined ? (
@@ -83,8 +80,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
                     className="inline-flex items-center gap-1.5 text-accent hover:underline"
                   >
                     <ImageIcon size={13} aria-hidden="true" />
-                    {formatNumber(profile.ownedNfts)} NFT
-                    {profile.ownedNfts === 1 ? "" : "s"} held
+                    {t("nftsHeld", { count: profile.ownedNfts })}
                   </Link>
                 ) : null}
                 {profile?.website ? (
@@ -95,7 +91,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
                     className="inline-flex items-center gap-1 text-fg-muted hover:text-accent"
                   >
                     <Globe size={12} aria-hidden="true" />
-                    Website
+                    {t("website")}
                   </a>
                 ) : null}
                 {profile?.twitterHandle ? (
@@ -115,7 +111,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
         {collections?.length ? (
           <div className="border-t border-border pt-3">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-              Collections held
+              {t("collectionsHeld")}
             </p>
             <ul className="flex flex-wrap gap-2">
               {collections.slice(0, 12).map((c) => (
@@ -139,7 +135,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
               ))}
               {collections.length > 12 ? (
                 <li className="self-center text-xs text-fg-faint">
-                  +{collections.length - 12} more
+                  {t("more", { count: collections.length - 12 })}
                 </li>
               ) : null}
             </ul>

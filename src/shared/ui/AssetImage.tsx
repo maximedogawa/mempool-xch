@@ -2,6 +2,7 @@
 
 import { EyeOff, ImageOff, Play } from "lucide-react";
 import { useState, type CSSProperties } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { isVeiled, sensitivityText, type Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { isTrustedImageUrl, isTrustedVideoUrl } from "@/shared/lib/trustedImage";
@@ -44,6 +45,7 @@ export function AssetImage({
   veilDetail?: boolean;
   videoUrl?: string | null;
 }) {
+  const t = useT("ui");
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -66,7 +68,7 @@ export function AssetImage({
     return (
       <div
         role="img"
-        aria-label={`${alt} (no image)`}
+        aria-label={t("image.noImage", { alt })}
         style={style}
         className={cn(
           "flex items-center justify-center bg-surface-2 text-fg-faint",
@@ -109,17 +111,17 @@ export function AssetImage({
             <span className="veil-text text-xs font-semibold leading-snug">{title}</span>
             {reason ? (
               <span className="veil-text line-clamp-2 text-[11px] leading-snug">
-                <span className="opacity-70">Reason: </span>
+                <span className="opacity-70">{t("image.reason")}</span>
                 {reason}
               </span>
             ) : null}
             {video ? (
               <span className="flex items-center gap-1 text-[10px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                <Play size={10} aria-hidden="true" /> Video
+                <Play size={10} aria-hidden="true" /> {t("image.video")}
               </span>
             ) : null}
             <span className="rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] font-semibold text-accent shadow-sm transition-colors group-hover:bg-surface">
-              Show anyway
+              {t("image.showAnyway")}
             </span>
           </>
         ) : null}
@@ -136,7 +138,7 @@ export function AssetImage({
         >
           {media}
           {glass}
-          <span className="sr-only">{`${alt}: ${summary}`}</span>
+          <span className="sr-only">{t("image.veiled", { alt, summary })}</span>
         </span>
       );
     }
@@ -144,7 +146,7 @@ export function AssetImage({
       <button
         type="button"
         onClick={() => setRevealed(true)}
-        title={`${summary} — click to show`}
+        title={t("image.clickToShow", { summary })}
         style={style}
         className={cn(
           "group relative overflow-hidden bg-surface-2 text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -154,7 +156,7 @@ export function AssetImage({
       >
         {media}
         {glass}
-        <span className="sr-only">{`${alt}: ${summary}. Show anyway.`}</span>
+        <span className="sr-only">{t("image.veiledButton", { alt, summary })}</span>
       </button>
     );
   }

@@ -11,6 +11,7 @@ import {
   formatNumber,
 } from "@/shared/lib/chia/amounts";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage, isNotFound } from "@/shared/lib/rpc/errors";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -47,6 +48,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export function CoinPage({ id }: { id: string | null }) {
+  const t = useT("coin");
   const { endpoints, networkConfig } = useSettings();
   const record = useCoinRecord(id);
   const details = useCoinDetails(id);
@@ -54,13 +56,7 @@ export function CoinPage({ id }: { id: string | null }) {
   const unspent = record.data ? !record.data.spent : false;
   const pending = useCoinMempoolSpends(id, unspent);
 
-  if (!id)
-    return (
-      <EmptyState
-        title="No coin id"
-        description="Open a coin from a transaction or paste a coin id into the search box."
-      />
-    );
+  if (!id) return <EmptyState title={t("noId.title")} description={t("noId.description")} />;
   if (record.isLoading) {
     return (
       <div className="flex flex-col gap-4">
@@ -78,10 +74,7 @@ export function CoinPage({ id }: { id: string | null }) {
     return (
       <div className="flex flex-col gap-4">
         <Heading id={id} />
-        <EmptyState
-          title="Coin not found"
-          description="No coin with this id exists on this network. Coins created by a pending spend bundle only appear once the bundle is confirmed."
-        />
+        <EmptyState title={t("notFound.title")} description={t("notFound.description")} />
       </div>
     );
   }
@@ -89,9 +82,9 @@ export function CoinPage({ id }: { id: string | null }) {
     return (
       <EmptyState
         tone="danger"
-        title="Could not load the coin"
+        title={t("loadError")}
         description={errorMessage(record.error)}
-        action={<Button onClick={() => record.refetch()}>Retry</Button>}
+        action={<Button onClick={() => record.refetch()}>{t("retry")}</Button>}
       />
     );
   }
@@ -120,13 +113,13 @@ export function CoinPage({ id }: { id: string | null }) {
       <SageCoinPanel coinId={id} />
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <StatTile
-          label="Amount"
+          label={t("stats.amount")}
           value={amount}
           sub={`${coin.coin.amount.toString()} mojo`}
           tone="primary"
         />
         <StatTile
-          label="Created"
+          label={t("stats.created")}
           value={
             <Link
               href={routes.block(coin.confirmedBlockIndex)}
@@ -142,7 +135,7 @@ export function CoinPage({ id }: { id: string | null }) {
           }
         />
         <StatTile
-          label="Spent"
+          label={t("stats.spent")}
           value={
             coin.spent ? (
               <Link
@@ -152,39 +145,39 @@ export function CoinPage({ id }: { id: string | null }) {
                 {formatNumber(coin.spentBlockIndex)}
               </Link>
             ) : (
-              "Unspent"
+              t("unspent")
             )
           }
           sub={
             coin.spent
-              ? "block height"
+              ? t("stats.blockHeight")
               : pending.data && pending.data.length > 0
-                ? "spend pending in mempool"
-                : "no pending spend"
+                ? t("stats.spendPending")
+                : t("stats.noPendingSpend")
           }
           tone={
             coin.spent ? "default" : pending.data && pending.data.length > 0 ? "warning" : "primary"
           }
         />
         <StatTile
-          label="Origin"
-          value={coin.coinbase ? "Reward" : "Spend"}
-          sub={coin.coinbase ? "coinbase (farmer or pool reward)" : "created by a spend bundle"}
+          label={t("stats.origin")}
+          value={coin.coinbase ? t("stats.reward") : t("stats.spend")}
+          sub={coin.coinbase ? t("stats.rewardSub") : t("stats.spendSub")}
         />
       </div>
 
       <Card>
-        <CardHeader title="Coin record" />
+        <CardHeader title={t("record.title")} />
         <CardBody>
           <dl className="divide-y divide-border/60">
-            <Row label="Coin id">
+            <Row label={t("record.coinId")}>
               <Hash value={coin.name} full copy />
             </Row>
-            <Row label="Parent coin">
+            <Row label={t("record.parentCoin")}>
               {coin.coinbase ? (
                 <span className="inline-flex items-center gap-2">
                   <Hash value={coin.coin.parentCoinInfo} full copy />{" "}
-                  <span className="text-xs text-fg-faint">(reward: no parent coin)</span>
+                  <span className="text-xs text-fg-faint">{t("record.noParent")}</span>
                 </span>
               ) : (
                 <Hash
@@ -195,10 +188,10 @@ export function CoinPage({ id }: { id: string | null }) {
                 />
               )}
             </Row>
-            <Row label="Puzzle hash">
+            <Row label={t("record.puzzleHash")}>
               <Hash value={coin.coin.puzzleHash} full copy />
             </Row>
-            <Row label="Address">
+            <Row label={t("record.address")}>
               {puzzleAddress ? (
                 <Hash value={puzzleAddress} href={routes.address(puzzleAddress)} full copy />
               ) : (
@@ -206,34 +199,43 @@ export function CoinPage({ id }: { id: string | null }) {
               )}
               {semantics?.custodyP2 && semantics.custodyP2 !== coin.coin.puzzleHash && address ? (
                 <span className="mt-1 block text-xs text-fg-faint">
-                  Owner (inner puzzle):{" "}
-                  <Hash value={address} href={routes.address(address)} head={10} tail={6} copy />
+                  {t.rich("record.owner", {
+                    address: () => (
+                      <Hash
+                        value={address}
+                        href={routes.address(address)}
+                        head={10}
+                        tail={6}
+                        copy
+                      />
+                    ),
+                  })}
                 </span>
               ) : null}
             </Row>
-            <Row label="Creating transaction">
+            <Row label={t("record.creatingTx")}>
               {links?.createdInTxId ? (
                 <Hash value={links.createdInTxId} href={routes.tx(links.createdInTxId)} full />
               ) : (
                 <span className="text-fg-faint">
                   {coin.coinbase
-                    ? "none (reward coin)"
+                    ? t("record.rewardCoin")
                     : endpoints.isCoinset
                       ? details.isLoading
                         ? "…"
-                        : "not available from Coinset right now"
-                      : "needs Coinset"}{" "}
+                        : t("record.notAvailable")
+                      : t("record.needsCoinset")}{" "}
                   ·{" "}
                   <Link
                     href={routes.block(coin.confirmedBlockIndex)}
                     className="text-accent hover:underline"
                   >
-                    block {formatNumber(coin.confirmedBlockIndex)}
+                    {t("record.block", { height: formatNumber(coin.confirmedBlockIndex) })}
                   </Link>
                 </span>
               )}
             </Row>
-            <Row label="Spending transaction">
+            <Row label={t("record.spendingTx")}>
               {coin.spent ? (
                 links?.spentInTxId ? (
                   <Hash value={links.spentInTxId} href={routes.tx(links.spentInTxId)} full />
@@ -242,19 +244,19 @@ export function CoinPage({ id }: { id: string | null }) {
                     {endpoints.isCoinset
                       ? details.isLoading
                         ? "…"
-                        : "not available from Coinset right now"
-                      : "needs Coinset"}{" "}
+                        : t("record.notAvailable")
+                      : t("record.needsCoinset")}{" "}
                     ·{" "}
                     <Link
                       href={routes.block(coin.spentBlockIndex)}
                       className="text-accent hover:underline"
                     >
-                      block {formatNumber(coin.spentBlockIndex)}
+                      {t("record.block", { height: formatNumber(coin.spentBlockIndex) })}
                     </Link>
                   </span>
                 )
               ) : (
-                <span className="text-fg-faint">unspent</span>
+                <span className="text-fg-faint">{t("record.unspent")}</span>
               )}
             </Row>
           </dl>
@@ -262,18 +264,15 @@ export function CoinPage({ id }: { id: string | null }) {
       </Card>
 
       <Card>
-        <CardHeader title="Type and asset" />
+        <CardHeader title={t("type.title")} />
         <CardBody>
           {!endpoints.isCoinset ? (
-            <p className="text-sm text-fg-faint">
-              Coin classification (XCH, CAT, NFT, DID) needs a Coinset endpoint; the current custom
-              node only provides the raw record.
-            </p>
+            <p className="text-sm text-fg-faint">{t("type.needsCoinset")}</p>
           ) : details.isLoading ? (
             <Skeleton className="h-10" />
           ) : semantics ? (
             <dl className="divide-y divide-border/60">
-              <Row label="Kind">
+              <Row label={t("type.kind")}>
                 <span className="inline-flex items-center gap-2">
                   <KindBadge kind={kind} />
                   <span className="text-fg-muted">{semantics.outerPuzzleType}</span>
@@ -283,11 +282,17 @@ export function CoinPage({ id }: { id: string | null }) {
                 </span>
               </Row>
               {semantics.custodyPuzzleType ? (
-                <Row label="Custody puzzle">{semantics.custodyPuzzleType}</Row>
+                <Row label={t("type.custodyPuzzle")}>{semantics.custodyPuzzleType}</Row>
               ) : null}
               {semantics.assetId ? (
                 <Row
-                  label={kind === "cat" ? "CAT asset id" : kind === "nft" ? "NFT" : "Launcher id"}
+                  label={
+                    kind === "cat"
+                      ? t("type.catAssetId")
+                      : kind === "nft"
+                        ? t("type.nft")
+                        : t("type.launcherId")
+                  }
                 >
                   {kind === "cat" ? (
                     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -318,32 +323,27 @@ export function CoinPage({ id }: { id: string | null }) {
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-fg-faint">
-              Coinset has not classified this coin (its coin-details endpoint is unavailable or the
-              coin is not indexed yet). Plain XCH coins usually need no classification.
-            </p>
+            <p className="text-sm text-fg-faint">{t("type.notClassified")}</p>
           )}
         </CardBody>
       </Card>
 
       {!coin.spent ? (
         <Card>
-          <CardHeader title="Pending spends in the mempool" />
+          <CardHeader title={t("pending.title")} />
           <CardBody>
             {pending.isLoading ? (
               <Skeleton className="h-10" />
             ) : !pending.data || pending.data.length === 0 ? (
-              <p className="text-sm text-fg-faint">
-                No spend bundle in the mempool spends this coin.
-              </p>
+              <p className="text-sm text-fg-faint">{t("pending.none")}</p>
             ) : (
               <Table>
                 <thead>
                   <tr>
-                    <Th>Spend bundle</Th>
-                    <Th className="text-right">Fee</Th>
-                    <Th className="text-right">Cost</Th>
-                    <Th className="text-right">Fee / cost</Th>
+                    <Th>{t("pending.spendBundle")}</Th>
+                    <Th className="text-right">{t("pending.fee")}</Th>
+                    <Th className="text-right">{t("pending.cost")}</Th>
+                    <Th className="text-right">{t("pending.feePerCost")}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -367,24 +367,28 @@ export function CoinPage({ id }: { id: string | null }) {
       ) : null}
 
       <Card>
-        <CardHeader title={`Children${children.data ? ` (${children.data.length})` : ""}`} />
+        <CardHeader
+          title={
+            children.data
+              ? t("children.titleCount", { count: children.data.length })
+              : t("children.title")
+          }
+        />
         <CardBody>
           {children.isLoading ? (
             <Skeleton className="h-10" />
           ) : !children.data || children.data.length === 0 ? (
             <p className="text-sm text-fg-faint">
-              {coin.spent
-                ? "No child coins were found for this coin."
-                : "Unspent coins have no children yet."}
+              {coin.spent ? t("children.noneSpent") : t("children.noneUnspent")}
             </p>
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Coin id</Th>
-                  <Th>Address</Th>
-                  <Th className="text-right">Amount</Th>
-                  <Th className="text-right">Status</Th>
+                  <Th>{t("children.coinId")}</Th>
+                  <Th>{t("children.address")}</Th>
+                  <Th className="text-right">{t("children.amount")}</Th>
+                  <Th className="text-right">{t("children.status")}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -409,10 +413,10 @@ export function CoinPage({ id }: { id: string | null }) {
                             href={routes.block(c.spentBlockIndex)}
                             className="text-xs text-fg-muted hover:underline"
                           >
-                            spent at {formatNumber(c.spentBlockIndex)}
+                            {t("children.spentAt", { height: formatNumber(c.spentBlockIndex) })}
                           </Link>
                         ) : (
-                          <span className="text-xs text-primary">unspent</span>
+                          <span className="text-xs text-primary">{t("children.unspent")}</span>
                         )}
                       </Td>
                     </Tr>
@@ -436,14 +440,15 @@ function safeAddress(puzzleHash: string, prefix: "xch" | "txch"): string | null 
 }
 
 function Heading({ id, badge, spent }: { id: string; badge?: React.ReactNode; spent?: boolean }) {
+  const t = useT("coin");
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">Coin</h1>
+        <h1 className="text-xl font-semibold">{t("heading")}</h1>
         {spent === undefined ? null : spent ? (
-          <Badge tone="neutral">Spent</Badge>
+          <Badge tone="neutral">{t("spent")}</Badge>
         ) : (
-          <Badge tone="primary">Unspent</Badge>
+          <Badge tone="primary">{t("unspent")}</Badge>
         )}
         {badge}
       </div>

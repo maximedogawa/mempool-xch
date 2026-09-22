@@ -9,6 +9,8 @@
  * p2 puzzle hashes below are the ones the vaults have used so far (a rekey changes them); they
  * are read from chain and any balance shown is exactly what those coins hold, nothing inferred.
  */
+import { plainT } from "@/shared/i18n/plain";
+
 export interface PrefarmVault {
   id: "cold-us" | "cold-ch" | "warm-us" | "warm-ch";
   name: string;
@@ -23,10 +25,13 @@ export interface PrefarmVault {
 
 export const PREFARM_TOTAL_MOJOS = 21_000_000n * 1_000_000_000_000n;
 
+/** `name` and `custody` are getters so they follow the UI language at render time. */
 export const PREFARM_VAULTS: PrefarmVault[] = [
   {
     id: "cold-us",
-    name: "Cold wallet (US)",
+    get name() {
+      return plainT("common")("vaults.coldUs");
+    },
     region: "US",
     tier: "cold",
     launcherId: "6c77dce3c3bab525dab7883e8ad513a8f3ff127e872009b12836cbb1c8f26647",
@@ -36,11 +41,15 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       // xch1jj0gm4ahhlu3ke0r0fx955v8axr6za7rzz6hc0y26lewa7zw6fws5nwvv6 (p2 address in the audit guide)
       "949e8dd7b7bff91b65e37a4c5a5187e987a177c310b57c3c8ad7f2eef84ed25d",
     ],
-    custody: "90-day clawback, 30-day withdrawal timelock",
+    get custody() {
+      return plainT("common")("vaults.custodyCold");
+    },
   },
   {
     id: "cold-ch",
-    name: "Cold wallet (Switzerland)",
+    get name() {
+      return plainT("common")("vaults.coldCh");
+    },
     region: "Switzerland",
     tier: "cold",
     launcherId: "355042db2e191d9176c25d3e059524265653549cee0fc65c4ed235d58bf8e659",
@@ -50,11 +59,15 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       // xch1y6krqgs2cjz6mjgz5wy4dd5zqghm3a5pgueccjtudchn2xzcajtsnyzvgy
       "26ac30220ac485adc902a38956b682022fb8f68147338c497c6e2f351858ec97",
     ],
-    custody: "90-day clawback, 30-day withdrawal timelock",
+    get custody() {
+      return plainT("common")("vaults.custodyCold");
+    },
   },
   {
     id: "warm-us",
-    name: "Warm wallet (US)",
+    get name() {
+      return plainT("common")("vaults.warmUs");
+    },
     region: "US",
     tier: "warm",
     launcherId: "d76ef7df8cfab2d8514f58e72fd12f2e7f5ada69db6eb5be90f084cfa37a29a2",
@@ -64,11 +77,15 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       // xch1aukdy3djga7j8ckaw06lwjew9pnnv5hugqyx9lu9l2utaxjtgj5snuuwkc
       "ef2cd245b2477d23e2dd73f5f74b2e28673652fc400862ff85fab8be9a4b44a9",
     ],
-    custody: "24-hour clawback, 1-hour withdrawal timelock",
+    get custody() {
+      return plainT("common")("vaults.custodyWarm");
+    },
   },
   {
     id: "warm-ch",
-    name: "Warm wallet (Switzerland)",
+    get name() {
+      return plainT("common")("vaults.warmCh");
+    },
     region: "Switzerland",
     tier: "warm",
     launcherId: "a26cb54f7b9e8f38e2ee903880468ba262f5a1b39fe123c88053b14fac66ad10",
@@ -78,7 +95,9 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       // xch1xhghtsdqdtt5eqr307lcacg49nt72zmeuq2qfwu7ymmqvqf0ej0qsruh0w
       "35d175c1a06ad74c80717fbf8ee1152cd7e50b79e01404bb9e26f606012fcc9e",
     ],
-    custody: "24-hour clawback, 1-hour withdrawal timelock",
+    get custody() {
+      return plainT("common")("vaults.custodyWarm");
+    },
   },
 ];
 

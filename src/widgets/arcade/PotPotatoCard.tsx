@@ -6,6 +6,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { formatCountdown, POTATO } from "@/shared/lib/potato/potato";
 import { routes } from "@/shared/lib/routes";
+import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader, Hash, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { usePotato } from "./usePotato";
@@ -24,6 +25,7 @@ function fuseTone(progress: number): string {
  * simply the holder's XCH.
  */
 export function PotPotatoCard() {
+  const t = useT("arcade");
   const { tip, state, live, error, snapshotAt } = usePotato();
   const tone = state.ripe ? "var(--primary)" : fuseTone(state.progress);
   const hours = POTATO.holdSeconds / 3600;
@@ -35,7 +37,11 @@ export function PotPotatoCard() {
           <span className="inline-flex items-center gap-2">
             Pot Potato
             <Tooltip
-              text={`A hot-potato game entirely on chain: whoever holds the potato coin for ${hours} hours keeps the pot. Anyone can snatch it before that by paying ${formatAmount(POTATO.price)} into the pot plus ${formatAmount(POTATO.royalty)} to every previous holder. The state here is read from the coin lineage on Coinset, nothing else.`}
+              text={t("potato.hint", {
+                hours,
+                price: formatAmount(POTATO.price),
+                royalty: formatAmount(POTATO.royalty),
+              })}
             />
           </span>
         }
@@ -49,10 +55,10 @@ export function PotPotatoCard() {
               aria-hidden="true"
             />
             {live
-              ? "following the coin live"
+              ? t("potato.live")
               : error
-                ? "Coinset unreachable, showing the snapshot"
-                : `snapshot ${snapshotAt}`}
+                ? t("potato.unreachable")
+                : t("potato.snapshot", { date: snapshotAt })}
             <ExternalLink href={POTATO.site} className="text-accent hover:underline">
               potpotato.xyz
             </ExternalLink>
@@ -63,7 +69,7 @@ export function PotPotatoCard() {
         <div className="flex flex-col justify-between gap-4">
           <div>
             <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-              {state.ripe ? "Held long enough" : "Until the holder keeps it all"}
+              {state.ripe ? t("potato.heldLongEnough") : t("potato.untilKeeps")}
             </div>
             <div
               className={cn(
@@ -74,20 +80,27 @@ export function PotPotatoCard() {
               data-testid="potato-clock"
               aria-live="off"
             >
-              {tip.ended ? "round over" : state.ripe ? "ripe" : formatCountdown(state.secondsLeft)}
+              {tip.ended
+                ? t("potato.roundOver")
+                : state.ripe
+                  ? t("potato.ripe")
+                  : formatCountdown(state.secondsLeft)}
             </div>
             <div className="mt-1 text-xs text-fg-faint">
               {tip.ended
-                ? "The potato was claimed or pushed through; the round has ended."
+                ? t("potato.ended")
                 : state.ripe
-                  ? "The deadline passed: the pot is the holder's XCH now, nothing to claim."
-                  : `deadline ${formatDateTime(state.deadlineMs)} · give or take ${POTATO.timelockBufferSeconds} s, the snatch's own timestamp decides`}
+                  ? t("potato.ripeNote")
+                  : t("potato.deadline", {
+                      date: formatDateTime(state.deadlineMs),
+                      buffer: POTATO.timelockBufferSeconds,
+                    })}
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
             <div
               role="meter"
-              aria-label="Share of the hold already served"
+              aria-label={t("potato.meter")}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(state.progress * 100)}
@@ -112,8 +125,8 @@ export function PotPotatoCard() {
               ))}
             </div>
             <div className="flex justify-between text-[11px] text-fg-faint">
-              <span>held {formatCountdown(state.heldSeconds)}</span>
-              <span>{hours} h hold</span>
+              <span>{t("potato.held", { time: formatCountdown(state.heldSeconds) })}</span>
+              <span>{t("potato.hold", { hours })}</span>
             </div>
           </div>
         </div>
@@ -121,7 +134,7 @@ export function PotPotatoCard() {
         <dl className="grid grid-cols-2 gap-2 self-start">
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
             <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              In the pot
+              {t("potato.inPot")}
             </dt>
             <dd className="tabular text-xl font-semibold text-primary" data-testid="potato-pot">
               {formatAmount(state.pot)}
@@ -129,7 +142,7 @@ export function PotPotatoCard() {
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
             <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              Snatches
+              {t("potato.snatches")}
             </dt>
             <dd className="tabular text-xl font-semibold" data-testid="potato-snatches">
               {formatNumber(state.snatches)}
@@ -137,30 +150,36 @@ export function PotPotatoCard() {
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
             <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              Next snatch costs
+              {t("potato.nextCost")}
             </dt>
             <dd className="tabular text-sm font-semibold">{formatAmount(state.nextSnatchCost)}</dd>
             <dd className="text-[11px] text-fg-faint">
-              {formatAmount(POTATO.price)} into the pot + royalties
+              {t("potato.nextCostNote", { price: formatAmount(POTATO.price) })}
             </dd>
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
             <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              Taken
+              {t("potato.taken")}
             </dt>
             <dd className="text-sm font-semibold">{formatAge(tip.timestamp * 1000)}</dd>
             <dd className="text-[11px] text-fg-faint">
-              in block{" "}
-              <Link href={routes.block(tip.height)} className="text-accent hover:underline">
-                #{formatNumber(tip.height)}
-              </Link>
+              {t.rich("potato.inBlock", {
+                height: formatNumber(tip.height),
+                link: (c) => (
+                  <Link href={routes.block(tip.height)} className="text-accent hover:underline">
+                    {c}
+                  </Link>
+                ),
+              })}
             </dd>
           </div>
         </dl>
         <p className="text-[11px] text-fg-faint md:col-span-2">
-          Potato coin <Hash value={tip.coinId} href={routes.coin(tip.coinId)} head={10} tail={6} />{" "}
-          · the holder is wrapped in a clawback, so the chain shows a merkle root rather than an
-          address.
+          {t.rich("potato.coinNote", {
+            hash: () => (
+              <Hash value={tip.coinId} href={routes.coin(tip.coinId)} head={10} tail={6} />
+            ),
+          })}
         </p>
       </CardBody>
     </Card>

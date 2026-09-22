@@ -1,6 +1,90 @@
 import type { Translation } from "../../translate";
 import type en from "../en/nft";
 
-const messages: Translation<typeof en> = {};
+const messages: Translation<typeof en> = {
+  loading: "加载中…",
+  showMore: "显示更多",
+  untitled: "未命名",
+  noAnswer: "MintGarden 没有响应。",
+  collectionsError: "无法加载系列",
+  activityError: "无法加载动态",
+  mintsError: "无法加载铸造记录",
+  noRecentMints: "暂无新铸造。",
+  home: {
+    intro:
+      "系列、动态和铸造数据来自 MintGarden（仅主网），未成交报价来自 Dexie——按需读取，我们的服务器不保存任何内容。下方数字是按 30 天交易量排名前 6 的系列，并非全平台总量：两家提供方都未公布总量。",
+    topVolume: "热门系列 30 天交易量",
+    topVolumeHint: "交易最活跃的 6 个系列的 30 天交易量之和。",
+    topTrades: "热门系列成交笔数",
+    recentActivity: "最近动态",
+    eventsShown: "下方显示的事件",
+    recentMints: "最近铸造",
+    mintsShown: "下方显示的铸造",
+    spotlight: "焦点系列",
+    allCollections: "全部系列 →",
+    collectionAlt: "系列",
+    floor: "地板价 {price}",
+    noFloor: "无地板价",
+    noCollections: "暂无系列数据。",
+    allActivity: "全部动态 →",
+    noActivity: "暂无最近动态。",
+    newMints: "新铸造",
+    allMints: "全部铸造 →",
+    searchHint: "有 NFT ID 或 launcher ID？在上方搜索，或直接打开 <mono>{path}</mono>。",
+  },
+  collections: {
+    title: "NFT 系列",
+    intro:
+      "按所选时间段内的交易量排序，数据来自 MintGarden。地板价是 MintGarden 自己最低的有效挂单价。",
+    card: "系列",
+    search: "搜索系列",
+    window: "时间段",
+    intervals: { d1: "24 小时", d7: "7 天", d30: "30 天", all: "全部时间" },
+    noMatch: "没有与「{query}」匹配的系列。",
+    colCollection: "系列",
+    colItems: "数量",
+    colFloor: "地板价",
+    colVolume: "交易量",
+    colTrades: "成交笔数",
+  },
+  activity: {
+    title: "NFT 动态",
+    intro: "MintGarden 索引的所有系列中的铸造、转移、销售和销毁，最新的在前。",
+    card: "动态",
+    kind: "类型",
+    kinds: { all: "全部", mint: "铸造", transfer: "转移", trade: "销售", burn: "销毁" },
+    noEvents: "暂无事件。",
+  },
+  mints: {
+    title: "新铸造",
+    intro: "MintGarden 索引的所有系列中新铸造的 NFT，最新的在前。",
+    card: "铸造",
+  },
+  event: {
+    kinds: { mint: "铸造", transfer: "转移", trade: "销售", burn: "销毁" },
+    uncategorised: "未分类",
+    block: "区块 {height}",
+  },
+  offers: {
+    title: "未成交报价",
+    titleCount: "未成交报价（{count}）",
+    found: "发现于{age}",
+    copyOfferFile: "复制报价文件",
+    viewOnDexie: "在 Dexie 上查看",
+    none: "Dexie 上目前没有未成交报价。",
+    howToAccept:
+      "如需接受报价，请将报价文件粘贴到 Sage 或其他 Chia 钱包，或直接在 Dexie 上接受——本应用无法替您提交交易；Sage 的应用桥接尚未提供接受报价的方式。",
+  },
+  owned: {
+    invalidTitle: "不是有效的地址",
+    invalidDescription: "请在地址或 DID 页面点击 NFT 数量来浏览其持有的 NFT。",
+    backToDid: "返回 DID",
+    backToAddress: "返回地址",
+    title: "持有的 NFT",
+    heldBy: "持有者 <owner></owner>",
+    mainnetTitle: "NFT 画廊仅在主网可用",
+    mainnetDescription: "MintGarden 不提供测试网持有数据。地址概览仍会显示节点统计的 NFT 数量。",
+  },
+};
 
 export default messages;

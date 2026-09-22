@@ -1,6 +1,80 @@
 import type { Translation } from "../../translate";
 import type en from "../en/coin";
 
-const messages: Translation<typeof en> = {};
+const messages: Translation<typeof en> = {
+  heading: "币",
+  spent: "已花费",
+  unspent: "未花费",
+  retry: "重试",
+  noId: {
+    title: "缺少币 ID",
+    description: "请从交易中打开一个币，或将币 ID 粘贴到搜索框中。",
+  },
+  notFound: {
+    title: "未找到币",
+    description: "此网络上不存在该 ID 的币。由待确认花费包创建的币要等花费包确认后才会出现。",
+  },
+  loadError: "无法加载该币",
+  stats: {
+    amount: "金额",
+    created: "创建于",
+    spent: "花费于",
+    blockHeight: "区块高度",
+    spendPending: "内存池中有待确认的花费",
+    noPendingSpend: "无待确认的花费",
+    origin: "来源",
+    reward: "奖励",
+    spend: "花费",
+    rewardSub: "coinbase（农民或矿池奖励）",
+    spendSub: "由花费包创建",
+  },
+  record: {
+    title: "币记录",
+    coinId: "币 ID",
+    parentCoin: "父币",
+    noParent: "（奖励：无父币）",
+    puzzleHash: "谜题哈希",
+    address: "地址",
+    owner: "所有者（内层谜题）：<address></address>",
+    creatingTx: "创建交易",
+    spendingTx: "花费交易",
+    rewardCoin: "无（奖励币）",
+    notAvailable: "Coinset 暂时无法提供",
+    needsCoinset: "需要 Coinset",
+    block: "区块 {height}",
+    unspent: "未花费",
+  },
+  type: {
+    title: "类型与资产",
+    needsCoinset: "币分类（XCH、CAT、NFT、DID）需要 Coinset 端点；当前的自定义节点只提供原始记录。",
+    kind: "类型",
+    custodyPuzzle: "托管谜题",
+    catAssetId: "CAT 资产 ID",
+    nft: "NFT",
+    launcherId: "启动器 ID",
+    notClassified:
+      "Coinset 尚未对该币进行分类（其币详情端点不可用，或该币尚未被索引）。普通 XCH 币通常无需分类。",
+  },
+  pending: {
+    title: "内存池中待确认的花费",
+    none: "内存池中没有花费该币的花费包。",
+    spendBundle: "花费包",
+    fee: "手续费",
+    cost: "成本",
+    feePerCost: "手续费 / 成本",
+  },
+  children: {
+    title: "子币",
+    titleCount: "子币（{count}）",
+    noneSpent: "未找到该币的子币。",
+    noneUnspent: "未花费的币还没有子币。",
+    coinId: "币 ID",
+    address: "地址",
+    amount: "金额",
+    status: "状态",
+    spentAt: "于 {height} 被花费",
+    unspent: "未花费",
+  },
+};
 
 export default messages;
