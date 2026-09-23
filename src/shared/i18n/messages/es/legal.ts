@@ -197,8 +197,6 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "El servidor no obtiene datos de la cadena ni de activos en tu nombre: solo sirve la propia aplicación (HTML, scripts, estilos). Cada consulta que haces es una solicitud de tu propio navegador a Coinset, Dexie, MintGarden, XCHandles, fuentes públicas de datos de mercado o tu propio nodo, descritas en los apartados siguientes.",
-      market:
-        "La página Mercado lee libros de órdenes públicos de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro), además de ofertas públicas de XCH para ByteCash (BYC, la stablecoin en USD de Circuit) y wUSDC.b de Dexie. Estas solicitudes no contienen credenciales de ninguna cuenta. Una fuente puede no estar disponible o tener limitada la frecuencia de solicitudes; la página la marca como desactualizada y la excluye de su agregado.",
     },
     storage: {
       title: "3. Almacenamiento en tu navegador",
@@ -223,6 +221,8 @@ const messages: Translation<typeof en> = {
           "Coinset (api.coinset.org): todos los datos de la cadena (la mempool, los bloques, las transacciones, las direcciones, las monedas y los activos que consultas, y las actualizaciones en vivo), a menos que introduzcas otro nodo a continuación.",
         node: "Un nodo completo que introduzcas en Ajustes: todos los datos de la cadena provienen entonces de él en lugar de Coinset.",
         map: "Solo mientras la página del mapa de la red está abierta: Cloudflare DNS (cloudflare-dns.com, con dns.google como alternativa) responde a las consultas DNS de los introductores de Chia, y GeoJS (get.geojs.io) estima la ubicación de las direcciones de nodos que contienen esas respuestas. Solo se envían direcciones de nodos para la consulta, nunca la tuya; las direcciones obtenidas se guardan en el almacenamiento local de tu navegador durante una semana.",
+        market:
+          "Solo mientras la página Mercado está abierta: las API públicas de datos de mercado de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro) para los libros de órdenes y las operaciones recientes de XCH, cada 5 segundos, y Dexie (api.dexie.space) para las ofertas abiertas de XCH contra las stablecoins BYC, wUSDC.b, wUSDC y wUSDT. Las solicitudes no llevan datos de cuenta, clave ni monedero; los exchanges las ven como cualquier otra visita a su API.",
       },
       basis:
         "Base jurídica: art. 6.1.f) RGPD; el interés legítimo es mostrar el contenido de la blockchain que solicitas. Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo, por ejemplo en los Estados Unidos, donde el nivel de protección de datos puede ser inferior. Se aplican sus propias políticas de privacidad.",

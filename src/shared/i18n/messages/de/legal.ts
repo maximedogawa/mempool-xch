@@ -197,8 +197,6 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "Der Server ruft keine Chain- oder Asset-Daten in Ihrem Auftrag ab: Er liefert nur die Anwendung selbst aus (HTML, Skripte, Styles). Jede Abfrage, die Sie vornehmen, ist eine Anfrage Ihres eigenen Browsers an Coinset, Dexie, MintGarden, XCHandles, öffentliche Marktdatenquellen oder Ihren eigenen Node, wie in den folgenden Abschnitten beschrieben.",
-      market:
-        "Die Seite „Markt“ liest öffentliche Orderbücher von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) sowie öffentliche XCH-Offers für ByteCash (BYC, den USD-Stablecoin von Circuit) und wUSDC.b von Dexie. Diese Anfragen enthalten keine Zugangsdaten zu Konten. Eine Quelle kann nicht verfügbar oder ratenbegrenzt sein; die Seite kennzeichnet sie dann als veraltet und nimmt sie aus ihrem Gesamtwert heraus.",
     },
     storage: {
       title: "3. Speicherung in Ihrem Browser",
@@ -223,6 +221,8 @@ const messages: Translation<typeof en> = {
           "Coinset (api.coinset.org): alle Chain-Daten – der Mempool, Blöcke, Transaktionen, Adressen, Coins und Assets, die Sie ansehen, sowie die Live-Aktualisierungen –, sofern Sie unten keinen anderen Node eingeben.",
         node: "Ein Full Node, den Sie in den Einstellungen eingeben: Alle Chain-Daten kommen dann von dort statt von Coinset.",
         map: "Nur während die Seite „Netzwerkkarte“ geöffnet ist: Cloudflare DNS (cloudflare-dns.com, mit dns.google als Ausweichlösung) beantwortet DNS-Anfragen für die Chia-Introducer, und GeoJS (get.geojs.io) schätzt den Standort der Node-Adressen, die diese Antworten enthalten. Zur Abfrage werden nur Node-Adressen gesendet, niemals Ihre; die ermittelten Adressen werden eine Woche lang im lokalen Speicher Ihres Browsers aufbewahrt.",
+        market:
+          "Nur während die Seite „Markt“ geöffnet ist: die öffentlichen Marktdaten-APIs von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) für XCH-Orderbücher und die letzten Trades, alle 5 Sekunden, sowie Dexie (api.dexie.space) für offene XCH-Offers gegen die Stablecoins BYC, wUSDC.b, wUSDC und wUSDT. Die Anfragen enthalten keine Konto-, Schlüssel- oder Wallet-Daten; die Börsen sehen sie wie jeden anderen Aufruf ihrer API.",
       },
       basis:
         "Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse ist die Anzeige der von Ihnen angeforderten Blockchain-Inhalte. Einige dieser Anbieter verarbeiten Daten möglicherweise außerhalb des Europäischen Wirtschaftsraums, zum Beispiel in den Vereinigten Staaten, wo das Datenschutzniveau niedriger sein kann. Es gelten deren eigene Datenschutzerklärungen.",

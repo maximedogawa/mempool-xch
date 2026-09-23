@@ -183,8 +183,6 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "服务器不会代表您获取链上或资产数据：它仅提供应用本身（HTML、脚本、样式）。您进行的每一次查询，都是由您自己的浏览器向 Coinset、Dexie、MintGarden、XCHandles、公共市场数据来源或您自己的节点发出的请求，详见以下各节。",
-      market:
-        "「市场」页面从 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）读取公开订单簿，并从 Dexie 读取 ByteCash（BYC，Circuit 的美元稳定币）和 wUSDC.b 的公开 XCH 报价（offer）。这些请求不包含任何账户凭据。某个来源可能不可用或受到速率限制；此时页面会将其标记为过时，并将其排除在汇总数据之外。",
     },
     storage: {
       title: "3. 在您浏览器中的存储",
@@ -208,6 +206,8 @@ const messages: Translation<typeof en> = {
           "Coinset（api.coinset.org）：所有链上数据——内存池、您查看的区块、交易、地址、币和资产，以及实时更新——除非您在下方输入其他节点。",
         node: "您在「设置」中输入的全节点：此时所有链上数据均来自该节点，而不是 Coinset。",
         map: "仅在「网络地图」页面打开期间：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置。发送查询的只有节点地址，绝不包括您的地址；获取到的地址会在您浏览器的本地存储中保留一周。",
+        market:
+          "仅在「市场」页面打开期间：每 5 秒请求 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）的公开行情 API，获取 XCH 订单簿和最近成交；并请求 Dexie（api.dexie.space）获取 XCH 与稳定币 BYC、wUSDC.b、wUSDC 和 wUSDT 之间的未成交报价。这些请求不包含任何账户、密钥或钱包数据；交易所会像对待其 API 的任何其他访问一样看待它们。",
       },
       basis:
         "法律依据：GDPR 第 6 条第 1 款 (f) 项；正当利益在于显示您请求的区块链内容。其中部分提供者可能在欧洲经济区以外（例如美国）处理数据，当地的数据保护水平可能较低。适用其各自的隐私政策。",

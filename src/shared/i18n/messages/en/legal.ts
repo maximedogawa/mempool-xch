@@ -193,8 +193,6 @@ const messages = {
       },
       noProxy:
         "The server does not fetch chain or asset data on your behalf: it only serves the application itself (HTML, scripts, styles). Every lookup you make is a request from your own browser to Coinset, Dexie, MintGarden, XCHandles, public market data sources or your own node, described in the next sections.",
-      market:
-        "The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro), plus public XCH offers for ByteCash (BYC, Circuit's USD stablecoin) and wUSDC.b from Dexie. These requests contain no account credentials. A source can be unavailable or rate limited; the page labels it stale and excludes it from its aggregate.",
     },
     storage: {
       title: "3. Storage in your browser",
@@ -219,6 +217,8 @@ const messages = {
           "Coinset (api.coinset.org): all chain data — the mempool, blocks, transactions, addresses, coins and assets you view, and the live updates — unless you enter a different node below.",
         node: "A full node you enter in Settings: all chain data then comes from there instead of Coinset.",
         map: "Only while the Network map page is open: Cloudflare DNS (cloudflare-dns.com, with dns.google as a fallback) answers DNS queries for the Chia introducers, and GeoJS (get.geojs.io) estimates the location of the node addresses those answers contain. Only node addresses are sent for lookup, never yours; the addresses learnt are kept in your browser's local storage for a week.",
+        market:
+          "Only while the Market page is open: the public market data APIs of Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro) for XCH order books and recent trades, every 5 seconds, and Dexie (api.dexie.space) for open XCH offers against the stablecoins BYC, wUSDC.b, wUSDC and wUSDT. The requests carry no account, key or wallet data; the exchanges see them like any visit to their API.",
       },
       basis:
         "Legal basis: Art. 6(1)(f) GDPR; the legitimate interest is showing the blockchain content you request. Some of these providers may process data outside the European Economic Area, for example in the United States, where the level of data protection can be lower. Their own privacy policies apply.",
