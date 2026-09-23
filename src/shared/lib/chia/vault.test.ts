@@ -45,6 +45,25 @@ describe("vault p2 puzzle hash", () => {
     ).toBe("fb235e7378220e55086c8d077198febf29331fd9df858ea293c2992ce381b345");
   });
 
+  test("matches Vault Scanner (vaults.xchplorer.com) for other vaults", () => {
+    // P2 puzzle hashes as vaults.xchplorer.com/vault/<launcher id> listed them on 2026-09-23.
+    const known: [string, string][] = [
+      [
+        "099e44cff4d1a81512bae8040eace0cabacb390c8de1db968a0ea4fb4ec25c68",
+        "0f6697c8492990eb1d8afa5bb2f9b3ee1a343605bc5a7e4917c0b8f31d0adedf",
+      ],
+      [
+        "164a9b3c3d676eb8d36e4a4f734156bf30f70e594a7bbae2a0fc41dd825b5b24",
+        "322fb8848b471c65f56d338e61a35112ea69fd9b81b2acd797066fd4811d7a6b",
+      ],
+      [
+        "19235bba5c4b88ad7095d274437b0afdeb1a1acd62ff50c0bb6bff52eee8d139",
+        "1ceabbd58a63176dda1418cf3e6edd82d866fa9ba026a74586cedcca7e614970",
+      ],
+    ];
+    for (const [launcher, p2] of known) expect(vaultP2PuzzleHash(launcher)).toBe(p2);
+  });
+
   test("a different nonce gives a different address of the same vault", () => {
     expect(
       vaultP2PuzzleHash("a4860e521551d49691d6985eb1b88dde44e38c5f7ac1ce39f3a33c4371005201", 1)
