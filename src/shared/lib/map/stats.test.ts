@@ -22,8 +22,6 @@ function make(partial: Partial<DashboardSnapshot>): DashboardSnapshot {
   return {
     schema: 2,
     asns: null,
-    history: null,
-    versionHistory: null,
     source: "test",
     observedAt: "2026-09-19T22:06:28.695Z",
     network: "mainnet",

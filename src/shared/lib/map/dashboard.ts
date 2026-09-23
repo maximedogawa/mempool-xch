@@ -60,6 +60,16 @@ export interface DashboardSnapshot {
   versions: DashboardBreakdown[];
   /** The ASN table: how many operators there are and the largest of them. */
   asns: { count: number; nodes: number; top: DashboardAsn[] } | null;
+}
+
+/**
+ * The dashboard's time series, written next to the snapshot as their own file
+ * (dashboardHistory.json) so the page loads them after the map instead of with it.
+ */
+export interface DashboardTimeSeries {
+  schema: 2;
+  /** The snapshot this history belongs to. */
+  observedAt: string;
   history: DashboardHistory | null;
   versionHistory: DashboardVersionHistory | null;
 }
@@ -215,6 +225,24 @@ export function parseAsnTable(raw: unknown, limit = 20): DashboardSnapshot["asns
 }
 
 /**
+ * The sample grid a range answer actually uses. Grafana aligns a range query's samples to its
+ * own origin, not to the requested window, so the grid takes the phase of the first sample and
+ * runs from the requested start to the last sample any series has (at most the window's end).
+ */
+export function sampleGrid(
+  series: readonly Pick<DashboardSeries, "times">[],
+  from: number,
+  to: number,
+  step: number
+): { start: number; count: number } {
+  const first = series.find((item) => item.times.length > 0)?.times[0];
+  const phase = first === undefined ? 0 : (((first - from) % step) + step) % step;
+  const start = from + phase;
+  const last = Math.min(to, Math.max(-Infinity, ...series.flatMap((item) => item.times.slice(-1))));
+  return { start, count: last < start ? 0 : Math.floor((last - start) / step) + 1 };
+}
+
+/**
  * Places a series on a fixed grid of `count` samples from `start`, `step` apart. A sample
  * takes the value observed nearest to its slot (within half a step); an empty slot is null,
  * so a crawler outage stays a gap instead of a fabricated line.
@@ -253,15 +281,22 @@ export function topSeries(
   count: number,
   keep: number
 ): DashboardVersionHistory["series"] {
-  const aligned = series.map((item) => {
-    const values = alignSeries(item, start, step, count);
-    return {
-      label: item.key,
-      values,
-      latest: values.at(-1) ?? 0,
-      peak: Math.max(0, ...values.map((value) => value ?? 0)),
-    };
-  });
+  const grids = series.map((item) => ({
+    label: item.key,
+    values: alignSeries(item, start, step, count),
+  }));
+  // The newest slot any version reported in (the very last slot can still be empty).
+  let newest = -1;
+  for (const grid of grids)
+    grid.values.forEach((value, index) => {
+      if (value !== null && index > newest) newest = index;
+    });
+  const aligned = grids.map(({ label, values }) => ({
+    label,
+    values,
+    latest: (newest >= 0 ? values[newest] : null) ?? 0,
+    peak: Math.max(0, ...values.map((value) => value ?? 0)),
+  }));
   const byLatest = [...aligned]
     .filter((item) => item.latest > 0)
     .sort((a, b) => b.latest - a.latest || a.label.localeCompare(b.label));
@@ -357,7 +392,7 @@ function versionHistory(value: unknown): DashboardVersionHistory | null {
 /**
  * Validates a snapshot file. Anything that is not a complete schema-2 snapshot is treated as
  * missing (null), which sends the page to the seeder-scan fallback rather than half a map.
- * The optional panels (ASNs, history) may be null on their own without failing the rest.
+ * The optional ASN panel may be null on its own without failing the rest.
  */
 export function parseSnapshot(raw: unknown): DashboardSnapshot | null {
   const source = record(raw);
@@ -405,9 +440,20 @@ export function parseSnapshot(raw: unknown): DashboardSnapshot | null {
       asnCount !== null && asnNodes !== null && asnTop.length > 0
         ? { count: asnCount, nodes: asnNodes, top: asnTop }
         : null,
+  };
+}
+
+/** Validates the history file; a malformed series is null on its own, the other survives. */
+export function parseTimeSeries(raw: unknown): DashboardTimeSeries | null {
+  const source = record(raw);
+  if (!source || source.schema !== 2 || typeof source.observedAt !== "string") return null;
+  const parsed = {
+    schema: 2 as const,
+    observedAt: source.observedAt,
     history: history(source.history),
     versionHistory: versionHistory(source.versionHistory),
   };
+  return parsed.history || parsed.versionHistory ? parsed : null;
 }
 
 /** A snapshot older than this is not shown as the network's state; the page scans instead. */

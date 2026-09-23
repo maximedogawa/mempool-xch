@@ -1,12 +1,17 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { intlTag } from "@/shared/i18n/active";
 import { useT } from "@/shared/i18n/useT";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
-import { OTHER_VERSIONS, type DashboardSnapshot } from "@/shared/lib/map/dashboard";
+import {
+  OTHER_VERSIONS,
+  parseTimeSeries,
+  type DashboardSnapshot,
+} from "@/shared/lib/map/dashboard";
 import { historyPoints, versionHistoryPoints } from "@/shared/lib/map/stats";
-import { Card, CardBody, CardHeader, Table, Td, Th, Tr } from "@/shared/ui";
+import { Card, CardBody, CardHeader, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
 import { LineChart } from "@/shared/ui/charts/LineChart";
 import { StackedAreaChart } from "@/shared/ui/charts/StackedAreaChart";
 
@@ -29,14 +34,29 @@ const formatDay = (t: number) =>
 
 /**
  * The Peer Info dashboard's time series (population, reliable, IPv4, IPv6 and the version
- * history) and its ASN table, from the same snapshot as the map. Rendered only while the page
- * shows the snapshot; the seeder-scan fallback has no history.
+ * history) and its ASN table. Rendered only while the page shows the snapshot; the seeder-scan
+ * fallback has no history. The series are their own file, loaded after the map has drawn, so
+ * the page's first script stays the size of the current panels.
  */
 export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
   const t = useT("map");
   const [series, setSeries] = useState<SeriesId>("total");
-  const points = useMemo(() => historyPoints(snapshot.history, series), [snapshot, series]);
-  const versions = useMemo(() => versionHistoryPoints(snapshot.versionHistory), [snapshot]);
+  const loaded = useQuery({
+    queryKey: ["map", "dashboardHistory", snapshot.observedAt],
+    queryFn: async () =>
+      parseTimeSeries((await import("@/shared/lib/map/dashboardHistory.json")).default),
+    staleTime: Infinity,
+    gcTime: 0,
+  });
+  const timeSeries = loaded.data ?? null;
+  const points = useMemo(
+    () => historyPoints(timeSeries?.history ?? null, series),
+    [timeSeries, series]
+  );
+  const versions = useMemo(
+    () => versionHistoryPoints(timeSeries?.versionHistory ?? null),
+    [timeSeries]
+  );
   const stacked = useMemo(
     () =>
       versions.labels.map((label, index) => ({
@@ -53,7 +73,12 @@ export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
 
   return (
     <>
-      {points.length > 1 || versions.points.length > 1 ? (
+      {loaded.isPending ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-72 w-full" />
+        </div>
+      ) : points.length > 1 || versions.points.length > 1 ? (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Card>
             <CardHeader

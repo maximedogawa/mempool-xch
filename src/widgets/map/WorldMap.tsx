@@ -436,8 +436,8 @@ export function WorldMap({
               return (
                 <g
                   key={marker.key}
-                  className={`map-node${dim ? " map-node-dim" : ""}`}
-                  style={{ color }}
+                  className={`map-node${dim ? " map-node-dim" : ""}${change === "new" ? " map-node-enter" : ""}`}
+                  style={change === "new" ? { color, animationDelay: `${delay}ms` } : { color }}
                   onMouseEnter={dim ? undefined : () => onHover(marker.key)}
                   onMouseLeave={dim ? undefined : () => onHover(null)}
                   onFocus={() => onHover(marker.key)}
@@ -481,28 +481,23 @@ export function WorldMap({
                       aria-hidden="true"
                     />
                   ) : null}
-                  <g
-                    className={change === "new" ? "map-node-enter" : undefined}
-                    style={change === "new" ? { animationDelay: `${delay}ms` } : undefined}
-                  >
-                    <circle
-                      cx={marker.pos.x}
-                      cy={marker.pos.y}
-                      r={radius + 3}
-                      fill={color}
-                      fillOpacity={active ? 0.34 : 0.14}
-                    />
-                    <circle
-                      cx={marker.pos.x}
-                      cy={marker.pos.y}
-                      r={radius}
-                      fill={color}
-                      fillOpacity={active ? 1 : 0.82}
-                      stroke={active ? "var(--fg)" : "var(--map-marker-edge)"}
-                      strokeWidth={active ? 1.6 : 0.8}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
+                  <circle
+                    cx={marker.pos.x}
+                    cy={marker.pos.y}
+                    r={radius + 3}
+                    fill={color}
+                    fillOpacity={active ? 0.34 : 0.14}
+                  />
+                  <circle
+                    cx={marker.pos.x}
+                    cy={marker.pos.y}
+                    r={radius}
+                    fill={color}
+                    fillOpacity={active ? 1 : 0.82}
+                    stroke={active ? "var(--fg)" : "var(--map-marker-edge)"}
+                    strokeWidth={active ? 1.6 : 0.8}
+                    vectorEffect="non-scaling-stroke"
+                  />
                   {(showLabels || active) && !dim ? (
                     <text
                       className="map-label"

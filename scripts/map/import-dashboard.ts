@@ -1,6 +1,7 @@
 /**
  * Snapshots Chia's Peer Info dashboard (https://dashboard.chia.net/d/em15uQ47k/peer-info) into
- * src/shared/lib/map/dashboardSnapshot.json, which the /map page ships as a static file.
+ * src/shared/lib/map/dashboardSnapshot.json (the current panels, shipped with the /map page)
+ * and dashboardHistory.json (the time series, loaded by the page after the map).
  *
  * The dashboard is a public Grafana with anonymous access: its panels' queries answer an
  * anonymous POST to /api/ds/query, but without CORS headers, so a browser on another origin
@@ -23,23 +24,30 @@ import {
   parseDashboardMetric,
   parseGrafanaSeries,
   parseSnapshot,
+  parseTimeSeries,
+  sampleGrid,
   topSeries,
+  type DashboardSeries,
   type DashboardSnapshot,
+  type DashboardTimeSeries,
 } from "../../src/shared/lib/map/dashboard";
 
 const DASHBOARD = "https://dashboard.chia.net";
 const SOURCE = `${DASHBOARD}/d/em15uQ47k/peer-info`;
 const TARGET = join(import.meta.dir, "../../src/shared/lib/map/dashboardSnapshot.json");
+const HISTORY_TARGET = join(import.meta.dir, "../../src/shared/lib/map/dashboardHistory.json");
 const NETWORK = "mainnet";
 /** The panels' data sources, from the dashboard's boot data (window.grafanaBootData). */
 const PROMETHEUS = { uid: "PB06BBC9CA81C548D", type: "prometheus" };
 const MYSQL = { uid: "P00A25F4DA48796D5", type: "mysql" };
 
 const DAY = 24 * 60 * 60 * 1000;
-/** Population history: two years of daily samples. */
-const HISTORY_DAYS = 730;
-/** Version history: one year of daily samples, six versions (one chart colour each) plus the rest. */
-const VERSION_DAYS = 365;
+/** One sample every three days: enough for a two-year chart, a fraction of the daily size. */
+const STEP = 3 * DAY;
+/** Population history: two years. */
+const HISTORY_SAMPLES = Math.ceil(730 / 3);
+/** Version history: one year, six versions (one chart colour each) plus the rest summed. */
+const VERSION_SAMPLES = Math.ceil(365 / 3);
 const VERSION_KEEP = 6;
 
 /** The panels' own expressions, with the dashboard's `$network` variable filled in. */
@@ -97,26 +105,23 @@ const [total, capacity, ipv4, ipv6, countriesRaw, versionsRaw, asnRaw] = await P
   query({ datasource: MYSQL, rawSql: ASN_SQL, format: "table" }, now - DAY, now),
 ]);
 
-const historyEnd = Math.floor(now / DAY) * DAY;
-const historyStart = historyEnd - (HISTORY_DAYS - 1) * DAY;
-const history = async (expr: string) =>
-  alignSeries(
-    parseGrafanaSeries(await range(expr, historyStart, historyEnd, DAY))[0],
-    historyStart,
-    DAY,
-    HISTORY_DAYS
-  );
-const [totalHistory, capacityHistory, ipv4History, ipv6History] = await Promise.all([
-  history(EXPR.total),
-  history(EXPR.capacity),
-  history(EXPR.ipv4),
-  history(EXPR.ipv6),
-]);
-
-const versionStart = historyEnd - (VERSION_DAYS - 1) * DAY;
-const versionSeries = parseGrafanaSeries(
-  await range(EXPR.versionHistory, versionStart, historyEnd, DAY)
+const historyEnd = now;
+const historyFrom = historyEnd - HISTORY_SAMPLES * STEP;
+const [totalRange, capacityRange, ipv4Range, ipv6Range] = await Promise.all(
+  [EXPR.total, EXPR.capacity, EXPR.ipv4, EXPR.ipv6].map(async (expr) =>
+    parseGrafanaSeries(await range(expr, historyFrom, historyEnd, STEP))
+  )
 );
+// All four answers share one window, so they share Grafana's sample grid.
+const grid = sampleGrid(totalRange!, historyFrom, historyEnd, STEP);
+const history = (series: DashboardSeries[] | undefined) =>
+  alignSeries(series?.[0], grid.start, STEP, grid.count);
+
+const versionFrom = historyEnd - VERSION_SAMPLES * STEP;
+const versionSeries = parseGrafanaSeries(
+  await range(EXPR.versionHistory, versionFrom, historyEnd, STEP)
+);
+const versionGrid = sampleGrid(versionSeries, versionFrom, historyEnd, STEP);
 
 const snapshot: DashboardSnapshot = {
   schema: 2,
@@ -130,20 +135,31 @@ const snapshot: DashboardSnapshot = {
   countries: parseDashboardBreakdown(countriesRaw),
   versions: parseDashboardBreakdown(versionsRaw),
   asns: parseAsnTable(asnRaw),
+};
+
+const timeSeries: DashboardTimeSeries = {
+  schema: 2,
+  observedAt: snapshot.observedAt,
   history: {
-    start: historyStart,
-    step: DAY,
-    total: totalHistory,
-    capacity: capacityHistory,
-    ipv4: ipv4History,
-    ipv6: ipv6History,
+    start: grid.start,
+    step: STEP,
+    total: history(totalRange),
+    capacity: history(capacityRange),
+    ipv4: history(ipv4Range),
+    ipv6: history(ipv6Range),
   },
   versionHistory:
     versionSeries.length > 0
       ? {
-          start: versionStart,
-          step: DAY,
-          series: topSeries(versionSeries, versionStart, DAY, VERSION_DAYS, VERSION_KEEP),
+          start: versionGrid.start,
+          step: STEP,
+          series: topSeries(
+            versionSeries,
+            versionGrid.start,
+            STEP,
+            versionGrid.count,
+            VERSION_KEEP
+          ),
         }
       : null,
 };
@@ -153,9 +169,11 @@ if (!parseSnapshot(snapshot)) {
   throw new Error("The dashboard answered, but not with a complete population and country panel");
 }
 writeFileSync(TARGET, `${JSON.stringify(snapshot)}\n`);
-spawnSync("bunx", ["prettier", "--write", TARGET], { stdio: "inherit" });
+if (parseTimeSeries(timeSeries)) writeFileSync(HISTORY_TARGET, `${JSON.stringify(timeSeries)}\n`);
+else console.warn("No usable time series; the previous history file is kept.");
+spawnSync("bunx", ["prettier", "--write", TARGET, HISTORY_TARGET], { stdio: "inherit" });
 console.log(
   `Imported ${snapshot.total} nodes in ${snapshot.countries.length} countries, ` +
     `${snapshot.versions.length} versions, ${snapshot.asns?.count ?? 0} ASNs, ` +
-    `${HISTORY_DAYS} days of history, observed ${snapshot.observedAt}`
+    `${grid.count} history samples, observed ${snapshot.observedAt}`
 );

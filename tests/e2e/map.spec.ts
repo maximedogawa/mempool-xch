@@ -164,9 +164,9 @@ test.describe("network map", () => {
     await page.goto("/map");
     const germany = page.getByRole("button", { name: /Germany: [\d,]+ nodes/ });
     await expect(germany.locator(".map-node-ring")).toHaveCount(1);
-    await expect(
-      page.getByRole("button", { name: /Austria: [\d,]+ nodes/ }).locator(".map-node-enter")
-    ).toHaveCount(1);
+    await expect(page.getByRole("button", { name: /Austria: [\d,]+ nodes/ })).toHaveClass(
+      /map-node-enter/
+    );
     await expect(page.locator(".map-node-enter")).toHaveCount(1);
 
     // The same snapshot again plays nothing.

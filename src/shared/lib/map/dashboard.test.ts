@@ -8,12 +8,15 @@ import {
   parseDashboardMetric,
   parseGrafanaSeries,
   parseSnapshot,
+  parseTimeSeries,
+  sampleGrid,
   SNAPSHOT_MAX_AGE_MS,
   snapshotState,
   topSeries,
   type DashboardSeries,
   type DashboardSnapshot,
 } from "./dashboard";
+import shippedHistory from "./dashboardHistory.json";
 import shipped from "./dashboardSnapshot.json";
 
 function frame(label: Record<string, string>, values: unknown[], times: unknown[] = [1]) {
@@ -48,8 +51,6 @@ function snapshot(partial: Partial<DashboardSnapshot> = {}): DashboardSnapshot {
     countries: [{ key: "Germany", label: "Germany", nodes: 100, code: "DE" }],
     versions: [],
     asns: null,
-    history: null,
-    versionHistory: null,
     ...partial,
   };
 }
@@ -125,6 +126,16 @@ describe("history grid", () => {
     times,
   });
 
+  test("the grid follows Grafana's sample phase and ends at the last sample", () => {
+    // Samples at 1.5, 2.5 and 3.5 days for a window from 0 to 5 days.
+    const times = [1.5 * DAY, 2.5 * DAY, 3.5 * DAY];
+    expect(sampleGrid([{ times: [] }, { times }], 0, 5 * DAY, DAY)).toEqual({
+      start: 0.5 * DAY,
+      count: 4,
+    });
+    expect(sampleGrid([], 0, 2 * DAY, DAY)).toEqual({ start: 0, count: 0 });
+  });
+
   test("gaps stay null and off-grid samples are dropped", () => {
     expect(alignSeries(series("x", [1, 3, 9], [0, 2 * DAY, 7 * DAY]), 0, DAY, 4)).toEqual([
       1,
@@ -155,13 +166,17 @@ describe("history grid", () => {
 });
 
 describe("snapshot file", () => {
-  test("the shipped snapshot passes the page's own check, with history and ASNs", () => {
+  test("the shipped snapshot and its history pass the page's own checks", () => {
     const parsed = parseSnapshot(shipped);
     expect(parsed).not.toBeNull();
     expect(parsed!.countries.length).toBeGreaterThan(50);
-    expect(parsed!.history?.total.length).toBeGreaterThan(300);
-    expect(parsed!.versionHistory?.series.length).toBeGreaterThan(1);
     expect(parsed!.asns?.top.length).toBeGreaterThan(0);
+    const series = parseTimeSeries(shippedHistory);
+    expect(series?.observedAt).toBe(shipped.observedAt);
+    expect(series!.history!.total.length).toBeGreaterThan(200);
+    // No gap at the newest sample: the grid ends where Grafana's answer ends.
+    expect(series!.history!.total.at(-1)).not.toBeNull();
+    expect(series!.versionHistory!.series.length).toBeGreaterThan(1);
   });
 
   test("anything incomplete counts as missing; optional panels may be absent alone", () => {
@@ -170,9 +185,21 @@ describe("snapshot file", () => {
     expect(parseSnapshot({ ...snapshot(), countries: [] })).toBeNull();
     expect(parseSnapshot({ ...snapshot(), observedAt: "yesterday" })).toBeNull();
     expect(parseSnapshot({ ...snapshot(), total: 0 })).toBeNull();
-    const partial = parseSnapshot({ ...snapshot(), history: { start: 0, step: DAY, total: [1] } });
-    expect(partial).not.toBeNull();
-    expect(partial!.history).toBeNull();
+    expect(parseSnapshot({ ...snapshot(), asns: { count: "x" } })!.asns).toBeNull();
+  });
+
+  test("a malformed history series is dropped alone; with none left the file is unusable", () => {
+    const versionHistory = { start: 0, step: DAY, series: [{ label: "2.7.4", values: [1, 2] }] };
+    const partial = parseTimeSeries({
+      schema: 2,
+      observedAt: "2026-09-23T10:00:00.000Z",
+      history: { start: 0, step: DAY, total: [1] },
+      versionHistory,
+    });
+    expect(partial?.history).toBeNull();
+    expect(partial?.versionHistory).toEqual(versionHistory);
+    expect(parseTimeSeries({ schema: 2, observedAt: "x", history: null })).toBeNull();
+    expect(parseTimeSeries(null)).toBeNull();
   });
 
   test("fresh, stale, missing and other-network snapshots", () => {
