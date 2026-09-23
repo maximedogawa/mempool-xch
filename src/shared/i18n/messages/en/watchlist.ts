@@ -11,6 +11,7 @@ const messages = {
     block: "Block {height}",
   },
   panel: {
+    portfolio: "Portfolio",
     title: "Watchlist",
     titleCount: "Watchlist · {count}",
     muteChime: "Mute the watchlist chime",

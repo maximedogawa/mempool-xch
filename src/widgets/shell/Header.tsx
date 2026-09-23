@@ -19,6 +19,7 @@ import shellNs from "@/shared/i18n/messages/en/shell";
 
 type NavLabel =
   | "dashboard"
+  | "portfolio"
   | "blocks"
   | "mempool"
   | "charts"
@@ -72,6 +73,11 @@ const MORE_GROUPS: NavGroup[] = [
         href: routes.tokens(),
         label: "tokens",
         match: (p) => p.startsWith("/tokens") || p.startsWith("/cat"),
+      },
+      {
+        href: routes.portfolio(),
+        label: "portfolio",
+        match: (p) => p.startsWith("/portfolio"),
       },
       {
         href: routes.nftHome(),

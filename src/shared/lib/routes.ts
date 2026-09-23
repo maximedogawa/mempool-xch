@@ -45,6 +45,7 @@ export const routes = {
   fees: () => page("fees"),
   pools: () => page("pools"),
   tokens: () => page("tokens"),
+  portfolio: () => page("portfolio"),
   settings: () => page("settings"),
   wallet: () => page("wallet"),
   docs: () => page("docs"),

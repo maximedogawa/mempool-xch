@@ -40,7 +40,10 @@ import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
+import { PortfolioView } from "@/widgets/portfolio/PortfolioView";
+import type { Holding } from "@/shared/lib/portfolio/valuation";
 import addressNs from "@/shared/i18n/messages/en/address";
+import portfolioNs from "@/shared/i18n/messages/en/portfolio";
 
 function Unavailable({ what }: { what: string }) {
   const t = useT(addressNs);
@@ -72,6 +75,23 @@ export function AddressPage() {
   // Shares its queries with the profile card below (same key), so a DID costs no extra request.
   const did = useDidHoldings(resolved?.kind === "did" ? resolved.puzzleHash : null);
   const handle = useAddressHandle(resolved?.kind === "address" ? resolved.puzzleHash : null);
+  const tp = useT(portfolioNs);
+  const xchData = data.xch.data;
+  const catData = data.cats.data;
+  // The portfolio needs both balances; an address holding nothing gets no empty chart.
+  const portfolioHoldings = useMemo((): Holding[] | null => {
+    if (resolved?.kind !== "address" || !xchData || !catData) return null;
+    const holdings: Holding[] = [
+      { kind: "xch", assetId: null, amount: xchData.confirmed, precision: 12 },
+      ...catData.map((c) => ({
+        kind: "cat" as const,
+        assetId: c.assetId,
+        amount: c.confirmed,
+        precision: 3,
+      })),
+    ];
+    return holdings.some((h) => h.amount > 0n) ? holdings : null;
+  }, [resolved?.kind, xchData, catData]);
 
   if (!resolved) {
     return (
@@ -269,6 +289,15 @@ export function AddressPage() {
       {!data.indexed ? <Unavailable what={t("unavailableWhat")} /> : null}
 
       {isDid && did.available ? <AddressNfts owner={{ kind: "did", id: ph }} /> : null}
+
+      {portfolioHoldings ? (
+        <section aria-labelledby="address-portfolio" className="flex flex-col gap-3">
+          <h2 id="address-portfolio" className="text-base font-semibold">
+            {tp("title")}
+          </h2>
+          <PortfolioView holdings={portfolioHoldings} compact />
+        </section>
+      ) : null}
 
       {data.indexed &&
       data.cats.data &&

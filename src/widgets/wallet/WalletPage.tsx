@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
-import { Wallet } from "lucide-react";
+import { PieChart, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHIA } from "@/shared/config/networks";
@@ -422,6 +422,13 @@ export function WalletPage() {
         <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold uppercase text-primary">
           {t("page.fromSage")}
         </span>
+        <Link
+          href={routes.portfolio()}
+          className="ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-border px-2.5 text-xs font-semibold text-fg-muted hover:text-fg"
+        >
+          <PieChart size={14} aria-hidden="true" />
+          {t("page.portfolio")}
+        </Link>
       </div>
       <p className="text-xs text-fg-faint">
         {t("page.intro", { network: networkConfig.label })}

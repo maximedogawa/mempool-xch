@@ -76,6 +76,30 @@ export function fakeNftHistoryTx(id: string, launcherId: string, height: number)
   };
 }
 
+/** A confirmed transaction in the wallet's history that received `amount` mojos of a CAT. */
+export function fakeCatHistoryTx(
+  id: string,
+  assetId: string,
+  amount: number,
+  asset: { name: string; ticker: string }
+) {
+  return {
+    transaction_id: id,
+    height: 9_000_000,
+    timestamp: Math.floor(Date.now() / 1000) - 3_600,
+    fee: 0,
+    spent: [],
+    created: [
+      {
+        coin_id: id,
+        amount,
+        address: FAKE_ADDRESS,
+        asset: { kind: "cat", asset_id: assetId, ...asset, precision: 3, icon_url: null },
+      },
+    ],
+  };
+}
+
 export async function installFakeSage(
   page: Page,
   pending: unknown[],
@@ -88,10 +112,12 @@ export async function installFakeSage(
   ],
   theme: { name: string; mostLike?: string } = { name: "dark", mostLike: "dark" },
   /** The wallet's confirmed history, as wallet.get_transactions returns it. */
-  history: unknown[] = []
+  history: unknown[] = [],
+  /** Confirmed balance in mojos per asset id (hex, no 0x), "xch" for XCH; anything else is 0. */
+  assetBalances: Record<string, string> = {}
 ) {
   await page.addInitScript(
-    ({ pending, granted, address, theme, history }) => {
+    ({ pending, granted, address, theme, history, assetBalances }) => {
       const w = window as unknown as Record<string, unknown>;
       w.__FAKE_SAGE_PENDING__ = pending;
       const noop = () => () => {};
@@ -159,10 +185,13 @@ export async function installFakeSage(
           getCoinsByIds: async () => ({ coins: [] }),
           checkAddress: async () => ({ valid: true }),
           getXchUsdPrice: async () => ({ xch_usd_price: 20 }),
-          getAssetBalance: async () => ({ confirmed: "0", spendable: "0", coins: 0 }),
+          getAssetBalance: async ({ assetId }: { assetId?: string | null } = {}) => {
+            const confirmed = assetBalances[assetId ? assetId.replace(/^0x/, "") : "xch"] ?? "0";
+            return { confirmed, spendable: confirmed, spendableCoinCount: 1 };
+          },
         },
       };
     },
-    { pending, granted, address: FAKE_ADDRESS, theme, history }
+    { pending, granted, address: FAKE_ADDRESS, theme, history, assetBalances }
   );
 }
