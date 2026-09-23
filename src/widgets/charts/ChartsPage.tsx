@@ -24,6 +24,7 @@ import {
   usePriceHistory,
   useTxBlockSampleSeries,
 } from "./useChartSeries";
+import chartsNs from "@/shared/i18n/messages/en/charts";
 
 /**
  * Only series with a real data source are listed: a page of greyed-out "not available" cards
@@ -68,7 +69,7 @@ type ChartId =
   | "blocksPerHour";
 
 export function ChartsPage() {
-  const t = useT("charts");
+  const t = useT(chartsNs);
   const { endpoints } = useSettings();
   const [controls, setControls] = useState<ChartControlsState>({
     range: "24h",

@@ -41,6 +41,7 @@ import {
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { useMapNames } from "./useMapNames";
 import { WorldMap, type MapHandle, type MapPulse, type PeerMarker } from "./WorldMap";
+import mapNs from "@/shared/i18n/messages/en/map";
 
 const CONNECTION_TYPE = {
   0: "fullNode",
@@ -172,7 +173,7 @@ function useActivity(rows: CountryRow[]) {
 }
 
 export function MapPage() {
-  const t = useT("map");
+  const t = useT(mapNs);
   const names = useMapNames();
   const { client, endpoints } = useSettings();
   const [hovered, setHovered] = useState<string | null>(null);
@@ -888,7 +889,7 @@ export function MapPage() {
 
 /** Hover/selection read-out over the map: everything the snapshot knows about one country. */
 function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }) {
-  const t = useT("map");
+  const t = useT(mapNs);
   const names = useMapNames();
   return (
     <div
@@ -948,7 +949,7 @@ function PeerTables({
   loading: boolean;
   error: unknown;
 }) {
-  const t = useT("map");
+  const t = useT(mapNs);
   const typeName = (type: number) =>
     isKnownType(type)
       ? t(`peers.types.${CONNECTION_TYPE[type]}`)

@@ -20,6 +20,7 @@ import { WatchedDidRow } from "./WatchedDidRow";
 import { WatchedHandleRow } from "./WatchedHandleRow";
 import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /**
  * Follow addresses, transactions, DIDs and XCHandles handles without a Sage wallet: pending
@@ -28,7 +29,7 @@ import { useWatchlist } from "./useWatchlist";
  * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
  */
 export function WatchlistPanel() {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const { settings, update } = useSettings();
   const { items, add, remove } = useWatchlist();
   const projected = useProjectedBlocks(8);

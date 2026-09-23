@@ -1,4 +1,6 @@
 /** Prefarm tracker: Chia Network's custody vaults (src/widgets/prefarm). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Prefarm tracker",
   tooltip:
@@ -31,4 +33,4 @@ const messages = {
     "Vault launcher ids are the ones Chia Network publishes for its own audit tooling (<alert>prefarm-alert</alert>); the custody rules are described in the <guide>prefarm audit guide</guide>. A vault rekey moves funds to a new puzzle hash; when that happens the balance here drops until the new address is added, which is why the “not at these addresses” figure is shown rather than folded into a total.",
 };
 
-export default messages;
+export default defineNamespace("prefarm", messages);

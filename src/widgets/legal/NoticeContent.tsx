@@ -7,6 +7,7 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { LegalPage, linkClass, List, Section } from "./LegalPage";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const ATTRIBUTION = [
   { item: "source", href: "https://github.com/maximedogawa/mempool-xch" },
@@ -17,7 +18,7 @@ const ATTRIBUTION = [
 ] as const;
 
 export function NoticeContent() {
-  const t = useT("legal");
+  const t = useT(legalNs);
   return (
     <LegalPage
       title={t("notice.title")}

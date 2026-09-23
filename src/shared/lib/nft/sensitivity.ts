@@ -12,6 +12,7 @@
  * are what actually decide. All four are read, and the strongest verdict wins.
  */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type SensitivityLevel = "clear" | "sensitive" | "blocked";
 
@@ -144,7 +145,7 @@ export function sensitivityText(sensitivity: Sensitivity): SensitivityText {
     .map((w) => (w.length > 5 && w === w.toUpperCase() ? w.toLowerCase() : w));
   const joined = words.join(" ");
   const reason = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : null;
-  const t = plainT("common");
+  const t = plainT(commonNs);
   const title = t("sensitivity.title");
   return { title, reason, summary: reason ? t("sensitivity.summary", { title, reason }) : title };
 }

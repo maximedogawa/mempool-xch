@@ -16,6 +16,7 @@ import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
 import { useWatchedAddressHistory, useWatchedAddressPending } from "./useWatchedAddressPending";
 import { useT } from "@/shared/i18n/useT";
 import { ReceivedAssets, RemoveWatch, WatchQueue, WatchStatus } from "./WatchlistParts";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 export function WatchedAddressRow({
   item,
@@ -32,7 +33,7 @@ export function WatchedAddressRow({
   onReceived: (item: WatchItem, txId: string) => void;
   onRemove: () => void;
 }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const { client, endpoints } = useSettings();
   const pending = useWatchedAddressPending(item.id);
   const history = useWatchedAddressHistory(item.id);

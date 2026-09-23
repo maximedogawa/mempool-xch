@@ -1,4 +1,6 @@
 /** The DID profile card (src/widgets/did). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Profile",
   mainnetOnly: "Profiles and NFT holdings come from MintGarden, which indexes mainnet only.",
@@ -13,4 +15,4 @@ const messages = {
   more: "+{count} more",
 };
 
-export default messages;
+export default defineNamespace("did", messages);

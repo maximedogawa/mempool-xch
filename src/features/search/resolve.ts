@@ -14,6 +14,7 @@ import { routes } from "@/shared/lib/routes";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS } from "@/shared/config/networks";
 import type { SearchTarget } from "./parse";
+import searchNs from "@/shared/i18n/messages/en/search";
 
 export interface SearchMatch {
   kind:
@@ -35,7 +36,7 @@ const SEARCH_RESULT_LIMIT = 5;
  * results, and a name nobody has taken leaves the MintGarden matches exactly as they were.
  */
 export async function resolveText(value: string): Promise<SearchMatch[]> {
-  const t = plainT("search");
+  const t = plainT(searchNs);
   const handle = parseHandle(value);
   const [{ nfts, collections }, handleRecord] = await Promise.all([
     searchMintGarden(value),
@@ -94,7 +95,7 @@ export async function resolveHex32(
     probe(() => client.getBlockRecord(hex)),
     client.hasIndexed ? probe(() => client.getOffer(hex)) : Promise.resolve(null),
   ]);
-  const t = plainT("search");
+  const t = plainT(searchNs);
   const matches: SearchMatch[] = [];
   if (mempoolItem || tx)
     matches.push({ kind: "tx", label: t("match.transaction"), href: routes.tx(hex) });

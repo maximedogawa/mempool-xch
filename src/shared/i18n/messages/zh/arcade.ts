@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/arcade";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "游戏厅",
   titleHint:
     "基于 Chia 游戏协议构建的游戏：两名玩家在链上的状态通道中锁定赌注，以密码学保证的公平性在链下对局（纸牌使用心理扑克），再把结果结算回链上。游戏需要支持该游戏协议的 Chia 钱包；每个游戏都会在追踪器（tracker）自己的网站上打开。",

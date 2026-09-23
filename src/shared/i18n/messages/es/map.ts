@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/map";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Mapa de la red",
   titleHint:
     "Todas las cifras de esta página proceden de la instantánea publicada del panel Peer Info de Chia. Los marcadores de país muestran poblaciones agregadas de nodos en puntos representativos; no hace falta ningún rastreador en el navegador ni recopilar direcciones.",

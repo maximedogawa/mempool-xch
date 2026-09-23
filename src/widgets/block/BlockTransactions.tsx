@@ -25,6 +25,7 @@ import {
 } from "@/shared/ui";
 import { BlockTreemap } from "./BlockTreemap";
 import { txAmountMoved, useBlockSpends, useBlockTransactions } from "./useBlock";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 export function BlockTransactions({
   height,
@@ -39,7 +40,7 @@ export function BlockTransactions({
   blockMaxCost: number;
   isTransactionBlock: boolean;
 }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const { client } = useSettings();
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const pages = cursors.map((c) => c);
@@ -161,7 +162,7 @@ export function BlockTransactions({
 
 /** RPC-only fallback: individual coin spends (the node does not expose bundle boundaries). */
 function SpendList({ spends, loading }: { spends: CoinSpend[] | undefined; loading: boolean }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const { networkConfig } = useSettings();
   const [limit, setLimit] = useState(100);
   if (loading || !spends) return <Skeleton className="h-24 w-full" />;

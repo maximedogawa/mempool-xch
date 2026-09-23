@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/status";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Status",
   tooltip:
     "Jetzt aus Ihrem Browser gemessen, auf dieselbe Weise, wie die Seiten ihre Daten laden. Es gibt keine serverseitige Überwachung und keinen Verlauf; eine rote Zeile bedeutet, dass Ihre Verbindung diesen Dienst gerade nicht erreicht.",

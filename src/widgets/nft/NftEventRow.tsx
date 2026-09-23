@@ -9,6 +9,7 @@ import { Badge } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 const KIND_TONE: Record<NftEventKind, "primary" | "info" | "xch" | "danger"> = {
   mint: "primary",
@@ -18,7 +19,7 @@ const KIND_TONE: Record<NftEventKind, "primary" | "info" | "xch" | "danger"> = {
 };
 
 export function NftEventRow({ event }: { event: NftEvent }) {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const nftId = launcherIdToNftId(event.nftId);
   return (
     <li className="group flex items-center gap-3 py-2.5 text-sm">

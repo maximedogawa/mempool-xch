@@ -1,4 +1,6 @@
 /** Charts page, chart cards and chart controls (src/widgets/charts). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Charts",
   tooltipCoinset:
@@ -113,4 +115,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("charts", messages);

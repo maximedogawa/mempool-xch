@@ -28,6 +28,7 @@ import {
   useBlockCoins,
   useNextTransactionBlock,
 } from "./useBlock";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 function Row({
   label,
@@ -54,7 +55,7 @@ function Row({
 }
 
 export function BlockDetails({ id }: { id: string }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const { networkConfig } = useSettings();
   const parsed = parseBlockId(id);
   const query = useBlockRecord(id);

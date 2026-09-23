@@ -4,6 +4,7 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { RANGES, type RangeId } from "@/shared/lib/charts/range";
 import { SMOOTHING_LEVELS, type SmoothingId } from "@/shared/lib/charts/smoothing";
+import chartsNs from "@/shared/i18n/messages/en/charts";
 
 export type ScaleId = "linear" | "log";
 
@@ -59,7 +60,7 @@ export function ChartControls({
   value: ChartControlsState;
   onChange: (next: ChartControlsState) => void;
 }) {
-  const t = useT("charts");
+  const t = useT(chartsNs);
   const scales = SCALES.map((id) => ({ id, label: t(`controls.${id}`) }));
   return (
     <div className="flex flex-col gap-3 rounded-sm border border-border bg-bg-elevated p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/format";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   justNow: "ahora mismo",
   secondsAgo: "hace {s} s",
   minutesAgo: "hace {m} min",

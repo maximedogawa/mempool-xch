@@ -1,4 +1,6 @@
 /** The token registry page (src/widgets/tokens). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Tokens",
   intro:
@@ -36,4 +38,4 @@ const messages = {
   next: "Next",
 };
 
-export default messages;
+export default defineNamespace("tokens", messages);

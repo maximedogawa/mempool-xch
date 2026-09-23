@@ -15,6 +15,7 @@ import { Logo } from "./Logo";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { NetworkSwitch } from "./NetworkSwitch";
 import { SagePriceChip } from "@/widgets/wallet/SagePanels";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 type NavLabel =
   | "dashboard"
@@ -104,7 +105,7 @@ const MORE_GROUPS: NavGroup[] = [
 const MORE: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
-  const t = useT("shell");
+  const t = useT(shellNs);
   return (
     <Link
       href={item.href}
@@ -131,7 +132,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 export function Header() {
   const pathname = normalisePath(usePathname() ?? "/");
-  const t = useT("shell");
+  const t = useT(shellNs);
   const [open, setOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const navRef = useRef<HTMLElement>(null);

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/changelog";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "更新日志",
   intro:
     "mempoolxch.space 的每个版本，均根据仓库的标签和提交信息生成。已发布的版本说明位于 <releases>GitHub</releases>，完整的提交历史<commits>也在那里</commits>。",

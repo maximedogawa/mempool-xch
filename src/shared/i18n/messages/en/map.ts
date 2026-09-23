@@ -1,4 +1,6 @@
 /** Network map page and world map (src/widgets/map), with the labels for src/shared/lib/map. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Network map",
   titleHint:
@@ -161,4 +163,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("map", messages);

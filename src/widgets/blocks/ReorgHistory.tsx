@@ -23,6 +23,7 @@ import {
   Tooltip,
   Tr,
 } from "@/shared/ui";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 /** Reorg events Coinset persisted, newest first; refreshed when the live stream reports one. */
 export function useReorgs(limit = 20) {
@@ -46,7 +47,7 @@ export function useReorgs(limit = 20) {
  * and how many blocks were reorganised out. Coinset-only; a custom node has no such log.
  */
 export function ReorgHistory() {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const { client } = useSettings();
   const reorgs = useReorgs();
   if (!client.hasIndexed) return null;

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/wallet";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   sageBadge: "来自您的 Sage 钱包",
   enableInSage: "在 Sage 中启用",
   direction: {

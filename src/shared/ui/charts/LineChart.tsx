@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import type { Point } from "@/shared/lib/charts/smoothing";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * Dependency-free single-series line chart (SVG), following StackedAreaChart's accessibility
@@ -29,7 +30,7 @@ export function LineChart({
   className?: string;
 }) {
   const id = useId();
-  const t = useT("ui");
+  const t = useT(uiNs);
   const [hover, setHover] = useState<number | null>(null);
   const width = 800;
   const pad = { l: 44, r: 8, t: 8, b: 22 };

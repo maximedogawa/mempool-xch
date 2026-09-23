@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/pools";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "矿池",
   group: {
     selfPooled: "自建矿池的农民",

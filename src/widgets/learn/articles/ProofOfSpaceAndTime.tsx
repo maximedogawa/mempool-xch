@@ -4,9 +4,10 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LearnArticle } from "../LearnArticle";
 import { linkTag, PROSE_TAGS } from "./tags";
+import learnNs from "@/shared/i18n/messages/en/learn";
 
 export function ProofOfSpaceAndTime() {
-  const t = useT("learn");
+  const t = useT(learnNs);
   return (
     <LearnArticle slug="proof-of-space-and-time">
       <p>{t.rich("proofOfSpaceAndTime.intro", PROSE_TAGS)}</p>

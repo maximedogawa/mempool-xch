@@ -10,6 +10,7 @@
  * are read from chain and any balance shown is exactly what those coins hold, nothing inferred.
  */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export interface PrefarmVault {
   id: "cold-us" | "cold-ch" | "warm-us" | "warm-ch";
@@ -30,7 +31,7 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
   {
     id: "cold-us",
     get name() {
-      return plainT("common")("vaults.coldUs");
+      return plainT(commonNs)("vaults.coldUs");
     },
     region: "US",
     tier: "cold",
@@ -42,13 +43,13 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       "949e8dd7b7bff91b65e37a4c5a5187e987a177c310b57c3c8ad7f2eef84ed25d",
     ],
     get custody() {
-      return plainT("common")("vaults.custodyCold");
+      return plainT(commonNs)("vaults.custodyCold");
     },
   },
   {
     id: "cold-ch",
     get name() {
-      return plainT("common")("vaults.coldCh");
+      return plainT(commonNs)("vaults.coldCh");
     },
     region: "Switzerland",
     tier: "cold",
@@ -60,13 +61,13 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       "26ac30220ac485adc902a38956b682022fb8f68147338c497c6e2f351858ec97",
     ],
     get custody() {
-      return plainT("common")("vaults.custodyCold");
+      return plainT(commonNs)("vaults.custodyCold");
     },
   },
   {
     id: "warm-us",
     get name() {
-      return plainT("common")("vaults.warmUs");
+      return plainT(commonNs)("vaults.warmUs");
     },
     region: "US",
     tier: "warm",
@@ -78,13 +79,13 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       "ef2cd245b2477d23e2dd73f5f74b2e28673652fc400862ff85fab8be9a4b44a9",
     ],
     get custody() {
-      return plainT("common")("vaults.custodyWarm");
+      return plainT(commonNs)("vaults.custodyWarm");
     },
   },
   {
     id: "warm-ch",
     get name() {
-      return plainT("common")("vaults.warmCh");
+      return plainT(commonNs)("vaults.warmCh");
     },
     region: "Switzerland",
     tier: "warm",
@@ -96,7 +97,7 @@ export const PREFARM_VAULTS: PrefarmVault[] = [
       "35d175c1a06ad74c80717fbf8ee1152cd7e50b79e01404bb9e26f606012fcc9e",
     ],
     get custody() {
-      return plainT("common")("vaults.custodyWarm");
+      return plainT(commonNs)("vaults.custodyWarm");
     },
   },
 ];

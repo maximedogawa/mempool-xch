@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/search";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   label: "搜索交易、区块、地址、币和资产",
   placeholderLarge: "搜索交易、区块、地址、币、CAT 或 NFT…",
   placeholder: "搜索交易 ID、区块、地址、币、CAT 或 NFT…",

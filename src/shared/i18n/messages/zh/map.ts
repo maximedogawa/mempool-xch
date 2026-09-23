@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/map";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "网络地图",
   titleHint:
     "本页所有数据均来自 Chia 公开发布的 Peer Info 仪表板快照。国家标记在代表性位置显示汇总的节点数量；无需浏览器爬虫，也不收集地址。",

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/blocktime";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Blockzeit",
   hint: "Chia erzeugt etwa alle 18,75 Sekunden einen Block, aber nur ungefähr jeder dritte enthält Transaktionen. Der Balken zählt bis zum erwarteten Abstand zwischen Transaktionsblöcken hoch.",
   sinceLast: "Seit dem letzten Transaktionsblock",

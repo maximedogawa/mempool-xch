@@ -1,4 +1,6 @@
 /** Live transaction and block feeds on the dashboard (src/widgets/feed). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   latestTransactions: "Latest transactions",
   paused: "paused",
@@ -15,4 +17,4 @@ const messages = {
   noTx: "no tx",
 };
 
-export default messages;
+export default defineNamespace("feed", messages);

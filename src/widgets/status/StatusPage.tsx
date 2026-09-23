@@ -15,6 +15,7 @@ import { MINTGARDEN_API } from "@/shared/lib/nft/mintgarden";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Button, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
+import statusNs from "@/shared/i18n/messages/en/status";
 
 type Health = "ok" | "degraded" | "down";
 
@@ -66,7 +67,7 @@ const TONE: Record<Health, string> = {
  * what your own connection gets, which is also what the pages get.
  */
 export function StatusPage() {
-  const t = useT("status");
+  const t = useT(statusNs);
   const { client, endpoints, hydrated } = useSettings();
   const live = useLive();
   const [now, setNow] = useState(() => Date.now());

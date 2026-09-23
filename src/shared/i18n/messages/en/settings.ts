@@ -1,4 +1,6 @@
 /** Settings form: network, endpoints, appearance and language (src/features/settings). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Settings",
   channel:
@@ -51,4 +53,4 @@ const messages = {
   resetAll: "Reset all settings",
 };
 
-export default messages;
+export default defineNamespace("settings", messages);

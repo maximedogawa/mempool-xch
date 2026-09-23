@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/map";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Netzwerkkarte",
   titleHint:
     "Alle Zahlen auf dieser Seite stammen aus dem veröffentlichten Snapshot des Chia-Peer-Info-Dashboards. Länder-Marker zeigen aggregierte Node-Bestände an repräsentativen Punkten; es braucht weder einen Crawler im Browser noch das Sammeln von Adressen.",

@@ -6,6 +6,7 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { isVeiled, sensitivityText, type Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { isTrustedImageUrl, isTrustedVideoUrl } from "@/shared/lib/trustedImage";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * Lazy image with a placeholder while loading and a fallback when every candidate fails.
@@ -45,7 +46,7 @@ export function AssetImage({
   veilDetail?: boolean;
   videoUrl?: string | null;
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [revealed, setRevealed] = useState(false);

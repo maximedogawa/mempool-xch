@@ -7,6 +7,7 @@ import { routes } from "@/shared/lib/routes";
 import type { OfferSide, OfferStatus } from "@/shared/lib/rpc/types";
 import { Badge, CatRef, Hash } from "@/shared/ui";
 import { useT } from "@/shared/i18n/useT";
+import offersNs from "@/shared/i18n/messages/en/offers";
 
 export const OFFER_STATUS: Record<
   OfferStatus,
@@ -24,14 +25,14 @@ export const OFFER_STATUS: Record<
 };
 
 export function OfferStatusBadge({ status }: { status: OfferStatus }) {
-  const t = useT("offers");
+  const t = useT(offersNs);
   const s = OFFER_STATUS[status];
   return <Badge tone={s.tone}>{t(`status.${s.key}`)}</Badge>;
 }
 
 /** One side of an offer as "0.5 XCH + 12 SBX + NFT nft1…"; an empty side reads as "nothing". */
 export function OfferSideView({ side, className }: { side: OfferSide; className?: string }) {
-  const t = useT("offers");
+  const t = useT(offersNs);
   const parts: React.ReactNode[] = [];
   if (side.xch > 0n) parts.push(<span key="xch">{formatAmount(side.xch)}</span>);
   side.cats.forEach((c) =>

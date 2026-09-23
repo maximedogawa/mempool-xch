@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader, CopyButton, Skeleton } from "@/shared/ui";
 import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { useNftOffers } from "./useNftSection";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 /**
  * Open sell offers from Dexie, cheapest first. The Sage app bridge has no
@@ -15,7 +16,7 @@ import { useNftOffers } from "./useNftSection";
  * to Dexie or hands over the offer file to paste into a wallet instead of a one-click accept.
  */
 export function NftOffersCard({ nftId, enabled }: { nftId: string; enabled: boolean }) {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const offers = useNftOffers(nftId, enabled);
   if (!enabled) return null;
 

@@ -19,6 +19,7 @@ import {
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
 import type { TokenMap } from "@/shared/api/tokenList";
 import { useT } from "@/shared/i18n/useT";
+import assetsNs from "@/shared/i18n/messages/en/assets";
 
 export interface TxSummaryListProps {
   transactions: TxSummary[];
@@ -34,7 +35,7 @@ export interface TxSummaryListProps {
 }
 
 function Direction({ dir }: { dir: "in" | "out" | "self" | "none" }) {
-  const t = useT("assets");
+  const t = useT(assetsNs);
   if (dir === "in")
     return <ArrowDownLeft size={14} className="text-primary" aria-label={t("txList.incoming")} />;
   if (dir === "out")
@@ -59,7 +60,7 @@ export function TxSummaryList({
   onLoadMore,
   loadingMore,
 }: TxSummaryListProps) {
-  const t = useT("assets");
+  const t = useT(assetsNs);
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col gap-2">

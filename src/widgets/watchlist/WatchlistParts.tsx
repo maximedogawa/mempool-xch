@@ -10,6 +10,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatEta } from "@/shared/lib/format/time";
 import type { PendingStatus } from "@/shared/lib/wallet/pendingTracker";
 import { useT } from "@/shared/i18n/useT";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 export function WatchStatus({
   children,
@@ -33,7 +34,7 @@ export function WatchStatus({
 }
 
 export function RemoveWatch({ label, onRemove }: { label: string; onRemove: () => void }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   return (
     <button
       type="button"
@@ -47,7 +48,7 @@ export function RemoveWatch({ label, onRemove }: { label: string; onRemove: () =
 }
 
 export function WatchQueue({ status }: { status: PendingStatus }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
       <span className="inline-flex items-center gap-1.5 font-semibold text-warning">
@@ -76,7 +77,7 @@ export function WatchQueue({ status }: { status: PendingStatus }) {
 }
 
 export function WatchedBlockBadge({ count }: { count: number }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   return (
     <span className="mt-1 inline-flex h-5 items-center gap-1 rounded-full border border-warning/60 bg-bg/90 px-2 text-[10px] font-bold text-warning shadow-sm">
       <Eye size={11} aria-hidden="true" />
@@ -95,7 +96,7 @@ export function ReceivedAssets({
   p2: string;
   pending?: boolean;
 }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const flow = deriveAddressFlow(tx, p2);
   const cats = flow.cats.filter((cat) => cat.amount > 0n);
   const nfts = flow.nftsIn.filter((id) => !flow.nftsOut.includes(id));

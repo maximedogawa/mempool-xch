@@ -11,6 +11,7 @@ import { intlTag } from "@/shared/i18n/active";
 import { formatFixed } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
 import { useMempoolHistory } from "./useMempoolHistory";
+import mempoolNs from "@/shared/i18n/messages/en/mempool";
 
 const formatClock = (t: number) =>
   new Date(t).toLocaleTimeString(intlTag(), {
@@ -26,7 +27,7 @@ function incomingPerMinute(items: { firstSeen: number }[], now: number): number 
 }
 
 export function MempoolStats() {
-  const t = useT("mempool");
+  const t = useT(mempoolNs);
   const series = FEE_BANDS.map((b) => ({
     id: b.id,
     label: t("bandLabel", { band: b.label }),

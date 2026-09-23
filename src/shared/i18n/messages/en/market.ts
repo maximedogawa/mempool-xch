@@ -1,4 +1,6 @@
 /** The market page: CEX order books and Dexie quotes (src/widgets/market). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Market",
   intro:
@@ -56,4 +58,4 @@ const messages = {
   unavailable: "Unavailable",
 };
 
-export default messages;
+export default defineNamespace("market", messages);

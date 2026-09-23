@@ -9,6 +9,7 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
 import { squarify } from "@/shared/lib/treemap";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 const W = 800;
 const H = 320;
@@ -21,7 +22,7 @@ export function BlockTreemap({
   transactions: TxSummary[];
   blockCost: number;
 }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const [hover, setHover] = useState<TxSummary | null>(null);
   const cells = useMemo(
     () =>

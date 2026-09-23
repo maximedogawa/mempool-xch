@@ -4,6 +4,7 @@ import { formatFixed } from "@/shared/i18n/number";
 import { formatCost, formatPercent } from "@/shared/lib/chia/amounts";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * Mempool capacity, in the spirit of mempool.space's memory-usage bar: a track split into
@@ -27,7 +28,7 @@ export function CapacityBar({
   compact?: boolean;
   className?: string;
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const label = labelProp ?? t("capacity.label");
   const ratio = max > 0 ? Math.min(1, used / max) : 0;
   const segments = segmentCost && segmentCost > 0 ? Math.max(1, Math.round(max / segmentCost)) : 10;

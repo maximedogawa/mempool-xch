@@ -1,4 +1,6 @@
 /** Dashboard block row: projected and recent blocks, projected block details, reorgs (src/widgets/blocks). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   row: {
     label: "Blocks",
@@ -67,4 +69,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("blocks", messages);

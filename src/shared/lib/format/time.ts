@@ -2,9 +2,10 @@
 import { intlTag } from "@/shared/i18n/active";
 import { formatFixed } from "@/shared/i18n/number";
 import { plainT } from "@/shared/i18n/plain";
+import formatNs from "@/shared/i18n/messages/en/format";
 
 export function formatAge(fromMs: number, nowMs = Date.now()): string {
-  const t = plainT("format");
+  const t = plainT(formatNs);
   const s = Math.max(0, Math.round((nowMs - fromMs) / 1000));
   if (s < 5) return t("justNow");
   if (s < 60) return t("secondsAgo", { s });
@@ -21,7 +22,7 @@ export function formatAge(fromMs: number, nowMs = Date.now()): string {
 
 /** "~2 min", "~45 s", "~1.5 h" for ETAs. */
 export function formatEta(seconds: number): string {
-  const t = plainT("format");
+  const t = plainT(formatNs);
   if (!Number.isFinite(seconds) || seconds <= 0) return t("nextBlock");
   if (seconds < 60) return t("etaSeconds", { s: Math.round(seconds) });
   if (seconds < 3600) return t("etaMinutes", { m: Math.round(seconds / 60) });
@@ -41,7 +42,7 @@ export function formatDateTime(ms: number): string {
 }
 
 export function formatDuration(seconds: number): string {
-  const t = plainT("format");
+  const t = plainT(formatNs);
   const s = Math.max(0, Math.round(seconds));
   if (s < 60) return t("durationSeconds", { s });
   const m = Math.floor(s / 60);

@@ -1,4 +1,6 @@
 /** Arcade page and Pot Potato card (src/widgets/arcade); the game data from arcade.json stays as is. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Arcade",
   titleHint:
@@ -75,4 +77,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("arcade", messages);

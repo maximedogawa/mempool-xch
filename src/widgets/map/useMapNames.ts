@@ -5,6 +5,7 @@ import { intlTag } from "@/shared/i18n/active";
 import { useLocale, useT } from "@/shared/i18n/useT";
 import type { MapRegion } from "@/shared/lib/map/countryPoints";
 import { UNMAPPED } from "@/shared/lib/map/stats";
+import mapNs from "@/shared/i18n/messages/en/map";
 
 const REGION_KEY = {
   Europe: "europe",
@@ -22,7 +23,7 @@ const REGION_KEY = {
  * the ISO code's name from Intl.DisplayNames, falling back to that label.
  */
 export function useMapNames() {
-  const t = useT("map");
+  const t = useT(mapNs);
   const locale = useLocale();
   return useMemo(() => {
     let names: Intl.DisplayNames | null = null;

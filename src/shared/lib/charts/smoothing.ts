@@ -1,5 +1,6 @@
 /** Smoothing control for chart series: a centred moving average over neighbouring points. */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type SmoothingId = "raw" | "smooth" | "very-smooth";
 
@@ -8,21 +9,21 @@ export const SMOOTHING_LEVELS: readonly { id: SmoothingId; label: string; window
   {
     id: "raw",
     get label() {
-      return plainT("common")("smoothing.raw");
+      return plainT(commonNs)("smoothing.raw");
     },
     window: 1,
   },
   {
     id: "smooth",
     get label() {
-      return plainT("common")("smoothing.smooth");
+      return plainT(commonNs)("smoothing.smooth");
     },
     window: 3,
   },
   {
     id: "very-smooth",
     get label() {
-      return plainT("common")("smoothing.verySmooth");
+      return plainT(commonNs)("smoothing.verySmooth");
     },
     window: 7,
   },

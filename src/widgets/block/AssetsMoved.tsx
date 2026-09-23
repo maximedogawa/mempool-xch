@@ -8,6 +8,7 @@ import { shortId } from "@/shared/lib/chia/hex";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { AssetIcon, Card, CardBody, CardHeader, Skeleton, StatTile, Tooltip } from "@/shared/ui";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 /** "What moved" in a block: net XCH, CATs per asset, NFTs, pool claims. */
 export function AssetsMoved({
@@ -17,7 +18,7 @@ export function AssetsMoved({
   totals: BlockAssetTotals | undefined;
   loading: boolean;
 }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const tokens = useTokenList();
   const hint = totals?.source === "rpc" ? t("moved.hintRpc") : t("moved.hintNet");
   return (

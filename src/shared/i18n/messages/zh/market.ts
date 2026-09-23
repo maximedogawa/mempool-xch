@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/market";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "市场",
   intro: "XCH 流动性的实时战场，涵盖公开订单簿和 Dexie 报价。市场数据仅供参考，不构成投资建议。",
   quoteCurrency: "计价货币",

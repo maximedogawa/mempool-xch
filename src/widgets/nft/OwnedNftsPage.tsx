@@ -9,10 +9,11 @@ import { EmptyState, Hash } from "@/shared/ui";
 import { AddressNfts } from "@/widgets/address/AddressNfts";
 import { resolveAddressId } from "@/widgets/address/resolveAddressId";
 import { useT } from "@/shared/i18n/useT";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 /** The NFT gallery of an address or of a DID; both are owners MintGarden indexes. */
 export function OwnedNftsPage() {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const raw = useDetailId("nfts/owned") ?? "";
   const { networkConfig } = useSettings();
   const resolved = resolveAddressId(raw, networkConfig.addressPrefix);

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/prefarm";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "预挖（prefarm）追踪",
   tooltip:
     "Chia Network 在第一个区块之前创建了 2100 万 XCH。这些币存放在四个托管金库中（冷金库和温金库，位于美国和瑞士），并有公开的审计规则。此页面直接从链上读取金库的币，不做任何估算。",

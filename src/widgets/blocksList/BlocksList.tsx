@@ -28,11 +28,12 @@ import {
   Th,
   Tr,
 } from "@/shared/ui";
+import blocksListNs from "@/shared/i18n/messages/en/blocksList";
 
 const PAGE = 25;
 
 export function BlocksList() {
-  const t = useT("blocksList");
+  const t = useT(blocksListNs);
   const { client, endpoints } = useSettings();
   const queryClient = useQueryClient();
   const lookupPool = usePoolLookup();

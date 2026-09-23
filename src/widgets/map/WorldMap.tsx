@@ -18,6 +18,7 @@ import { LAND_RUNS } from "@/shared/lib/map/landDots";
 import { cellCenter, GRID_STEP, MAP_HEIGHT, MAP_WIDTH, project } from "@/shared/lib/map/projection";
 import type { CountryRow } from "@/shared/lib/map/stats";
 import { useMapNames } from "./useMapNames";
+import mapNs from "@/shared/i18n/messages/en/map";
 
 export interface MapPulse {
   id: number;
@@ -109,7 +110,7 @@ export function WorldMap({
   handleRef?: RefObject<MapHandle | null>;
   onViewChange?: (scale: number) => void;
 }) {
-  const t = useT("map");
+  const t = useT(mapNs);
   const names = useMapNames();
   const [view, setView] = useState<View>(WORLD);
   /** The live view, ahead of React state while a drag is in flight. */

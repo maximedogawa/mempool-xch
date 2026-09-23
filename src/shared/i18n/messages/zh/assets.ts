@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/assets";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   empty: "（空）",
   coinsetNotice:
     "<b>没有 Coinset 时无法查看历史：</b>{what}。当前配置的端点是不含索引 API 的自定义节点。",

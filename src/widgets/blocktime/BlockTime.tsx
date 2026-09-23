@@ -15,6 +15,7 @@ import { Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 import { useReorgs } from "@/widgets/blocks/ReorgHistory";
 import { formatFixed, numberFormat } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
+import blocktimeNs from "@/shared/i18n/messages/en/blocktime";
 
 function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -31,7 +32,7 @@ function useNow(ms = 1000) {
  * the observed average block time, and how many recent blocks carried transactions.
  */
 export function BlockTime() {
-  const t = useT("blocktime");
+  const t = useT(blocktimeNs);
   const { settings } = useSettings();
   const state = useBlockchainState();
   const recent = useRecentBlocks(settings.recentBlocks);

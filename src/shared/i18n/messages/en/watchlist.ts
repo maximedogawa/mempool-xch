@@ -1,4 +1,6 @@
 /** Watchlist panel, its rows and the Watch button (src/widgets/watchlist). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   common: {
     checking: "Checking…",
@@ -100,4 +102,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("watchlist", messages);

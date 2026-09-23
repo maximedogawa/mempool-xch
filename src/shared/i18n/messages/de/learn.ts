@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/learn";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   index: {
     title: "Lernen",
     intro:

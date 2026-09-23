@@ -1,4 +1,6 @@
 /** Block timing card on the dashboard (src/widgets/blocktime). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Block time",
   hint: "Chia farms a block roughly every 18.75 seconds, but only about one in three carries transactions. The bar counts up to the expected gap between transaction blocks.",
@@ -26,4 +28,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("blocktime", messages);

@@ -3,6 +3,7 @@
 import changelog from "@/shared/config/changelog.json";
 import { useT } from "@/shared/i18n/useT";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import changelogNs from "@/shared/i18n/messages/en/changelog";
 
 const REPO = "https://github.com/maximedogawa/mempool-xch";
 
@@ -26,7 +27,7 @@ export function previousOf(tagged: string[], version: string): string | null {
  * image and the offline Sage export, so it never calls the GitHub API.
  */
 export function ChangelogPage() {
-  const t = useT("changelog");
+  const t = useT(changelogNs);
   const releases = changelog.releases as Release[];
   const current = process.env.NEXT_PUBLIC_APP_VERSION ?? "";
   const tagged = releases.filter((r) => r.version !== "unreleased").map((r) => r.version);

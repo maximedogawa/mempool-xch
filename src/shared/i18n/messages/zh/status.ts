@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/status";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "状态",
   tooltip:
     "此刻从您的浏览器测量，方式与页面获取数据相同。没有服务器端监控，也没有历史记录；红色行表示您的连接目前无法访问该服务。",

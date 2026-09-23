@@ -1,5 +1,6 @@
 /** Errors distinguish network failures, non-success RPC responses and malformed JSON. */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type RpcErrorKind = "network" | "http" | "rpc" | "malformed" | "not_found" | "aborted";
 
@@ -27,7 +28,7 @@ export class RpcError extends Error {
 
   /** Short user-facing description. */
   get userMessage(): string {
-    const t = plainT("common");
+    const t = plainT(commonNs);
     switch (this.kind) {
       case "network":
         return t("rpcError.network");

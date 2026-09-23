@@ -6,6 +6,7 @@ import { SITE_NAME } from "@/shared/config/legal";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LegalPage, linkClass, List, Section } from "./LegalPage";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const LOG_ITEMS = ["purpose", "basis", "retention", "hosting"] as const;
 const THIRD_PARTY_ITEMS = [
@@ -20,7 +21,7 @@ const THIRD_PARTY_ITEMS = [
 const RIGHTS_ITEMS = ["access", "rectification", "restriction", "objection", "complaint"] as const;
 
 export function PrivacyContent() {
-  const t = useT("legal");
+  const t = useT(legalNs);
   const bold = (chunks: ReactNode) => <strong className="text-fg">{chunks}</strong>;
   return (
     <LegalPage

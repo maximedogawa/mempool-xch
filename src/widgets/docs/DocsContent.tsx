@@ -6,6 +6,7 @@ import type { RichTag } from "@/shared/i18n/translate";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
+import docsNs from "@/shared/i18n/messages/en/docs";
 
 const WIKI = "https://github.com/maximedogawa/mempool-xch-wiki/blob/main";
 const SITE = process.env.NEXT_PUBLIC_APP_URL || "https://mempoolxch.space";
@@ -62,7 +63,7 @@ const CADDYFILE = `# Caddyfile
 
 /** The Help page: what the site does differently, how to read it, Sage and custom-node setup. */
 export function DocsContent() {
-  const t = useT("docs");
+  const t = useT(docsNs);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
       <h1 className="text-xl font-semibold">{t("title")}</h1>

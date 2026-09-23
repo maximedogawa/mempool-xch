@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MarketBook, MarketQuote, MarketSource } from "@/shared/lib/market/orderbook";
 import { parseGateBook, parseHtxBook, parseOkxBook } from "@/shared/lib/market/orderbook";
 import { plainT } from "@/shared/i18n/plain";
+import marketNs from "@/shared/i18n/messages/en/market";
 
 const REFRESH_MS = 10_000;
 const DEX_REFRESH_MS = 30_000;
@@ -120,7 +121,7 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
             at
           );
           if (book.bids.length === 0 || book.asks.length === 0)
-            throw new Error(plainT("market")("emptyBook"));
+            throw new Error(plainT(marketNs)("emptyBook"));
           return book;
         })
       );
@@ -136,7 +137,7 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
               error:
                 result.reason instanceof Error
                   ? result.reason.message
-                  : plainT("market")("unavailable"),
+                  : plainT(marketNs)("unavailable"),
               at: null,
             };
       });
@@ -148,7 +149,7 @@ export function useMarketData(quote: MarketQuote, asset: DexQuoteAsset): MarketD
         } catch (error) {
           dex = {
             ...dex,
-            error: error instanceof Error ? error.message : plainT("market")("unavailable"),
+            error: error instanceof Error ? error.message : plainT(marketNs)("unavailable"),
           };
         }
       }

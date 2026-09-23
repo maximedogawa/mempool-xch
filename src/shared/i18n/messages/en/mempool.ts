@@ -1,4 +1,6 @@
 /** Mempool stats card and history chart on the dashboard (src/widgets/mempool). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Mempool",
   viewAll: "View all →",
@@ -22,4 +24,4 @@ const messages = {
   historyStarts: "History starts when the app is first opened",
 };
 
-export default messages;
+export default defineNamespace("mempool", messages);

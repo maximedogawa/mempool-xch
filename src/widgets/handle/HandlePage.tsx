@@ -31,6 +31,7 @@ import { AssetImage } from "@/shared/ui/AssetImage";
 import { WatchButton } from "@/widgets/watchlist/WatchButton";
 import { useT } from "@/shared/i18n/useT";
 import { useHandle } from "./useHandle";
+import handleNs from "@/shared/i18n/messages/en/handle";
 
 const STATUS_TONE: Record<HandleStatus, "primary" | "warning" | "neutral"> = {
   active: "primary",
@@ -46,7 +47,7 @@ const STATUS_TONE: Record<HandleStatus, "primary" | "warning" | "neutral"> = {
  * artwork, so a miss there leaves the page intact.
  */
 export function HandlePage() {
-  const t = useT("handle");
+  const t = useT(handleNs);
   const raw = useDetailId("handle") ?? "";
   const { networkConfig } = useSettings();
   const handle = useMemo(() => parseHandle(raw), [raw]);

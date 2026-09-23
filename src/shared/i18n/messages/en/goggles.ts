@@ -1,4 +1,6 @@
 /** Next-block treemap "goggles" (src/widgets/goggles). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Next block",
   colourBy: "Colour cells by",
@@ -54,4 +56,4 @@ const messages = {
   legendBandTitle: "{band} mojo/cost",
 };
 
-export default messages;
+export default defineNamespace("goggles", messages);

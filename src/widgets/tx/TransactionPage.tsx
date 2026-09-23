@@ -52,9 +52,10 @@ import { collectMemos, flowFromCoins, flowFromEvents } from "./flow";
 import { FlowDiagram } from "./FlowDiagram";
 import { useRawTransaction, useTransaction } from "./useTransaction";
 import { costVerdict, waitedSeconds } from "./verdict";
+import txNs from "@/shared/i18n/messages/en/tx";
 
 function RawJson({ label, value }: { label: string; value: unknown }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const [open, setOpen] = useState(false);
   return (
     <Card>
@@ -83,7 +84,7 @@ function RawJson({ label, value }: { label: string; value: unknown }) {
 }
 
 function Memos({ memos }: { memos: string[] }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   if (memos.length === 0) return null;
   return (
     <Card>
@@ -139,7 +140,7 @@ function AssetList({ amounts }: { amounts: AssetAmounts }) {
 const MAX_PARTICIPANTS = 50;
 
 function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const { networkConfig } = useSettings();
   const raw = event.raw;
   const participants = event.participants.slice(0, MAX_PARTICIPANTS);
@@ -270,7 +271,7 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
 }
 
 function SemanticSummary({ summary }: { summary: TxSummary }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   return (
     <Card>
       <CardHeader
@@ -293,7 +294,7 @@ function SemanticSummary({ summary }: { summary: TxSummary }) {
 }
 
 export function TransactionPage({ id }: { id: string | null }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const { endpoints, networkConfig } = useSettings();
   const tx = useTransaction(id);
   const state = useBlockchainState();
@@ -645,7 +646,7 @@ export function TransactionPage({ id }: { id: string | null }) {
  * and created, which the semantic summary above folds into per-participant flows.
  */
 function CoinSpends({ raw }: { raw: RawTransaction }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const { item, source } = raw;
   const { kind, assetIds } = classifyMempoolItem(item);
   const flow = flowFromCoins(item.removals, item.additions, kind, assetIds);
@@ -684,7 +685,7 @@ function Heading({
   status: "pending" | "confirmed" | "removed" | "unknown";
   kind?: React.ReactNode;
 }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">

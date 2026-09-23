@@ -40,9 +40,10 @@ import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
+import addressNs from "@/shared/i18n/messages/en/address";
 
 function Unavailable({ what }: { what: string }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   return (
     <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)] px-3 py-2 text-xs text-fg-muted">
       {t.rich("unavailable", {
@@ -59,7 +60,7 @@ function Unavailable({ what }: { what: string }) {
 }
 
 export function AddressPage() {
-  const t = useT("address");
+  const t = useT(addressNs);
   const raw = useDetailId("address") ?? "";
   const { networkConfig, endpoints } = useSettings();
   const resolved = useMemo(
@@ -382,7 +383,7 @@ function otherPrefixAddress(ph: string, prefix: "xch" | "txch"): string {
 }
 
 function CoinList({ coins, loading }: { coins: CoinFallback | undefined; loading: boolean }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   if (loading && !coins) return <Skeleton className="h-24 w-full" />;
   const all = coins
     ? [

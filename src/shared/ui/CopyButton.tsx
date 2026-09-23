@@ -4,6 +4,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 export function CopyButton({
   value,
@@ -14,7 +15,7 @@ export function CopyButton({
   label?: string;
   className?: string;
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const [copied, setCopied] = useState(false);
   const text = label ?? t("copy");
   return (

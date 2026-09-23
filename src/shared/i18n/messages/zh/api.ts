@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/api";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "API 参考",
   titleHint:
     "mempoolxch.space 没有自己的服务器 API：您看到的每个页面都像本应用一样，直接从您的浏览器读取链上端点。本页记录了应用自身发出的调用，方便您也能针对 Coinset 的公共端点或您自己的节点发出同样的调用。",

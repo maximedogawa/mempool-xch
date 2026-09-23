@@ -11,10 +11,11 @@ import { routes } from "@/shared/lib/routes";
 import { Button, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { ADDRESS_NFT_PAGE_SIZE, fetchAddressNfts, type NftOwner } from "./fetchAddressNfts";
+import addressNs from "@/shared/i18n/messages/en/address";
 
 /** At most 20 cards mounted. No prefetch, full-wallet enumeration or per-NFT metadata calls. */
 export function AddressNfts({ owner }: { owner: NftOwner }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   const { hydrated } = useSettings();
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const [page, setPage] = useState(0);

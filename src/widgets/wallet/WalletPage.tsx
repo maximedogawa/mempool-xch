@@ -44,6 +44,7 @@ import {
   Th,
   Tr,
 } from "@/shared/ui";
+import walletNs from "@/shared/i18n/messages/en/wallet";
 
 const TX_PAGE = 25;
 const COIN_PAGE = 50;
@@ -55,7 +56,7 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   const primary = received[0] ?? sent[0];
   const primaryToken = useAsset(primary && kindOf(primary) === "cat" ? primary.assetId : undefined);
   const primaryName = primaryToken?.name ?? primary?.assetName ?? null;
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const kind = t(
     received.length && !sent.length
       ? "direction.received"
@@ -150,7 +151,7 @@ function LoadMore({
   onMore: () => void;
   label: "transactions" | "coins";
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const sentinel = useSentinel(onMore, hasMore && !loading);
   return (
     <div
@@ -177,7 +178,7 @@ function EnableNotice({
   capability: string;
   what: "assetBalances" | "balanceAddress" | "history" | "coins";
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { refused, granted, enable } = useSageCapability(capability);
   if (granted || !refused) return null;
   return (
@@ -201,7 +202,7 @@ function Tabs({
   onChange: (t: Tab) => void;
   counts: Record<Tab, string>;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const items: Tab[] = ["assets", "transactions", "coins"];
   return (
     <div
@@ -236,7 +237,7 @@ function AssetTile({
   asset: WalletAsset;
   balance: WalletAssetBalance | null | undefined;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const token = useAsset(a.kind === "cat" ? a.assetId : undefined);
   const name =
     token?.name ??
@@ -305,7 +306,7 @@ function AssetsCard({
   loaded: number;
   total: number;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const balances = useQueries({
     queries: assets.map((a) => ({
       queryKey: ["sageAssetBalance", a.kind, a.assetId ?? "xch"],
@@ -343,7 +344,7 @@ function AssetsCard({
 
 /** Your own wallet, read straight from Sage (only inside Sage): recent first, the rest on scroll. */
 export function WalletPage() {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage, walletAddress } = useSage();
   const { networkConfig } = useSettings();
   const [tab, setTab] = useState<Tab>("assets");

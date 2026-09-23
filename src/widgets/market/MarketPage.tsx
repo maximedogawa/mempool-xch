@@ -15,6 +15,7 @@ import { intlTag } from "@/shared/i18n/active";
 import { formatFixed } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
 import { DEX_QUOTE_ASSETS, type DexQuoteAsset, useMarketData } from "./useMarketData";
+import marketNs from "@/shared/i18n/messages/en/market";
 
 function Price({ value, quote }: { value: number | null; quote: string }) {
   return (
@@ -31,7 +32,7 @@ function Depth({
   bids: { price: number; amount: number }[];
   asks: { price: number; amount: number }[];
 }) {
-  const t = useT("market");
+  const t = useT(marketNs);
   const rows = Math.max(bids.length, asks.length);
   return (
     <div className="grid grid-cols-2 gap-3 text-xs">
@@ -76,7 +77,7 @@ function Depth({
 }
 
 export function MarketPage() {
-  const t = useT("market");
+  const t = useT(marketNs);
   const [quote, setQuote] = useState<MarketQuote>("USDT");
   const [dexAsset, setDexAsset] = useState<DexQuoteAsset>("BYC");
   const [reduced, setReduced] = useState(false);

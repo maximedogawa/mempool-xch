@@ -7,6 +7,7 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { CookieSettingsButton } from "./CookieSettingsButton";
 import { LegalPage, linkClass, List, Section } from "./LegalPage";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const NECESSARY = [
   { key: "mempool-xch:settings:v1", row: "settings" },
@@ -21,7 +22,7 @@ const NECESSARY = [
 const CATEGORIES = ["necessary", "analytics", "advertising"] as const;
 
 export function CookiesContent() {
-  const t = useT("legal");
+  const t = useT(legalNs);
   const bold = (chunks: ReactNode) => <strong className="text-fg">{chunks}</strong>;
   return (
     <LegalPage

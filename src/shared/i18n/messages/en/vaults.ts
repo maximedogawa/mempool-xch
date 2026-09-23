@@ -1,4 +1,6 @@
 /** Vaults page: Chia Vaults lookup and recovery activity (src/widgets/vaults). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   exampleLabel: "Chia Network's Buy XCH hot wallet",
   actions: {
@@ -56,4 +58,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("vaults", messages);

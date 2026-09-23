@@ -4,6 +4,7 @@
  */
 import { plainT } from "@/shared/i18n/plain";
 import type { LiveStatus, LiveTransport } from "./stream";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export interface ChannelDescription {
   /** Short name, e.g. "Server events". */
@@ -29,7 +30,7 @@ const host = (url: string) => {
 };
 
 export function describeChannel(input: ChannelInput): ChannelDescription {
-  const t = plainT("common");
+  const t = plainT(commonNs);
   const rpcHost = host(input.rpcUrl);
   if (!input.isCoinset) {
     return {

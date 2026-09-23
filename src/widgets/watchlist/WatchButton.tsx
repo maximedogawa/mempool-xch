@@ -5,10 +5,11 @@ import type { WatchKind } from "@/shared/lib/watchlist/store";
 import { Button } from "@/shared/ui";
 import { useWatchlist } from "./useWatchlist";
 import { useT } from "@/shared/i18n/useT";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /** Add/remove the current address or transaction from the local watchlist. */
 export function WatchButton({ kind, id, label }: { kind: WatchKind; id: string; label: string }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const { has, add, remove } = useWatchlist();
   const watching = has(kind, id);
   return (

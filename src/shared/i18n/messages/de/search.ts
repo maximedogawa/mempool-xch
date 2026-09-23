@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/search";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   label: "Transaktionen, Blöcke, Adressen, Coins und Assets durchsuchen",
   placeholderLarge: "Tx, Block, Adresse, Coin, CAT oder NFT suchen…",
   placeholder: "Tx-ID, Block, Adresse, Coin, CAT oder NFT suchen…",

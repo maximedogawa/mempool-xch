@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/goggles";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Próximo bloque",
   colourBy: "Colorear celdas por",
   modeFee: "Comisión",

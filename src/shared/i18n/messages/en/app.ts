@@ -1,4 +1,6 @@
 /** Route-level client components under src/app (detail routes without a valid id). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   invalidCoin: {
     title: "Invalid coin id",
@@ -14,4 +16,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("app", messages);

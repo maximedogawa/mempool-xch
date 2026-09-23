@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/prefarm";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Seguimiento del prefarm",
   tooltip:
     "Chia Network creó 21 millones de XCH antes del primer bloque. Se guardan en cuatro bóvedas de custodia (frías y templadas, en EE. UU. y Suiza) con reglas de auditoría publicadas. Esta página lee las monedas de las bóvedas desde la cadena; no estima nada.",

@@ -1,4 +1,6 @@
 /** Coin detail page (src/widgets/coin). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   heading: "Coin",
   spent: "Spent",
@@ -77,4 +79,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("coin", messages);

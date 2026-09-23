@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/market";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Markt",
   intro:
     "Ein Live-Schlachtfeld der XCH-Liquidität über öffentliche Orderbücher und Dexie-Offers hinweg. Die Marktdaten dienen nur zur Information und sind keine Finanzberatung.",

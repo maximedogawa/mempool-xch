@@ -26,13 +26,14 @@ import {
   Tr,
 } from "@/shared/ui";
 import { usePagedList } from "@/widgets/assets/usePagedList";
+import addressNs from "@/shared/i18n/messages/en/address";
 
 /**
  * Clawback coins sent to this address: the sender can pull them back until the timelock
  * runs out, after which the receiver can claim them. Coinset-only; nothing rendered otherwise.
  */
 export function ClawbacksCard({ p2 }: { p2: string }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   const { client, endpoints, networkConfig } = useSettings();
   const network = endpoints.network;
   const list = usePagedList<ClawbackCoin>({

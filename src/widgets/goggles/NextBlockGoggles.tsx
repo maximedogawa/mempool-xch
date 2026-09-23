@@ -20,6 +20,7 @@ import { AssetAmount, AssetIcon, Card, CardBody, CardHeader, Skeleton } from "@/
 import { UNCLASSIFIED, isVeiled } from "@/shared/lib/nft/sensitivity";
 import { fetchNftMetadata } from "@/widgets/assets/nftMetadata";
 import { useT } from "@/shared/i18n/useT";
+import gogglesNs from "@/shared/i18n/messages/en/goggles";
 
 const W = 800;
 const H = 190;
@@ -97,7 +98,7 @@ function Chip({
  * animated per frame in JavaScript.
  */
 export function NextBlockGoggles() {
-  const t = useT("goggles");
+  const t = useT(gogglesNs);
   const { blocks, summary, isLoading } = useProjectedBlocks(8);
   const [kind, setKind] = useState<KindFilter>("all");
   const [fee, setFee] = useState<FeeFilter>("any");
