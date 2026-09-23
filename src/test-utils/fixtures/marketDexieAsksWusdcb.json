@@ -1,0 +1,409 @@
+{
+ "success": true,
+ "count": 17,
+ "page": 1,
+ "page_size": 10,
+ "offers": [
+  {
+   "id": "FTZ59Vu9WGwxjdvrhxdGX6rF52UaprLwXQ9mrxa4pHck",
+   "status": 0,
+   "involved_coins": [
+    "0x8a1bad07eb50cf637cb818a18e34695cc46850f89a847b5ca63baf0eb39f3e79",
+    "0xf7598acd8e7802f380519a0043840981e8061ba8bdc1ee7ae3245f523a81df74",
+    "0x16c53f2a62bc401fc76713941919c795d787bb83dd1833386af656f324d1bf27",
+    "0x4680c6ef050034dde31d054d15ee7e18879d041593f99ed65251bc6718b977b0",
+    "0xdd00e52479157112dd7be6fb83a99ad1b85d1e64c5d5b0b945850c50933b688d",
+    "0x2428eb42ae786b4fb20f0237ecd6c0ebf502637dffa7580b37816206f157d8a2"
+   ],
+   "date_found": "2026-08-28T01:22:00.928Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 3,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 50
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 150
+    }
+   ],
+   "fees": 0.0005,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x5f32183b692acb54795e5294f5b0dd2bfab6a21d0d15bbf682e8f3531b324fa3",
+   "known_taker": null
+  },
+  {
+   "id": "EJVAQqBkY49UN5cik4ajcBWwAMinrfRvsNYjPsTqJeNe",
+   "status": 0,
+   "involved_coins": [
+    "0xa701701916048f991fa32edd5ecabf3317cd7596c9cd2eee7b0f56b694a20841",
+    "0x7cb937793fec505965eeb0a7a5677a75883920e2a2d0d740ff99c2f16c3335cc"
+   ],
+   "date_found": "2026-09-22T02:11:58.317Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 3.0303030303030303,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 33
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 100
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0xcd131dbd73aa025bc78f80465325158202d94e0b5dffa01a4e8b606a31d566fa",
+   "known_taker": null
+  },
+  {
+   "id": "6yC8Q6GYg5yWYJ8TC1rSD4STPUqCxFvYgyo6NJvhJ1MQ",
+   "status": 0,
+   "involved_coins": [
+    "0x1905408cfd154228e79f66e0c42016522ad937e7f08463de4f72a1a4e51b43b0",
+    "0x2dd99ca868d4c29a38387db581590e27b06617d3d889ea53c247279c79319a88",
+    "0x1449f1493a1f893c9bf6844fa8714a5156c7faa0ee73bf3d97176e2169ee6a92",
+    "0xf5c474ecfcc202254446f4a9f81d2dd473bb1c6769943849a3d3b6df1ca2c506",
+    "0xc420776b274fba08e45c7d7410e5b3c1d9af4cba08252c4edff2e8edc4396959",
+    "0xd19c7d6f041d7cfb5c67dba443706347cde172c78b96f6ee45cf642ce2a3baee",
+    "0xf1b3b35c4d00c6217ab94ac8d95914f28406b2fb9b40a9d606e8518b9a2e0191"
+   ],
+   "date_found": "2026-09-17T15:17:40.084Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 3.5,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 50
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 175
+    }
+   ],
+   "fees": 0.0005,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x6f5e209035c9f48fa9da28950141646663f37b2f71b35ccea393185ad4e0c4e4",
+   "known_taker": null
+  },
+  {
+   "id": "4C5qd6pmG55dEs4wPCm5UmJNR4oHCgxwC9QTcCZyEzte",
+   "status": 0,
+   "involved_coins": [
+    "0xbd2c8a1e63498c439adc6a7533b19bda4d380f8cbd7b40d48970920fb7e89ca3",
+    "0xe8dc9f425961c47cfab6b71919cd6a3886f6ccba2a050cbcde6a29e2eeb208a3",
+    "0x6c47c83d1a8fa03bb4eaaf49a82b2ed70d236ed33ae4839327db9d69850985f4"
+   ],
+   "date_found": "2026-08-27T19:29:50.758Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 4,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 50
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 200
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x547cf517653810e33293f1b522d7fb8e47131beeab2433dfdb223cacda65aac8",
+   "known_taker": null
+  },
+  {
+   "id": "DHEznGtFGKjMHMCrmqKG6JyuZuJe8hw3SrCdhxxLWh5E",
+   "status": 0,
+   "involved_coins": [
+    "0x83badf9360720c3eee9f9cd0ff918fe9feed490fad3f21e7cfb40ae19af2b52a",
+    "0x750d2f1c8dc66b4cda38f4475878c8ebb4bf2bd2ee37c9ba0b0ff0ac3e0b2a7e"
+   ],
+   "date_found": "2026-08-27T23:18:27.300Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 5,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 50
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 250
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x43f7adc097da89e65be3bb5e1d7cb7c8b71376364f8e8728018c7a9e3a965ca3",
+   "known_taker": null
+  },
+  {
+   "id": "C5zM7UWD36sVXLAHZrdmdnraHcvEdD67Qvh3yLTDWw9R",
+   "status": 0,
+   "involved_coins": [
+    "0x391ed5d1ddccd82e63feb96ed1619fac7e500c412bad3b38a350d058eaaad4d9",
+    "0xbebe9a42e4763144244328038eda30fb2b649113bbb12401d5214ef9a8a2b9a3"
+   ],
+   "date_found": "2026-08-25T15:37:27.008Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 17,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 10
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 170
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x1c67f3e59cbf074412582529b0a94e4e160205f3ec323a0bb9ef5c16de3743af",
+   "known_taker": null
+  },
+  {
+   "id": "2g9aRt4LfWnAdVosDLMCZjM41rFcfVrdm8zJjKEiif1v",
+   "status": 0,
+   "involved_coins": [
+    "0x142f8c27621c71fa24c8c92e652404a9b3416bb8a4a74befc25c846f4e4ac525",
+    "0x8211f1fb8e2f46ac3995b8f554bdc594b94a2fb7f1ac5505e6825e0671613074",
+    "0xe57fece0c7c4f5343178e25e57f4e6750729ae95ee2659f7b8d53c58f3cd1c76",
+    "0x744e0dc3e1b3633492262df50e90b434d4821f90572a762cdeec73e86792da85",
+    "0xde40f07a486d6c3ddd0af8681b1e11859237ff6641f818a9dcd307f79c07aaac",
+    "0x6ba925f2fff3244983f3588bcd8d6eb71f383c646a57f92a758c634a4f42f0ab",
+    "0xaf515ab2b0121ceed3798ab93a2c96f7a41d4cb5f4b4b14c1155cb0b69769b8f",
+    "0x9e190bf74c510f7d9193ed960344a3b23bd4077718cf12a4313a4b8102bd499b",
+    "0x624960e43ef6107551707ede66e2c1637fa67df958d6524a9eaf920da3de2f03",
+    "0xf5d6d05a2e487910f099e3e74bee625abc842fe0ad9e78a412a673e2da3dfe30",
+    "0xd25bab9992ccdd2554c7c3944f53c394289bfc4f94f98a20fe5b2047b3288ceb",
+    "0x70e7414b32cdb7a8c781c011da144b96f6be424434afcf88a2f9a9c5945d1648",
+    "0x5f76821cef1b9bd7a166ceb50af16b71cbc430c60bc941b0d499b6cdd79224a5",
+    "0x5435e371401440b1c9ac0734198ada72427b1a6c7450f3c883b258c921def00f",
+    "0x02f44beacb6891f24f1ef516dee0311de7d2607210f66e0a649ec5fce62f8185",
+    "0x4455871a62c8dfb4fbaf9f37e415f6fb385ded12d9d1bdb6d85906b29569c395",
+    "0x3dcfd02574505e88a5c3c7f0a59ac1dfb6f5773743fdff78017dd1fc8e7895af",
+    "0x7f955b1aa1f55f904400cd3cf86bad5623ca3edd42d07683e9b56b04c232b01e",
+    "0x54a2cd44dd86f59f6fed3f197dc57d8096c399e16de220b766a5259be858918d",
+    "0xb8c6a1db8f9a2655a023797c778d8661584bd2ada0eb06b6595fbe937ecf8153",
+    "0x488c9fb68235062b6bc58f0363f96bbcbd7c51a900f9db482aa8cf93d935a872",
+    "0xf875738157b1bc4a46a2638b78e7d67015214eff81c39d6f16acedd87ee6e917",
+    "0x3bb86239d6bf06f4741be8081193c946608f68f8a3ebe5cab10802f4d22f204a"
+   ],
+   "date_found": "2025-03-06T00:31:25.232Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 18,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 2
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 36
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x1a0484b58563647bc21b2026b15f2c260e4970f33185db4b1966442b8c20620b",
+   "known_taker": null
+  },
+  {
+   "id": "FJps1qnkcLxBCEBwEw3Lgp3WrcGSS9hkVgqUEi5M1byA",
+   "status": 0,
+   "involved_coins": [
+    "0x4b481eaedcbbd66efa2d34a8bf71a9ae8213f7d683b4277f5d53e8fe25637a18",
+    "0xe40f59f742fbf58dc69f9f619f6298d2c256086ad13d94b801f0f95cdf1e658c"
+   ],
+   "date_found": "2026-08-25T15:37:15.374Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 25,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 10
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 250
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x720cb864c08ba06a70c3863be6def5bbf4cfb4ea9232e7dfaab00573088f494b",
+   "known_taker": null
+  },
+  {
+   "id": "9yhvETpoeC6KhMxwy3hyipU7j9h5NemR4eyhjaStYjzn",
+   "status": 0,
+   "involved_coins": [
+    "0xe15ba8dcd9e688af1000328bbcd0e14b95c19839b209c1ffdae1e9744c61dcd1",
+    "0x95d61895f90d4b6996f1e43754598c5c670159eda4e0ce3e07105ddd12f9851d"
+   ],
+   "date_found": "2025-09-25T17:39:08.769Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 95,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 10
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 950
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x4c56796b1b2739a59fe82891fdabdfedf71a55d63436f3ba4481d2c839372e01",
+   "known_taker": null
+  },
+  {
+   "id": "BVpxKxzsi2pTyszXZuDTxxfmJCDymKgxdQJWCVR3cECf",
+   "status": 0,
+   "involved_coins": [
+    "0x31dd35e3abdb496809d19018e07e2db7c9d96a2aabf46e2a1b8a199d7873366e",
+    "0x9f5ea19dd64a300c224576cca3da24febad67c33eb99b650bee8f29abfd0ff4f"
+   ],
+   "date_found": "2024-10-27T00:35:00.233Z",
+   "date_completed": null,
+   "date_pending": null,
+   "date_expiry": null,
+   "block_expiry": null,
+   "spent_block_index": null,
+   "price": 100,
+   "offered": [
+    {
+     "id": "xch",
+     "code": "XCH",
+     "name": "Chia",
+     "amount": 5
+    }
+   ],
+   "requested": [
+    {
+     "id": "fa4a180ac326e67ea289b869e3448256f6af05721f7cf934cb9901baa6b7a99d",
+     "code": "wUSDC.b",
+     "name": "Base warp.green USDC",
+     "amount": 500
+    }
+   ],
+   "fees": 0,
+   "mempool": null,
+   "related_offers": [],
+   "mod_version": 2,
+   "trade_id": "0x8b7a893bc9343e052991a0602586333262d4834df58dd5a7160df8a4e8e65f2f",
+   "known_taker": null
+  }
+ ]
+}

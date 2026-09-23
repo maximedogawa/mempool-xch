@@ -1,0 +1,186 @@
+{
+ "code": "0",
+ "data": [
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531462",
+   "px": "1.633",
+   "sz": "0.000096",
+   "side": "buy",
+   "ts": "1790157177776",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531461",
+   "px": "1.633",
+   "sz": "88.12",
+   "side": "buy",
+   "ts": "1790157177775",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531460",
+   "px": "1.634",
+   "sz": "0.125658",
+   "side": "buy",
+   "ts": "1790157176167",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531459",
+   "px": "1.632",
+   "sz": "40.9",
+   "side": "buy",
+   "ts": "1790157176162",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531458",
+   "px": "1.632",
+   "sz": "10.221127",
+   "side": "buy",
+   "ts": "1790157176162",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531457",
+   "px": "1.632",
+   "sz": "4.164562",
+   "side": "buy",
+   "ts": "1790157176162",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531456",
+   "px": "1.631",
+   "sz": "286.313101",
+   "side": "buy",
+   "ts": "1790157176161",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531455",
+   "px": "1.627",
+   "sz": "1",
+   "side": "sell",
+   "ts": "1790156905941",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531454",
+   "px": "1.627",
+   "sz": "71.869895",
+   "side": "sell",
+   "ts": "1790156902680",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531453",
+   "px": "1.631",
+   "sz": "12.147121",
+   "side": "buy",
+   "ts": "1790156817863",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531452",
+   "px": "1.631",
+   "sz": "0.100276",
+   "side": "buy",
+   "ts": "1790156817863",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531451",
+   "px": "1.627",
+   "sz": "0.773884",
+   "side": "sell",
+   "ts": "1790156604705",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531450",
+   "px": "1.627",
+   "sz": "0.125759",
+   "side": "sell",
+   "ts": "1790156604705",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531449",
+   "px": "1.627",
+   "sz": "0.100357",
+   "side": "sell",
+   "ts": "1790156604705",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531448",
+   "px": "1.629",
+   "sz": "10.220933",
+   "side": "sell",
+   "ts": "1790156604152",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531447",
+   "px": "1.629",
+   "sz": "34.042478",
+   "side": "sell",
+   "ts": "1790156604152",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531446",
+   "px": "1.631",
+   "sz": "0.100357",
+   "side": "sell",
+   "ts": "1790156604152",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531445",
+   "px": "1.631",
+   "sz": "16.676462",
+   "side": "sell",
+   "ts": "1790156604152",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531444",
+   "px": "1.636",
+   "sz": "2.5717",
+   "side": "buy",
+   "ts": "1790156554250",
+   "source": "0"
+  },
+  {
+   "instId": "XCH-USDT",
+   "tradeId": "41531443",
+   "px": "1.636",
+   "sz": "1.049392",
+   "side": "buy",
+   "ts": "1790156554250",
+   "source": "0"
+  }
+ ],
+ "msg": ""
+}
