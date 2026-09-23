@@ -102,7 +102,7 @@ export function ProjectedBlocks({
               </span>
               {watched ? <WatchedBlockBadge count={watched} /> : null}
               {yours ? (
-                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">
+                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-primary-fg shadow-[0_0_10px_var(--primary)]">
                   {t("projected.yours", { count: yours })}
                 </span>
               ) : null}

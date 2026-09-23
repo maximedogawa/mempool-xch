@@ -36,9 +36,14 @@ const messages: Translation<typeof en> = {
   appearance: {
     title: "Darstellung",
     theme: "Design",
-    dark: "Dunkel (mempool.space-Stil)",
+    dark: "Dunkel",
+    darkHint: "mempool.space-Stil",
     light: "Hell",
-    system: "Systemeinstellung",
+    lightHint: "hell und klar",
+    system: "System",
+    systemHint: "folgt Ihrem Gerät",
+    sageLocked:
+      "In Sage folgt die App dem Design der Wallet (aktuell {theme}). Ändern Sie es in den Einstellungen von Sage.",
     language: "Sprache",
     languageAuto: "Automatisch (Browsersprache)",
     chime: "Bestätigungston",

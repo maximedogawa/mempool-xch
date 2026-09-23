@@ -96,7 +96,7 @@ export function LiveTransactions() {
                 <li
                   key={item.id}
                   className={cn(
-                    "flex items-center gap-3 py-2 text-sm",
+                    "flex items-center gap-3 py-2 pl-2 text-sm",
                     fresh.has(item.id) && "animate-row-in"
                   )}
                 >

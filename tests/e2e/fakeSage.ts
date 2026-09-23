@@ -68,13 +68,22 @@ export async function installFakeSage(
     "wallet.get_transactions",
     "wallet.get_coins",
     "wallet.get_xch_usd_price",
-  ]
+  ],
+  theme: { name: string; mostLike?: string } = { name: "dark", mostLike: "dark" }
 ) {
   await page.addInitScript(
-    ({ pending, granted, address }) => {
+    ({ pending, granted, address, theme }) => {
       const w = window as unknown as Record<string, unknown>;
       w.__FAKE_SAGE_PENDING__ = pending;
       const noop = () => () => {};
+      // Sage's current theme; __FAKE_SAGE_SET_THEME__(theme) switches it the way the host does:
+      // getCurrent answers the new theme and every onChanged listener gets { theme }.
+      let currentTheme = theme;
+      const themeListeners = new Set<(event: { theme: unknown }) => void>();
+      w.__FAKE_SAGE_SET_THEME__ = (next: typeof theme) => {
+        currentTheme = next;
+        themeListeners.forEach((listener) => listener({ theme: next }));
+      };
       w.__SAGE__ = {
         app: {
           getInfo: async () => ({
@@ -94,9 +103,23 @@ export async function installFakeSage(
         environment: {
           getNetwork: async () => ({ kind: "mainnet", networkId: "mainnet" }),
           theme: {
-            getCurrent: async () => ({ theme: { name: "dark", mostLike: "dark" } }),
-            onChanged: noop,
-            mountCssVars: async () => {},
+            getCurrent: async () => ({ theme: currentTheme }),
+            onChanged: (listener: (event: { theme: unknown }) => void) => {
+              themeListeners.add(listener);
+              return () => themeListeners.delete(listener);
+            },
+            // What sage-app-sdk's getSageClient() does on its own (bootstrapTheme): Sage's shadcn
+            // variables in a late <style> on :root. Their names collide with the app's tokens.
+            mountCssVars: async () => {
+              let el = document.getElementById("sage-environment-theme-vars");
+              if (!el) {
+                el = document.createElement("style");
+                el.id = "sage-environment-theme-vars";
+                document.head.appendChild(el);
+              }
+              el.textContent =
+                ":root { --primary: hsl(0 0% 98%); --accent: hsl(240 3.7% 15.9%); --border: hsl(240 3.7% 15.9%); --radius: 0.5rem; --background: hsl(240 10% 3.9%); }";
+            },
             cssVars: async () => ({}),
           },
         },
@@ -121,6 +144,6 @@ export async function installFakeSage(
         },
       };
     },
-    { pending, granted, address: FAKE_ADDRESS }
+    { pending, granted, address: FAKE_ADDRESS, theme }
   );
 }

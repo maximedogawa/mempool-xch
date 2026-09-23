@@ -4,8 +4,14 @@
  * mempoolxch.space design tokens: mempool.space's dark navy base with the accent
  * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
  * Every colour used by components is a token here so Sage's theme can remap them later.
+ *
+ * `html:root`, not `:root`: inside Sage, sage-app-sdk's getSageClient() mounts the wallet's
+ * shadcn variables in a late `:root { --primary: …; --accent: …; --border: …; --radius: … }`
+ * style, whose names collide with ours. Same specificity would let it win and turn the dark
+ * theme's green white; one extra type selector keeps ours, and `:root[data-theme="light"]`
+ * below still outranks this block (TASK-095).
  */
-:root {
+html:root {
   color-scheme: dark;
 
   --bg: #0f1220;
@@ -37,6 +43,9 @@
   --primary-strong: #3aac59;
   --primary-soft: rgba(94, 206, 123, 0.14);
   --primary-fg: #06210f;
+  /* Fresh-row flash behind text: the most green a row can carry while --fg-faint and every other
+     row colour keep 4.5:1 (TASK-095). --primary-soft (14%) left the faint fee text at 4.2:1. */
+  --row-flash: rgba(94, 206, 123, 0.06);
 
   --accent: #7dd3fc;
   --warning: #f5c542;
@@ -58,6 +67,21 @@
   --block-top: #2a3157;
   --block-empty: #1a1e33;
   --projected-face: #17283a;
+  /* Cube lighting, per theme (BlockCube reads these; light mode can't shade with black). */
+  --cube-top-hi: color-mix(in srgb, var(--block-top) 78%, white 14%);
+  --cube-side-from: color-mix(in srgb, var(--block-side) 85%, black);
+  --cube-side-to: color-mix(in srgb, var(--block-side) 55%, black);
+  --cube-glass: color-mix(in srgb, var(--block-face) 88%, transparent);
+  --cube-grid: rgba(255, 255, 255, 0.035);
+  --cube-fill-shade: rgba(0, 0, 0, 0.18);
+  --cube-edge:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 -18px 30px -18px rgba(0, 0, 0, 0.45);
+  --cube-drop: 0 14px 26px -14px rgba(0, 0, 0, 0.7);
+  --cube-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  /* A single-band fee fill fades toward this. */
+  --cube-shade: #000;
+  --confirmed-fill: linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%);
+  --strip-bg: linear-gradient(180deg, var(--bg-elevated), color-mix(in srgb, var(--bg) 85%, black));
 
   --kind-xch: #5ece7b;
   --kind-cat: #8aa4ff;
@@ -74,12 +98,14 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f6fb;
+  /* Layered light: a cool grey page, white cards lifted by a soft shadow, a paler grey for
+     chips and inputs, and borders a step darker (TASK-095). */
+  --bg: #eef1f7;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
-  --surface-2: #eef1f8;
-  --surface-hover: #e4e8f3;
-  --border: #d9deec;
+  --surface-2: #f2f4f9;
+  --surface-hover: #e8ecf5;
+  --border: #dce1ec;
   --map-land: #c9d0e3;
   --map-bg: #eaf0fb;
   --map-grid: rgb(47 154 77 / 0.07);
@@ -91,26 +117,51 @@
   --region-africa: #a855c7;
   --region-oceania: #d1701f;
   --region-unmapped: #7b849f;
-  --border-strong: #b9c1d9;
+  --border-strong: #c2c9db;
   --fg: #10142a;
   --fg-muted: #4d5674;
-  --fg-faint: #5f6886;
-  --primary: #2f9a4d;
-  --primary-strong: #237a3b;
-  --primary-soft: rgba(47, 154, 77, 0.12);
+  --fg-faint: #586180;
+  /* Text colours below keep 4.5:1 on every light surface and on their own soft tint. */
+  --primary: #176c33;
+  --primary-strong: #11552a;
+  --primary-soft: rgba(23, 108, 51, 0.1);
   --primary-fg: #ffffff;
-  --accent: #0a7ea4;
-  --warning: #b78a00;
-  --danger: #c93a47;
-  --danger-soft: rgba(201, 58, 71, 0.12);
-  --info: #4a63d8;
-  --fee-0: #9aa3c2;
-  --block-face: #dfe5f4;
-  --block-side: #b9c3de;
-  --block-top: #eef1f8;
-  --block-empty: #e8ecf6;
-  --projected-face: #d5e9f5;
-  --shadow: 0 10px 30px rgba(20, 30, 60, 0.12);
+  /* Accent links sit at 4.6:1 on white, so any tint behind them fails AA: the edge bar alone. */
+  --row-flash: transparent;
+  --accent: #066890;
+  --warning: #7a5700;
+  --danger: #a82c39;
+  --danger-soft: rgba(168, 44, 57, 0.1);
+  --info: #3f56c4;
+  --fee-0: #c3cce2;
+  --block-face: #e9eef8;
+  --block-side: #c9d2e8;
+  --block-top: #eef2fa;
+  --block-empty: #e9edf6;
+  --projected-face: #dcecf7;
+  /* Frosted-glass cubes: a white top, cool blue-grey sides, and navy-tinted shadows. */
+  --cube-top-hi: #ffffff;
+  --cube-side-from: #d3daea;
+  --cube-side-to: #b4bfd8;
+  --cube-glass: rgba(255, 255, 255, 0.8);
+  --cube-grid: rgba(40, 60, 120, 0.05);
+  --cube-fill-shade: rgba(20, 40, 90, 0.06);
+  --cube-edge:
+    inset 0 0 0 1px rgba(30, 50, 110, 0.12), inset 0 -18px 30px -18px rgba(30, 50, 110, 0.16);
+  --cube-drop: 0 16px 24px -14px rgba(30, 50, 110, 0.35);
+  --cube-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  --cube-shade: #ffffff;
+  --confirmed-fill: linear-gradient(165deg, #9adcec 0%, #62c483 100%);
+  --strip-bg: linear-gradient(180deg, #ffffff, #e6ebf5);
+  /* Asset-kind hues darkened for light surfaces: each keeps 4.5:1 as badge text on its own
+     15-20% tint over white or --surface-2 (the dark hues fell to 1.8:1 here; TASK-095). */
+  --kind-xch: #1b5a2d;
+  --kind-cat: #3d51b1;
+  --kind-nft: #7b3e91;
+  --kind-did: #705400;
+  --kind-offer: #08607d;
+  --kind-unknown: #52586b;
+  --shadow: 0 1px 2px rgba(16, 24, 56, 0.06), 0 10px 28px -12px rgba(16, 24, 56, 0.16);
 }
 
 @theme inline {
@@ -231,12 +282,17 @@ a {
   animation: block-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* A fresh row flashes a green edge bar (rows using it pad their left edge to keep it clear of
+   the text) plus a tint light enough that the text stays AA. The bar is inset because the lists
+   sit in scroll containers, which clip anything drawn outside the row. */
 @keyframes row-in {
   from {
-    background: var(--primary-soft);
+    background: var(--row-flash);
+    box-shadow: inset 3px 0 0 var(--primary);
   }
   to {
     background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
   }
 }
 

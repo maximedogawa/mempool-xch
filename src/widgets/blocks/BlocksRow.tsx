@@ -72,7 +72,7 @@ export function BlocksRow() {
   return (
     <section
       aria-label={t("row.label")}
-      className="rounded-card border border-border/60 bg-[linear-gradient(180deg,var(--bg-elevated),color-mix(in_srgb,var(--bg)_85%,black))]"
+      className="rounded-card border border-border/60 bg-(image:--strip-bg)"
     >
       <div
         ref={scroller}

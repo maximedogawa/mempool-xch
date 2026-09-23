@@ -608,7 +608,7 @@ export function NextBlockGoggles() {
                       <AssetAmount assets={hover.assets} kind={hover.kind} full />
                     </span>
                     {mine.has(hover.id) ? (
-                      <span className="rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase text-[#0a0d18]">
+                      <span className="rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase text-primary-fg">
                         {t("yoursChip")}
                       </span>
                     ) : null}
