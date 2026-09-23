@@ -173,7 +173,7 @@ export function TileTooltip({
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             {yours ? (
-              <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold uppercase text-[#0a0d18]">
+              <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold uppercase text-primary-fg">
                 {t("yoursChip")}
               </span>
             ) : null}

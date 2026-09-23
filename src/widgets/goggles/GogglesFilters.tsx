@@ -236,7 +236,7 @@ export function GogglesFilterBar({
           <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
           {t("moreFilters")}
           {panelCount > 0 ? (
-            <span className="tabular rounded-full bg-primary px-1.5 text-[10px] text-[#0a0d18]">
+            <span className="tabular rounded-full bg-primary px-1.5 text-[10px] text-primary-fg">
               {panelCount}
             </span>
           ) : null}

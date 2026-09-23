@@ -36,10 +36,10 @@ const messages = {
     title: "Appearance",
     theme: "Theme",
     dark: "Dark",
-    light: "Light",
-    system: "System",
     darkHint: "mempool.space style",
+    light: "Light",
     lightHint: "bright and crisp",
+    system: "System",
     systemHint: "follows your device",
     sageLocked:
       "Inside Sage the app follows the wallet's theme (currently {theme}). Change it in Sage's settings.",
