@@ -16,7 +16,8 @@ import { formatNumber } from "@/shared/lib/chia/amounts";
 import { regionColor } from "@/shared/lib/map/colors";
 import { LAND_RUNS } from "@/shared/lib/map/landDots";
 import { cellCenter, GRID_STEP, MAP_HEIGHT, MAP_WIDTH, project } from "@/shared/lib/map/projection";
-import type { CountryRow } from "@/shared/lib/map/stats";
+import type { CountryChange, CountryRow } from "@/shared/lib/map/stats";
+import { ENTRANCE_STAGGER_MS } from "./useMapAnimation";
 import { useMapNames } from "./useMapNames";
 
 export interface MapPulse {
@@ -91,6 +92,8 @@ export function WorldMap({
   matched,
   filtered,
   showArcs = true,
+  entering,
+  paused = false,
   handleRef,
   onViewChange,
 }: {
@@ -106,6 +109,10 @@ export function WorldMap({
   /** True while a filter is narrowing the map, which mutes everything unmatched. */
   filtered: boolean;
   showArcs?: boolean;
+  /** Countries that just appeared (grow in) or changed their count (ring out). */
+  entering?: ReadonlyMap<string, CountryChange>;
+  /** Hidden tab or map off screen: every CSS animation on the map holds. */
+  paused?: boolean;
   handleRef?: RefObject<MapHandle | null>;
   onViewChange?: (scale: number) => void;
 }) {
@@ -335,7 +342,10 @@ export function WorldMap({
   const showLabels = view.scale >= LABEL_SCALE;
 
   return (
-    <div className="map-viewport relative overflow-hidden rounded-card">
+    <div
+      className="map-viewport relative overflow-hidden rounded-card"
+      data-paused={paused ? "true" : undefined}
+    >
       <svg
         viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
         role="group"
@@ -420,6 +430,9 @@ export function WorldMap({
               const active = hovered === marker.key || selected === marker.key;
               const dim = filtered && !matched.has(marker.key);
               const color = regionColor(marker.region);
+              const change = entering?.get(marker.key);
+              // Largest countries first, so the intro grows the map from its biggest markers.
+              const delay = Math.min(ENTRANCE_STAGGER_MS, (marker.rank - 1) * 8);
               return (
                 <g
                   key={marker.key}
@@ -455,23 +468,41 @@ export function WorldMap({
                       fill="url(#map-marker-glow)"
                     />
                   ) : null}
-                  <circle
-                    cx={marker.pos.x}
-                    cy={marker.pos.y}
-                    r={radius + 3}
-                    fill={color}
-                    fillOpacity={active ? 0.34 : 0.14}
-                  />
-                  <circle
-                    cx={marker.pos.x}
-                    cy={marker.pos.y}
-                    r={radius}
-                    fill={color}
-                    fillOpacity={active ? 1 : 0.82}
-                    stroke={active ? "var(--fg)" : "var(--map-marker-edge)"}
-                    strokeWidth={active ? 1.6 : 0.8}
-                    vectorEffect="non-scaling-stroke"
-                  />
+                  {change === "changed" ? (
+                    <circle
+                      className="map-node-ring"
+                      cx={marker.pos.x}
+                      cy={marker.pos.y}
+                      r={radius + 3}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth={1.6}
+                      vectorEffect="non-scaling-stroke"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <g
+                    className={change === "new" ? "map-node-enter" : undefined}
+                    style={change === "new" ? { animationDelay: `${delay}ms` } : undefined}
+                  >
+                    <circle
+                      cx={marker.pos.x}
+                      cy={marker.pos.y}
+                      r={radius + 3}
+                      fill={color}
+                      fillOpacity={active ? 0.34 : 0.14}
+                    />
+                    <circle
+                      cx={marker.pos.x}
+                      cy={marker.pos.y}
+                      r={radius}
+                      fill={color}
+                      fillOpacity={active ? 1 : 0.82}
+                      stroke={active ? "var(--fg)" : "var(--map-marker-edge)"}
+                      strokeWidth={active ? 1.6 : 0.8}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </g>
                   {(showLabels || active) && !dim ? (
                     <text
                       className="map-label"

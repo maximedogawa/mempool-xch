@@ -207,7 +207,7 @@ const messages: Translation<typeof en> = {
         coinset:
           "Coinset（api.coinset.org）：所有链上数据——内存池、您查看的区块、交易、地址、币和资产，以及实时更新——除非您在下方输入其他节点。",
         node: "您在「设置」中输入的全节点：此时所有链上数据均来自该节点，而不是 Coinset。",
-        map: "仅在「网络地图」页面打开期间：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置。发送查询的只有节点地址，绝不包括您的地址；获取到的地址会在您浏览器的本地存储中保留一周。",
+        map: "「网络地图」页面：其节点统计数据是随本网站一同发布的 Chia Network 公开 Peer Info 仪表板（dashboard.chia.net）的快照，因此显示这些数据不会联系任何第三方。只有当该快照缺失、超过 30 天或不属于所选网络时，页面才会在打开期间改用实时扫描：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置；获取到的地址会在您浏览器的本地存储中保留一周。如果您在设置中指向自己的节点，其已连接对等节点的地址也会发送给 GeoJS。发送查询的只有节点地址，绝不包括您的地址。页面还会在本地存储中记住您上次看到的各国节点数，以便突出显示变化。",
       },
       basis:
         "法律依据：GDPR 第 6 条第 1 款 (f) 项；正当利益在于显示您请求的区块链内容。其中部分提供者可能在欧洲经济区以外（例如美国）处理数据，当地的数据保护水平可能较低。适用其各自的隐私政策。",
