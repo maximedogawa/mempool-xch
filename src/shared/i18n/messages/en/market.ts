@@ -1,4 +1,4 @@
-/** The market page: CEX order books and Dexie quotes (src/widgets/market). */
+/** The market page: CEX order books, the battlefield depth chart and Dexie quotes (src/widgets/market). */
 import { defineNamespace } from "../../translate";
 
 const messages = {
@@ -6,56 +6,96 @@ const messages = {
   intro:
     "A live battlefield for XCH liquidity across public order books and Dexie offers. Market data is informational only, not financial advice.",
   quoteCurrency: "Quote currency",
-  animate: "Animate",
   reduceMotion: "Reduce motion",
+  disclaimer:
+    "Prices, order books and fills come straight from third-party exchanges and Dexie and may be delayed, incomplete or wrong. This is general information only, not financial, investment, tax or legal advice, and not an offer to buy or sell anything. See the <link>terms of use</link>.",
   bestBid: "Best bid",
   bestAsk: "Best ask",
-  exchangesLive: "{live}/3 exchanges live",
+  onExchange: "on {exchange}",
   noLiveBooks: "No live books",
   crossSpread: "Cross spread",
+  crossedBooks: "books crossed",
   bidToAsk: "best bid to best ask",
+  midPrice: "Mid price",
+  midSub: "between best bid and ask",
   sources: "Sources",
   updated: "updated {time}",
   waiting: "waiting",
+  unlistedNote:
+    "{exchanges} do not list XCH/{quote} (checked 2026-09-23), so the {quote} view shows only {listed}.",
+  battlefield: "Battlefield",
+  liveChart: "animated",
+  staticChart: "static",
+  battlefieldIntro:
+    "Buyers (bids, left) and sellers (asks, right) of every exchange face each other around the mid price. The filled land is the combined depth of the live books, the lines each exchange's own depth, the solid verticals the front line at the best bid and ask. Fills land as hits on the side they took.",
+  chartSummary: "Depth chart of {books} live books: best bid {bid}, best ask {ask}.",
+  midLabel: "mid {price}",
+  depthMax: "{amount} XCH",
+  loadingBooks: "Loading order books…",
+  legend: "Legend",
+  legendBids: "combined bids",
+  legendAsks: "combined asks",
+  legendHits: "▲ recent fills at their price",
+  takerTitle: "Buyers vs sellers, last hour",
+  buyers: "Buyers {share}%",
+  sellers: "{share}% Sellers",
+  takerBarLabel: "Taker buys {buy} XCH, taker sells {sell} XCH",
+  takerNote:
+    "Taker volume over the latest fills each exchange returns (up to 30 per exchange), not the full hour on busy days.",
+  fills: "Latest fills",
+  takerBuy: "Buy",
+  takerSell: "Sell",
+  noFills: "No fills yet.",
   cexBooks: "CEX order books",
-  cexIntro: "Gate, OKX and HTX public XCH books.",
+  cexIntro:
+    "Public XCH books from Gate, OKX and HTX, read by your browser every 5 seconds while this tab is visible.",
   live: "LIVE",
   stale: "STALE",
-  notAvailable: "not available",
+  lastUpdate: "last update {time}",
+  notYet: "no data yet",
+  staleNote:
+    "Last request failed ({reason}). The book below is from the last update and is left out of the aggregate; next try at {retry}.",
   bid: "Bid",
   ask: "Ask",
   spread: "Spread",
+  spreadPercent: "Spread %",
   bids: "Bids",
   asks: "Asks",
   amountPrice: "Amount · Price",
   priceAmount: "Price · Amount",
   sourceUnavailable: "Source unavailable",
   sourceExcluded: "It is excluded from the aggregate until a fresh book arrives.",
+  loadingBook: "Loading…",
+  dexTitle: "Dexie DEX · XCH / {asset}",
   dexieQuoteAsset: "Dexie quote asset",
   assetDescriptions: {
-    byc: "Circuit decentralized USD stablecoin",
-    wusdc: "warp.green USDC CAT",
+    byc: "Circuit's decentralised USD stablecoin",
+    wusdcb: "warp.green USDC bridged from Base",
+    wusdc: "warp.green USDC bridged from Ethereum",
+    wusdt: "warp.green USDT bridged from Ethereum",
   },
   dexiePair: "Dexie pair",
   dexBid: "DEX bid",
   dexAsk: "DEX ask",
+  dexSpread: "DEX spread",
   dexStatus: "DEX status",
-  dexStatusSub: "Open offers, best price",
-  source: "Source",
-  publicOffersApi: "Public offers API",
-  dexCexSpread: "DEX / CEX spread",
-  selectUsdc: "Select USDC to compare",
-  differentQuote: "Different quote asset; comparison disabled",
-  waitingBoth: "Waiting for both books",
-  dexNote:
-    "Dexie quotes are offers for {asset}. They are not directly comparable with {quote} unless both use the same quote asset. CEX books above are {quote}.",
+  dexStatusSub: "best open offers · {time}",
+  dexStaleSub: "last update {time} · {reason}",
+  dexCexSpread: "DEX mid vs CEX mid ({asset} vs {quote})",
+  dexCexPercent: "{percent} · DEX {dex} vs CEX {cex}",
+  waitingBoth: "Waiting for both sides of both markets",
+  likeForLike: "{asset} is a wrapped {quote}, so both sides quote the same dollar.",
+  pegAssumption:
+    "{asset} and {quote} are different USD stablecoins; the comparison assumes both hold their dollar peg.",
+  catNote:
+    "Stablecoin CAT used: {label}, {description} (<link>{id}</link>). Prices are computed from each offer's amounts, one-for-one XCH offers only.",
   howToRead: "How to read this",
   howToReadBody:
-    "Buyers face sellers around the midpoint. Best bid is the highest price buyers currently show; best ask is the lowest seller price. A stale source stays visible with its last update and never affects the cross-exchange aggregate.",
+    "Buyers face sellers around the midpoint. Best bid is the highest price buyers currently show; best ask is the lowest seller price. A stale source stays visible, greyed, with its last update and never affects the cross-exchange aggregate.",
+  sourcesBody:
+    "Sources: {exchanges} public REST APIs (order book and recent trades) and the Dexie offers API, all requested by your browser. MEXC, KuCoin and CoinEx list XCH but their REST APIs do not allow browser requests; Binance and Bybit do not list XCH.",
   inspired:
     "Inspired by the battlefield layout on <link>XCHMempool Battlefield</link>; the implementation and visuals here are original.",
-  emptyBook: "Empty order book",
-  unavailable: "Unavailable",
 };
 
 export default defineNamespace("market", messages);

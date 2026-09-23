@@ -17,6 +17,7 @@ const THIRD_PARTY_ITEMS = [
   "coinset",
   "node",
   "map",
+  "market",
 ] as const;
 const RIGHTS_ITEMS = ["access", "rectification", "restriction", "objection", "complaint"] as const;
 
@@ -49,7 +50,6 @@ export function PrivacyContent() {
           ))}
         </List>
         <p>{t("privacy.logs.noProxy")}</p>
-        <p>{t("privacy.logs.market")}</p>
       </Section>
 
       <Section title={t("privacy.storage.title")} id="local-storage">
