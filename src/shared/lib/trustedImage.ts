@@ -34,13 +34,31 @@ export function isTrustedImageUrl(url: string): boolean {
 }
 
 const VIDEO_EXTENSIONS = /\.(mp4|webm|ogv|m4v|mov)(\?|#|$)/i;
+/** A file that says it is something other than a video, whatever the record claims. */
+const NON_VIDEO_EXTENSIONS =
+  /\.(png|jpe?g|gif|webp|avif|svg|bmp|ico|mp3|wav|ogg|oga|flac|m4a|aac|html?|json|txt|pdf|glb|gltf)(\?|#|$)/i;
 
 /**
- * A trusted https URL that names a video file. NFT `data_uris` carry the artwork itself, which
- * is a video often enough (CHIP-0007 data_type 3) that feeding it to an <img> shows nothing.
+ * MintGarden's `data_type` for video artwork. The OpenAPI schema (NftDataType) lists 0-4 with
+ * no meaning; its own NFT page renders 3 as a <video> and 4 as an <audio> (checked in the
+ * mintgarden.io bundle 2026-09-23), and every data_type 3 record sampled that day, several
+ * hundred, pointed at an mp4 or mov. The meaning of the other values is in the wiki
+ * (architecture/data-sources.md, "Third-party media is never hosted here").
  */
-export function isTrustedVideoUrl(url: string): boolean {
-  return isTrustedImageUrl(url) && VIDEO_EXTENSIONS.test(new URL(url).pathname);
+export const MINTGARDEN_VIDEO_DATA_TYPE = 3;
+
+/**
+ * A trusted https URL whose artwork is a video. NFT `data_uris` carry the artwork itself, which
+ * is a video often enough that feeding it to an <img> shows nothing. The file extension decides
+ * when there is one; a data_uri with none (an IPFS gateway serving a bare CID) is a video when
+ * MintGarden's record says so with `dataType` 3. Pass `dataType` only for the record's own
+ * data_uris, never for a thumbnail or preview, which describe a still.
+ */
+export function isTrustedVideoUrl(url: string, dataType?: unknown): boolean {
+  if (!isTrustedImageUrl(url)) return false;
+  const path = new URL(url).pathname;
+  if (VIDEO_EXTENSIONS.test(path)) return true;
+  return dataType === MINTGARDEN_VIDEO_DATA_TYPE && !NON_VIDEO_EXTENSIONS.test(path);
 }
 
 /**

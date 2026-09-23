@@ -50,8 +50,14 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     str(data.preview_uri),
     ...arr(data.data_uris),
   ].filter((u): u is string => !!u && /^https?:\/\//.test(u));
-  // A video data_uri is the artwork, not an image candidate: <img> would only fail on it.
-  const videoUrl = candidates.find(isTrustedVideoUrl) ?? null;
+  // A video data_uri is the artwork, not an image candidate: <img> would only fail on it. The
+  // extension decides first; a data_uri without one is a video when the record's data_type says
+  // so (TASK-097), which never applies to the thumbnail or preview, both stills.
+  const dataUris = arr(data.data_uris);
+  const videoUrl =
+    candidates.find((u) => isTrustedVideoUrl(u)) ??
+    dataUris.find((u) => isTrustedVideoUrl(u, data.data_type)) ??
+    null;
   const images = candidates.filter((u) => u !== videoUrl);
   const description =
     collection.attributes && Array.isArray(collection.attributes)
@@ -70,7 +76,7 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     creatorP2: hex(creator.id),
     royaltyBasisPoints: typeof royalty === "number" ? Math.round(royalty) : null,
     metadataUris: arr(data.metadata_uris),
-    dataUris: arr(data.data_uris),
+    dataUris,
     sensitivity: classifyNft(r),
   };
 }

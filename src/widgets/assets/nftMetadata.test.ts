@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import bbbVideoNft from "@/test-utils/fixtures/mintgardenBbbVideoNft.json";
 import { normaliseMintGardenNft } from "./nftMetadata";
 
 describe("normaliseMintGardenNft", () => {
@@ -44,4 +45,63 @@ test("a still-only NFT has no video", () => {
     },
   });
   expect(meta.videoUrl).toBeNull();
+});
+
+/**
+ * TASK-097, over the BBB #454 record recorded from api.mintgarden.io on 2026-09-23. Its data_uri
+ * names the file (454.mp4); MintGarden's gateway serves the same video under its bare file CID
+ * too (bafybeicricn…, from the ETag of a HEAD on the named path, answered with video/mp4 on
+ * both), which is the shape that used to reach <img>: no extension to go by.
+ */
+describe("a video whose data_uri has no file extension", () => {
+  const BARE_CID_URL =
+    "https://ipfs.mintgarden.io/ipfs/bafybeicricnmminlhze3cllperx2ybead7hcnwidsjshn5tkw7kz7lx7r4";
+  const withDataUris = (uris: string[], ...dataType: [unknown?]) => ({
+    ...bbbVideoNft,
+    data: {
+      ...bbbVideoNft.data,
+      data_uris: uris,
+      data_type: dataType.length ? dataType[0] : bbbVideoNft.data.data_type,
+    },
+  });
+
+  test("the recorded record: the named mp4 is the video", () => {
+    const meta = normaliseMintGardenNft(bbbVideoNft);
+    expect(bbbVideoNft.data.data_type).toBe(3);
+    expect(meta.videoUrl).toBe(bbbVideoNft.data.data_uris[0]!);
+    expect(meta.imageUrls).toEqual([bbbVideoNft.data.thumbnail_uri]);
+  });
+
+  test("the bare CID plays as the video because the record says data_type 3", () => {
+    const meta = normaliseMintGardenNft(
+      withDataUris([
+        BARE_CID_URL,
+        "ipfs://bafybeicricnmminlhze3cllperx2ybead7hcnwidsjshn5tkw7kz7lx7r4",
+      ])
+    );
+    expect(meta.videoUrl).toBe(BARE_CID_URL);
+    // The thumbnail is the poster; the CID is never offered to an <img>.
+    expect(meta.imageUrls).toEqual([bbbVideoNft.data.thumbnail_uri]);
+  });
+
+  test("without data_type 3 the same bare CID stays an image candidate", () => {
+    for (const dataType of [1, 2, 4, 0, undefined]) {
+      const meta = normaliseMintGardenNft(withDataUris([BARE_CID_URL], dataType));
+      expect(meta.videoUrl).toBeNull();
+      expect(meta.imageUrls).toContain(BARE_CID_URL);
+    }
+  });
+
+  test("data_type 3 never makes an untrusted host, or the still thumbnail, the video", () => {
+    const meta = normaliseMintGardenNft(withDataUris(["https://evil.example/ipfs/bafyvideo"]));
+    expect(meta.videoUrl).toBeNull();
+    const extensionlessThumb = normaliseMintGardenNft({
+      data: {
+        data_type: 3,
+        thumbnail_uri: "https://api.mintgarden.io/nfts/nft1abc/thumbnail",
+        data_uris: [],
+      },
+    });
+    expect(extensionlessThumb.videoUrl).toBeNull();
+  });
 });
