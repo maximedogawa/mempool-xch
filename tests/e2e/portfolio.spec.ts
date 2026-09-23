@@ -101,6 +101,16 @@ test.describe("portfolio", () => {
     ).toBe(true);
   });
 
+  test("says so instead of loading forever when a source cannot be read", async ({ page }) => {
+    await watchAddress(page);
+    await page.route(/api\.coinset\.org\/get_(xch|cat)_balances?_by_p2/, (route) =>
+      route.fulfill({ status: 404, body: "" })
+    );
+    await page.goto("/portfolio");
+    await expect(page.getByText("No balances could be loaded for this source.")).toBeVisible();
+    await expect(page.getByText(/Some balances could not be loaded/)).toBeVisible();
+  });
+
   test("inside Sage shows the wallet, and combines it with watched addresses", async ({ page }) => {
     await sageWallet(page);
     await watchAddress(page);

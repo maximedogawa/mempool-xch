@@ -85,14 +85,15 @@ function ShareBar({ share, color }: { share: number; color: string }) {
 /**
  * A portfolio in the manner of a portfolio tracker: headline value with its 24-hour change,
  * summary tiles, an allocation donut and the holdings table (which doubles as the chart's
- * table view). `holdings` undefined means still loading.
+ * table view).
  */
 export function PortfolioView({
   holdings,
   notice,
   compact = false,
 }: {
-  holdings: Holding[] | undefined;
+  /** undefined while loading, null when no source could be read. */
+  holdings: Holding[] | null | undefined;
   notice?: ReactNode;
   /** Embedded on another page: no stat tiles, the holdings table stays. */
   compact?: boolean;
@@ -106,19 +107,29 @@ export function PortfolioView({
     [holdings, markets.data, price.data]
   );
   const slices = useMemo(() => (summary ? allocationSlices(summary) : []), [summary]);
-  const colorOf = useMemo(() => {
-    const map = new Map<string, string>();
-    slices.forEach((s) => {
-      if (s.holding) map.set(s.key, `var(--alloc-${s.slot})`);
-    });
-    return (key: string) => map.get(key) ?? "var(--alloc-other)";
-  }, [slices]);
+  // Slot colour per slice key; a holding without its own slice sits in "Other".
+  const colors = useMemo(
+    () => new Map(slices.map((s) => [s.key, `var(--alloc-${s.slot})`])),
+    [slices]
+  );
+  const colorOf = (key: string) => colors.get(key) ?? "var(--alloc-other)";
 
   if (!summary) {
     return (
       <div className="flex flex-col gap-3">
-        <Skeleton className="h-28 w-full" />
-        <Skeleton className="h-64 w-full" />
+        {notice}
+        {holdings === null ? (
+          <Card>
+            <CardBody>
+              <p className="py-4 text-center text-sm text-fg-faint">{t("unavailable")}</p>
+            </CardBody>
+          </Card>
+        ) : (
+          <>
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </>
+        )}
       </div>
     );
   }
@@ -133,9 +144,8 @@ export function PortfolioView({
       ? nameOf(s.holding, tokens.data, unknown).name
       : t("otherSlice", { count: s.count }),
     value: s.valueXch,
-    color: s.holding ? `var(--alloc-${s.slot})` : "var(--alloc-other)",
+    color: colorOf(s.key),
     detail: `${money(s.valueXch)} · ${formatPercent(s.share, 1)}`,
-    share: s.share,
   }));
   const xchRow = summary.rows.find((r) => r.kind === "xch");
   const priced = summary.assetCount - summary.unpricedCount;
@@ -151,7 +161,7 @@ export function PortfolioView({
             <Tooltip text={t("changeHint")} />
           </div>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="tabular text-3xl font-semibold leading-tight text-fg">
+            <div className="tabular text-3xl font-semibold leading-tight text-fg">
               {pricesLoading && !price.data ? (
                 <Skeleton className="h-9 w-40" />
               ) : summary.totalUsd !== null ? (
@@ -159,7 +169,7 @@ export function PortfolioView({
               ) : (
                 `${formatXchFigure(summary.totalXch)} XCH`
               )}
-            </span>
+            </div>
             {summary.change24h !== null && summary.change24hUsd !== null ? (
               <ChangeChip ratio={summary.change24h} usd={summary.change24hUsd} />
             ) : null}
@@ -220,7 +230,7 @@ export function PortfolioView({
                 <DonutChart
                   slices={donut}
                   ariaLabel={`${t("allocationLabel")}: ${donut
-                    .map((d) => `${d.label} ${formatPercent(d.share, 1)}`)
+                    .map((d, i) => `${d.label} ${formatPercent(slices[i]!.share, 1)}`)
                     .join(", ")}`}
                   center={
                     <>

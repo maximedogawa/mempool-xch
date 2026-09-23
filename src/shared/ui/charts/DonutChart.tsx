@@ -11,7 +11,6 @@ export interface DonutSlice {
   color: string;
   /** Second line under the label in the legend and in the centre on hover (value, share). */
   detail: string;
-  share: number;
 }
 
 const SIZE = 200;
@@ -105,10 +104,7 @@ export function DonutChart({
             )
           )}
         </svg>
-        <div
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-10 text-center"
-          aria-live="polite"
-        >
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-10 text-center">
           {focused ? (
             <>
               <span className="max-w-full truncate text-xs text-fg-muted">{focused.label}</span>

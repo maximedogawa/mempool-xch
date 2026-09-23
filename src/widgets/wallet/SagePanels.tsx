@@ -12,7 +12,7 @@ import {
   checkWalletAddress,
   fetchWalletCoin,
   fetchWalletOverview,
-  fetchXchUsdPrice,
+  SAGE_PRICE_QUERY,
 } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { useSage } from "@/shared/providers/SageProvider";
@@ -149,12 +149,7 @@ export function SagePriceChip() {
   const t = useT(walletNs);
   const { inSage } = useSage();
   const { granted } = useSageCapability("wallet.get_xch_usd_price");
-  const price = useQuery({
-    queryKey: ["sagePrice"],
-    queryFn: fetchXchUsdPrice,
-    enabled: inSage && granted,
-    refetchInterval: 60_000,
-  });
+  const price = useQuery({ ...SAGE_PRICE_QUERY, enabled: inSage && granted });
   if (!inSage || price.data === null || price.data === undefined) return null;
   return (
     <span

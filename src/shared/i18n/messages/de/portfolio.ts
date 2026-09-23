@@ -48,6 +48,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   noPrice: "kein Preis",
   unknownToken: "Unbekannter Token",
   noHoldings: "Diese Quelle hält weder XCH noch Token.",
+  unavailable: "Für diese Quelle konnten keine Salden geladen werden.",
 };
 
 export default messages;

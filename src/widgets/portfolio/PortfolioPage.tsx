@@ -13,7 +13,12 @@ import { EmptyState } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { useWatchlist } from "@/widgets/watchlist/useWatchlist";
 import { PortfolioView } from "./PortfolioView";
-import { SAGE_READ_LIMIT, useAddressHoldings, useSageHoldings } from "./usePortfolioData";
+import {
+  SAGE_READ_LIMIT,
+  useAddressHoldings,
+  useSageHoldings,
+  type SourceState,
+} from "./usePortfolioData";
 import portfolioNs from "@/shared/i18n/messages/en/portfolio";
 
 function shortLabel(label: string): string {
@@ -50,6 +55,19 @@ export function PortfolioPage() {
   ];
   const source = sources.some((s) => s.id === picked) ? picked : "all";
 
+  const selected = useMemo((): SourceState[] => {
+    if (source === "sage") return [sage];
+    if (source !== "all") return [watched.sources[puzzleHashes.indexOf(source)]!];
+    return [...(inSage ? [sage] : []), ...watched.sources];
+  }, [source, sage, watched.sources, puzzleHashes, inSage]);
+  // Loading until every selected source settled; a failed one (null) does not hold the rest back.
+  const holdings = useMemo((): Holding[] | null | undefined => {
+    if (selected.some((s) => s.holdings === undefined)) return undefined;
+    const ready = selected.flatMap((s) => (s.holdings ? [s.holdings] : []));
+    if (ready.length === 0) return null;
+    return ready.length === 1 ? ready[0] : mergeHoldings(ready);
+  }, [selected]);
+
   if (sources.length === 0) {
     return (
       <div className="flex flex-col gap-4">
@@ -67,32 +85,12 @@ export function PortfolioPage() {
     );
   }
 
-  const sageHoldings = inSage ? sage.data?.holdings : [];
-  const addressHoldings = (ph: string) => watched.data[puzzleHashes.indexOf(ph)];
-  let holdings: Holding[] | undefined;
-  if (source === "all") {
-    const parts = [sageHoldings, ...watched.data];
-    const ready = parts.filter((p): p is Holding[] => p !== undefined);
-    // Show what has arrived once anything has; a failed source must not hold the rest back.
-    holdings =
-      ready.length === parts.length || (ready.length > 0 && !sage.isLoading && !watched.isLoading)
-        ? mergeHoldings(ready)
-        : undefined;
-  } else if (source === "sage") {
-    holdings = sage.data?.holdings;
-  } else {
-    holdings = addressHoldings(source);
-  }
-
   const usesAddresses = source !== "sage" && addresses.length > 0;
-  const usesSage = inSage && (source === "all" || source === "sage");
   const notice = (
     <>
       {usesAddresses && !watched.indexed ? <Notice>{t("needsIndexed")}</Notice> : null}
-      {(usesAddresses && watched.isError) || (usesSage && sage.isError) ? (
-        <Notice tone="warning">{t("loadError")}</Notice>
-      ) : null}
-      {usesSage && sage.data?.partial ? (
+      {selected.some((s) => s.failed) ? <Notice tone="warning">{t("loadError")}</Notice> : null}
+      {selected.some((s) => s.partial) ? (
         <Notice>{t("partial", { count: formatNumber(SAGE_READ_LIMIT) })}</Notice>
       ) : null}
     </>

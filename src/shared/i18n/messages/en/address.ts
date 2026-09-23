@@ -2,6 +2,7 @@
 import { defineNamespace } from "../../translate";
 
 const messages = {
+  portfolioTitle: "Portfolio",
   notAvailable: "n/a",
   needsCoinset: "needs Coinset",
   loading: "Loading…",

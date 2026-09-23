@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { TokenMarket, TokenMarketMap } from "@/shared/lib/tokens/markets";
 import {
   allocationSlices,
+  holdingsFromBalances,
   mergeHoldings,
   unitsOf,
   valuePortfolio,
@@ -116,5 +117,16 @@ describe("allocationSlices", () => {
     expect(slices).toHaveLength(1);
     expect(slices[0]!.slot).toBe(1);
     expect(slices[0]!.share).toBe(1);
+  });
+});
+
+describe("holdingsFromBalances", () => {
+  test("XCH first with 12 decimals, CATs with 3, nothing for a missing part", () => {
+    const h = holdingsFromBalances({ confirmed: 5n }, [{ assetId: id("a"), confirmed: 7n }]);
+    expect(h.map((x) => [x.kind, x.precision, x.amount])).toEqual([
+      ["xch", 12, 5n],
+      ["cat", 3, 7n],
+    ]);
+    expect(holdingsFromBalances(undefined, undefined)).toEqual([]);
   });
 });

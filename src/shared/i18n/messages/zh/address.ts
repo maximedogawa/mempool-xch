@@ -2,6 +2,7 @@ import type { Translation } from "../../translate";
 import type en from "../en/address";
 
 const messages: Translation<(typeof en)["messages"]> = {
+  portfolioTitle: "投资组合",
   notAvailable: "暂无",
   needsCoinset: "需要 Coinset",
   loading: "加载中…",

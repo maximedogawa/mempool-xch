@@ -45,7 +45,7 @@ export interface PortfolioSummary {
   unpricedCount: number;
 }
 
-export function holdingKey(h: Pick<Holding, "kind" | "assetId">): string {
+function holdingKey(h: Pick<Holding, "kind" | "assetId">): string {
   return h.kind === "xch" ? "xch" : `cat:${h.assetId ?? "?"}`;
 }
 
@@ -53,6 +53,22 @@ export function holdingKey(h: Pick<Holding, "kind" | "assetId">): string {
 export function unitsOf(amount: bigint, precision: number): number {
   const base = 10n ** BigInt(precision);
   return Number(amount / base) + Number(amount % base) / Number(base);
+}
+
+/** An address's holdings from Coinset's indexed XCH and CAT balances (CATs: 3 decimals). */
+export function holdingsFromBalances(
+  xch: { confirmed: bigint } | undefined,
+  cats: { assetId: string; confirmed: bigint }[] | undefined
+): Holding[] {
+  return [
+    ...(xch ? [{ kind: "xch" as const, assetId: null, amount: xch.confirmed, precision: 12 }] : []),
+    ...(cats ?? []).map((c) => ({
+      kind: "cat" as const,
+      assetId: c.assetId,
+      amount: c.confirmed,
+      precision: 3,
+    })),
+  ];
 }
 
 /** One entry per asset: the same CAT held by several sources is summed. */
@@ -136,7 +152,7 @@ export interface AllocationSlice {
 }
 
 /** Colours a donut can keep apart for every reader (validated with the dataviz checks). */
-export const TOKEN_SLOTS = 4;
+const TOKEN_SLOTS = 4;
 
 /**
  * XCH always keeps its own slice and colour; the largest tokens take the next slots in value

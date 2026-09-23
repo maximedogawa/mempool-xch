@@ -47,6 +47,7 @@ const messages = {
   noPrice: "no price",
   unknownToken: "Unknown token",
   noHoldings: "This source holds no XCH or tokens.",
+  unavailable: "No balances could be loaded for this source.",
 };
 
 export default defineNamespace("portfolio", messages);

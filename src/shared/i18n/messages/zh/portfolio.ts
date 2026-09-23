@@ -45,6 +45,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   noPrice: "无价格",
   unknownToken: "未知代币",
   noHoldings: "此来源没有 XCH 或代币。",
+  unavailable: "无法加载此来源的任何余额。",
 };
 
 export default messages;
