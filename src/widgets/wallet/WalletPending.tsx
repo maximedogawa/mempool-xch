@@ -11,6 +11,7 @@ import { formatAge, formatEta } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { fetchWalletPending, type WalletCoinRef, type WalletTx } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
+import { useNftSensitivity } from "@/shared/lib/nft/useNftSensitivity";
 import { walletPendingKey } from "@/shared/lib/sage/usePendingIds";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import {
@@ -140,6 +141,9 @@ function PendingRow({
   const received = tx.created.filter(mine);
   const sent = tx.spent.filter(mine);
   const primary = sent[0] ?? received[0];
+  const primarySensitivity = useNftSensitivity(
+    primary && kindOf(primary) === "nft" ? primary.assetId : null
+  );
   const t = useT(walletNs);
   return (
     <li
@@ -160,6 +164,7 @@ function PendingRow({
             assetId={primary.assetId ?? undefined}
             iconUrl={primary.iconUrl}
             size={22}
+            sensitivity={primarySensitivity}
           />
         ) : (
           <Wallet size={18} aria-hidden="true" />

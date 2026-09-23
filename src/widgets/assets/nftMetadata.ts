@@ -6,7 +6,7 @@
  */
 import { MINTGARDEN_API, loadNftRecord } from "@/shared/lib/nft/mintgarden";
 import { classifyNft, type Sensitivity } from "@/shared/lib/nft/sensitivity";
-import { isTrustedVideoUrl } from "@/shared/lib/trustedImage";
+import { isTrustedVideoUrl, mintGardenIpfsUrl } from "@/shared/lib/trustedImage";
 
 export { MINTGARDEN_API };
 
@@ -50,9 +50,27 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     str(data.preview_uri),
     ...arr(data.data_uris),
   ].filter((u): u is string => !!u && /^https?:\/\//.test(u));
-  // A video data_uri is the artwork, not an image candidate: <img> would only fail on it.
-  const videoUrl = candidates.find(isTrustedVideoUrl) ?? null;
-  const images = candidates.filter((u) => u !== videoUrl);
+  // A video data_uri is the artwork, not an image candidate: <img> would only fail on it. The
+  // extension decides first; a data_uri without one is a video when the record's data_type says
+  // so (TASK-097), which never applies to the thumbnail or preview, both stills. A data_uri on
+  // an IPFS gateway this app does not trust is played from MintGarden's gateway instead: same
+  // CID, same bytes, a trusted host.
+  const dataUris = arr(data.data_uris);
+  const videoSources = dataUris.flatMap((source): { source: string; url: string }[] => {
+    const onMintGarden = mintGardenIpfsUrl(source);
+    return onMintGarden && onMintGarden !== source
+      ? [
+          { source, url: source },
+          { source, url: onMintGarden },
+        ]
+      : [{ source, url: source }];
+  });
+  const video =
+    videoSources.find(({ url }) => isTrustedVideoUrl(url)) ??
+    videoSources.find(({ url }) => isTrustedVideoUrl(url, data.data_type)) ??
+    null;
+  const videoUrl = video?.url ?? null;
+  const images = candidates.filter((u) => u !== videoUrl && u !== video?.source);
   const description =
     collection.attributes && Array.isArray(collection.attributes)
       ? ((collection.attributes.map(obj).find((a) => a.type === "description")?.value as
@@ -70,7 +88,7 @@ export function normaliseMintGardenNft(raw: unknown): NftMetadata {
     creatorP2: hex(creator.id),
     royaltyBasisPoints: typeof royalty === "number" ? Math.round(royalty) : null,
     metadataUris: arr(data.metadata_uris),
-    dataUris: arr(data.data_uris),
+    dataUris,
     sensitivity: classifyNft(r),
   };
 }
