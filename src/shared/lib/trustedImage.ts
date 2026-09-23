@@ -61,6 +61,46 @@ export function isTrustedVideoUrl(url: string, dataType?: unknown): boolean {
   return dataType === MINTGARDEN_VIDEO_DATA_TYPE && !NON_VIDEO_EXTENSIONS.test(path);
 }
 
+/** CIDv0 (base58 Qm…) or a base32 CIDv1 (b…), the two forms NFT data_uris carry. */
+const CID = /^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{50,})$/;
+const MINTGARDEN_IPFS = "https://ipfs.mintgarden.io/ipfs/";
+
+/**
+ * The same IPFS content on MintGarden's gateway, a trusted host, or null when `uri` is not an
+ * IPFS reference. An IPFS address names its bytes by hash, so any gateway serves the identical
+ * file: re-pointing lets a video minted on some other gateway play without trusting that
+ * gateway. Understands ipfs://<cid>/path, https://<gateway>/ipfs/<cid>/path and the subdomain
+ * form https://<cid>.ipfs.<gateway>/path; the path is kept, a query or fragment is dropped.
+ */
+export function mintGardenIpfsUrl(uri: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(uri);
+  } catch {
+    return null;
+  }
+  let cid: string | undefined;
+  let rest = "";
+  if (parsed.protocol === "ipfs:") {
+    // Read from the raw string: URL puts the CID in the host, and a CIDv0 must keep its case.
+    const parts = (uri.replace(/^ipfs:\/\/(ipfs\/)?/i, "").split(/[?#]/)[0] ?? "").split("/");
+    cid = parts[0];
+    rest = parts.length > 1 ? `/${parts.slice(1).join("/")}` : "";
+  } else if (parsed.protocol === "https:") {
+    const sub = parsed.hostname.match(/^([a-z0-9]+)\.ipfs\./);
+    if (sub) {
+      cid = sub[1];
+      rest = parsed.pathname === "/" ? "" : parsed.pathname;
+    } else {
+      const path = parsed.pathname.match(/^\/ipfs\/([^/]+)(\/.*)?$/);
+      cid = path?.[1];
+      rest = path?.[2] ?? "";
+    }
+  }
+  if (!cid || !CID.test(cid)) return null;
+  return `${MINTGARDEN_IPFS}${cid}${rest.replace(/\/$/, "")}`;
+}
+
 /**
  * https only, any host. Use only for a URL sourced from an authenticated channel that isn't a
  * remote webpage's own content — the Sage wallet bridge's own icon_url is the one case in this

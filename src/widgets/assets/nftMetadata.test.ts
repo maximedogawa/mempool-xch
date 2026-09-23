@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import bbbVideoNft from "@/test-utils/fixtures/mintgardenBbbVideoNft.json";
+import todayVideoNft from "@/test-utils/fixtures/mintgardenTodayVideoNft.json";
 import { normaliseMintGardenNft } from "./nftMetadata";
 
 describe("normaliseMintGardenNft", () => {
@@ -54,6 +55,39 @@ test("a still-only NFT has no video", () => {
  * both), which is the shape that used to reach <img>: no extension to go by.
  */
 describe("a video whose data_uri has no file extension", () => {
+  /**
+   * "Today" (FlipThisMusic), recorded 2026-09-23: a real data_type 3 record whose only data_uri
+   * is a bare CIDv0 on a Filebase gateway. Both that URL and the same CID on
+   * ipfs.mintgarden.io answered a HEAD with video/mp4, 94,005,416 bytes.
+   */
+  test("the recorded Today record plays, from MintGarden's gateway", () => {
+    const [source] = todayVideoNft.data.data_uris;
+    expect(todayVideoNft.data.data_type).toBe(3);
+    expect(source).not.toMatch(/\.[a-z0-9]{2,4}$/i);
+    const meta = normaliseMintGardenNft(todayVideoNft);
+    expect(meta.videoUrl).toBe(
+      "https://ipfs.mintgarden.io/ipfs/QmeM6MBn5EJ4JmUAov1EgukNmrQe3KMpYfTtE1FsgMGqmL"
+    );
+    // Only the still is an image candidate: neither form of the CID reaches an <img>.
+    expect(meta.imageUrls).toEqual([todayVideoNft.data.thumbnail_uri]);
+  });
+
+  test("a named mp4 on another IPFS gateway plays from MintGarden's, whatever the data_type", () => {
+    const meta = normaliseMintGardenNft({
+      data: {
+        // Shape of "Chia Wallet Notifications", a record MintGarden gives data_type 2.
+        data_type: 2,
+        data_uris: [
+          "https://nftstorage.link/ipfs/bafybeigo43srre467xfq2h7ea4z3l3rbrmzsfj4fohcxx54skkxbszcksu/2023-02-27-chia-wallet-notifications.mp4",
+        ],
+      },
+    });
+    expect(meta.videoUrl).toBe(
+      "https://ipfs.mintgarden.io/ipfs/bafybeigo43srre467xfq2h7ea4z3l3rbrmzsfj4fohcxx54skkxbszcksu/2023-02-27-chia-wallet-notifications.mp4"
+    );
+    expect(meta.imageUrls).toEqual([]);
+  });
+
   const BARE_CID_URL =
     "https://ipfs.mintgarden.io/ipfs/bafybeicricnmminlhze3cllperx2ybead7hcnwidsjshn5tkw7kz7lx7r4";
   const withDataUris = (uris: string[], ...dataType: [unknown?]) => ({
@@ -92,7 +126,7 @@ describe("a video whose data_uri has no file extension", () => {
     }
   });
 
-  test("data_type 3 never makes an untrusted host, or the still thumbnail, the video", () => {
+  test("data_type 3 never makes a non-IPFS untrusted URL, or the still thumbnail, the video", () => {
     const meta = normaliseMintGardenNft(withDataUris(["https://evil.example/ipfs/bafyvideo"]));
     expect(meta.videoUrl).toBeNull();
     const extensionlessThumb = normaliseMintGardenNft({
