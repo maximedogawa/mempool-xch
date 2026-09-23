@@ -33,9 +33,14 @@ const messages = {
   appearance: {
     title: "Appearance",
     theme: "Theme",
-    dark: "Dark (mempool.space style)",
+    dark: "Dark",
     light: "Light",
-    system: "Follow system",
+    system: "System",
+    darkHint: "mempool.space style",
+    lightHint: "bright and crisp",
+    systemHint: "follows your device",
+    sageLocked:
+      "Inside Sage the app follows the wallet's theme (currently {theme}). Change it in Sage's settings.",
     language: "Language",
     languageAuto: "Automatic (browser language)",
     chime: "Confirmation chime",

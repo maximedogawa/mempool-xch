@@ -36,9 +36,14 @@ const messages: Translation<typeof en> = {
   appearance: {
     title: "Apariencia",
     theme: "Tema",
-    dark: "Oscuro (estilo mempool.space)",
+    dark: "Oscuro",
     light: "Claro",
-    system: "Según el sistema",
+    system: "Sistema",
+    darkHint: "estilo mempool.space",
+    lightHint: "luminoso y nítido",
+    systemHint: "sigue a tu dispositivo",
+    sageLocked:
+      "Dentro de Sage, la app sigue el tema de la billetera (ahora {theme}). Cámbialo en los ajustes de Sage.",
     language: "Idioma",
     languageAuto: "Automático (idioma del navegador)",
     chime: "Sonido de confirmación",

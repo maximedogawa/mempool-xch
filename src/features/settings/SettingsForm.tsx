@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Monitor, Moon, RotateCcw, Sun, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK_IDS, NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
@@ -47,6 +47,104 @@ function ChannelLine() {
         strong: (c) => <strong className="text-fg">{c}</strong>,
       })}
     </p>
+  );
+}
+
+const THEME_OPTIONS: {
+  value: ThemePreference;
+  icon: typeof Moon;
+  /** Preview swatch: page, card and accent, hard-coded so each shows its own theme. */
+  swatch: [string, string, string];
+}[] = [
+  {
+    value: "dark",
+    icon: Moon,
+    swatch: ["#0f1220", "#232842", "#5ece7b"],
+  },
+  {
+    value: "light",
+    icon: Sun,
+    swatch: ["#eef1f7", "#ffffff", "#176c33"],
+  },
+  {
+    value: "system",
+    icon: Monitor,
+    swatch: ["#0f1220", "#ffffff", "#5ece7b"],
+  },
+];
+
+/**
+ * Theme as three cards with a preview, instead of a native select whose menu the OS draws.
+ * Inside Sage the wallet's theme wins (ThemeProvider), so the choice is shown but locked.
+ */
+function ThemePicker() {
+  const { settings, update } = useSettings();
+  const { inSage, sageTheme } = useSage();
+  const locked = inSage && sageTheme !== null;
+  const active: ThemePreference = locked ? sageTheme : settings.theme;
+  const t = useT("settings");
+  return (
+    <fieldset className="flex flex-col gap-2 text-sm" disabled={locked}>
+      <legend className="mb-2 font-medium">{t("appearance.theme")}</legend>
+      <div
+        role="radiogroup"
+        aria-label={t("appearance.theme")}
+        className="grid max-w-md grid-cols-3 gap-2"
+      >
+        {THEME_OPTIONS.map(({ value, icon: Icon, swatch }) => {
+          const checked = active === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              onClick={() => update({ theme: value })}
+              className={cn(
+                "flex flex-col gap-2 rounded-sm border p-2 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed",
+                checked
+                  ? "border-primary bg-primary-soft"
+                  : "border-border bg-bg hover:border-border-strong hover:bg-surface-2",
+                locked && !checked && "opacity-50"
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className="relative flex h-10 overflow-hidden rounded-[4px] border border-border"
+                style={{
+                  background:
+                    value === "system"
+                      ? `linear-gradient(135deg, ${swatch[0]} 50%, ${swatch[1]} 50%)`
+                      : swatch[0],
+                }}
+              >
+                {value !== "system" ? (
+                  <span
+                    className="absolute inset-x-2 bottom-1.5 top-2 rounded-[3px]"
+                    style={{ background: swatch[1] }}
+                  >
+                    <span
+                      className="absolute left-1.5 top-1.5 h-1.5 w-6 rounded-full"
+                      style={{ background: swatch[2] }}
+                    />
+                  </span>
+                ) : null}
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Icon size={14} aria-hidden="true" className={checked ? "text-primary" : ""} />
+                {t(`appearance.${value}`)}
+              </span>
+              <span className="text-xs text-fg-muted">{t(`appearance.${value}Hint`)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {locked ? (
+        <p className="text-xs text-fg-muted">
+          {t("appearance.sageLocked", { theme: t(`appearance.${sageTheme}`) })}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }
 
@@ -288,18 +386,7 @@ export function SettingsForm() {
       <Card>
         <CardHeader title={t("appearance.title")} />
         <CardBody className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium">{t("appearance.theme")}</span>
-            <select
-              value={settings.theme}
-              onChange={(e) => update({ theme: e.target.value as ThemePreference })}
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
-            >
-              <option value="dark">{t("appearance.dark")}</option>
-              <option value="light">{t("appearance.light")}</option>
-              <option value="system">{t("appearance.system")}</option>
-            </select>
-          </label>
+          <ThemePicker />
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">{t("appearance.language")}</span>
             <select

@@ -57,7 +57,7 @@ export function ChartCard({
   );
   const stats = smoothed ? summarise(smoothed) : null;
   return (
-    <Card className={unavailable ? "opacity-70" : undefined}>
+    <Card className={unavailable ? "border-dashed shadow-none" : undefined}>
       <CardHeader title={spec.title} />
       <CardBody className="flex flex-col gap-3">
         {unavailable ? (

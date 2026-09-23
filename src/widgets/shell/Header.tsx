@@ -3,7 +3,7 @@
 import { ChevronDown, Menu, Settings, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SearchBox } from "@/features/search/SearchBox";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
@@ -134,6 +134,28 @@ export function Header() {
   const t = useT("shell");
   const [open, setOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  // The open menu hangs off the sticky header, and a sticky element never scrolls with the page,
+  // so on a phone its last entries fell below the screen. While it is open the menu takes the
+  // height left under it and scrolls itself, and the page behind it is locked.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!open || !nav) return;
+    const fit = () => {
+      // Past lg the menu is hidden; close it so the page is not left locked.
+      if (window.matchMedia("(min-width: 1024px)").matches) return setOpen(false);
+      nav.style.maxHeight = `${window.innerHeight - nav.getBoundingClientRect().top}px`;
+    };
+    fit();
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = "hidden";
+    window.addEventListener("resize", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      root.style.overflow = previousOverflow;
+    };
+  }, [open]);
   const { inSage } = useSage();
   const wallet: NavItem = {
     href: routes.wallet(),
@@ -273,8 +295,9 @@ export function Header() {
       </div>
       {open ? (
         <nav
+          ref={navRef}
           aria-label={t("mobileNav")}
-          className="border-t border-border bg-bg-elevated px-4 py-3 lg:hidden"
+          className="overflow-y-auto overscroll-contain border-t border-border bg-bg-elevated px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
         >
           <ul className="flex flex-col gap-1">
             {mobileGroups.map((group, index) => (
