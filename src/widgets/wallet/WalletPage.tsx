@@ -22,6 +22,7 @@ import {
   type WalletTx,
 } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
+import { useNftSensitivity } from "@/shared/lib/nft/useNftSensitivity";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { cn } from "@/shared/lib/cn";
@@ -55,6 +56,9 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   const primary = received[0] ?? sent[0];
   const primaryToken = useAsset(primary && kindOf(primary) === "cat" ? primary.assetId : undefined);
   const primaryName = primaryToken?.name ?? primary?.assetName ?? null;
+  const primarySensitivity = useNftSensitivity(
+    primary && kindOf(primary) === "nft" ? primary.assetId : null
+  );
   const t = useT("wallet");
   const kind = t(
     received.length && !sent.length
@@ -81,6 +85,7 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
             assetId={primary.assetId ?? undefined}
             iconUrl={primary.iconUrl}
             size={22}
+            sensitivity={primarySensitivity}
           />
         ) : null}
       </span>
@@ -238,6 +243,8 @@ function AssetTile({
 }) {
   const t = useT("wallet");
   const token = useAsset(a.kind === "cat" ? a.assetId : undefined);
+  // A held NFT is classified like any other before its thumbnail is shown (TASK-098).
+  const sensitivity = useNftSensitivity(a.kind === "nft" ? a.assetId : null);
   const name =
     token?.name ??
     a.name ??
@@ -264,7 +271,13 @@ function AssetTile({
             : t("asset.owned", { count: formatNumber(b.coins) });
   const body = (
     <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
-      <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} iconUrl={a.iconUrl} size={34} />
+      <AssetIcon
+        kind={a.kind}
+        assetId={a.assetId ?? undefined}
+        iconUrl={a.iconUrl}
+        size={34}
+        sensitivity={sensitivity}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold">{name}</span>
         <span className="text-[11px] uppercase tracking-wide text-fg-faint">
