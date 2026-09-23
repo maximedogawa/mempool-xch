@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { FEE_BANDS } from "./feeBands";
 import {
   appendSample,
+  costWeightedMedianFeeRate,
   loadHistory,
   MAX_SAMPLES,
   MIN_SAMPLE_GAP_MS,
@@ -71,6 +72,24 @@ describe("mempool history", () => {
     expect(s.bands.length).toBe(FEE_BANDS.length);
     expect(s.bands[0]).toBe(10);
     expect(s.bands[FEE_BANDS.findIndex((b) => b.id === "high")]).toBe(20);
+    // Two thirds of the pending cost pays 5, so the cost-weighted median is 5.
+    expect(s.medianFeeRate).toBe(5);
+  });
+  test("median fee rate weighs bundles by cost, not by count", () => {
+    const rates = [
+      { cost: 100, feeRate: 0 },
+      { cost: 10, feeRate: 50 },
+      { cost: 10, feeRate: 20 },
+    ];
+    // Two of three bundles pay a fee, but most of the cost is the free one.
+    expect(costWeightedMedianFeeRate(rates)).toBe(0);
+    expect(
+      costWeightedMedianFeeRate([
+        { cost: 10, feeRate: 1 },
+        { cost: 30, feeRate: 3 },
+      ])
+    ).toBe(3);
+    expect(costWeightedMedianFeeRate([])).toBe(0);
   });
   test("append respects the minimum gap, the window and the size cap", () => {
     const mk = (t: number): MempoolSample => ({ t, bands: [], count: 0, fees: 0 });

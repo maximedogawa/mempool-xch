@@ -12,7 +12,6 @@ const messages: Translation<typeof en> = {
     mempool: "Mempool",
     blocks: "Blöcke",
     network: "Netzwerk",
-    coinSet: "Coin-Set",
   },
   card: {
     latest: "Aktuell",
@@ -30,9 +29,6 @@ const messages: Translation<typeof en> = {
     log: "Log",
   },
   notes: {
-    noCoinset:
-      "Die indexierte API von Coinset hat hierfür keinen Aggregat-Endpunkt (geprüft anhand ihrer OpenAPI-Spezifikation); ein künftiger Anbieter wie nodexch könnte ihn ergänzen.",
-    needsCoinsetAggregate: "Bräuchte einen Aggregat-Endpunkt von Coinset.",
     sampledOnly:
       "Nur die letzten 2 Stunden werden in diesem Browser aufgezeichnet; wählen Sie 6h oder 24h, um sie zu sehen.",
     sameSample: "Dieselbe 2-Stunden-Browser-Stichprobe wie bei „Genutzte Kosten“.",
@@ -41,11 +37,12 @@ const messages: Translation<typeof en> = {
       "Auf diesem Endpunkt nicht verfügbar: get_network_space hat für diesen Endpunkt nicht geantwortet.",
   },
   price: {
-    title: "XCH-Preis (USD)",
-    definition: "Der XCH/USD-Spotpreis im Zeitverlauf.",
-    technical: "Käme aus den Preisdaten von Dexie.",
+    title: "XCH-Preis (USDT)",
+    definition: "Der XCH/USDT-Spotpreis im Zeitverlauf: der Schlusskurs jeder Kerze.",
+    technical:
+      "Öffentliche Spot-Kerzen von Gate.io für XCH_USDT, eine Anfrage pro Zeitraum (5-Minuten-Kerzen für 6h bis Wochenkerzen für „Alle“). USDT folgt dem US-Dollar eng, ist aber nicht dasselbe.",
     unavailable:
-      "Noch kein geprüfter öffentlicher Endpunkt für den Preisverlauf. Die Sage-Wallet zeigt bei Verbindung einen Live-Spotpreis in der Kopfzeile; dieses Diagramm braucht einen Verlauf, für den Dexie derzeit keinen dokumentierten Endpunkt veröffentlicht.",
+      "Der Preisverlauf von Gate.io hat nicht geantwortet. Er wird direkt aus diesem Browser abgerufen; versuchen Sie es später erneut.",
   },
   costUsed: {
     title: "Genutzte Kosten",
@@ -65,11 +62,10 @@ const messages: Translation<typeof en> = {
   },
   medianFeeRate: {
     title: "Median-Gebührensatz",
-    definition: "Der mittlere Gebührensatz der ausstehenden Spend Bundles.",
+    definition:
+      "Der Gebührensatz in der Mitte der ausstehenden Kosten: Für die Hälfte der im Mempool wartenden Kosten wird mehr gezahlt, für die andere Hälfte weniger.",
     technical:
-      "Wird von der Browser-Aufzeichnung noch nicht erfasst (sie speichert Summen pro Gebührenband, nicht die vollständige Verteilung).",
-    unavailable:
-      "Noch nicht aufgezeichnet: Der Mempool-Verlauf speichert Summen pro Gebührenband, was für einen Median nicht reicht.",
+      "Zusammen mit den anderen Mempool-Reihen in diesem Browser erfasst: Die Bundles werden nach Gebührensatz (Mojo pro Kosteneinheit) sortiert, und der Satz bei der Hälfte der gesamten ausstehenden Kosten wird gespeichert. Nach Kosten gewichtet, daher ziehen einige große gebührenfreie Ausgaben ihn in Richtung 0.",
   },
   feesPerTxBlock: {
     title: "Gebühren pro Transaktionsblock",
@@ -79,11 +75,10 @@ const messages: Translation<typeof en> = {
   },
   costPerTxBlock: {
     title: "Kosten pro Transaktionsblock",
-    definition: "Durchschnittliche CLVM-Kosten in einem Transaktionsblock.",
+    definition:
+      "Von einem Transaktionsblock verbrauchte CLVM-Kosten, von den 11 Milliarden, die ein Block erlaubt.",
     technical:
-      "Nicht im Diagrammmaßstab erfasst: Die genauen Kosten erfordern einen vollständigen get_block-Abruf pro Block, zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache. Die genauen Kosten eines Blocks stehen auf seiner eigenen Seite.",
-    unavailable:
-      "Nicht im Diagrammmaßstab erfasst – erfordert einen vollständigen Abruf pro Block. Die genauen Kosten eines Blocks stehen auf seiner eigenen Seite.",
+      "Für den neuesten Transaktionsblock jedes Stichprobenfensters: transactions_info.cost aus get_block. Ein Block pro Fenster (6 bis 24 je Zeitraum), jeder einmal pro Sitzung abgerufen.",
   },
   txBlocksPerHour: {
     title: "Transaktionsblöcke pro Stunde",
@@ -91,11 +86,9 @@ const messages: Translation<typeof en> = {
   },
   spendsPerTxBlock: {
     title: "Ausgaben pro Transaktionsblock",
-    definition: "Durchschnittliche Anzahl ausgegebener Coins in einem Transaktionsblock.",
+    definition: "In einem Transaktionsblock ausgegebene Coins.",
     technical:
-      "Nicht im Diagrammmaßstab erfasst: Erfordert pro Block einen indexierten oder additions/removals-Abruf, zu aufwendig für einen ganzen Zeitraum ohne serverseitigen Cache. Die Ausgaben eines Blocks stehen auf seiner eigenen Seite.",
-    unavailable:
-      "Nicht im Diagrammmaßstab erfasst – erfordert einen Abruf pro Block. Die Ausgaben eines Blocks stehen auf seiner eigenen Seite.",
+      "Für dieselben Stichprobenblöcke wie bei „Kosten pro Transaktionsblock“: die Anzahl der Removals aus get_additions_and_removals. Belohnungs-Claims werden erzeugt, nicht ausgegeben, und zählen daher nicht.",
   },
   shareOfTxBlocks: {
     title: "Anteil der Transaktionsblöcke",
@@ -114,27 +107,13 @@ const messages: Translation<typeof en> = {
   },
   difficulty: {
     title: "Schwierigkeit",
-    definition: "Das aktuelle Proof-of-Space-Schwierigkeitsziel des Nodes.",
+    definition: "Die Proof-of-Space-Schwierigkeit, mit der Blöcke gefarmt wurden.",
     technical:
-      "Kein geprüfter Weg, die historische Schwierigkeit aus get_block_records zu gewinnen; get_blockchain_state meldet nur den aktuellen Wert.",
-    unavailable:
-      "Aus den verfügbaren Endpunkten nicht ohne ungeprüfte Berechnungen ableitbar – eine falsche Zahl wäre schlimmer als keine. get_blockchain_state zeigt den aktuellen Wert in den Einstellungen.",
+      "Aus den Block-Records, die die anderen Reihen ohnehin abrufen: Das Gewicht eines Blocks ist die kumulierte Schwierigkeit der Chain, daher ist der Gewichtsschritt von einer Höhe zur nächsten die Schwierigkeit dieses Blocks. Median pro Stichprobenfenster. Sie ändert sich einmal pro Epoche (4.608 Blöcke).",
   },
   blocksPerHour: {
     title: "Blöcke pro Stunde",
     definition: "Alle Blöcke (mit und ohne Transaktionen) pro Stunde.",
-  },
-  unspentCoins: {
-    title: "Nicht ausgegebene Coins",
-    definition: "Gesamtzahl der noch nicht ausgegebenen Coins.",
-  },
-  activePuzzleHashes: {
-    title: "Aktive Puzzle-Hashes",
-    definition: "Unterschiedliche Puzzle-Hashes, die Coins halten.",
-  },
-  coinAge: {
-    title: "Coin-Alter",
-    definition: "Durchschnittliches Alter nicht ausgegebener Coins.",
   },
 };
 

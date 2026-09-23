@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { aggregateBlockWindow, blockWindowSeries } from "./aggregate";
+import {
+  aggregateBlockWindow,
+  blockWindowSeries,
+  newestTxBlockPerWindow,
+  windowDifficulty,
+} from "./aggregate";
+import { normaliseBlockchainState, normaliseBlockRecord } from "@/shared/lib/rpc/normalise";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
+import blockRecords from "@/test-utils/fixtures/block_records.json";
+import blockchainState from "@/test-utils/fixtures/blockchain_state.json";
 
 function record(
   height: number,
@@ -69,5 +77,38 @@ describe("blockWindowSeries", () => {
     expect(series.fees[1]!.v).toBe(40);
     // only one window has 2+ tx blocks to gap between
     expect(series.timeBetweenTxBlocks.length).toBe(1);
+  });
+});
+
+describe("windowDifficulty", () => {
+  test("weight steps of recorded mainnet blocks equal the node's reported difficulty", () => {
+    const records = blockRecords.block_records.map(normaliseBlockRecord);
+    const state = normaliseBlockchainState(blockchainState.blockchain_state);
+    expect(windowDifficulty(records)).toBe(state.difficulty);
+    expect(blockWindowSeries([records]).difficulty.map((p) => p.v)).toEqual([state.difficulty]);
+  });
+  test("median of the steps; gaps in height and a lone block give nothing", () => {
+    const withWeight = (height: number, weight: bigint) => ({ ...record(height), weight });
+    expect(
+      windowDifficulty([
+        withWeight(12, 360n),
+        withWeight(10, 100n),
+        withWeight(11, 200n),
+        withWeight(13, 460n),
+      ])
+    ).toBe(100);
+    expect(windowDifficulty([withWeight(10, 100n), withWeight(12, 300n)])).toBeNull();
+    expect(windowDifficulty([withWeight(10, 100n)])).toBeNull();
+  });
+});
+
+describe("newestTxBlockPerWindow", () => {
+  test("one transaction block per window, the highest; windows without one are skipped", () => {
+    const picked = newestTxBlockPerWindow([
+      [record(1), record(2), record(3, { timestamp: null })],
+      [record(4, { timestamp: null })],
+      [record(6), record(5)],
+    ]);
+    expect(picked.map((r) => r.height)).toEqual([2, 6]);
   });
 });

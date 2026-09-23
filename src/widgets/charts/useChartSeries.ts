@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useBlockchainState } from "@/shared/api/hooks";
 import { queryKeys } from "@/shared/api/queryKeys";
-import { blockWindowSeries } from "@/shared/lib/charts/aggregate";
+import { blockWindowSeries, newestTxBlockPerWindow } from "@/shared/lib/charts/aggregate";
 import {
   bucketHeight,
   heightWindows,
@@ -14,11 +14,13 @@ import {
 } from "@/shared/lib/charts/range";
 import type { Point } from "@/shared/lib/charts/smoothing";
 import { createLimiter } from "@/shared/lib/limit";
+import { fetchPriceHistory } from "@/shared/lib/market/priceHistory";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useMempoolHistory } from "@/widgets/mempool/useMempoolHistory";
 
 const windowsLimit = createLimiter(4);
+const blockSampleLimit = createLimiter(2);
 
 /**
  * One block-record window per sample point across the range (bounded call count regardless of
@@ -55,11 +57,69 @@ export function useBlocksChartSeries(range: RangeId) {
   return { series, isLoading: windows.isLoading, error: windows.error };
 }
 
+export interface TxBlockSampleSeries {
+  /** CLVM cost of each sampled transaction block (transactions_info.cost). */
+  cost: Point[];
+  /** Coins spent in each sampled transaction block (removals of get_additions_and_removals). */
+  spends: Point[];
+  isLoading: boolean;
+  /** How many sampled blocks failed to load (the series then shows the rest). */
+  failed: number;
+}
+
+/**
+ * Cost and spends of the newest transaction block in every sampling window. A block never
+ * changes under its header hash, so each one is fetched once per session and shared between
+ * ranges that sample it.
+ */
+export function useTxBlockSampleSeries(range: RangeId): TxBlockSampleSeries {
+  const { client, endpoints, hydrated } = useSettings();
+  const windows = useChartBlockWindows(range);
+  const sampled = useMemo(
+    () => (windows.data ? newestTxBlockPerWindow(windows.data) : []),
+    [windows.data]
+  );
+  const results = useQueries({
+    queries: sampled.map((record) => ({
+      queryKey: [...queryKeys.chainRoot(endpoints.network), "txBlockSample", record.headerHash],
+      enabled: hydrated,
+      staleTime: Infinity,
+      gcTime: 30 * 60_000,
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        blockSampleLimit(async () => {
+          const [block, flow] = await Promise.all([
+            client.getBlock(record.headerHash, signal),
+            client.getAdditionsAndRemovals(record.headerHash, signal),
+          ]);
+          return { cost: block.cost, spends: flow.removals.length };
+        }),
+    })),
+  });
+  return useMemo(() => {
+    const cost: Point[] = [];
+    const spends: Point[] = [];
+    results.forEach((result, i) => {
+      const record = sampled[i];
+      if (!result.data || !record?.timestamp) return;
+      const t = record.timestamp * 1000;
+      cost.push({ t, v: result.data.cost });
+      spends.push({ t, v: result.data.spends });
+    });
+    const byTime = (a: Point, b: Point) => a.t - b.t;
+    return {
+      cost: cost.sort(byTime),
+      spends: spends.sort(byTime),
+      isLoading: windows.isLoading || results.some((r) => r.isLoading),
+      failed: results.filter((r) => r.isError).length,
+    };
+  }, [results, sampled, windows.isLoading]);
+}
+
 export function useNetworkChartSeries(range: RangeId) {
   const { client, endpoints, hydrated } = useSettings();
   const windows = useChartBlockWindows(range);
-  const blocksPerHour = useMemo(
-    () => (windows.data ? blockWindowSeries(windows.data).blocksPerHour : []),
+  const windowSeries = useMemo(
+    () => (windows.data ? blockWindowSeries(windows.data) : null),
     [windows.data]
   );
   const netspace = useQuery({
@@ -99,7 +159,8 @@ export function useNetworkChartSeries(range: RangeId) {
   });
   return {
     netspace: netspace.data ?? [],
-    blocksPerHour,
+    blocksPerHour: windowSeries?.blocksPerHour ?? [],
+    difficulty: windowSeries?.difficulty ?? [],
     isLoading: windows.isLoading || netspace.isLoading,
     error: windows.error ?? netspace.error,
   };
@@ -110,6 +171,8 @@ export interface MempoolChartSeries {
   costUsed: Point[];
   waitingBundles: Point[];
   totalFees: Point[];
+  /** Only samples taken since the median was added carry it. */
+  medianFeeRate: Point[];
   /** Sampled window only (2h); other ranges have no history to show. */
   available: boolean;
   windowStartedAt: number | null;
@@ -125,6 +188,7 @@ export function useMempoolChartSeries(range: RangeId): MempoolChartSeries {
         costUsed: [],
         waitingBundles: [],
         totalFees: [],
+        medianFeeRate: [],
         available: false,
         windowStartedAt: startedAt,
       };
@@ -132,8 +196,23 @@ export function useMempoolChartSeries(range: RangeId): MempoolChartSeries {
       costUsed: history.map((s) => ({ t: s.t, v: s.bands.reduce((a, b) => a + b, 0) })),
       waitingBundles: history.map((s) => ({ t: s.t, v: s.count })),
       totalFees: history.map((s) => ({ t: s.t, v: s.fees })),
+      medianFeeRate: history
+        .filter((s) => typeof s.medianFeeRate === "number")
+        .map((s) => ({ t: s.t, v: s.medianFeeRate! })),
       available: true,
       windowStartedAt: startedAt,
     };
   }, [history, range, startedAt]);
+}
+
+/** XCH/USDT close prices for the range (Gate.io candlesticks); mainnet data regardless of network. */
+export function usePriceHistory(range: RangeId) {
+  const { hydrated } = useSettings();
+  return useQuery({
+    queryKey: ["priceHistory", "gate", range],
+    enabled: hydrated,
+    staleTime: 5 * 60_000,
+    retry: 1,
+    queryFn: ({ signal }) => fetchPriceHistory(range, signal),
+  });
 }

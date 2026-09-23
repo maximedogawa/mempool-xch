@@ -12,7 +12,6 @@ const messages: Translation<typeof en> = {
     mempool: "Mempool",
     blocks: "Bloques",
     network: "Red",
-    coinSet: "Conjunto de monedas",
   },
   card: {
     latest: "Último",
@@ -30,9 +29,6 @@ const messages: Translation<typeof en> = {
     log: "Log",
   },
   notes: {
-    noCoinset:
-      "La API indexada de Coinset no tiene un endpoint agregado para esto (verificado con su especificación OpenAPI); un futuro proveedor como nodexch podría añadirlo.",
-    needsCoinsetAggregate: "Necesitaría un endpoint agregado de Coinset.",
     sampledOnly:
       "Solo se muestrean las últimas 2 horas en este navegador; elige 6 h o 24 h para verlo.",
     sameSample: "La misma muestra de 2 horas del navegador que Coste usado.",
@@ -41,11 +37,12 @@ const messages: Translation<typeof en> = {
       "No disponible en este endpoint: get_network_space no respondió para este endpoint.",
   },
   price: {
-    title: "Precio de XCH (USD)",
-    definition: "El precio spot XCH/USD a lo largo del tiempo.",
-    technical: "Vendría de los datos de precios de Dexie.",
+    title: "Precio de XCH (USDT)",
+    definition: "El precio spot XCH/USDT a lo largo del tiempo: el precio de cierre de cada vela.",
+    technical:
+      "Velas spot públicas de Gate.io para XCH_USDT, una solicitud por rango (velas de 5 minutos para 6h hasta velas semanales para Todo). USDT sigue de cerca al dólar estadounidense, pero no es lo mismo.",
     unavailable:
-      "Aún no hay un endpoint público verificado de historial de precios. La billetera Sage muestra un precio spot en vivo en la cabecera cuando está conectada; este gráfico necesita historial, para el que Dexie no publica hoy un endpoint documentado.",
+      "El historial de precios de Gate.io no respondió. Se obtiene directamente desde este navegador; vuelve a intentarlo más tarde.",
   },
   costUsed: {
     title: "Coste usado",
@@ -65,11 +62,10 @@ const messages: Translation<typeof en> = {
   },
   medianFeeRate: {
     title: "Tasa de comisión mediana",
-    definition: "La tasa de comisión central entre los spend bundles pendientes.",
+    definition:
+      "La tasa de comisión en la mitad del coste pendiente: la mitad del coste que espera en la mempool paga más y la otra mitad paga menos.",
     technical:
-      "El muestreador del navegador aún no la registra (guarda totales por franja de comisión, no la distribución completa).",
-    unavailable:
-      "Aún no se muestrea: el historial de la mempool guarda totales por franja de comisión, lo que no basta para obtener una mediana.",
+      "Se muestrea en este navegador junto con las demás series de la mempool: los bundles se ordenan por tasa de comisión (mojos por unidad de coste) y se guarda la tasa en la mitad del coste pendiente total. Está ponderada por coste, así que unos pocos gastos grandes sin comisión la acercan a 0.",
   },
   feesPerTxBlock: {
     title: "Comisiones por bloque de transacciones",
@@ -79,11 +75,10 @@ const messages: Translation<typeof en> = {
   },
   costPerTxBlock: {
     title: "Coste por bloque de transacciones",
-    definition: "Coste CLVM medio usado en un bloque de transacciones.",
+    definition:
+      "Coste CLVM usado por un bloque de transacciones, de los 11 mil millones que permite un bloque.",
     technical:
-      "No se muestrea a escala de gráfico: el coste exacto requiere una consulta get_block completa por bloque, demasiado pesada para un rango sin caché en el servidor. Consulta la página de cada bloque para ver su coste exacto.",
-    unavailable:
-      "No se muestrea a escala de gráfico — requiere una consulta completa por bloque. Consulta la página de cada bloque para ver su coste exacto.",
+      "Para el bloque de transacciones más reciente de cada ventana de muestreo: transactions_info.cost de get_block. Un bloque por ventana (de 6 a 24 por rango), cada uno obtenido una vez por sesión.",
   },
   txBlocksPerHour: {
     title: "Bloques de transacciones por hora",
@@ -91,11 +86,9 @@ const messages: Translation<typeof en> = {
   },
   spendsPerTxBlock: {
     title: "Gastos por bloque de transacciones",
-    definition: "Número medio de monedas gastadas en un bloque de transacciones.",
+    definition: "Monedas gastadas en un bloque de transacciones.",
     technical:
-      "No se muestrea a escala de gráfico: requiere por bloque una consulta indexada o de additions/removals, demasiado pesada para un rango sin caché en el servidor. Consulta la página de cada bloque para ver sus gastos.",
-    unavailable:
-      "No se muestrea a escala de gráfico — requiere una consulta por bloque. Consulta la página de cada bloque para ver sus gastos.",
+      "Para los mismos bloques muestreados que Coste por bloque de transacciones: el número de removals de get_additions_and_removals. Los cobros de recompensa se crean, no se gastan, así que no se cuentan.",
   },
   shareOfTxBlocks: {
     title: "Proporción de bloques de transacciones",
@@ -116,27 +109,13 @@ const messages: Translation<typeof en> = {
   },
   difficulty: {
     title: "Dificultad",
-    definition: "El objetivo actual de dificultad de la prueba de espacio del nodo.",
+    definition: "La dificultad de prueba de espacio con la que se farmearon los bloques.",
     technical:
-      "No hay una forma verificada de recuperar la dificultad histórica desde get_block_records; get_blockchain_state solo informa del valor actual.",
-    unavailable:
-      "No se puede derivar de los endpoints disponibles sin cálculos no verificados — un número erróneo aquí sería peor que ninguno. get_blockchain_state muestra el valor actual en Ajustes.",
+      "A partir de los registros de bloque que ya obtienen las demás series: el peso de un bloque es la dificultad acumulada de la cadena, así que el salto de peso de una altura a la siguiente es la dificultad de ese bloque. Mediana por ventana de muestreo. Cambia una vez por época (4608 bloques).",
   },
   blocksPerHour: {
     title: "Bloques por hora",
     definition: "Todos los bloques (con y sin transacciones) por hora.",
-  },
-  unspentCoins: {
-    title: "Monedas sin gastar",
-    definition: "Total de monedas aún no gastadas.",
-  },
-  activePuzzleHashes: {
-    title: "Puzzle hashes activos",
-    definition: "Puzzle hashes distintos que contienen monedas.",
-  },
-  coinAge: {
-    title: "Antigüedad de las monedas",
-    definition: "Antigüedad media de las monedas sin gastar.",
   },
 };
 

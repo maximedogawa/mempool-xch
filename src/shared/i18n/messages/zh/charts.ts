@@ -12,7 +12,6 @@ const messages: Translation<typeof en> = {
     mempool: "内存池",
     blocks: "区块",
     network: "网络",
-    coinSet: "币集",
   },
   card: {
     latest: "最新",
@@ -30,20 +29,17 @@ const messages: Translation<typeof en> = {
     log: "对数",
   },
   notes: {
-    noCoinset:
-      "Coinset 的索引 API 没有用于此项的聚合端点（已对照其 OpenAPI 规范核实）；未来的提供方（如 nodexch）可能会添加。",
-    needsCoinsetAggregate: "需要 Coinset 的聚合端点。",
     sampledOnly: "此浏览器仅采样最近 2 小时；请选择 6h 或 24h 查看。",
     sameSample: "与「已用成本」相同的 2 小时浏览器采样。",
     perWindow: "按每个采样窗口从 get_block_records 统计。",
     noNetspace: "此端点不可用：get_network_space 未对此端点作出响应。",
   },
   price: {
-    title: "XCH 价格（USD）",
-    definition: "XCH/USD 现货价格随时间的变化。",
-    technical: "将来自 Dexie 的价格数据。",
-    unavailable:
-      "尚无经过验证的公开价格历史端点。连接后，Sage 钱包会在页眉显示实时现货价格；此图表需要历史数据，而 Dexie 目前没有公布有文档的相应端点。",
+    title: "XCH 价格（USDT）",
+    definition: "XCH/USDT 现货价格随时间的变化：每根 K 线的收盘价。",
+    technical:
+      "来自 Gate.io 公开的 XCH_USDT 现货 K 线，每个时间范围请求一次（6h 使用 5 分钟 K 线，「全部」使用周线）。USDT 与美元紧密挂钩，但并不等同于美元。",
+    unavailable: "Gate.io 的价格历史未响应。数据直接从此浏览器获取，请稍后重试。",
   },
   costUsed: {
     title: "已用成本",
@@ -61,9 +57,10 @@ const messages: Translation<typeof en> = {
   },
   medianFeeRate: {
     title: "费率中位数",
-    definition: "待确认花费包费率的中位数。",
-    technical: "浏览器采样器尚未记录此项（它只保存各费率区间的总计，而非完整分布）。",
-    unavailable: "尚未采样：内存池历史只保存各费率区间的总计，不足以还原中位数。",
+    definition:
+      "位于待确认成本中点的费率：内存池中一半的待确认成本支付的费率高于它，另一半低于它。",
+    technical:
+      "与其他内存池序列一同在此浏览器中采样：花费包按费率（每单位成本的 mojo）排序，取累计达到待确认总成本一半处的费率。按成本加权，因此少数大型免费花费会把它拉向 0。",
   },
   feesPerTxBlock: {
     title: "每个交易区块的手续费",
@@ -73,11 +70,9 @@ const messages: Translation<typeof en> = {
   },
   costPerTxBlock: {
     title: "每个交易区块的成本",
-    definition: "一个交易区块中使用的平均 CLVM 成本。",
+    definition: "一个交易区块使用的 CLVM 成本（每个区块上限为 110 亿）。",
     technical:
-      "未按图表尺度采样：精确成本需要为每个区块完整调用一次 get_block，没有服务器端缓存时对整个范围采样过于繁重。请在各区块自己的页面查看其精确成本。",
-    unavailable:
-      "未按图表尺度采样——每个区块都需要一次完整获取。请在各区块自己的页面查看其精确成本。",
+      "取每个采样窗口中最新的交易区块：get_block 返回的 transactions_info.cost。每个窗口一个区块（每个时间范围 6 到 24 个），每个区块每次会话只获取一次。",
   },
   txBlocksPerHour: {
     title: "每小时交易区块数",
@@ -85,10 +80,9 @@ const messages: Translation<typeof en> = {
   },
   spendsPerTxBlock: {
     title: "每个交易区块的花费数",
-    definition: "一个交易区块中被花费的币的平均数量。",
+    definition: "一个交易区块中被花费的币的数量。",
     technical:
-      "未按图表尺度采样：需要为每个区块进行一次索引或 additions/removals 获取，没有服务器端缓存时对整个范围采样过于繁重。请在各区块自己的页面查看其花费。",
-    unavailable: "未按图表尺度采样——每个区块都需要一次获取。请在各区块自己的页面查看其花费。",
+      "与「每个交易区块的成本」使用相同的采样区块：get_additions_and_removals 返回的 removals 数量。奖励领取是新创建的币，并未被花费，因此不计入。",
   },
   shareOfTxBlocks: {
     title: "交易区块占比",
@@ -107,27 +101,13 @@ const messages: Translation<typeof en> = {
   },
   difficulty: {
     title: "难度",
-    definition: "节点当前的空间证明难度目标。",
+    definition: "耕种区块时所用的空间证明难度。",
     technical:
-      "没有经过验证的方法能从 get_block_records 还原历史难度；get_blockchain_state 只报告当前值。",
-    unavailable:
-      "无法在不使用未经验证的计算的情况下从现有端点推导——错误的数字比没有更糟。get_blockchain_state 会在设置页显示当前值。",
+      "来自其他序列已获取的区块记录：区块的权重（weight）是链的累计难度，因此相邻高度之间的权重差就是该区块的难度。按采样窗口取中位数。难度每个纪元（4,608 个区块）调整一次。",
   },
   blocksPerHour: {
     title: "每小时区块数",
     definition: "每小时的全部区块（含交易区块与非交易区块）。",
-  },
-  unspentCoins: {
-    title: "未花费的币",
-    definition: "尚未花费的币的总数。",
-  },
-  activePuzzleHashes: {
-    title: "活跃谜题哈希",
-    definition: "持有币的不同谜题哈希数量。",
-  },
-  coinAge: {
-    title: "币龄",
-    definition: "未花费币的平均存在时间。",
   },
 };
 
