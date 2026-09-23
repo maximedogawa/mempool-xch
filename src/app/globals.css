@@ -251,20 +251,42 @@ a {
   }
 }
 
-@keyframes market-tick {
+/* Market battlefield: a fill lands on the side it took (a dot that fades, a ring that spreads). */
+@keyframes market-hit {
   0% {
-    border-color: var(--border);
-  }
-  40% {
-    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    transform: scale(0.3);
+    opacity: 0.95;
   }
   100% {
-    border-color: var(--border);
+    transform: scale(1);
+    opacity: 0;
   }
 }
 
-.market-book {
-  animation: market-tick 900ms ease-out;
+@keyframes market-hit-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.market-hit,
+.market-hit-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+
+.market-hit {
+  animation: market-hit 1.4s ease-out forwards;
+}
+
+.market-hit-ring {
+  animation: market-hit-ring 1.4s ease-out forwards;
 }
 
 @keyframes block-in {
