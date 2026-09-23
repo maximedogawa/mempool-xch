@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createWatchlistStore } from "./store";
+import { createWatchlistStore, MAX_ITEMS } from "./store";
 
 function memoryStorage(): Storage {
   const data = new Map<string, string>();
@@ -100,5 +100,15 @@ describe("watchlist store", () => {
     storage.setItem("mempool-xch:watchlist:v1", "not json");
     const store = createWatchlistStore(storage);
     expect(store.get()).toEqual([]);
+  });
+
+  test(`keeps at most ${MAX_ITEMS} items, dropping the oldest`, () => {
+    const store = createWatchlistStore(memoryStorage());
+    const id = (i: number) => i.toString(16).padStart(64, "0");
+    for (let i = 0; i < MAX_ITEMS + 5; i += 1)
+      store.add({ kind: "tx", id: id(i), label: `tx ${i}` });
+    expect(store.get()).toHaveLength(MAX_ITEMS);
+    expect(store.has("tx", id(0))).toBe(false);
+    expect(store.has("tx", id(MAX_ITEMS + 4))).toBe(true);
   });
 });

@@ -25,7 +25,7 @@ export interface WatchItem {
 }
 
 export const STORAGE_KEY = "mempool-xch:watchlist:v1";
-const MAX_ITEMS = 50;
+export const MAX_ITEMS = 50;
 
 function normaliseId(id: string): string {
   return id.trim().toLowerCase().replace(/^0x/, "");

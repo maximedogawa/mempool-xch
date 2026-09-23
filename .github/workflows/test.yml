@@ -32,6 +32,8 @@ jobs:
         env:
           CI: true
       - run: bun run build
+      # Initial JS per route against scripts/perf/js-budget.json (TASK-089).
+      - run: bun run perf:budget
       - run: bun run build:sage
 
   e2e:
