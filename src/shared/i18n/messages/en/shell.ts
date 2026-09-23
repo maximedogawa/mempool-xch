@@ -18,6 +18,7 @@ const messages = {
     market: "Market",
     map: "Map",
     tokens: "Tokens",
+    portfolio: "Portfolio",
     nfts: "NFTs",
     fees: "Fees",
     pools: "Pools",

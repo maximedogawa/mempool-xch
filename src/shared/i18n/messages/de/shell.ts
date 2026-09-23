@@ -18,6 +18,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     market: "Markt",
     map: "Karte",
     tokens: "Token",
+    portfolio: "Portfolio",
     nfts: "NFTs",
     fees: "Gebühren",
     pools: "Pools",

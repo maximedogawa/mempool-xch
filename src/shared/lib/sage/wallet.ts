@@ -267,6 +267,13 @@ export async function requestEndpointWhitelist(
   }
 }
 
+/** Query options for fetchXchUsdPrice, shared so every reader of the price hits one cache entry. */
+export const SAGE_PRICE_QUERY = {
+  queryKey: ["sagePrice"],
+  queryFn: fetchXchUsdPrice,
+  refetchInterval: 60_000,
+} as const;
+
 /* ---- Paged history ---- */
 
 export interface WalletTxPage {

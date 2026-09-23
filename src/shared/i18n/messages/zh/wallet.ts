@@ -71,6 +71,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     partial: "从前 {loaded} / {total} 笔交易中发现 · 滚动「交易」以查找更多",
   },
   page: {
+    portfolio: "投资组合",
     outsideTitle: "请在 Sage 钱包中打开 mempoolxch.space",
     outsideDescription:
       "此页面直接从您的钱包读取余额、待确认交易、资产和币。在浏览器中，请改为搜索您的地址。",

@@ -18,6 +18,7 @@ const THIRD_PARTY_ITEMS = [
   "node",
   "map",
   "market",
+  "xchPrice",
 ] as const;
 const RIGHTS_ITEMS = ["access", "rectification", "restriction", "objection", "complaint"] as const;
 

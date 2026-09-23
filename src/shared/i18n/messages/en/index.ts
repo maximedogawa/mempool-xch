@@ -36,6 +36,7 @@ import mempoolList from "./mempoolList";
 import nft from "./nft";
 import offers from "./offers";
 import pools from "./pools";
+import portfolio from "./portfolio";
 import prefarm from "./prefarm";
 import shell from "./shell";
 import status from "./status";
@@ -80,6 +81,7 @@ const messages = {
   nft: nft.messages,
   offers: offers.messages,
   pools: pools.messages,
+  portfolio: portfolio.messages,
   prefarm: prefarm.messages,
   shell: shell.messages,
   status: status.messages,

@@ -72,6 +72,7 @@ const messages = {
       "seen in the first {loaded} of {total} transactions · scroll Transactions to find more",
   },
   page: {
+    portfolio: "Portfolio",
     outsideTitle: "Open mempoolxch.space inside the Sage wallet",
     outsideDescription:
       "This page reads balances, pending transactions, assets and coins directly from your wallet. In a browser, search for your address instead.",

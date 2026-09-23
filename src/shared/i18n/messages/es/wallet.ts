@@ -72,6 +72,7 @@ const messages: Translation<(typeof en)["messages"]> = {
       "vistos en las primeras {loaded} de {total} transacciones · desplázate por Transacciones para encontrar más",
   },
   page: {
+    portfolio: "Cartera",
     outsideTitle: "Abre mempoolxch.space dentro de la billetera Sage",
     outsideDescription:
       "Esta página lee saldos, transacciones pendientes, activos y monedas directamente de tu billetera. En un navegador, busca tu dirección.",

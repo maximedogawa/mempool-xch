@@ -11,6 +11,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     block: "Bloque {height}",
   },
   panel: {
+    portfolio: "Cartera",
     title: "Lista de seguimiento",
     titleCount: "Lista de seguimiento · {count}",
     muteChime: "Silenciar el aviso sonoro de la lista",

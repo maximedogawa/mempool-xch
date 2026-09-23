@@ -174,6 +174,8 @@ const messages: Translation<(typeof en)["messages"]> = {
         map: "「网络地图」页面：其节点统计数据是随本网站一同发布的 Chia Network 公开 Peer Info 仪表板（dashboard.chia.net）的快照，因此显示这些数据不会联系任何第三方。只有当该快照缺失、超过 30 天或不属于所选网络时，页面才会在打开期间改用实时扫描：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置；获取到的地址会在您浏览器的本地存储中保留一周。如果您在设置中指向自己的节点，其已连接对等节点的地址也会发送给 GeoJS。发送查询的只有节点地址，绝不包括您的地址。页面还会在本地存储中记住您上次看到的各国节点数，以便突出显示变化。",
         market:
           "仅在「市场」页面打开期间：每 5 秒请求 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）的公开行情 API，获取 XCH 订单簿和最近成交；并请求 Dexie（api.dexie.space）获取 XCH 与稳定币 BYC、wUSDC.b、wUSDC 和 wUSDT 之间的未成交报价。这些请求不包含任何账户、密钥或钱包数据；交易所会像对待其 API 的任何其他访问一样看待它们。",
+        xchPrice:
+          "XCH 价格：在代币、投资组合和地址页面，以及图表页面的价格历史中，XCH/USD 价格及其 24 小时变化来自 Gate.io 的公开行情 API（api.gateio.ws），最多每分钟请求一次。这些请求不包含任何账户、密钥或钱包数据。",
       },
       basis:
         "法律依据：GDPR 第 6 条第 1 款 (f) 项；正当利益在于显示您请求的区块链内容。其中部分提供者可能在欧洲经济区以外（例如美国）处理数据，当地的数据保护水平可能较低。适用其各自的隐私政策。",
