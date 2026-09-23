@@ -4,13 +4,12 @@ import { defineNamespace } from "../../translate";
 const messages = {
   title: "Network map",
   titleHint:
-    "Every figure on this page comes from Chia's published Peer Info dashboard snapshot. Country markers show aggregate node populations at representative points; no browser crawler or address harvesting is needed.",
+    "The figures come from a snapshot of Chia's public Peer Info dashboard. Country markers show aggregate node populations at representative points. If the snapshot is missing or older than 30 days, the page falls back to scanning the Chia DNS introducers from your browser.",
   intro:
     "Where the Chia full-node population sits, what it runs and what the network is doing right now. Search or pick a region to narrow the map, then click a country for its detail.",
   stats: {
     fullNodes: "Full nodes",
     fullNodesSub: "seen in the last 5 days",
-    mainnetOnly: "mainnet only",
     fullNodesHint:
       "Full-node population reported by Chia's Peer Info dashboard over a five-day window.",
     reliable: "Reliable",
@@ -47,6 +46,44 @@ const messages = {
     summary: "{nodes} full nodes · {countries} countries",
     controls: "drag to pan · double-click or ⌘/ctrl + wheel to zoom · {scale}×",
     noMatch: "No country matches “{query}”.",
+    modelLegend:
+      "Countries that are new or changed since the last snapshot or scan answer grow in or ring out. The pulses (amber: new peak, green: mempool batch) and the reach arcs are a model: they land on countries weighted by node count, not where a block or spend bundle came from.",
+  },
+  fallback: {
+    missing: "The dashboard snapshot is missing or unreadable.",
+    stale:
+      "The dashboard snapshot is from {date}, more than {days} days ago, so it no longer shows the network as it is.",
+    network: "The dashboard snapshot covers mainnet only, not {network}.",
+    scan: "This map shows the live seeder scan instead: the nodes your browser finds by asking the Chia DNS introducers, placed by GeoJS. It sees a few hundred nodes, not the whole network.",
+  },
+  scan: {
+    found: "Nodes found",
+    foundSub: {
+      one: "from {count} seeder answer",
+      other: "from {count} seeder answers",
+    },
+    foundHint:
+      "Full-node addresses the DNS introducers handed to this browser, kept for a week in local storage.",
+    located: "Located",
+    locatedSub: {
+      one: "{count} waiting for a location",
+      other: "{count} waiting for a location",
+    },
+    locatedHint:
+      "Found nodes that GeoJS could place. Shares on this page are of these located nodes.",
+    countriesHint: "Countries the located nodes sit in, each at a representative point.",
+    lastAnswer: "Last answer",
+    lastAnswerHint: "One introducer is asked every 6 seconds while the page is visible.",
+    scanning: "scanning",
+    pausedHidden: "paused while the tab is hidden",
+    snapshotSub: "seeder scan instead",
+    logTitle: "Seeder scan",
+    logAction: "one introducer every {seconds} s",
+    logWaiting: "Asking the first introducer…",
+    logEntry: "{answered} answered · {added} new",
+    logError: "no answer",
+    source:
+      "Source: this browser's seeder scan (Chia DNS introducers over Cloudflare DNS, with dns.google as a fallback; locations from GeoJS). Only node addresses are ever sent to a geolocation service, never the visitor's.",
   },
   worldMap: {
     label: "World map of {nodes} observed Chia nodes in {countries} countries",
@@ -102,7 +139,7 @@ const messages = {
     title: "Countries",
     titleFiltered: "Countries — filtered",
     action: "{nodes} nodes in {countries} countries",
-    noSnapshot: "No dashboard snapshot for this network.",
+    scanWaiting: "No node located yet; the seeder scan is still running.",
     noMatch: "No country matches the current filter.",
     tableLabel: "Countries",
     country: "Country",
@@ -116,8 +153,8 @@ const messages = {
     title: "What this map is",
     shows:
       "<b>What it shows.</b> Country-level full-node populations from Chia's Peer Info dashboard, captured {age}, plus the connected peers of a configured node. Marker size is the node count; colour is the region.",
-    showsMainnet:
-      "<b>What it shows.</b> Country-level full-node populations from Chia's Peer Info dashboard, captured for mainnet, plus the connected peers of a configured node. Marker size is the node count; colour is the region.",
+    showsScan:
+      "<b>What it shows.</b> The full nodes your browser has found through the Chia DNS introducers, grouped by the country GeoJS places them in, plus the connected peers of a configured node. Marker size is the node count; colour is the region.",
     notShows:
       "<b>What it is not.</b> Chia does not publish node coordinates, nor where a block was farmed or a spend bundle came from. Markers sit at one representative point per country, and the reach arcs and pulses are a model of propagation, not a packet route.",
   },
@@ -125,6 +162,37 @@ const messages = {
     "Source: <link>Chia Peer Info dashboard</link>, observed {observed} UTC. The country panel accounts for {placed} of the {total} nodes the population panel reports. Only node addresses are ever sent to a geolocation service, never the visitor's.",
   sourceGap:
     "Source: <link>Chia Peer Info dashboard</link>, observed {observed} UTC. The country panel accounts for {placed} of the {total} nodes the population panel reports; the {gap}-node gap is between two separate dashboard queries, not a rounding error. Only node addresses are ever sent to a geolocation service, never the visitor's.",
+  attribution:
+    "Node statistics by Chia Network Inc. from its public <link>Peer Info dashboard</link>, imported by hand as a static snapshot.",
+  history: {
+    title: "Network over time",
+    action: "every 3 days · last two years",
+    seriesLabel: "Series",
+    total: "Full nodes",
+    capacity: "Reliable",
+    ipv4: "IPv4",
+    ipv6: "IPv6",
+    chartLabel: "{series} over time",
+    note: "The Peer Info dashboard's crawler series, one sample every three days, up to the snapshot.",
+    versionsTitle: "Versions over time",
+    versionsAction: "every 3 days · last year",
+    versionsLabel: "Nodes by version over time",
+    versionsLegend: "Versions",
+    otherVersions: "other",
+  },
+  asns: {
+    title: "Network operators",
+    action: {
+      one: "{count} autonomous system",
+      other: "{count} autonomous systems",
+    },
+    tableLabel: "Network operators",
+    organization: "Operator",
+    asn: "ASN",
+    nodes: "Nodes",
+    share: "Share",
+    note: "The {shown} largest of {count} operators (autonomous systems) the crawler found; together they host {share} of the nodes it could assign to one.",
+  },
   ownNodeHint: "Point Settings at your own node to also see its connected peers here.",
   detail: {
     nodes: "Nodes",
@@ -132,7 +200,9 @@ const messages = {
     rank: "Rank",
     region: "Region",
     yourPeers: "Your peers",
+    lastSeen: "Last seen",
     note: "Dashboard estimate at a representative point, not a located node.",
+    noteScan: "Share of the nodes this browser located, drawn at a representative point.",
   },
   peers: {
     errorTitle: "Could not read connections",

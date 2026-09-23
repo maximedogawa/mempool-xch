@@ -73,6 +73,7 @@ export const COUNTRY_POINTS: Record<string, CountryPoint> = {
   Ghana: { lat: 7.9, lon: -1, code: "GH", region: "Africa" },
   Gibraltar: { lat: 36.1, lon: -5.35, code: "GI", region: "Europe" },
   Greece: { lat: 39, lon: 22, code: "GR", region: "Europe" },
+  Greenland: { lat: 72, lon: -40, code: "GL", region: "North America" },
   Guatemala: { lat: 15.5, lon: -90.3, code: "GT", region: "North America" },
   Honduras: { lat: 15.2, lon: -86.2, code: "HN", region: "North America" },
   "Hong Kong": { lat: 22.3, lon: 114.2, code: "HK", region: "Asia" },
@@ -143,6 +144,7 @@ export const COUNTRY_POINTS: Record<string, CountryPoint> = {
   Switzerland: { lat: 47, lon: 8, code: "CH", region: "Europe" },
   Syria: { lat: 35, lon: 38, code: "SY", region: "Asia" },
   Taiwan: { lat: 23.5, lon: 121, code: "TW", region: "Asia" },
+  Tajikistan: { lat: 38.9, lon: 71.3, code: "TJ", region: "Asia" },
   Tanzania: { lat: -6.4, lon: 34.9, code: "TZ", region: "Africa" },
   Thailand: { lat: 15, lon: 101, code: "TH", region: "Asia" },
   "Trinidad and Tobago": { lat: 10.7, lon: -61.2, code: "TT", region: "South America" },
@@ -202,4 +204,17 @@ export function countryPoint(label: string): CountryPoint | null {
     if (name.toLowerCase() === folded) return point;
   }
   return null;
+}
+
+let byCode: Map<string, { name: string; point: CountryPoint }> | null = null;
+
+/** Lookup by ISO 3166-1 alpha-2 (GeoJS and the crawler's country panel both carry one). */
+export function countryPointByCode(
+  code: string | null | undefined
+): { name: string; point: CountryPoint } | null {
+  if (!code) return null;
+  byCode ??= new Map(
+    Object.entries(COUNTRY_POINTS).map(([name, point]) => [point.code, { name, point }])
+  );
+  return byCode.get(code.toUpperCase()) ?? null;
 }

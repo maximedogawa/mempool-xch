@@ -3,8 +3,9 @@
  * synchronous so the widgets stay render-only and the shapes are unit-testable without a DOM:
  * the snapshot is a static file, so every number here is a projection of it, never a fetch.
  */
-import { countryPoint, type MapRegion } from "./countryPoints";
-import type { DashboardSnapshot } from "./dashboard";
+import { countryPoint, countryPointByCode, type MapRegion } from "./countryPoints";
+import type { DashboardHistory, DashboardSnapshot, DashboardVersionHistory } from "./dashboard";
+import type { NodeRegistry } from "./registry";
 
 /** Countries the crawler reports but this app has no representative point for. */
 export const UNMAPPED = "Unmapped" as const;
@@ -23,6 +24,8 @@ export interface CountryRow {
   rank: number;
   lat: number | null;
   lon: number | null;
+  /** Seeder scan only: Unix ms of the latest seeder answer naming a node in this country. */
+  lastSeen?: number;
 }
 
 /** One row per reported country, largest first, with rank, share and map coordinates. */
@@ -31,7 +34,7 @@ export function countryRows(snapshot: DashboardSnapshot): CountryRow[] {
   return [...snapshot.countries]
     .sort((a, b) => b.nodes - a.nodes || a.label.localeCompare(b.label))
     .map((country, index) => {
-      const point = countryPoint(country.label);
+      const point = countryPoint(country.label) ?? countryPointByCode(country.code)?.point ?? null;
       return {
         key: country.key,
         label: country.label,
@@ -179,4 +182,105 @@ export function concentration(rows: readonly CountryRow[]): {
     topShare: rows[0]?.share ?? 0,
     topLabel: rows[0]?.label ?? null,
   };
+}
+
+/**
+ * The seeder-scan fallback as country rows: the located nodes of this browser's registry,
+ * grouped by the country GeoJS reported. Shares are of the located nodes (the scan has no
+ * population figure of its own); `lastSeen` is the freshest seeder answer per country.
+ */
+export function scanRows(registry: NodeRegistry): CountryRow[] {
+  const acc = new Map<string, { country: string; nodes: number; lastSeen: number }>();
+  let located = 0;
+  for (const node of Object.values(registry.nodes)) {
+    if (!node.geo) continue;
+    located += 1;
+    const code = node.geo.countryCode;
+    const entry = acc.get(code) ?? { country: node.geo.country, nodes: 0, lastSeen: 0 };
+    entry.nodes += 1;
+    entry.lastSeen = Math.max(entry.lastSeen, node.lastSeen);
+    acc.set(code, entry);
+  }
+  return [...acc.entries()]
+    .map(([code, entry]) => {
+      const known = countryPointByCode(code);
+      // The crawler's English name when the table knows the code, so both sources read alike.
+      const label = known?.name ?? entry.country;
+      return { code, label, entry, point: known?.point ?? countryPoint(entry.country) };
+    })
+    .sort((a, b) => b.entry.nodes - a.entry.nodes || a.label.localeCompare(b.label))
+    .map(({ code, label, entry, point }, index) => ({
+      key: code,
+      label,
+      code: point?.code ?? code,
+      region: point?.region ?? UNMAPPED,
+      nodes: entry.nodes,
+      share: located > 0 ? entry.nodes / located : 0,
+      rank: index + 1,
+      lat: point?.lat ?? null,
+      lon: point?.lon ?? null,
+      lastSeen: entry.lastSeen,
+    }));
+}
+
+export type CountryChange = "new" | "changed";
+
+/**
+ * Which countries to animate in: those absent from `previous` and those whose count moved.
+ * With no previous state (a first visit) every country is new, which plays the map's intro.
+ */
+export function diffCountries(
+  previous: Readonly<Record<string, number>> | null,
+  rows: readonly Pick<CountryRow, "key" | "nodes">[]
+): Map<string, CountryChange> {
+  const out = new Map<string, CountryChange>();
+  for (const row of rows) {
+    const before = previous?.[row.key];
+    if (before === undefined) out.set(row.key, "new");
+    else if (before !== row.nodes) out.set(row.key, "changed");
+  }
+  return out;
+}
+
+/** Node counts by row key: what diffCountries compares the next state against. */
+export function countsOf(
+  rows: readonly Pick<CountryRow, "key" | "nodes">[]
+): Record<string, number> {
+  return Object.fromEntries(rows.map((row) => [row.key, row.nodes]));
+}
+
+export interface HistoryPoint {
+  t: number;
+  v: number;
+}
+
+/** One population series as chart points; gaps (crawler outages) are left out, not zeroed. */
+export function historyPoints(
+  history: DashboardHistory | null,
+  field: "total" | "capacity" | "ipv4" | "ipv6"
+): HistoryPoint[] {
+  if (!history) return [];
+  return history[field].flatMap((value, index) =>
+    value === null ? [] : [{ t: history.start + index * history.step, v: value }]
+  );
+}
+
+/**
+ * The version history as stacked samples. A version absent from a sample (not released yet,
+ * or below the panel's threshold of 5 nodes) contributes 0 there; samples where no version at
+ * all was reported are dropped.
+ */
+export function versionHistoryPoints(history: DashboardVersionHistory | null): {
+  labels: string[];
+  points: { t: number; values: number[] }[];
+} {
+  if (!history || history.series.length === 0) return { labels: [], points: [] };
+  const length = history.series[0]!.values.length;
+  const points: { t: number; values: number[] }[] = [];
+  for (let i = 0; i < length; i += 1) {
+    const raw = history.series.map((series) => series.values[i] ?? null);
+    if (raw.every((value) => value === null)) continue;
+    points.push({ t: history.start + i * history.step, values: raw.map((value) => value ?? 0) });
+  }
+  return { labels: history.series.map((series) => series.label), points };
 }

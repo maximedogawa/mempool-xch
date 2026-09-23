@@ -4,13 +4,12 @@ import type en from "../en/map";
 const messages: Translation<(typeof en)["messages"]> = {
   title: "Mapa de la red",
   titleHint:
-    "Todas las cifras de esta página proceden de la instantánea publicada del panel Peer Info de Chia. Los marcadores de país muestran poblaciones agregadas de nodos en puntos representativos; no hace falta ningún rastreador en el navegador ni recopilar direcciones.",
+    "Las cifras proceden de una instantánea del panel público Peer Info de Chia. Los marcadores de país muestran poblaciones agregadas de nodos en puntos representativos. Si falta la instantánea o tiene más de 30 días, la página pasa a consultar desde tu navegador los introductores DNS de Chia.",
   intro:
     "Dónde están los nodos completos de Chia, qué versión ejecutan y qué está haciendo la red ahora mismo. Busca o elige una región para acotar el mapa y luego haz clic en un país para ver su detalle.",
   stats: {
     fullNodes: "Nodos completos",
     fullNodesSub: "vistos en los últimos 5 días",
-    mainnetOnly: "solo mainnet",
     fullNodesHint:
       "Población de nodos completos que informa el panel Peer Info de Chia en una ventana de cinco días.",
     reliable: "Fiables",
@@ -49,6 +48,44 @@ const messages: Translation<(typeof en)["messages"]> = {
     summary: "{nodes} nodos completos · {countries} países",
     controls: "arrastra para mover · doble clic o ⌘/ctrl + rueda para hacer zoom · {scale}×",
     noMatch: "Ningún país coincide con «{query}».",
+    modelLegend:
+      "Los países nuevos o que han cambiado desde la última instantánea o respuesta del escaneo aparecen creciendo o emiten un anillo. Los pulsos (ámbar: nuevo pico, verde: lote del mempool) y los arcos de alcance son un modelo: caen en países ponderados por número de nodos, no donde se originó un bloque o un spend bundle.",
+  },
+  fallback: {
+    missing: "Falta la instantánea del panel o no se puede leer.",
+    stale:
+      "La instantánea del panel es del {date}, de hace más de {days} días, así que ya no muestra la red tal como es.",
+    network: "La instantánea del panel solo cubre mainnet, no {network}.",
+    scan: "Este mapa muestra en su lugar el escaneo de seeders en vivo: los nodos que tu navegador encuentra al consultar los introductores DNS de Chia, ubicados por GeoJS. Ve unos cientos de nodos, no toda la red.",
+  },
+  scan: {
+    found: "Nodos encontrados",
+    foundSub: {
+      one: "de {count} respuesta de seeder",
+      other: "de {count} respuestas de seeders",
+    },
+    foundHint:
+      "Direcciones de nodos completos que los introductores DNS entregaron a este navegador, guardadas una semana en el almacenamiento local.",
+    located: "Ubicados",
+    locatedSub: {
+      one: "{count} a la espera de ubicación",
+      other: "{count} a la espera de ubicación",
+    },
+    locatedHint:
+      "Nodos encontrados que GeoJS pudo ubicar. Los porcentajes de esta página son sobre estos nodos.",
+    countriesHint: "Países donde están los nodos ubicados, cada uno en un punto representativo.",
+    lastAnswer: "Última respuesta",
+    lastAnswerHint: "Mientras la página está visible, se consulta un introductor cada 6 segundos.",
+    scanning: "escaneando",
+    pausedHidden: "en pausa mientras la pestaña está oculta",
+    snapshotSub: "escaneo de seeders en su lugar",
+    logTitle: "Escaneo de seeders",
+    logAction: "un introductor cada {seconds} s",
+    logWaiting: "Consultando el primer introductor…",
+    logEntry: "{answered} respondidos · {added} nuevos",
+    logError: "sin respuesta",
+    source:
+      "Fuente: el escaneo de seeders de este navegador (introductores DNS de Chia a través de Cloudflare DNS, con dns.google como alternativa; ubicaciones de GeoJS). Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
   },
   worldMap: {
     label: "Mapa mundial de {nodes} nodos de Chia observados en {countries} países",
@@ -105,7 +142,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Países",
     titleFiltered: "Países — filtrados",
     action: "{nodes} nodos en {countries} países",
-    noSnapshot: "No hay instantánea del panel para esta red.",
+    scanWaiting: "Todavía no hay ningún nodo ubicado; el escaneo de seeders sigue en marcha.",
     noMatch: "Ningún país coincide con el filtro actual.",
     tableLabel: "Países",
     country: "País",
@@ -119,8 +156,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Qué es este mapa",
     shows:
       "<b>Qué muestra.</b> Poblaciones de nodos completos por país del panel Peer Info de Chia, capturadas {age}, además de los pares conectados de un nodo configurado. El tamaño del marcador es el número de nodos; el color, la región.",
-    showsMainnet:
-      "<b>Qué muestra.</b> Poblaciones de nodos completos por país del panel Peer Info de Chia, capturadas para mainnet, además de los pares conectados de un nodo configurado. El tamaño del marcador es el número de nodos; el color, la región.",
+    showsScan:
+      "<b>Qué muestra.</b> Los nodos completos que tu navegador ha encontrado a través de los introductores DNS de Chia, agrupados por el país en que GeoJS los ubica, además de los pares conectados de un nodo configurado. El tamaño del marcador es el número de nodos; el color, la región.",
     notShows:
       "<b>Qué no es.</b> Chia no publica las coordenadas de los nodos, ni dónde se farmeó un bloque ni de dónde vino un spend bundle. Los marcadores están en un punto representativo por país, y los arcos de alcance y los pulsos son un modelo de propagación, no una ruta de paquetes.",
   },
@@ -128,6 +165,37 @@ const messages: Translation<(typeof en)["messages"]> = {
     "Fuente: <link>panel Peer Info de Chia</link>, observado el {observed} UTC. El panel de países abarca {placed} de los {total} nodos que informa el panel de población. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
   sourceGap:
     "Fuente: <link>panel Peer Info de Chia</link>, observado el {observed} UTC. El panel de países abarca {placed} de los {total} nodos que informa el panel de población; la diferencia de {gap} nodos se debe a dos consultas separadas del panel, no a un error de redondeo. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
+  attribution:
+    "Estadísticas de nodos de Chia Network Inc., de su <link>panel público Peer Info</link>, importadas a mano como instantánea estática.",
+  history: {
+    title: "La red a lo largo del tiempo",
+    action: "cada 3 días · últimos dos años",
+    seriesLabel: "Serie",
+    total: "Nodos completos",
+    capacity: "Fiables",
+    ipv4: "IPv4",
+    ipv6: "IPv6",
+    chartLabel: "{series} a lo largo del tiempo",
+    note: "Las series del rastreador del panel Peer Info, una muestra cada tres días, hasta la instantánea.",
+    versionsTitle: "Versiones a lo largo del tiempo",
+    versionsAction: "cada 3 días · último año",
+    versionsLabel: "Nodos por versión a lo largo del tiempo",
+    versionsLegend: "Versiones",
+    otherVersions: "otras",
+  },
+  asns: {
+    title: "Operadores de red",
+    action: {
+      one: "{count} sistema autónomo",
+      other: "{count} sistemas autónomos",
+    },
+    tableLabel: "Operadores de red",
+    organization: "Operador",
+    asn: "ASN",
+    nodes: "Nodos",
+    share: "Porcentaje",
+    note: "Los {shown} mayores de los {count} operadores (sistemas autónomos) que encontró el rastreador; juntos alojan el {share} de los nodos que pudo asignar a uno.",
+  },
   ownNodeHint: "Apunta los ajustes a tu propio nodo para ver también aquí sus pares conectados.",
   detail: {
     nodes: "Nodos",
@@ -135,7 +203,10 @@ const messages: Translation<(typeof en)["messages"]> = {
     rank: "Puesto",
     region: "Región",
     yourPeers: "Tus pares",
+    lastSeen: "Visto por última vez",
     note: "Estimación del panel en un punto representativo, no un nodo localizado.",
+    noteScan:
+      "Porcentaje de los nodos que este navegador ha ubicado, dibujado en un punto representativo.",
   },
   peers: {
     errorTitle: "No se pudieron leer las conexiones",

@@ -4,13 +4,12 @@ import type en from "../en/map";
 const messages: Translation<(typeof en)["messages"]> = {
   title: "网络地图",
   titleHint:
-    "本页所有数据均来自 Chia 公开发布的 Peer Info 仪表板快照。国家标记在代表性位置显示汇总的节点数量；无需浏览器爬虫，也不收集地址。",
+    "这些数据来自 Chia 公开的 Peer Info 仪表板的快照。国家标记在代表性位置显示汇总的节点数量。如果快照缺失或已超过 30 天，页面会改为从您的浏览器查询 Chia 的 DNS 引导节点（introducer）。",
   intro:
     "Chia 全节点分布在哪里、运行什么版本，以及网络此刻在做什么。搜索或选择一个地区来缩小地图范围，然后点击某个国家查看详情。",
   stats: {
     fullNodes: "全节点",
     fullNodesSub: "过去 5 天内可见",
-    mainnetOnly: "仅限主网",
     fullNodesHint: "Chia Peer Info 仪表板在五天窗口内报告的全节点数量。",
     reliable: "稳定节点",
     reliableSub: "占网络的 {share}",
@@ -44,6 +43,41 @@ const messages: Translation<(typeof en)["messages"]> = {
     summary: "{nodes} 个全节点 · {countries} 个国家",
     controls: "拖动平移 · 双击或 ⌘/ctrl + 滚轮缩放 · {scale}×",
     noMatch: "没有国家匹配「{query}」。",
+    modelLegend:
+      "自上次快照或上次扫描响应以来新出现或有变化的国家会以放大或光环的方式出现。脉冲（琥珀色：新峰值，绿色：内存池批次）和传播弧线是一种模型：它们按节点数量加权落在各国，并非区块或交易包（spend bundle）的真实来源。",
+  },
+  fallback: {
+    missing: "仪表板快照缺失或无法读取。",
+    stale: "仪表板快照来自 {date}，已超过 {days} 天，不再反映网络的当前状态。",
+    network: "仪表板快照仅涵盖主网，不包括 {network}。",
+    scan: "因此本地图改为显示实时的种子节点扫描：您的浏览器通过查询 Chia 的 DNS 引导节点找到的节点，位置由 GeoJS 估算。它只能看到几百个节点，而不是整个网络。",
+  },
+  scan: {
+    found: "已发现节点",
+    foundSub: {
+      one: "来自 {count} 次种子节点响应",
+      other: "来自 {count} 次种子节点响应",
+    },
+    foundHint: "DNS 引导节点提供给此浏览器的全节点地址，在本地存储中保留一周。",
+    located: "已定位",
+    locatedSub: {
+      one: "{count} 个等待定位",
+      other: "{count} 个等待定位",
+    },
+    locatedHint: "GeoJS 能够定位的已发现节点。本页的占比均基于这些节点。",
+    countriesHint: "已定位节点所在的国家，每个国家位于一个代表性位置。",
+    lastAnswer: "上次响应",
+    lastAnswerHint: "页面可见时，每 6 秒查询一个引导节点。",
+    scanning: "扫描中",
+    pausedHidden: "标签页隐藏时暂停",
+    snapshotSub: "改用种子节点扫描",
+    logTitle: "种子节点扫描",
+    logAction: "每 {seconds} 秒一个引导节点",
+    logWaiting: "正在查询第一个引导节点…",
+    logEntry: "{answered} 个响应 · {added} 个新增",
+    logError: "无响应",
+    source:
+      "来源：此浏览器的种子节点扫描（通过 Cloudflare DNS 查询 Chia 的 DNS 引导节点，以 dns.google 作为备用；位置来自 GeoJS）。发送给地理定位服务的只有节点地址，绝不包括访问者的地址。",
   },
   worldMap: {
     label: "世界地图：{countries} 个国家中观测到的 {nodes} 个 Chia 节点",
@@ -96,7 +130,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "国家",
     titleFiltered: "国家（已筛选）",
     action: "{countries} 个国家中的 {nodes} 个节点",
-    noSnapshot: "该网络没有仪表板快照。",
+    scanWaiting: "尚未定位任何节点；种子节点扫描仍在进行中。",
     noMatch: "没有国家匹配当前筛选条件。",
     tableLabel: "国家",
     country: "国家",
@@ -110,8 +144,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "关于这张地图",
     shows:
       "<b>它显示什么。</b>来自 Chia Peer Info 仪表板的各国全节点数量（采集于 {age}），以及已配置节点的已连接对等节点。标记大小表示节点数量，颜色表示地区。",
-    showsMainnet:
-      "<b>它显示什么。</b>来自 Chia Peer Info 仪表板的各国全节点数量（针对主网采集），以及已配置节点的已连接对等节点。标记大小表示节点数量，颜色表示地区。",
+    showsScan:
+      "<b>它显示什么。</b>您的浏览器通过 Chia 的 DNS 引导节点找到的全节点，按 GeoJS 定位的国家分组，以及已配置节点的已连接对等节点。标记大小表示节点数量，颜色表示地区。",
     notShows:
       "<b>它不是什么。</b>Chia 不公布节点坐标，也不公布区块在哪里耕种或花费包来自何处。标记位于每个国家的一个代表性位置，传播弧线和脉冲是传播的模型，而不是数据包的路由。",
   },
@@ -119,6 +153,37 @@ const messages: Translation<(typeof en)["messages"]> = {
     "来源：<link>Chia Peer Info 仪表板</link>，观测于 {observed} UTC。国家面板统计了节点总数面板所报告的 {total} 个节点中的 {placed} 个。只有节点地址会被发送到地理定位服务，访问者的地址绝不会发送。",
   sourceGap:
     "来源：<link>Chia Peer Info 仪表板</link>，观测于 {observed} UTC。国家面板统计了节点总数面板所报告的 {total} 个节点中的 {placed} 个；{gap} 个节点的差距来自两个独立的仪表板查询，而不是舍入误差。只有节点地址会被发送到地理定位服务，访问者的地址绝不会发送。",
+  attribution:
+    "节点统计数据由 Chia Network Inc. 提供，来自其公开的 <link>Peer Info 仪表板</link>，以静态快照的形式手动导入。",
+  history: {
+    title: "网络随时间的变化",
+    action: "每 3 天 · 最近两年",
+    seriesLabel: "数据系列",
+    total: "全节点",
+    capacity: "可靠节点",
+    ipv4: "IPv4",
+    ipv6: "IPv6",
+    chartLabel: "{series} 随时间的变化",
+    note: "Peer Info 仪表板的爬虫数据系列，每三天一个样本，截至快照时间。",
+    versionsTitle: "版本随时间的变化",
+    versionsAction: "每 3 天 · 最近一年",
+    versionsLabel: "各版本节点数随时间的变化",
+    versionsLegend: "版本",
+    otherVersions: "其他",
+  },
+  asns: {
+    title: "网络运营商",
+    action: {
+      one: "{count} 个自治系统",
+      other: "{count} 个自治系统",
+    },
+    tableLabel: "网络运营商",
+    organization: "运营商",
+    asn: "ASN",
+    nodes: "节点",
+    share: "占比",
+    note: "爬虫发现的 {count} 个运营商（自治系统）中最大的 {shown} 个；它们合计承载了爬虫能归属到运营商的节点中的 {share}。",
+  },
   ownNodeHint: "在设置中指向您自己的节点，即可在这里同时看到它的已连接对等节点。",
   detail: {
     nodes: "节点",
@@ -126,7 +191,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     rank: "排名",
     region: "地区",
     yourPeers: "您的对等节点",
+    lastSeen: "最后发现",
     note: "仪表板在代表性位置的估算，并非节点的实际位置。",
+    noteScan: "占此浏览器已定位节点的比例，绘制在代表性位置。",
   },
   peers: {
     errorTitle: "无法读取连接",
