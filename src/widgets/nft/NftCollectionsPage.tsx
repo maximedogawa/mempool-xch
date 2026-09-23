@@ -22,6 +22,7 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { useCollectionsList } from "./useNftSection";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 const INTERVALS: readonly { id: CollectionInterval; label: "d1" | "d7" | "d30" | "all" }[] = [
   { id: "1", label: "d1" },
@@ -31,7 +32,7 @@ const INTERVALS: readonly { id: CollectionInterval; label: "d1" | "d7" | "d30" |
 ];
 
 export function NftCollectionsPage() {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const [interval, setInterval] = useState<CollectionInterval>("30");
   const [search, setSearch] = useState("");
   const query = useCollectionsList(interval, search);

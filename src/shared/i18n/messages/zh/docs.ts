@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/docs";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "帮助",
   why: {
     title: "为什么选择 mempoolxch.space",

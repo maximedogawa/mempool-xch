@@ -7,6 +7,7 @@ import { routes } from "@/shared/lib/routes";
 import { useT } from "@/shared/i18n/useT";
 import { useConsent } from "@/shared/providers/ConsentProvider";
 import { Button } from "@/shared/ui/Button";
+import consentNs from "@/shared/i18n/messages/en/consent";
 
 const CATEGORIES: ("necessary" | ConsentCategory)[] = ["necessary", "analytics", "advertising"];
 
@@ -27,7 +28,7 @@ function ConsentPanel() {
     advertising,
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const t = useT("legal");
+  const t = useT(consentNs);
 
   // Opened on request from the footer: move focus into the panel. On a first visit leave focus alone.
   useEffect(() => {

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/blocksList";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Blöcke",
   peak: "Spitze {height}",
   txOnly: "Nur Transaktionsblöcke",

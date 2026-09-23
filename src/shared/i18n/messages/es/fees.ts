@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/fees";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   cards: {
     title: "Comisiones de transacción",
     hint: "En Chia las comisiones se pagan por coste CLVM, no por byte. Las estimaciones son para un gasto de referencia de {cost} de coste (un envío simple típico de XCH). Multiplica la tasa en mojo por unidad de coste por el coste de tu gasto para obtener la comisión.",

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/tokens";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "代币",
   intro:
     "Dexie 注册表中有名称的所有 CAT，共 {total} 个。价格、交易量和流动性均为 Dexie 市场数据，统一以 XCH 计价以便相互比较：交易量是与该代币成交的 XCH，流动性是其未成交报价中的 XCH 一侧（每日更新）。一次请求即可获取所有代币的市场数据，我们的服务器不保存任何内容。链上历史请见各代币页面。",

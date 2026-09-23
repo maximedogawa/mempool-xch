@@ -61,12 +61,22 @@ function layoutRow<T>(
   return { x: rect.x, y: rect.y + thickness, width: rect.width, height: rect.height - thickness };
 }
 
+export interface SquarifyOptions {
+  /**
+   * "weight" (default) lays out the heaviest items first, which gives the squarest cells;
+   * "input" keeps the caller's order (e.g. fee bands from high to low) at some cost in squareness.
+   */
+  order?: "weight" | "input";
+}
+
 export function squarify<T>(
   inputs: TreemapInput<T>[],
   width: number,
-  height: number
+  height: number,
+  options: SquarifyOptions = {}
 ): TreemapCell<T>[] {
-  const items = inputs.filter((i) => i.weight > 0).sort((a, b) => b.weight - a.weight);
+  const positive = inputs.filter((i) => i.weight > 0);
+  const items = options.order === "input" ? positive : positive.sort((a, b) => b.weight - a.weight);
   const total = items.reduce((s, i) => s + i.weight, 0);
   if (items.length === 0 || total <= 0 || width <= 0 || height <= 0) return [];
   const scale = (width * height) / total;

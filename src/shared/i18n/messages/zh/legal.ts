@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/legal";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   page: {
     navLabel: "法律页面",
     nav: {
@@ -12,40 +12,6 @@ const messages: Translation<typeof en> = {
     },
     lastUpdated: "最后更新：{date}",
     translationNote: "本译文仅供参考。如与英文版本有任何不一致，以英文版本为准。",
-  },
-  consent: {
-    title: "Cookie 与本地存储",
-    intro:
-      "本网站仅在您的浏览器中保存其运行所需的内容。除非您在此处允许，否则不会加载任何分析或广告内容。",
-    cookiePolicy: "Cookie 政策",
-    privacyPolicy: "隐私政策",
-    signal:
-      "您的浏览器发送了「请勿跟踪」（Do Not Track）或「全球隐私控制」（Global Privacy Control）信号，因此分析和广告保持关闭。",
-    categoriesLegend: "类别",
-    categories: {
-      necessary: {
-        label: "严格必要",
-        detail: "您的设置、缓存和本次选择，保存在您的浏览器中。始终开启。",
-      },
-      analytics: {
-        label: "分析",
-        detail: "匿名使用统计。目前未使用。",
-      },
-      advertising: {
-        label: "广告",
-        detail: "广告及广告效果衡量。目前未使用。",
-      },
-    },
-    rejectAll: "全部拒绝",
-    saveChoice: "保存我的选择",
-    acceptAll: "全部接受",
-    close: "关闭",
-    settingsButton: "Cookie 设置",
-  },
-  disclaimer: {
-    label: "免责声明",
-    text: "Alpha 版软件，仍在大幅变化中。不构成财务建议——请在您自己的钱包中核实。<link>使用条款</link>",
-    dismiss: "关闭免责声明",
   },
   terms: {
     title: "使用条款",
@@ -183,12 +149,10 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "服务器不会代表您获取链上或资产数据：它仅提供应用本身（HTML、脚本、样式）。您进行的每一次查询，都是由您自己的浏览器向 Coinset、Dexie、MintGarden、XCHandles、公共市场数据来源或您自己的节点发出的请求，详见以下各节。",
-      market:
-        "「市场」页面从 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）读取公开订单簿，并从 Dexie 读取 ByteCash（BYC，Circuit 的美元稳定币）和 wUSDC.b 的公开 XCH 报价（offer）。这些请求不包含任何账户凭据。某个来源可能不可用或受到速率限制；此时页面会将其标记为过时，并将其排除在汇总数据之外。",
     },
     storage: {
       title: "3. 在您浏览器中的存储",
-      body: "本网站在您浏览器的本地存储中保存少量条目：您的设置（网络、节点地址、主题、语言、声音、是否开启浏览器通知）、资产列表缓存、页面打开期间记录的简短内存池历史、您添加的地址和交易 ID 关注列表（如有）、您拒绝的 Sage 权限，以及您的 Cookie 选择。它们保留在您的设备上，不会发送给运营者。它们对于提供您所请求的内容是严格必要的（TDDDG 第 25 条第 2 款第 2 项）。您可以随时在浏览器设置中删除它们。详情请参阅 <link>Cookie 政策</link>。",
+      body: "本网站在您浏览器的本地存储中保存少量条目：您的设置（网络、节点地址、主题、语言、声音、是否开启浏览器通知）、资产列表缓存、页面打开期间记录的简短内存池历史、您添加的地址和交易 ID 关注列表（如有）、您在概览页「下一个区块」视图中的筛选条件、网络地图上次显示的各国节点数量、您拒绝的 Sage 权限，以及您的 Cookie 选择。它们保留在您的设备上，不会发送给运营者。它们对于提供您所请求的内容是严格必要的（TDDDG 第 25 条第 2 款第 2 项）。您可以随时在浏览器设置中删除它们。详情请参阅 <link>Cookie 政策</link>。",
       notifications:
         "如果您为关注列表开启浏览器通知，该权限由您的浏览器授予本网站，您可以随时在浏览器中撤回；运营者永远不会知道您是否开启了通知。",
     },
@@ -207,7 +171,9 @@ const messages: Translation<typeof en> = {
         coinset:
           "Coinset（api.coinset.org）：所有链上数据——内存池、您查看的区块、交易、地址、币和资产，以及实时更新——除非您在下方输入其他节点。",
         node: "您在「设置」中输入的全节点：此时所有链上数据均来自该节点，而不是 Coinset。",
-        map: "仅在「网络地图」页面打开期间：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置。发送查询的只有节点地址，绝不包括您的地址；获取到的地址会在您浏览器的本地存储中保留一周。",
+        map: "「网络地图」页面：其节点统计数据是随本网站一同发布的 Chia Network 公开 Peer Info 仪表板（dashboard.chia.net）的快照，因此显示这些数据不会联系任何第三方。只有当该快照缺失、超过 30 天或不属于所选网络时，页面才会在打开期间改用实时扫描：Cloudflare DNS（cloudflare-dns.com，以 dns.google 作为备用）响应针对 Chia 引导节点（introducer）的 DNS 查询，GeoJS（get.geojs.io）估算这些响应中包含的节点地址的位置；获取到的地址会在您浏览器的本地存储中保留一周。如果您在设置中指向自己的节点，其已连接对等节点的地址也会发送给 GeoJS。发送查询的只有节点地址，绝不包括您的地址。页面还会在本地存储中记住您上次看到的各国节点数，以便突出显示变化。",
+        market:
+          "仅在「市场」页面打开期间：每 5 秒请求 Gate.io（api.gateio.ws）、OKX（www.okx.com）和 HTX（api.huobi.pro）的公开行情 API，获取 XCH 订单簿和最近成交；并请求 Dexie（api.dexie.space）获取 XCH 与稳定币 BYC、wUSDC.b、wUSDC 和 wUSDT 之间的未成交报价。这些请求不包含任何账户、密钥或钱包数据；交易所会像对待其 API 的任何其他访问一样看待它们。",
       },
       basis:
         "法律依据：GDPR 第 6 条第 1 款 (f) 项；正当利益在于显示您请求的区块链内容。其中部分提供者可能在欧洲经济区以外（例如美国）处理数据，当地的数据保护水平可能较低。适用其各自的隐私政策。",
@@ -280,6 +246,14 @@ const messages: Translation<typeof en> = {
         watchlist: {
           purpose: "您选择关注的地址和交易 ID",
           lifetime: "直到您移除或清除",
+        },
+        goggles: {
+          purpose: "您在概览页「下一个区块」视图中的筛选条件和显示选项",
+          lifetime: "直到您清除筛选条件或清除该条目",
+        },
+        mapSeen: {
+          purpose: "网络地图上次显示的各国节点数量，以便只为发生变化的部分播放动画",
+          lifetime: "直到您清除该条目；每次有更新的快照时都会被替换",
         },
         sageRefused: {
           purpose: "您拒绝的 Sage 权限，以免再次询问您（仅限 Sage 应用）",

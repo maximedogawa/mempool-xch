@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/settings";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "设置",
   channel: "<strong>实时通道：{name}。</strong>{detail} 所有数据均直接从端点读取。",
   network: {

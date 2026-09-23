@@ -32,9 +32,10 @@ import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
 import { useTokenList } from "@/shared/api/useTokenList";
 import { OffersCard } from "@/widgets/offers/OffersCard";
+import assetsNs from "@/shared/i18n/messages/en/assets";
 
 export function CoinsetNotice({ what }: { what: string }) {
-  const t = useT("assets");
+  const t = useT(assetsNs);
   return (
     <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)] px-3 py-2 text-xs text-fg-muted">
       {t.rich("coinsetNotice", {
@@ -46,7 +47,7 @@ export function CoinsetNotice({ what }: { what: string }) {
 }
 
 export function CatPage() {
-  const t = useT("assets");
+  const t = useT(assetsNs);
   const raw = useDetailId("cat") ?? "";
   const assetId = normaliseId32(raw);
   const { client, endpoints } = useSettings();

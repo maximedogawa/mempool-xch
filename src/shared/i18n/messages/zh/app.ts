@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/app";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   invalidCoin: {
     title: "无效的币 ID",
     description: "币 ID 为 32 字节的十六进制，可带或不带 0x 前缀。",

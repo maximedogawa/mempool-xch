@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/settings";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Einstellungen",
   channel:
     "<strong>Live-Kanal: {name}.</strong> {detail} Alle Daten werden direkt vom Endpunkt gelesen.",

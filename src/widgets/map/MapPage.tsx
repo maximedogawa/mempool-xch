@@ -2,15 +2,29 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { queryKeys } from "@/shared/api/queryKeys";
+import { intlTag } from "@/shared/i18n/active";
 import { formatFixed } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { formatAge } from "@/shared/lib/format/time";
 import { regionColor } from "@/shared/lib/map/colors";
-import type { DashboardSnapshot } from "@/shared/lib/map/dashboard";
+import {
+  parseSnapshot,
+  SNAPSHOT_MAX_AGE_MS,
+  snapshotState,
+  type SnapshotState,
+} from "@/shared/lib/map/dashboard";
 import dashboardSnapshot from "@/shared/lib/map/dashboardSnapshot.json";
 import { lookupGeo, type NodeGeo } from "@/shared/lib/map/geo";
 import { isPublicIp } from "@/shared/lib/map/seeders";
@@ -18,6 +32,7 @@ import {
   concentration,
   countryRows,
   regionRows,
+  scanRows,
   transportRows,
   versionBreakdown,
   type CountryRow,
@@ -39,8 +54,12 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { MapHistory } from "./MapHistory";
+import { useAnimationPause, useEntrances } from "./useMapAnimation";
 import { useMapNames } from "./useMapNames";
+import { SCAN_INTERVAL_MS, useNodeScan, type NodeScanState } from "./useNodeScan";
 import { WorldMap, type MapHandle, type MapPulse, type PeerMarker } from "./WorldMap";
+import mapNs from "@/shared/i18n/messages/en/map";
 
 const CONNECTION_TYPE = {
   0: "fullNode",
@@ -57,7 +76,27 @@ function isKnownType(type: number): type is keyof typeof CONNECTION_TYPE {
 const COUNTRY_ROWS = 15;
 const FEED_LIMIT = 10;
 const PULSE_MS = 1_600;
-const DASHBOARD = dashboardSnapshot as DashboardSnapshot;
+/** The shipped snapshot, checked once; null (missing or malformed) sends the page to the scan. */
+const SNAPSHOT = parseSnapshot(dashboardSnapshot);
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DASHBOARD_URL = "https://dashboard.chia.net/d/em15uQ47k/peer-info";
+
+const formatDay = (t: number) =>
+  new Date(t).toLocaleDateString(intlTag(), { day: "2-digit", month: "short", year: "numeric" });
+
+/**
+ * The time the page judges the snapshot's age by: null while prerendering (the build must not
+ * bake its own clock into the page), the moment the page's code loaded once in the browser.
+ */
+const noSubscription = () => () => {};
+const loadedAt = typeof window === "undefined" ? 0 : Date.now();
+function usePageClock(): number | null {
+  return useSyncExternalStore(
+    noSubscription,
+    () => loadedAt,
+    () => null
+  );
+}
 
 function byteRate(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -90,7 +129,7 @@ function pickCountry(rows: readonly CountryRow[], total: number): CountryRow | n
  * on the map. The pulses are a model (random reported countries weighted by population), not
  * where anything really came from: Chia does not reveal the origin of a block or a spend bundle.
  */
-function useActivity(rows: CountryRow[]) {
+function useActivity(rows: CountryRow[], paused: boolean) {
   const peakHeight = useLiveValue("peakHeight");
   const txBatch = useLiveValue("txBatch");
   const lastTxEvent = useLiveValue("lastTxEvent");
@@ -100,6 +139,8 @@ function useActivity(rows: CountryRow[]) {
   const seq = useRef(0);
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
   const lastPeak = useRef<number | null>(null);
   const lastBatch = useRef(0);
   const pulseTimers = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -112,7 +153,8 @@ function useActivity(rows: CountryRow[]) {
   }, []);
 
   const pulse = (kind: MapPulse["kind"], n: number) => {
-    if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // No pulses nobody can see: hidden tab, map scrolled away, or reduced motion.
+    if (pausedRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const list = rowsRef.current.filter((row) => row.lat !== null);
     const total = list.reduce((sum, row) => sum + row.nodes, 0);
     const fresh: MapPulse[] = [];
@@ -172,7 +214,7 @@ function useActivity(rows: CountryRow[]) {
 }
 
 export function MapPage() {
-  const t = useT("map");
+  const t = useT(mapNs);
   const names = useMapNames();
   const { client, endpoints } = useSettings();
   const [hovered, setHovered] = useState<string | null>(null);
@@ -186,17 +228,43 @@ export function MapPage() {
   const [scale, setScale] = useState(1);
   const map = useRef<MapHandle | null>(null);
 
-  const forNetwork = DASHBOARD.network === endpoints.network;
-  const rows = useMemo(() => (forNetwork ? countryRows(DASHBOARD) : []), [forNetwork]);
+  const clock = usePageClock();
+  const source: SnapshotState = useMemo(
+    () =>
+      snapshotState(
+        SNAPSHOT,
+        endpoints.network,
+        // Before the browser clock is known, judge the snapshot as of its own capture.
+        clock ?? (SNAPSHOT ? Date.parse(SNAPSHOT.observedAt) : 0)
+      ),
+    [endpoints.network, clock]
+  );
+  /** The dashboard snapshot while it is the page's source; null in the seeder-scan fallback. */
+  const dash = source.mode === "snapshot" ? source.snapshot : null;
+  const scan = useNodeScan(endpoints.network, source.mode === "scan");
+  const rows = useMemo(
+    () => (dash ? countryRows(dash) : scanRows(scan.registry)),
+    [dash, scan.registry]
+  );
   const regions = useMemo(() => regionRows(rows), [rows]);
-  const versions = useMemo(() => versionBreakdown(DASHBOARD), []);
-  const transport = useMemo(() => transportRows(DASHBOARD), []);
+  const versions = useMemo(() => (dash ? versionBreakdown(dash) : null), [dash]);
+  const transport = useMemo(() => (dash ? transportRows(dash) : []), [dash]);
   const spread = useMemo(() => concentration(rows), [rows]);
   /** Nodes the country panel accounts for; the total-nodes panel is a separate query. */
   const placed = useMemo(() => rows.reduce((sum, row) => sum + row.nodes, 0), [rows]);
-  const unaccounted = forNetwork ? DASHBOARD.total - placed : 0;
+  /** The population the shares are of: the dashboard's total, or the nodes the scan located. */
+  const population = dash ? dash.total : placed;
+  const unaccounted = dash ? dash.total - placed : 0;
 
-  const activity = useActivity(rows);
+  const stage = useRef<HTMLDivElement | null>(null);
+  const paused = useAnimationPause(stage);
+  const activity = useActivity(rows, paused);
+  const entering = useEntrances(
+    rows,
+    dash ? dash.observedAt : "scan",
+    dash ? `mempool-xch:map:seen:v1:${endpoints.network}` : null,
+    paused
+  );
 
   // ---- search and region filters -----------------------------------------
   const trimmed = query.trim().toLowerCase();
@@ -300,7 +368,9 @@ export function MapPage() {
     return acc;
   }, [peerHosts, peerGeo.data]);
 
-  const snapshotAge = forNetwork ? formatAge(new Date(DASHBOARD.observedAt).getTime()) : "—";
+  // Until the page clock is known (prerender and hydration) there is no "now" to count from:
+  // falling back to Date.now() baked the build time into the HTML and broke hydration.
+  const snapshotAge = dash && clock !== null ? formatAge(Date.parse(dash.observedAt), clock) : "—";
   const visibleCountries = showAllCountries ? matchedRows : matchedRows.slice(0, COUNTRY_ROWS);
 
   const bold = (c: ReactNode) => <strong className="text-fg">{c}</strong>;
@@ -315,63 +385,65 @@ export function MapPage() {
         <p className="max-w-3xl text-sm text-fg-muted">{t("intro")} </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        <StatTile
-          label={t("stats.fullNodes")}
-          value={formatNumber(forNetwork ? DASHBOARD.total : 0)}
-          sub={forNetwork ? t("stats.fullNodesSub") : t("stats.mainnetOnly")}
-          tone="primary"
-          hint={t("stats.fullNodesHint")}
-        />
-        <StatTile
-          label={t("stats.reliable")}
-          value={DASHBOARD.capacity !== null ? formatNumber(DASHBOARD.capacity) : "—"}
-          sub={
-            DASHBOARD.capacity !== null
-              ? t("stats.reliableSub", {
-                  share: formatPercent(DASHBOARD.capacity / DASHBOARD.total, 1),
-                })
-              : undefined
-          }
-          hint={t("stats.reliableHint")}
-        />
-        <StatTile
-          label={t("stats.ipv6")}
-          value={DASHBOARD.ipv6 !== null ? formatPercent(DASHBOARD.ipv6 / DASHBOARD.total, 1) : "—"}
-          sub={DASHBOARD.ipv6 !== null ? t("stats.ipv6Sub", { count: DASHBOARD.ipv6 }) : undefined}
-          hint={t("stats.ipv6Hint")}
-        />
-        <StatTile
-          label={t("stats.countries")}
-          value={formatNumber(rows.length)}
-          sub={t("stats.countriesSub", { count: placed })}
-          hint={t("stats.countriesHint")}
-        />
-        <StatTile
-          label={t("stats.concentration")}
-          value={
-            spread.countriesForHalf > 0
-              ? t("stats.concentrationValue", { count: spread.countriesForHalf })
-              : "—"
-          }
-          sub={
-            spread.topLabel && rows[0]
-              ? t("stats.concentrationSub", {
-                  country: names.country(rows[0]),
-                  share: formatPercent(spread.topShare, 1),
-                })
-              : undefined
-          }
-          tone={spread.countriesForHalf > 0 && spread.countriesForHalf <= 3 ? "warning" : "default"}
-          hint={t("stats.concentrationHint")}
-        />
-        <StatTile
-          label={t("stats.snapshot")}
-          value={snapshotAge}
-          sub={forNetwork ? t("stats.snapshotSub") : t("stats.unavailable")}
-          hint={t("stats.snapshotHint")}
-        />
-      </div>
+      {dash ? (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <StatTile
+            label={t("stats.fullNodes")}
+            value={formatNumber(dash.total)}
+            sub={t("stats.fullNodesSub")}
+            tone="primary"
+            hint={t("stats.fullNodesHint")}
+          />
+          <StatTile
+            label={t("stats.reliable")}
+            value={dash.capacity !== null ? formatNumber(dash.capacity) : "—"}
+            sub={
+              dash.capacity !== null
+                ? t("stats.reliableSub", { share: formatPercent(dash.capacity / dash.total, 1) })
+                : undefined
+            }
+            hint={t("stats.reliableHint")}
+          />
+          <StatTile
+            label={t("stats.ipv6")}
+            value={dash.ipv6 !== null ? formatPercent(dash.ipv6 / dash.total, 1) : "—"}
+            sub={dash.ipv6 !== null ? t("stats.ipv6Sub", { count: dash.ipv6 }) : undefined}
+            hint={t("stats.ipv6Hint")}
+          />
+          <StatTile
+            label={t("stats.countries")}
+            value={formatNumber(rows.length)}
+            sub={t("stats.countriesSub", { count: placed })}
+            hint={t("stats.countriesHint")}
+          />
+          <ConcentrationTile spread={spread} top={rows[0] ?? null} />
+          <StatTile
+            label={t("stats.snapshot")}
+            value={snapshotAge}
+            sub={t("stats.snapshotSub")}
+            hint={t("stats.snapshotHint")}
+          />
+        </div>
+      ) : (
+        <ScanTiles scan={scan} rows={rows} spread={spread} />
+      )}
+
+      {source.mode === "scan" ? (
+        <p
+          role="note"
+          className="rounded-sm border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-fg-muted"
+        >
+          {source.reason === "stale" && source.snapshot
+            ? t("fallback.stale", {
+                date: formatDay(Date.parse(source.snapshot.observedAt)),
+                days: Math.round(SNAPSHOT_MAX_AGE_MS / DAY_MS),
+              })
+            : source.reason === "network"
+              ? t("fallback.network", { network: endpoints.network })
+              : t("fallback.missing")}{" "}
+          {t("fallback.scan")}
+        </p>
+      ) : null}
 
       <Card>
         <CardHeader
@@ -505,19 +577,16 @@ export function MapPage() {
                     shown: matchedRows.length,
                     total: rows.length,
                     nodes: matchedNodes,
-                    share: formatPercent(
-                      DASHBOARD.total > 0 ? matchedNodes / DASHBOARD.total : 0,
-                      1
-                    ),
+                    share: formatPercent(population > 0 ? matchedNodes / population : 0, 1),
                   })
-                : t("mapCard.summary", { nodes: DASHBOARD.total, countries: rows.length })}
+                : t("mapCard.summary", { nodes: population, countries: rows.length })}
             </span>
             <span className="tabular">
               {t("mapCard.controls", { scale: formatFixed(scale, 1) })}
             </span>
           </div>
 
-          <div className="relative">
+          <div className="relative" ref={stage}>
             <WorldMap
               handleRef={map}
               countries={rows}
@@ -530,11 +599,14 @@ export function MapPage() {
               matched={matched}
               filtered={filtered}
               showArcs={showArcs}
+              entering={entering}
+              paused={paused}
               onViewChange={setScale}
             />
             <CountryDetail
               row={detail}
               peers={detail ? (peersByCountry.get(detail.label) ?? 0) : 0}
+              scan={!dash}
             />
             {filtered && matchedRows.length === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -544,6 +616,7 @@ export function MapPage() {
               </div>
             ) : null}
           </div>
+          <p className="text-xs text-fg-faint">{t("mapCard.modelLegend")}</p>
         </CardBody>
       </Card>
 
@@ -605,58 +678,62 @@ export function MapPage() {
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader
-            title={t("versions.title")}
-            action={
-              <span className="tabular text-xs text-fg-faint">
-                {t("versions.reporting", { count: versions.reporting })}
-              </span>
-            }
-          />
-          <CardBody className="flex flex-col gap-3">
-            {versions.rows.length === 0 ? (
-              <p className="py-6 text-center text-sm text-fg-faint">{t("versions.empty")}</p>
-            ) : (
-              <>
-                <ul className="flex flex-col gap-2">
-                  {versions.rows.map((version) => (
-                    <li key={version.label} className="flex items-center gap-3 text-sm">
-                      <span className="mono w-16 shrink-0 text-fg">{version.label}</span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
-                        <div
-                          className="h-full rounded-full transition-[width] duration-500"
-                          style={{
-                            width: `${Math.max(1, version.share * 100)}%`,
-                            background: version.newest ? "var(--primary)" : "var(--info)",
-                          }}
-                        />
-                      </div>
-                      <span className="tabular w-14 shrink-0 text-right text-xs text-fg-muted">
-                        {formatPercent(version.share, 1)}
-                      </span>
-                      <span className="tabular w-14 shrink-0 text-right text-xs text-fg-faint">
-                        {formatNumber(version.nodes)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-fg-faint">
-                  {versions.newest
-                    ? t("versions.noteNewest", {
-                        reporting: versions.reporting,
-                        coverage: formatPercent(versions.coverage, 1),
-                        newest: versions.newest,
-                      })
-                    : t("versions.note", {
-                        reporting: versions.reporting,
-                        coverage: formatPercent(versions.coverage, 1),
-                      })}
-                </p>
-              </>
-            )}
-          </CardBody>
-        </Card>
+        {versions ? (
+          <Card>
+            <CardHeader
+              title={t("versions.title")}
+              action={
+                <span className="tabular text-xs text-fg-faint">
+                  {t("versions.reporting", { count: versions.reporting })}
+                </span>
+              }
+            />
+            <CardBody className="flex flex-col gap-3">
+              {versions.rows.length === 0 ? (
+                <p className="py-6 text-center text-sm text-fg-faint">{t("versions.empty")}</p>
+              ) : (
+                <>
+                  <ul className="flex flex-col gap-2">
+                    {versions.rows.map((version) => (
+                      <li key={version.label} className="flex items-center gap-3 text-sm">
+                        <span className="mono w-16 shrink-0 text-fg">{version.label}</span>
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
+                          <div
+                            className="h-full rounded-full transition-[width] duration-500"
+                            style={{
+                              width: `${Math.max(1, version.share * 100)}%`,
+                              background: version.newest ? "var(--primary)" : "var(--info)",
+                            }}
+                          />
+                        </div>
+                        <span className="tabular w-14 shrink-0 text-right text-xs text-fg-muted">
+                          {formatPercent(version.share, 1)}
+                        </span>
+                        <span className="tabular w-14 shrink-0 text-right text-xs text-fg-faint">
+                          {formatNumber(version.nodes)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-fg-faint">
+                    {versions.newest
+                      ? t("versions.noteNewest", {
+                          reporting: versions.reporting,
+                          coverage: formatPercent(versions.coverage, 1),
+                          newest: versions.newest,
+                        })
+                      : t("versions.note", {
+                          reporting: versions.reporting,
+                          coverage: formatPercent(versions.coverage, 1),
+                        })}
+                  </p>
+                </>
+              )}
+            </CardBody>
+          </Card>
+        ) : (
+          <ScanLog scan={scan} />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -711,37 +788,39 @@ export function MapPage() {
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader
-            title={t("reach.title")}
-            action={<span className="text-xs text-fg-faint">{t("reach.action")}</span>}
-          />
-          <CardBody className="flex flex-col gap-3">
-            <ul className="flex flex-col gap-2">
-              {transport.map((row) => (
-                <li key={row.id} className="flex items-center gap-3 text-sm">
-                  <span className="flex w-24 shrink-0 items-center gap-1 text-fg">
-                    {t(`reach.${row.id}`)}
-                    <Tooltip text={t(`reach.${row.id}Hint`)} />
-                  </span>
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
-                    <div
-                      className="h-full rounded-full bg-primary transition-[width] duration-500"
-                      style={{ width: `${Math.max(1, (row.share ?? 0) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="tabular w-12 shrink-0 text-right text-xs text-fg-muted">
-                    {row.share !== null ? formatPercent(row.share, 1) : "—"}
-                  </span>
-                  <span className="tabular w-16 shrink-0 text-right text-xs text-fg-faint">
-                    {row.nodes !== null ? formatNumber(row.nodes) : "—"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-fg-faint">{t("reach.overlap")}</p>
-          </CardBody>
-        </Card>
+        {dash ? (
+          <Card>
+            <CardHeader
+              title={t("reach.title")}
+              action={<span className="text-xs text-fg-faint">{t("reach.action")}</span>}
+            />
+            <CardBody className="flex flex-col gap-3">
+              <ul className="flex flex-col gap-2">
+                {transport.map((row) => (
+                  <li key={row.id} className="flex items-center gap-3 text-sm">
+                    <span className="flex w-24 shrink-0 items-center gap-1 text-fg">
+                      {t(`reach.${row.id}`)}
+                      <Tooltip text={t(`reach.${row.id}Hint`)} />
+                    </span>
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
+                      <div
+                        className="h-full rounded-full bg-primary transition-[width] duration-500"
+                        style={{ width: `${Math.max(1, (row.share ?? 0) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="tabular w-12 shrink-0 text-right text-xs text-fg-muted">
+                      {row.share !== null ? formatPercent(row.share, 1) : "—"}
+                    </span>
+                    <span className="tabular w-16 shrink-0 text-right text-xs text-fg-faint">
+                      {row.nodes !== null ? formatNumber(row.nodes) : "—"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-fg-faint">{t("reach.overlap")}</p>
+            </CardBody>
+          </Card>
+        ) : null}
       </div>
 
       <Card>
@@ -756,7 +835,7 @@ export function MapPage() {
         <CardBody>
           {matchedRows.length === 0 ? (
             <p className="py-6 text-center text-sm text-fg-faint">
-              {rows.length === 0 ? t("countries.noSnapshot") : t("countries.noMatch")}
+              {rows.length === 0 ? t("countries.scanWaiting") : t("countries.noMatch")}
             </p>
           ) : (
             <>
@@ -840,6 +919,8 @@ export function MapPage() {
         </CardBody>
       </Card>
 
+      {dash ? <MapHistory snapshot={dash} /> : null}
+
       {!endpoints.isCoinset ? (
         <PeerTables
           peers={connections.data}
@@ -853,25 +934,37 @@ export function MapPage() {
         <CardHeader title={t("about.title")} />
         <CardBody className="grid gap-3 text-sm text-fg-muted sm:grid-cols-2">
           <p>
-            {forNetwork
+            {dash
               ? t.rich("about.shows", { age: snapshotAge, b: bold })
-              : t.rich("about.showsMainnet", { b: bold })}
+              : t.rich("about.showsScan", { b: bold })}
           </p>
           <p>{t.rich("about.notShows", { b: bold })}</p>
         </CardBody>
       </Card>
 
       <p className="text-xs text-fg-faint">
-        {t.rich(unaccounted !== 0 ? "sourceGap" : "source", {
-          observed: forNetwork
-            ? new Date(DASHBOARD.observedAt).toISOString().slice(0, 16).replace("T", " ")
-            : "—",
-          placed,
-          total: DASHBOARD.total,
-          gap: Math.abs(unaccounted),
+        {dash
+          ? t.rich(unaccounted !== 0 ? "sourceGap" : "source", {
+              observed: new Date(dash.observedAt).toISOString().slice(0, 16).replace("T", " "),
+              placed,
+              total: dash.total,
+              gap: Math.abs(unaccounted),
+              link: (c) => (
+                <a
+                  href={dash.source}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-accent hover:underline"
+                >
+                  {c}
+                </a>
+              ),
+            })
+          : t("scan.source")}{" "}
+        {t.rich("attribution", {
           link: (c) => (
             <a
-              href={DASHBOARD.source}
+              href={SNAPSHOT?.source ?? DASHBOARD_URL}
               target="_blank"
               rel="noreferrer noopener"
               className="text-accent hover:underline"
@@ -887,8 +980,17 @@ export function MapPage() {
 }
 
 /** Hover/selection read-out over the map: everything the snapshot knows about one country. */
-function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }) {
-  const t = useT("map");
+function CountryDetail({
+  row,
+  peers,
+  scan,
+}: {
+  row: CountryRow | null;
+  peers: number;
+  /** Seeder-scan fallback: shares are of the located nodes and there is a last-seen time. */
+  scan: boolean;
+}) {
+  const t = useT(mapNs);
   const names = useMapNames();
   return (
     <div
@@ -916,6 +1018,12 @@ function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }
         <dd className="tabular text-right text-fg">{row ? `#${row.rank}` : "—"}</dd>
         <dt className="text-fg-faint">{t("detail.region")}</dt>
         <dd className="truncate text-right text-fg">{row ? names.region(row.region) : "—"}</dd>
+        {row?.lastSeen ? (
+          <>
+            <dt className="text-fg-faint">{t("detail.lastSeen")}</dt>
+            <dd className="truncate text-right text-fg">{formatAge(row.lastSeen)}</dd>
+          </>
+        ) : null}
         {peers > 0 ? (
           <>
             <dt className="text-fg-faint">{t("detail.yourPeers")}</dt>
@@ -932,7 +1040,9 @@ function CountryDetail({ row, peers }: { row: CountryRow | null; peers: number }
           }}
         />
       </div>
-      <p className="mt-1.5 text-[10px] leading-tight text-fg-faint">{t("detail.note")}</p>
+      <p className="mt-1.5 text-[10px] leading-tight text-fg-faint">
+        {scan ? t("detail.noteScan") : t("detail.note")}
+      </p>
     </div>
   );
 }
@@ -948,7 +1058,7 @@ function PeerTables({
   loading: boolean;
   error: unknown;
 }) {
-  const t = useT("map");
+  const t = useT(mapNs);
   const typeName = (type: number) =>
     isKnownType(type)
       ? t(`peers.types.${CONNECTION_TYPE[type]}`)
@@ -1070,5 +1180,128 @@ function PeerTables({
         </Card>
       ) : null}
     </>
+  );
+}
+
+function ConcentrationTile({
+  spread,
+  top,
+}: {
+  spread: ReturnType<typeof concentration>;
+  top: CountryRow | null;
+}) {
+  const t = useT(mapNs);
+  const names = useMapNames();
+  return (
+    <StatTile
+      label={t("stats.concentration")}
+      value={
+        spread.countriesForHalf > 0
+          ? t("stats.concentrationValue", { count: spread.countriesForHalf })
+          : "—"
+      }
+      sub={
+        spread.topLabel && top
+          ? t("stats.concentrationSub", {
+              country: names.country(top),
+              share: formatPercent(spread.topShare, 1),
+            })
+          : undefined
+      }
+      tone={spread.countriesForHalf > 0 && spread.countriesForHalf <= 3 ? "warning" : "default"}
+      hint={t("stats.concentrationHint")}
+    />
+  );
+}
+
+/** The fallback's own figures: what this browser has found, located and when it last heard. */
+function ScanTiles({
+  scan,
+  rows,
+  spread,
+}: {
+  scan: NodeScanState;
+  rows: CountryRow[];
+  spread: ReturnType<typeof concentration>;
+}) {
+  const t = useT(mapNs);
+  const found = Object.keys(scan.registry.nodes).length;
+  const located = rows.reduce((sum, row) => sum + row.nodes, 0);
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <StatTile
+        label={t("scan.found")}
+        value={formatNumber(found)}
+        sub={t("scan.foundSub", { count: scan.scans })}
+        tone="primary"
+        hint={t("scan.foundHint")}
+      />
+      <StatTile
+        label={t("scan.located")}
+        value={formatNumber(located)}
+        sub={t("scan.locatedSub", { count: scan.pendingGeo })}
+        hint={t("scan.locatedHint")}
+      />
+      <StatTile
+        label={t("stats.countries")}
+        value={formatNumber(rows.length)}
+        sub={t("stats.countriesSub", { count: located })}
+        hint={t("scan.countriesHint")}
+      />
+      <ConcentrationTile spread={spread} top={rows[0] ?? null} />
+      <StatTile
+        label={t("scan.lastAnswer")}
+        value={scan.lastScanAt !== null ? formatAge(scan.lastScanAt) : "—"}
+        sub={scan.scanning ? t("scan.scanning") : t("scan.pausedHidden")}
+        hint={t("scan.lastAnswerHint")}
+      />
+      <StatTile
+        label={t("stats.snapshot")}
+        value={t("stats.unavailable")}
+        sub={t("scan.snapshotSub")}
+        tone="warning"
+        hint={t("stats.snapshotHint")}
+      />
+    </div>
+  );
+}
+
+/** The latest seeder answers, newest first: which introducer, which record type, what it added. */
+function ScanLog({ scan }: { scan: NodeScanState }) {
+  const t = useT(mapNs);
+  return (
+    <Card>
+      <CardHeader
+        title={t("scan.logTitle")}
+        action={
+          <span className="text-xs text-fg-faint">
+            {t("scan.logAction", { seconds: SCAN_INTERVAL_MS / 1000 })}
+          </span>
+        }
+      />
+      <CardBody>
+        {scan.log.length === 0 ? (
+          <p className="py-4 text-center text-sm text-fg-faint">{t("scan.logWaiting")}</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-border/60 text-sm">
+            {scan.log.map((entry) => (
+              <li
+                key={`${entry.t}:${entry.seeder}:${entry.type}`}
+                className="flex flex-wrap items-center justify-between gap-2 py-1.5"
+              >
+                <span className="mono truncate text-xs text-fg">
+                  {entry.seeder} <span className="text-fg-faint">{entry.type}</span>
+                </span>
+                <span className="tabular text-xs text-fg-muted">
+                  {entry.error
+                    ? t("scan.logError")
+                    : t("scan.logEntry", { answered: entry.answered, added: entry.added })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardBody>
+    </Card>
   );
 }

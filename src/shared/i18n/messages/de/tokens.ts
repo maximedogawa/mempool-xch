@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/tokens";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Token",
   intro:
     "Jeder CAT, für den die Dexie-Registry einen Namen kennt, insgesamt {total}. Preis, Volumen und Liquidität sind Dexie-Marktdaten, alle in XCH, damit sich Token miteinander vergleichen lassen: Das Volumen ist das gegen den Token gehandelte XCH, die Liquidität die XCH-Seite seiner offenen Offers (täglich aktualisiert). Eine einzige Anfrage liefert die Marktdaten aller Token, auf unserem Server wird nichts gespeichert. Den On-Chain-Verlauf finden Sie auf der Seite des jeweiligen Tokens.",

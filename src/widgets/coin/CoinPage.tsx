@@ -35,6 +35,7 @@ import {
 import { readSemantics } from "./semantics";
 import { useCoinChildren, useCoinDetails, useCoinMempoolSpends, useCoinRecord } from "./useCoin";
 import { SageCoinPanel } from "@/widgets/wallet/SagePanels";
+import coinNs from "@/shared/i18n/messages/en/coin";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -48,7 +49,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export function CoinPage({ id }: { id: string | null }) {
-  const t = useT("coin");
+  const t = useT(coinNs);
   const { endpoints, networkConfig } = useSettings();
   const record = useCoinRecord(id);
   const details = useCoinDetails(id);
@@ -440,7 +441,7 @@ function safeAddress(puzzleHash: string, prefix: "xch" | "txch"): string | null 
 }
 
 function Heading({ id, badge, spent }: { id: string; badge?: React.ReactNode; spent?: boolean }) {
-  const t = useT("coin");
+  const t = useT(coinNs);
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">

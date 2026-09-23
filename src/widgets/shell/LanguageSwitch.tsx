@@ -5,12 +5,13 @@ import { LOCALE_NAMES, LOCALES, type Locale } from "@/shared/i18n/config";
 import { useLocale, useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 /** Header language picker; the choice persists in settings and applies without a reload. */
 export function LanguageSwitch({ className }: { className?: string }) {
   const { update } = useSettings();
   const locale = useLocale();
-  const t = useT("shell");
+  const t = useT(shellNs);
   return (
     <label
       className={cn(

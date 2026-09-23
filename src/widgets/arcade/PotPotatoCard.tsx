@@ -10,6 +10,7 @@ import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader, Hash, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { usePotato } from "./usePotato";
+import arcadeNs from "@/shared/i18n/messages/en/arcade";
 
 /** Fuse colour moves from calm green to hot red as the hold runs down. */
 function fuseTone(progress: number): string {
@@ -25,7 +26,7 @@ function fuseTone(progress: number): string {
  * simply the holder's XCH.
  */
 export function PotPotatoCard() {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const { tip, state, live, error, snapshotAt } = usePotato();
   const tone = state.ripe ? "var(--primary)" : fuseTone(state.progress);
   const hours = POTATO.holdSeconds / 3600;

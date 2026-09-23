@@ -51,4 +51,16 @@ describe("squarify", () => {
     const worst = Math.max(...cells.map((c) => Math.max(c.width / c.height, c.height / c.width)));
     expect(worst).toBeLessThan(4);
   });
+  test("input order keeps the caller's sequence and still tiles the rectangle", () => {
+    const inputs = [
+      { item: "small", weight: 1 },
+      { item: "big", weight: 8 },
+      { item: "mid", weight: 3 },
+    ];
+    const cells = squarify(inputs, 300, 200, { order: "input" });
+    expect(cells.map((c) => c.item)).toEqual(["small", "big", "mid"]);
+    const area = cells.reduce((s, c) => s + c.width * c.height, 0);
+    expect(area).toBeCloseTo(300 * 200, 3);
+    expect(squarify(inputs, 300, 200).map((c) => c.item)).toEqual(["big", "mid", "small"]);
+  });
 });

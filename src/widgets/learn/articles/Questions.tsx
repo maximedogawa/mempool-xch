@@ -5,6 +5,7 @@ import type { RichTag } from "@/shared/i18n/translate";
 import { routes } from "@/shared/lib/routes";
 import { LearnArticle } from "../LearnArticle";
 import { linkTag, PROSE_TAGS } from "./tags";
+import learnNs from "@/shared/i18n/messages/en/learn";
 
 type QuestionKey =
   "pending" | "fee" | "confirmations" | "ids" | "coins" | "reorg" | "data" | "prefarm";
@@ -29,7 +30,7 @@ const QUESTIONS: QuestionKey[] = [
 ];
 
 export function Questions() {
-  const t = useT("learn");
+  const t = useT(learnNs);
   return (
     <LearnArticle slug="questions">
       {QUESTIONS.map((key) => (

@@ -9,11 +9,12 @@ import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetBadge, Hash } from "@/shared/ui";
 import type { Flow, FlowCoin } from "./flow";
+import txNs from "@/shared/i18n/messages/en/tx";
 
 const MAX_ROWS = 60;
 
 function CoinRow({ coin, share }: { coin: FlowCoin; share: number }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const { networkConfig } = useSettings();
   const owner = coin.custodyP2 || coin.puzzleHash;
   const address = safeAddress(owner, networkConfig.addressPrefix);
@@ -69,7 +70,7 @@ function safeAddress(puzzleHash: string, prefix: "xch" | "txch"): string | null 
 }
 
 function Column({ title, coins, total }: { title: string; coins: FlowCoin[]; total: bigint }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   const shown = coins.slice(0, MAX_ROWS);
   // Bar width relative to the largest amount in this column, so the eye reads size at a glance
   // (mempool.space style); each column scales against its own max, since inputs and outputs can
@@ -106,7 +107,7 @@ function Column({ title, coins, total }: { title: string; coins: FlowCoin[]; tot
 
 /** Inputs (removals) → outputs (additions), mempool.space style, stacked on phones. */
 export function FlowDiagram({ flow, fee }: { flow: Flow; fee: bigint }) {
-  const t = useT("tx");
+  const t = useT(txNs);
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-start">
       <Column title={t("flow.inputs")} coins={flow.inputs} total={flow.totalIn} />

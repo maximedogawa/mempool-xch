@@ -11,6 +11,7 @@ import { AssetImage } from "@/shared/ui/AssetImage";
 import { useDidHoldings } from "@/widgets/did/useDidProfile";
 import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchStatus } from "./WatchlistParts";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /**
  * A watched DID: who it is and what it holds. Unlike an address there is no mempool angle —
@@ -18,7 +19,7 @@ import { RemoveWatch, WatchStatus } from "./WatchlistParts";
  * MintGarden rather than pending transactions.
  */
 export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: () => void }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const didId = item.label.startsWith("did:chia:") ? item.label : launcherIdToDidId(item.id);
   const { profile, collections, isLoading, available } = useDidHoldings(item.id);
   const owned = profile?.ownedNfts ?? null;

@@ -1,4 +1,6 @@
 /** src/widgets/docs: the Help page. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Help",
   why: {
@@ -106,4 +108,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("docs", messages);

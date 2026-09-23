@@ -5,9 +5,10 @@ import { normaliseId32 } from "@/shared/lib/chia/hex";
 import { useT } from "@/shared/i18n/useT";
 import { EmptyState } from "@/shared/ui";
 import { TransactionPage } from "@/widgets/tx/TransactionPage";
+import appNs from "@/shared/i18n/messages/en/app";
 
 export function TransactionRoute() {
-  const t = useT("app");
+  const t = useT(appNs);
   const raw = useDetailId("tx") ?? "";
   const id = normaliseId32(raw);
   if (raw && !id) {

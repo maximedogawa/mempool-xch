@@ -1,4 +1,6 @@
 /** Legal pages, consent panel and disclaimer banner (src/widgets/legal, src/app/legal). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   page: {
     navLabel: "Legal pages",
@@ -11,40 +13,6 @@ const messages = {
     lastUpdated: "Last updated {date}",
     translationNote:
       "This translation is provided for convenience. If it differs from the English version, the English version applies.",
-  },
-  consent: {
-    title: "Cookies and local storage",
-    intro:
-      "This site keeps only what it needs to work in your browser. Nothing for analytics or advertising loads unless you allow it here.",
-    cookiePolicy: "Cookie policy",
-    privacyPolicy: "Privacy policy",
-    signal:
-      "Your browser sends a Do Not Track or Global Privacy Control signal, so analytics and advertising stay off.",
-    categoriesLegend: "Categories",
-    categories: {
-      necessary: {
-        label: "Strictly necessary",
-        detail: "Your settings, caches and this choice, kept in your browser. Always on.",
-      },
-      analytics: {
-        label: "Analytics",
-        detail: "Anonymous usage statistics. Not used at the moment.",
-      },
-      advertising: {
-        label: "Advertising",
-        detail: "Ads and ad measurement. Not used at the moment.",
-      },
-    },
-    rejectAll: "Reject all",
-    saveChoice: "Save my choice",
-    acceptAll: "Accept all",
-    close: "Close",
-    settingsButton: "Cookie settings",
-  },
-  disclaimer: {
-    label: "Disclaimer",
-    text: "Alpha software, still changing a lot. Not financial advice — verify in your own wallet. <link>Terms of use</link>",
-    dismiss: "Dismiss disclaimer",
   },
   terms: {
     title: "Terms of use",
@@ -193,12 +161,10 @@ const messages = {
       },
       noProxy:
         "The server does not fetch chain or asset data on your behalf: it only serves the application itself (HTML, scripts, styles). Every lookup you make is a request from your own browser to Coinset, Dexie, MintGarden, XCHandles, public market data sources or your own node, described in the next sections.",
-      market:
-        "The Market page reads public order books from Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro), plus public XCH offers for ByteCash (BYC, Circuit's USD stablecoin) and wUSDC.b from Dexie. These requests contain no account credentials. A source can be unavailable or rate limited; the page labels it stale and excludes it from its aggregate.",
     },
     storage: {
       title: "3. Storage in your browser",
-      body: "The site keeps a few entries in your browser's local storage: your settings (network, node address, theme, language, sounds, whether you turned on browser notifications), a cache of the asset list, a short mempool history drawn while the page is open, your watchlist of addresses and transaction ids if you add any, which Sage permissions you declined, and your cookie choice. They stay on your device and are not sent to the operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time in your browser settings. Details are in the <link>cookie policy</link>.",
+      body: "The site keeps a few entries in your browser's local storage: your settings (network, node address, theme, language, sounds, whether you turned on browser notifications), a cache of the asset list, a short mempool history drawn while the page is open, your watchlist of addresses and transaction ids if you add any, your filters for the dashboard's next-block view, the node counts per country the network map last showed, which Sage permissions you declined, and your cookie choice. They stay on your device and are not sent to the operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time in your browser settings. Details are in the <link>cookie policy</link>.",
       notifications:
         "If you turn on browser notifications for your watchlist, that permission is granted to this site by your browser and can be withdrawn there at any time; the operator never sees whether you turned it on.",
     },
@@ -218,7 +184,9 @@ const messages = {
         coinset:
           "Coinset (api.coinset.org): all chain data — the mempool, blocks, transactions, addresses, coins and assets you view, and the live updates — unless you enter a different node below.",
         node: "A full node you enter in Settings: all chain data then comes from there instead of Coinset.",
-        map: "Only while the Network map page is open: Cloudflare DNS (cloudflare-dns.com, with dns.google as a fallback) answers DNS queries for the Chia introducers, and GeoJS (get.geojs.io) estimates the location of the node addresses those answers contain. Only node addresses are sent for lookup, never yours; the addresses learnt are kept in your browser's local storage for a week.",
+        map: "Network map page: its node statistics are a snapshot of Chia Network's public Peer Info dashboard (dashboard.chia.net) that ships with this site, so showing them contacts no one. Only when that snapshot is missing, older than 30 days or not for the selected network does the page fall back to a live scan while it is open: Cloudflare DNS (cloudflare-dns.com, with dns.google as a fallback) answers DNS queries for the Chia introducers, and GeoJS (get.geojs.io) estimates the location of the node addresses those answers contain; the addresses learnt are kept in your browser's local storage for a week. If you point Settings at your own node, the addresses of its connected peers are also sent to GeoJS. Only node addresses are sent for lookup, never yours. The page also remembers in local storage the country counts you last saw, to highlight what changed.",
+        market:
+          "Only while the Market page is open: the public market data APIs of Gate.io (api.gateio.ws), OKX (www.okx.com) and HTX (api.huobi.pro) for XCH order books and recent trades, every 5 seconds, and Dexie (api.dexie.space) for open XCH offers against the stablecoins BYC, wUSDC.b, wUSDC and wUSDT. The requests carry no account, key or wallet data; the exchanges see them like any visit to their API.",
       },
       basis:
         "Legal basis: Art. 6(1)(f) GDPR; the legitimate interest is showing the blockchain content you request. Some of these providers may process data outside the European Economic Area, for example in the United States, where the level of data protection can be lower. Their own privacy policies apply.",
@@ -297,6 +265,15 @@ const messages = {
           purpose: "Addresses and transaction ids you chose to watch",
           lifetime: "Until you remove them or clear it",
         },
+        goggles: {
+          purpose: "Your filters and view choices for the next-block view on the dashboard",
+          lifetime: "Until you clear the filters or clear it",
+        },
+        mapSeen: {
+          purpose:
+            "Node counts per country the Network map last showed, so it animates only what changed",
+          lifetime: "Until you clear it; replaced with each newer snapshot",
+        },
         sageRefused: {
           purpose: "Sage permissions you declined, so you are not asked again (Sage app only)",
           lifetime: "Until you clear it",
@@ -321,4 +298,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("legal", messages);

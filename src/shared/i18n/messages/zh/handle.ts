@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/handle";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   status: {
     active: "已注册",
     expired: "已过期",

@@ -18,6 +18,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { requestEndpointWhitelist } from "@/shared/lib/sage/wallet";
 import { Button, Card, CardBody, CardHeader } from "@/shared/ui";
+import settingsNs from "@/shared/i18n/messages/en/settings";
 
 type TestState =
   | { status: "idle" }
@@ -28,7 +29,7 @@ type TestState =
 
 /** Which live channel this tab is on and where the data comes from (same words as the pill and footer). */
 function ChannelLine() {
-  const t = useT("settings");
+  const t = useT(settingsNs);
   const { endpoints } = useSettings();
   const status = useLiveValue("status");
   const transport = useLiveValue("transport");
@@ -66,11 +67,11 @@ const THEME_OPTIONS: {
  * Inside Sage the wallet's theme wins (ThemeProvider), so the choice is shown but locked.
  */
 function ThemePicker() {
-  const t = useT("settings");
   const { settings, update } = useSettings();
   const { inSage, sageTheme } = useSage();
   const locked = inSage && sageTheme !== null;
   const active: ThemePreference = locked ? sageTheme : settings.theme;
+  const t = useT(settingsNs);
   return (
     <fieldset className="flex flex-col gap-2 text-sm" disabled={locked}>
       <legend className="mb-2 font-medium">{t("appearance.theme")}</legend>
@@ -137,7 +138,7 @@ function ThemePicker() {
 }
 
 function EndpointRow({ network }: { network: NetworkId }) {
-  const t = useT("settings");
+  const t = useT(settingsNs);
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
@@ -293,7 +294,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
 }
 
 export function SettingsForm() {
-  const t = useT("settings");
+  const t = useT(settingsNs);
   const { settings, update, reset, endpoints } = useSettings();
   const { inSage } = useSage();
   return (

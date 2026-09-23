@@ -1,4 +1,6 @@
 /** Paged block list on the blocks page (src/widgets/blocksList). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Blocks",
   peak: "peak {height}",
@@ -22,4 +24,4 @@ const messages = {
   older: "Older",
 };
 
-export default messages;
+export default defineNamespace("blocksList", messages);

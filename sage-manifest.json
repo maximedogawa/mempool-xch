@@ -1,7 +1,7 @@
 {
   "manifestVersion": 0,
   "name": "mempoolxch.space",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "icon": "icons/icon-512.png",
   "entry": "index.html",
   "sageVersion": {
@@ -22,7 +22,7 @@
           "https://api.dexie.space",
           "https://icons.dexie.space",
           "https://api.mintgarden.io",
-        "https://api.xchandles.com",
+          "https://api.xchandles.com",
           "https://assets.mainnet.mintgarden.io",
           "https://ipfs.mintgarden.io",
           "https://cloudflare-dns.com",

@@ -35,6 +35,7 @@ import { NftOffersCard } from "@/widgets/nft/NftOffersCard";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { TxSummaryList } from "./TxSummaryList";
 import { usePagedTransactions } from "./usePagedTransactions";
+import assetsNs from "@/shared/i18n/messages/en/assets";
 
 /** Accepts an nft1… id or a 32-byte launcher id. */
 export function resolveNftId(raw: string): { nftId: string; launcherId: string } | null {
@@ -51,7 +52,7 @@ type Raw = Record<string, unknown>;
 const obj = (v: unknown): Raw => (v && typeof v === "object" ? (v as Raw) : {});
 
 export function NftPage() {
-  const t = useT("assets");
+  const t = useT(assetsNs);
   const raw = useDetailId("nft") ?? "";
   const ids = useMemo(() => resolveNftId(raw), [raw]);
   const { client, endpoints, networkConfig } = useSettings();

@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { getDisclaimerStore, type DisclaimerState } from "@/shared/lib/disclaimer/store";
 import { routes } from "@/shared/lib/routes";
+import consentNs from "@/shared/i18n/messages/en/consent";
 
 // SSR and the hydration render: assume dismissed so returning visitors never see a flash.
 // First-time visitors see it appear right after hydration, once the browser store is read.
@@ -14,7 +15,7 @@ const serverSnapshot = () => SERVER_STATE;
 export function DisclaimerBanner() {
   const store = getDisclaimerStore();
   const { dismissed } = useSyncExternalStore(store.subscribe, store.get, serverSnapshot);
-  const t = useT("legal");
+  const t = useT(consentNs);
   if (dismissed) return null;
   return (
     <div

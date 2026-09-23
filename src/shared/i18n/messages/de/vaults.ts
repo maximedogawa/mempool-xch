@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/vaults";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   exampleLabel: "Buy-XCH-Hot-Wallet von Chia Network",
   actions: {
     initiateRecovery: "Wiederherstellung gestartet",

@@ -6,6 +6,7 @@ import { SITE_NAME } from "@/shared/config/legal";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LegalPage, linkClass, List, Section } from "./LegalPage";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const SERVICE_ITEMS = ["funds", "transactions", "accounts", "mica", "sage"] as const;
 const DATA_ITEMS = ["delayed", "estimates", "names"] as const;
@@ -19,7 +20,7 @@ const LIABILITY_ITEMS = [
 ] as const;
 
 export function TermsContent() {
-  const t = useT("legal");
+  const t = useT(legalNs);
   const site = SITE_NAME;
   return (
     <LegalPage

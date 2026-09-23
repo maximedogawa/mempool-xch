@@ -15,6 +15,7 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
 import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 const CONFIRMED_GRADIENT = "var(--confirmed-fill)";
 
@@ -53,7 +54,7 @@ export function RecentBlocks({
   loading: boolean;
   blockMaxCost: number;
 }) {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const now = useNow();
   const lookupPool = usePoolLookup();
   // Only the newest cube animates, so the newest height already shown is all there is to keep.

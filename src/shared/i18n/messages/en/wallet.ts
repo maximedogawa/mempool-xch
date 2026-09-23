@@ -1,4 +1,6 @@
 /** Sage wallet page, wallet panels and the pending-transaction tracker (src/widgets/wallet). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   sageBadge: "from your Sage wallet",
   enableInSage: "Enable in Sage",
@@ -112,4 +114,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("wallet", messages);

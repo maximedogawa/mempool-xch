@@ -30,6 +30,7 @@ import {
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { useT } from "@/shared/i18n/useT";
 import { useTokenMarkets } from "./useTokenMarkets";
+import tokensNs from "@/shared/i18n/messages/en/tokens";
 
 const PAGE = 25;
 
@@ -131,7 +132,7 @@ function TokenTableRow({
 }
 
 export function TokensPage() {
-  const t = useT("tokens");
+  const t = useT(tokensNs);
   const tokens = useTokenList();
   const markets = useTokenMarkets();
   const [filter, setFilter] = useState<TokenFilter>("traded");

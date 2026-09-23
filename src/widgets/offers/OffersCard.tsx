@@ -15,6 +15,7 @@ import { Button, Card, CardBody, CardHeader, Hash, Skeleton } from "@/shared/ui"
 import { usePagedList } from "@/widgets/assets/usePagedList";
 import { useT } from "@/shared/i18n/useT";
 import { OFFER_STATUS, OfferSideView, OfferStatusBadge } from "./OfferParts";
+import offersNs from "@/shared/i18n/messages/en/offers";
 
 type TabStatus = Extract<OfferStatus, "open" | "confirmed" | "cancelled" | "expired" | "pending">;
 
@@ -35,7 +36,7 @@ function scopeKey(scope: OfferScope): string {
  * custom node: the offer index is Coinset-only.
  */
 export function OffersCard({ scope, title }: { scope: OfferScope; title?: string }) {
-  const t = useT("offers");
+  const t = useT(offersNs);
   const { client, endpoints, networkConfig } = useSettings();
   const [status, setStatus] = useState<TabStatus>("open");
   const id = scopeKey(scope);

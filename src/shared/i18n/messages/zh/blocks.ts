@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/blocks";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   row: {
     label: "区块",
     projected: "预计 · 下一批区块",

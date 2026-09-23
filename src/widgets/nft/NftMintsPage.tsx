@@ -5,9 +5,10 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 import { useT } from "@/shared/i18n/useT";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents } from "./useNftSection";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 export function NftMintsPage() {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const query = useNftEvents(["mint"]);
   const events = query.data?.pages.flatMap((p) => p.events) ?? [];
 

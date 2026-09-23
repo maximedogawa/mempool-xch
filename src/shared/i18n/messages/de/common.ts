@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/common";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   channel: {
     customName: "Polling (eigener Node)",
     customDetail:

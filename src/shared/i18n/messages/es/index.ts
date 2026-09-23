@@ -26,6 +26,7 @@ import goggles from "./goggles";
 import handle from "./handle";
 import learn from "./learn";
 import legal from "./legal";
+import consent from "./consent";
 import map from "./map";
 import market from "./market";
 import mempool from "./mempool";
@@ -69,6 +70,7 @@ const messages: Messages = {
   handle,
   learn,
   legal,
+  consent,
   map,
   market,
   mempool,

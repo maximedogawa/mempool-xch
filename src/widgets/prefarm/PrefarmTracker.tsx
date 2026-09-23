@@ -21,6 +21,7 @@ import { Badge, Card, CardBody, CardHeader, Hash, Skeleton, StatTile, Tooltip } 
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { formatInteger } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
+import prefarmNs from "@/shared/i18n/messages/en/prefarm";
 
 /**
  * Four vaults × three calls fired together is the kind of burst Coinset answers with a 503
@@ -82,7 +83,7 @@ async function loadVault(
  * coins say and points to Chia's own audit tooling for the full custody picture.
  */
 export function PrefarmTracker() {
-  const t = useT("prefarm");
+  const t = useT(prefarmNs);
   const { client, endpoints, networkConfig } = useSettings();
   const network = endpoints.network;
   const results = useQueries({

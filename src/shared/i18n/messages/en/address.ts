@@ -1,4 +1,6 @@
 /** Address and DID page, its NFT gallery and clawback coins (src/widgets/address). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   notAvailable: "n/a",
   needsCoinset: "needs Coinset",
@@ -105,4 +107,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("address", messages);

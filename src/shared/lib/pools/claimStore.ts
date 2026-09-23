@@ -19,7 +19,7 @@ export const STORAGE_KEY_PREFIX = "mempool-xch:pool-claims:v1:";
 const RESOLVED_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 /** "No claim yet" is usually a reward the pool has not collected; look again soon. */
 const UNRESOLVED_TTL_MS = 12 * 60 * 60 * 1000;
-const MAX_ENTRIES = 4000;
+export const MAX_ENTRIES = 4000;
 
 export function isFresh(claim: StoredClaim, now: number): boolean {
   return now - claim.at < (claim.target ? RESOLVED_TTL_MS : UNRESOLVED_TTL_MS);

@@ -1,6 +1,7 @@
 /** Pure helpers for the confirmed/removed transaction page: waited time and a plain-language cost verdict. */
 import { plainT } from "@/shared/i18n/plain";
 import { feePerCost, formatFeeRate, formatPercent, type Mojos } from "@/shared/lib/chia/amounts";
+import txNs from "@/shared/i18n/messages/en/tx";
 
 /**
  * Seconds between first-seen and the given end time (confirmation or removal), or null when
@@ -19,7 +20,7 @@ export interface CostVerdict {
 
 /** Plain-language read of what this transaction paid, for a reader who does not know CLVM cost. */
 export function costVerdict(feeMojos: Mojos, cost: number, blockMaxCost: number): CostVerdict {
-  const t = plainT("tx");
+  const t = plainT(txNs);
   if (cost <= 0) return { label: t("verdict.noCostLabel"), detail: t("verdict.noCostDetail") };
   const share = blockMaxCost > 0 ? cost / blockMaxCost : 0;
   const shareText = t("verdict.share", { percent: formatPercent(share, share < 0.01 ? 2 : 1) });

@@ -1,4 +1,6 @@
 /** Display text produced by shared lib helpers (src/shared/lib, src/shared/api). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   channel: {
     customName: "Polling (custom node)",
@@ -65,4 +67,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("common", messages);

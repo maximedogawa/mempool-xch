@@ -33,6 +33,7 @@ import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { YoursChip } from "@/shared/ui/YoursChip";
 import { useT } from "@/shared/i18n/useT";
 import { sortMempoolItems, type MempoolSortKey, type SortDirection } from "./sort";
+import mempoolListNs from "@/shared/i18n/messages/en/mempoolList";
 
 const PAGE = 100;
 
@@ -45,7 +46,7 @@ const COLUMNS: { key: MempoolSortKey; className?: string }[] = [
 ];
 
 export function MempoolList() {
-  const t = useT("mempoolList");
+  const t = useT(mempoolListNs);
   const mine = useWalletPendingIds();
   const summary = useMempoolSummary();
   const [sortKey, setSortKey] = useState<MempoolSortKey>("feeRate");

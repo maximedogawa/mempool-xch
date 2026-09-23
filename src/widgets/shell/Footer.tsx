@@ -9,9 +9,10 @@ import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 export function Footer() {
-  const t = useT("shell");
+  const t = useT(shellNs);
   const locale = useLocale();
   const { endpoints, networkConfig } = useSettings();
   const { inSage } = useSage();

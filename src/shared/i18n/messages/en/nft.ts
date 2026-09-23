@@ -1,4 +1,6 @@
 /** The NFT section: home, collections, activity, mints, owned gallery and offers (src/widgets/nft). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   loading: "Loading…",
   showMore: "Show more",
@@ -88,4 +90,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("nft", messages);

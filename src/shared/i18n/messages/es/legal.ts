@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/legal";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   page: {
     navLabel: "Páginas legales",
     nav: {
@@ -13,40 +13,6 @@ const messages: Translation<typeof en> = {
     lastUpdated: "Última actualización: {date}",
     translationNote:
       "Esta traducción se ofrece solo a título informativo. Si difiere de la versión en inglés, prevalece la versión en inglés.",
-  },
-  consent: {
-    title: "Cookies y almacenamiento local",
-    intro:
-      "Este sitio guarda en tu navegador solo lo que necesita para funcionar. No se carga nada de analítica ni publicidad a menos que lo permitas aquí.",
-    cookiePolicy: "Política de cookies",
-    privacyPolicy: "Política de privacidad",
-    signal:
-      "Tu navegador envía una señal Do Not Track o Global Privacy Control, por lo que la analítica y la publicidad permanecen desactivadas.",
-    categoriesLegend: "Categorías",
-    categories: {
-      necessary: {
-        label: "Estrictamente necesarias",
-        detail: "Tus ajustes, cachés y esta elección, guardados en tu navegador. Siempre activas.",
-      },
-      analytics: {
-        label: "Analítica",
-        detail: "Estadísticas de uso anónimas. No se utilizan por el momento.",
-      },
-      advertising: {
-        label: "Publicidad",
-        detail: "Anuncios y medición publicitaria. No se utilizan por el momento.",
-      },
-    },
-    rejectAll: "Rechazar todo",
-    saveChoice: "Guardar mi elección",
-    acceptAll: "Aceptar todo",
-    close: "Cerrar",
-    settingsButton: "Ajustes de cookies",
-  },
-  disclaimer: {
-    label: "Aviso",
-    text: "Software en fase alfa, todavía cambia mucho. No es asesoramiento financiero: verifícalo en tu propia billetera. <link>Términos de uso</link>",
-    dismiss: "Cerrar aviso",
   },
   terms: {
     title: "Términos de uso",
@@ -197,12 +163,10 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "El servidor no obtiene datos de la cadena ni de activos en tu nombre: solo sirve la propia aplicación (HTML, scripts, estilos). Cada consulta que haces es una solicitud de tu propio navegador a Coinset, Dexie, MintGarden, XCHandles, fuentes públicas de datos de mercado o tu propio nodo, descritas en los apartados siguientes.",
-      market:
-        "La página Mercado lee libros de órdenes públicos de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro), además de ofertas públicas de XCH para ByteCash (BYC, la stablecoin en USD de Circuit) y wUSDC.b de Dexie. Estas solicitudes no contienen credenciales de ninguna cuenta. Una fuente puede no estar disponible o tener limitada la frecuencia de solicitudes; la página la marca como desactualizada y la excluye de su agregado.",
     },
     storage: {
       title: "3. Almacenamiento en tu navegador",
-      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e ID de transacción si añades alguno, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
+      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e ID de transacción si añades alguno, tus filtros de la vista del próximo bloque en el panel, el recuento de nodos por país que mostró por última vez el mapa de la red, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
       notifications:
         "Si activas las notificaciones del navegador para tu lista de seguimiento, es tu navegador quien concede ese permiso a este sitio y puedes retirarlo allí en cualquier momento; el operador nunca ve si lo activaste.",
     },
@@ -222,7 +186,9 @@ const messages: Translation<typeof en> = {
         coinset:
           "Coinset (api.coinset.org): todos los datos de la cadena (la mempool, los bloques, las transacciones, las direcciones, las monedas y los activos que consultas, y las actualizaciones en vivo), a menos que introduzcas otro nodo a continuación.",
         node: "Un nodo completo que introduzcas en Ajustes: todos los datos de la cadena provienen entonces de él en lugar de Coinset.",
-        map: "Solo mientras la página del mapa de la red está abierta: Cloudflare DNS (cloudflare-dns.com, con dns.google como alternativa) responde a las consultas DNS de los introductores de Chia, y GeoJS (get.geojs.io) estima la ubicación de las direcciones de nodos que contienen esas respuestas. Solo se envían direcciones de nodos para la consulta, nunca la tuya; las direcciones obtenidas se guardan en el almacenamiento local de tu navegador durante una semana.",
+        map: "Página del mapa de la red: sus estadísticas de nodos son una instantánea del panel público Peer Info de Chia Network (dashboard.chia.net) que se distribuye con este sitio, así que mostrarlas no contacta con nadie. Solo si esa instantánea falta, tiene más de 30 días o no corresponde a la red seleccionada, la página recurre, mientras está abierta, a un escaneo en vivo: Cloudflare DNS (cloudflare-dns.com, con dns.google como alternativa) responde a las consultas DNS de los introductores de Chia, y GeoJS (get.geojs.io) estima la ubicación de las direcciones de nodos que contienen esas respuestas; las direcciones obtenidas se guardan en el almacenamiento local de tu navegador durante una semana. Si apuntas los ajustes a tu propio nodo, las direcciones de sus pares conectados también se envían a GeoJS. Solo se envían direcciones de nodos para la consulta, nunca la tuya. La página también recuerda en el almacenamiento local los recuentos por país que viste por última vez, para resaltar lo que ha cambiado.",
+        market:
+          "Solo mientras la página Mercado está abierta: las API públicas de datos de mercado de Gate.io (api.gateio.ws), OKX (www.okx.com) y HTX (api.huobi.pro) para los libros de órdenes y las operaciones recientes de XCH, cada 5 segundos, y Dexie (api.dexie.space) para las ofertas abiertas de XCH contra las stablecoins BYC, wUSDC.b, wUSDC y wUSDT. Las solicitudes no llevan datos de cuenta, clave ni monedero; los exchanges las ven como cualquier otra visita a su API.",
       },
       basis:
         "Base jurídica: art. 6.1.f) RGPD; el interés legítimo es mostrar el contenido de la blockchain que solicitas. Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo, por ejemplo en los Estados Unidos, donde el nivel de protección de datos puede ser inferior. Se aplican sus propias políticas de privacidad.",
@@ -301,6 +267,15 @@ const messages: Translation<typeof en> = {
         watchlist: {
           purpose: "Direcciones e ID de transacción que has decidido seguir",
           lifetime: "Hasta que los elimines o lo borres",
+        },
+        goggles: {
+          purpose: "Tus filtros y opciones de vista para la vista del próximo bloque en el panel",
+          lifetime: "Hasta que quites los filtros o lo borres",
+        },
+        mapSeen: {
+          purpose:
+            "Recuento de nodos por país que mostró por última vez el mapa de la red, para animar solo lo que cambió",
+          lifetime: "Hasta que lo borres; se sustituye con cada instantánea más reciente",
         },
         sageRefused: {
           purpose:

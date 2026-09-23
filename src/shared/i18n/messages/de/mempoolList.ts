@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/mempoolList";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   spendBundles: "Spend Bundles",
   summarised: "{count} zusammengefasst",
   costUsed: "Genutzte Kosten",

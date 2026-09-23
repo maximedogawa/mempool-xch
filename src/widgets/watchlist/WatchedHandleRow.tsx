@@ -13,6 +13,7 @@ import { AssetImage } from "@/shared/ui/AssetImage";
 import { useHandle } from "@/widgets/handle/useHandle";
 import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchStatus } from "./WatchlistParts";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /**
  * A watched XCHandles handle. What matters about a name is where it points today and how long
@@ -20,7 +21,7 @@ import { RemoveWatch, WatchStatus } from "./WatchlistParts";
  * once the registry's last 30 days are reached.
  */
 export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove: () => void }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const { networkConfig } = useSettings();
   // The id is the registry's bare key; the @ is how it is written back out.
   const handle = item.id;

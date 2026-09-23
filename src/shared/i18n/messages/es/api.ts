@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/api";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Referencia de la API",
   titleHint:
     "mempoolxch.space no tiene API de servidor propia: cada página que ves lee un endpoint de la cadena directamente desde tu navegador, igual que esta app. Esta página documenta las llamadas que hace la propia app para que tú también puedas hacerlas, contra el endpoint público de Coinset o tu propio nodo.",

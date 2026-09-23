@@ -20,6 +20,7 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Button } from "@/shared/ui/Button";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 export function ProjectedBlockDetails({
   block,
@@ -28,7 +29,7 @@ export function ProjectedBlockDetails({
   block: ProjectedBlock;
   onClose: () => void;
 }) {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const items = block.items.slice(0, 200);
   return (
     <Card className="mt-4">

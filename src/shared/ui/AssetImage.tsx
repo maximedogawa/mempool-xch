@@ -5,7 +5,8 @@ import { useState, type CSSProperties } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { isVeiled, sensitivityText, type Sensitivity } from "@/shared/lib/nft/sensitivity";
-import { isTrustedImageUrl, isTrustedVideoUrl } from "@/shared/lib/trustedImage";
+import { isTrustedImageUrl } from "@/shared/lib/trustedImage";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * Lazy image with a placeholder while loading and a fallback when every candidate fails.
@@ -45,7 +46,7 @@ export function AssetImage({
   veilDetail?: boolean;
   videoUrl?: string | null;
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -63,7 +64,9 @@ export function AssetImage({
   }
   const trusted = urls.filter(isTrustedImageUrl);
   const src = trusted[index];
-  const video = videoUrl && isTrustedVideoUrl(videoUrl) ? videoUrl : null;
+  // Whether it is a video was settled where the record was read (isTrustedVideoUrl, which may
+  // need the record's data_type); here only the host is checked again.
+  const video = videoUrl && isTrustedImageUrl(videoUrl) ? videoUrl : null;
   if (!src && !video) {
     return (
       <div

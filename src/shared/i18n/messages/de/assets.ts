@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/assets";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   empty: "(leer)",
   coinsetNotice:
     "<b>Verlauf ohne Coinset nicht verfügbar:</b> {what}. Der konfigurierte Endpunkt ist ein eigener Node ohne indexierte API.",

@@ -34,8 +34,12 @@ export function fakePendingTx(id: string, amountMojos = 1_500_000_000_000) {
 
 export const FAKE_NFT_LAUNCHER_ID = "bb".repeat(32);
 
-/** Same shape as fakePendingTx, but the spent coin is an NFT (real thumbnail, not the generic picture icon). */
-export function fakeNftPendingTx(id: string) {
+/**
+ * Same shape as fakePendingTx, but the spent coin is an NFT (real thumbnail, not the generic
+ * picture icon). `launcherId` picks which NFT, so a test can pair it with a MintGarden record
+ * from mockMintGarden.ts (a clean one, or one MintGarden blocks).
+ */
+export function fakeNftPendingTx(id: string, launcherId = FAKE_NFT_LAUNCHER_ID) {
   return {
     transaction_id: id,
     submitted_at: Math.floor(Date.now() / 1000) - 20,
@@ -47,7 +51,7 @@ export function fakeNftPendingTx(id: string) {
         address: FAKE_ADDRESS,
         asset: {
           kind: "nft",
-          asset_id: FAKE_NFT_LAUNCHER_ID,
+          asset_id: launcherId,
           name: "Test NFT",
           ticker: null,
           precision: 1,
@@ -56,6 +60,19 @@ export function fakeNftPendingTx(id: string) {
       },
     ],
     created: [],
+  };
+}
+
+/** A confirmed transaction in the wallet's history (wallet.get_transactions) that received an NFT. */
+export function fakeNftHistoryTx(id: string, launcherId: string, height: number) {
+  const { spent } = fakeNftPendingTx(id, launcherId);
+  return {
+    transaction_id: id,
+    height,
+    timestamp: Math.floor(Date.now() / 1000) - 600,
+    fee: 0,
+    spent: [],
+    created: spent.map((coin) => ({ ...coin, coin_id: id })),
   };
 }
 
@@ -69,10 +86,12 @@ export async function installFakeSage(
     "wallet.get_coins",
     "wallet.get_xch_usd_price",
   ],
-  theme: { name: string; mostLike?: string } = { name: "dark", mostLike: "dark" }
+  theme: { name: string; mostLike?: string } = { name: "dark", mostLike: "dark" },
+  /** The wallet's confirmed history, as wallet.get_transactions returns it. */
+  history: unknown[] = []
 ) {
   await page.addInitScript(
-    ({ pending, granted, address, theme }) => {
+    ({ pending, granted, address, theme, history }) => {
       const w = window as unknown as Record<string, unknown>;
       w.__FAKE_SAGE_PENDING__ = pending;
       const noop = () => () => {};
@@ -135,7 +154,7 @@ export async function installFakeSage(
             transactions: (window as unknown as { __FAKE_SAGE_PENDING__: unknown[] })
               .__FAKE_SAGE_PENDING__,
           }),
-          getTransactions: async () => ({ transactions: [], total: 0 }),
+          getTransactions: async () => ({ transactions: history, total: history.length }),
           getCoins: async () => ({ coins: [], total: 0 }),
           getCoinsByIds: async () => ({ coins: [] }),
           checkAddress: async () => ({ valid: true }),
@@ -144,6 +163,6 @@ export async function installFakeSage(
         },
       };
     },
-    { pending, granted, address: FAKE_ADDRESS, theme }
+    { pending, granted, address: FAKE_ADDRESS, theme, history }
   );
 }

@@ -1,4 +1,6 @@
 /** Relative times, ETAs and durations (src/shared/lib/format/time.ts). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   justNow: "just now",
   secondsAgo: "{s}s ago",
@@ -16,4 +18,4 @@ const messages = {
   durationHours: "{h}h {m}m",
 };
 
-export default messages;
+export default defineNamespace("format", messages);

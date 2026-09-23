@@ -1,4 +1,6 @@
 /** Changelog page chrome (src/widgets/changelog); the release entries stay English. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Changelog",
   intro:
@@ -12,4 +14,4 @@ const messages = {
   footer: "Generated {date}. Regenerate with <code>bun run changelog</code> after tagging.",
 };
 
-export default messages;
+export default defineNamespace("changelog", messages);

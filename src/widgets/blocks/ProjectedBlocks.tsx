@@ -9,6 +9,7 @@ import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 const CUBE = 138;
 
@@ -26,7 +27,7 @@ export function ProjectedBlocks({
   selected: number | null;
   onSelect: (index: number | null) => void;
 }) {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (

@@ -7,6 +7,7 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { CookieSettingsButton } from "./CookieSettingsButton";
 import { LegalPage, linkClass, List, Section } from "./LegalPage";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const NECESSARY = [
   { key: "mempool-xch:settings:v1", row: "settings" },
@@ -14,6 +15,8 @@ const NECESSARY = [
   { key: "mempool-xch:history:v1:<network>", row: "history" },
   { key: "mempool-xch:mempool-snapshot:v1:<network>", row: "snapshot" },
   { key: "mempool-xch:watchlist:v1", row: "watchlist" },
+  { key: "mempool-xch:goggles:v1", row: "goggles" },
+  { key: "mempool-xch:map:seen:v1:<network>", row: "mapSeen" },
   { key: "mempool-xch:sage-refused:v1", row: "sageRefused" },
   { key: "mempool-xch:consent:v1", row: "consent" },
 ] as const;
@@ -21,7 +24,7 @@ const NECESSARY = [
 const CATEGORIES = ["necessary", "analytics", "advertising"] as const;
 
 export function CookiesContent() {
-  const t = useT("legal");
+  const t = useT(legalNs);
   const bold = (chunks: ReactNode) => <strong className="text-fg">{chunks}</strong>;
   return (
     <LegalPage

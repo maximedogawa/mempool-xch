@@ -44,6 +44,23 @@ export type MessageKey<T> = {
       : `${K}.${MessageKey<T[K]>}`;
 }[keyof T & string];
 
+/**
+ * One namespace's English messages with its name. Components import it from the namespace's
+ * English file (`import txNs from "@/shared/i18n/messages/en/tx"`) and pass it to useT, so a
+ * route's bundle carries only the English text that route renders.
+ */
+export interface NamespaceDef<N extends string = string, M = MessageTree> {
+  readonly name: N;
+  readonly messages: M;
+}
+
+export function defineNamespace<const N extends string, M>(
+  name: N,
+  messages: M
+): NamespaceDef<N, M> {
+  return { name, messages };
+}
+
 export type MessageValue = string | number | bigint;
 export type MessageValues = Record<string, MessageValue>;
 export type RichTag = (chunks: ReactNode) => ReactNode;

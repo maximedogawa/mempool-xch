@@ -20,6 +20,7 @@ import {
   Skeleton,
   YoursChip,
 } from "@/shared/ui";
+import feedNs from "@/shared/i18n/messages/en/feed";
 
 const FEED_CAP = 50;
 
@@ -33,7 +34,7 @@ function useTicker(ms: number) {
 
 /** Newest spend bundles entering the mempool. Pauses while hovered so rows stay clickable. */
 export function LiveTransactions() {
-  const t = useT("feed");
+  const t = useT(feedNs);
   const summary = useMempoolSummary();
   const mine = useWalletPendingIds();
   const [paused, setPaused] = useState(false);
@@ -135,7 +136,7 @@ export function LiveTransactions() {
 }
 
 export function LatestBlocks() {
-  const t = useT("feed");
+  const t = useT(feedNs);
   const { settings } = useSettings();
   const recent = useRecentBlocks(settings.recentBlocks);
   useTicker(10_000);

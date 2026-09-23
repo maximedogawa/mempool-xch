@@ -25,6 +25,7 @@ import {
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { groupLabel, poolColor, PoolShareBar } from "./PoolShareBar";
 import { usePoolShare } from "./usePoolShare";
+import poolsNs from "@/shared/i18n/messages/en/pools";
 
 /** Rows shown before "Show all": the long tail is hundreds of one-block solo farmers. */
 const COLLAPSED_ROWS = 25;
@@ -45,7 +46,7 @@ function matches(group: PoolGroup, needle: string, label: string): boolean {
 }
 
 export function PoolsPage() {
-  const t = useT("pools");
+  const t = useT(poolsNs);
   const { share, windowStart, windowEnd, canResolveClaims, resolving, error } = usePoolShare();
   const [search, setSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
@@ -191,7 +192,7 @@ export function PoolsPage() {
 }
 
 function PoolRow({ group, color }: { group: PoolGroup; color: string }) {
-  const t = useT("pools");
+  const t = useT(poolsNs);
   const { networkConfig } = useSettings();
   const [expanded, setExpanded] = useState(false);
   const address = (hash: string) => puzzleHashToAddress(hash, networkConfig.addressPrefix);

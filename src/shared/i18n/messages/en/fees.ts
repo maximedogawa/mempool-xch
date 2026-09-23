@@ -1,4 +1,6 @@
 /** Fee cards on the dashboard and the /fees page (src/widgets/fees). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   cards: {
     title: "Transaction fees",
@@ -64,4 +66,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("fees", messages);

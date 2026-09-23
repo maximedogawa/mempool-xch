@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/address";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   notAvailable: "k. A.",
   needsCoinset: "erfordert Coinset",
   loading: "Wird geladen…",

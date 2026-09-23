@@ -25,6 +25,7 @@ import {
 } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { useT } from "@/shared/i18n/useT";
+import vaultsNs from "@/shared/i18n/messages/en/vaults";
 
 const SCANNER = "https://vaults.xchplorer.com";
 const EVENTS_KEY = "mempool-xch:vault-events:v1";
@@ -98,7 +99,7 @@ function parseLookup(raw: string): Lookup {
  * live stream reports; the full directory lives on the community scanner.
  */
 export function ChiaVaults() {
-  const t = useT("vaults");
+  const t = useT(vaultsNs);
   const { client, endpoints, networkConfig } = useSettings();
   const lastVault = useLiveValue("lastVault");
   const [input, setInput] = useState("");
@@ -407,7 +408,7 @@ function FundsTiles({
   coins: readonly { confirmedBlockIndex: number }[];
   balance: bigint | null;
 }) {
-  const t = useT("vaults");
+  const t = useT(vaultsNs);
   return (
     <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
       <StatTile

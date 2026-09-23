@@ -22,6 +22,7 @@ import {
   type WalletTx,
 } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
+import { useNftSensitivity } from "@/shared/lib/nft/useNftSensitivity";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { cn } from "@/shared/lib/cn";
@@ -44,6 +45,7 @@ import {
   Th,
   Tr,
 } from "@/shared/ui";
+import walletNs from "@/shared/i18n/messages/en/wallet";
 
 const TX_PAGE = 25;
 const COIN_PAGE = 50;
@@ -55,7 +57,10 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
   const primary = received[0] ?? sent[0];
   const primaryToken = useAsset(primary && kindOf(primary) === "cat" ? primary.assetId : undefined);
   const primaryName = primaryToken?.name ?? primary?.assetName ?? null;
-  const t = useT("wallet");
+  const primarySensitivity = useNftSensitivity(
+    primary && kindOf(primary) === "nft" ? primary.assetId : null
+  );
+  const t = useT(walletNs);
   const kind = t(
     received.length && !sent.length
       ? "direction.received"
@@ -81,6 +86,7 @@ function TxRow({ tx, walletAddress }: { tx: WalletTx; walletAddress: string | nu
             assetId={primary.assetId ?? undefined}
             iconUrl={primary.iconUrl}
             size={22}
+            sensitivity={primarySensitivity}
           />
         ) : null}
       </span>
@@ -150,7 +156,7 @@ function LoadMore({
   onMore: () => void;
   label: "transactions" | "coins";
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const sentinel = useSentinel(onMore, hasMore && !loading);
   return (
     <div
@@ -177,7 +183,7 @@ function EnableNotice({
   capability: string;
   what: "assetBalances" | "balanceAddress" | "history" | "coins";
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { refused, granted, enable } = useSageCapability(capability);
   if (granted || !refused) return null;
   return (
@@ -201,7 +207,7 @@ function Tabs({
   onChange: (t: Tab) => void;
   counts: Record<Tab, string>;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const items: Tab[] = ["assets", "transactions", "coins"];
   return (
     <div
@@ -236,8 +242,10 @@ function AssetTile({
   asset: WalletAsset;
   balance: WalletAssetBalance | null | undefined;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const token = useAsset(a.kind === "cat" ? a.assetId : undefined);
+  // A held NFT is classified like any other before its thumbnail is shown (TASK-098).
+  const sensitivity = useNftSensitivity(a.kind === "nft" ? a.assetId : null);
   const name =
     token?.name ??
     a.name ??
@@ -264,7 +272,13 @@ function AssetTile({
             : t("asset.owned", { count: formatNumber(b.coins) });
   const body = (
     <div className="flex h-full items-center gap-3 rounded-card border border-border bg-bg px-3 py-3 transition-colors hover:border-border-strong">
-      <AssetIcon kind={a.kind} assetId={a.assetId ?? undefined} iconUrl={a.iconUrl} size={34} />
+      <AssetIcon
+        kind={a.kind}
+        assetId={a.assetId ?? undefined}
+        iconUrl={a.iconUrl}
+        size={34}
+        sensitivity={sensitivity}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold">{name}</span>
         <span className="text-[11px] uppercase tracking-wide text-fg-faint">
@@ -305,7 +319,7 @@ function AssetsCard({
   loaded: number;
   total: number;
 }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const balances = useQueries({
     queries: assets.map((a) => ({
       queryKey: ["sageAssetBalance", a.kind, a.assetId ?? "xch"],
@@ -343,7 +357,7 @@ function AssetsCard({
 
 /** Your own wallet, read straight from Sage (only inside Sage): recent first, the rest on scroll. */
 export function WalletPage() {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage, walletAddress } = useSage();
   const { networkConfig } = useSettings();
   const [tab, setTab] = useState<Tab>("assets");

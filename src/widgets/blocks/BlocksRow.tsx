@@ -9,6 +9,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { ProjectedBlockDetails } from "./ProjectedBlockDetails";
 import { ProjectedBlocks } from "./ProjectedBlocks";
 import { RecentBlocks } from "./RecentBlocks";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 /**
  * The signature mempool.space row: projected blocks left of a dotted divider, confirmed blocks
@@ -16,7 +17,7 @@ import { RecentBlocks } from "./RecentBlocks";
  * in view (next block and newest block side by side) and can be dragged with the pointer.
  */
 export function BlocksRow() {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const { settings } = useSettings();
   const watched = useWatchedActivity();
   const projected = useProjectedBlocks(8);
