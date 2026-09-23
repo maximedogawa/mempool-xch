@@ -81,7 +81,7 @@ test.describe("theme picker in settings", () => {
     await installFakeSage(page, [], undefined, { name: "xch-light", mostLike: "light" });
     await page.goto("/settings");
     const picker = page.getByRole("radiogroup", { name: "Theme" });
-    await expect(page.getByText(/follows the wallet's theme \(currently light\)/)).toBeVisible();
+    await expect(page.getByText(/follows the wallet's theme \(currently Light\)/)).toBeVisible();
     await expect(picker.getByRole("radio", { name: /Light/ })).toHaveAttribute(
       "aria-checked",
       "true"
