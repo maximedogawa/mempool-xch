@@ -120,10 +120,10 @@ describe("version breakdown", () => {
 describe("transport rows", () => {
   test("missing panels stay null instead of rendering as zero", () => {
     const rows = transportRows(make({ total: 200, ipv4: 150, ipv6: null, capacity: 50 }));
-    expect(rows.map((row) => [row.label, row.nodes, row.share])).toEqual([
-      ["IPv4", 150, 0.75],
-      ["IPv6", null, null],
-      ["Reliable", 50, 0.25],
+    expect(rows.map((row) => [row.id, row.nodes, row.share])).toEqual([
+      ["ipv4", 150, 0.75],
+      ["ipv6", null, null],
+      ["reliable", 50, 0.25],
     ]);
   });
 });

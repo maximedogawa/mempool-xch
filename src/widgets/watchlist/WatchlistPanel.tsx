@@ -13,6 +13,7 @@ import {
 } from "@/shared/lib/notify/browser";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
 import { WatchedAddressRow } from "./WatchedAddressRow";
 import { WatchedDidRow } from "./WatchedDidRow";
@@ -27,12 +28,13 @@ import { useWatchlist } from "./useWatchlist";
  * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
  */
 export function WatchlistPanel() {
+  const t = useT("watchlist");
   const { settings, update } = useSettings();
   const { items, add, remove } = useWatchlist();
   const projected = useProjectedBlocks(8);
   const projectedItems = projected.summary?.items;
   const [input, setInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   // Notification.prototype only exists in the browser; checking it during render would make the
   // server-rendered HTML (no window) disagree with the first client render, so it is deferred to
   // an effect and starts false to match the server output.
@@ -49,7 +51,7 @@ export function WatchlistPanel() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError(false);
     const target = parseSearchInput(input);
     const handle = target.kind === "text" ? parseHandle(target.value) : null;
     if (target.kind === "address") {
@@ -63,7 +65,7 @@ export function WatchlistPanel() {
       // unregistered handle is a fine thing to watch, and the row says so until someone takes it.
       add({ kind: "handle", id: handle, label: formatHandle(handle) });
     } else {
-      setError("Paste an address, a did:chia: id, an @handle or a 64-character transaction id.");
+      setError(true);
       return;
     }
     setInput("");
@@ -86,12 +88,12 @@ export function WatchlistPanel() {
   };
 
   return (
-    <Card role="region" aria-label="Watchlist" className="overflow-hidden border-primary/20">
+    <Card role="region" aria-label={t("panel.title")} className="overflow-hidden border-primary/20">
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
             <Eye size={17} className="text-primary" aria-hidden="true" />
-            {items.length ? `Watchlist · ${items.length}` : "Watchlist"}
+            {items.length ? t("panel.titleCount", { count: items.length }) : t("panel.title")}
           </span>
         }
         action={
@@ -100,12 +102,8 @@ export function WatchlistPanel() {
               type="button"
               onClick={toggleSound}
               aria-pressed={settings.sounds}
-              aria-label={
-                settings.sounds
-                  ? "Mute the watchlist chime"
-                  : "Play a chime when a watched item confirms"
-              }
-              title={settings.sounds ? "Watchlist chime on" : "Watchlist chime off"}
+              aria-label={settings.sounds ? t("panel.muteChime") : t("panel.playChime")}
+              title={settings.sounds ? t("panel.chimeOn") : t("panel.chimeOff")}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg/50 text-fg-muted transition-colors hover:border-primary/40 hover:text-primary"
             >
               {settings.sounds ? (
@@ -121,11 +119,11 @@ export function WatchlistPanel() {
                 aria-pressed={settings.notifications}
                 aria-label={
                   settings.notifications
-                    ? "Turn off browser notifications"
-                    : "Turn on browser notifications"
+                    ? t("panel.turnOffNotifications")
+                    : t("panel.turnOnNotifications")
                 }
                 title={
-                  settings.notifications ? "Browser notifications on" : "Browser notifications off"
+                  settings.notifications ? t("panel.notificationsOn") : t("panel.notificationsOff")
                 }
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg/50 text-fg-muted transition-colors hover:border-primary/40 hover:text-primary"
               >
@@ -140,23 +138,20 @@ export function WatchlistPanel() {
         }
       />
       <CardBody className="flex flex-col gap-4">
-        <p className="text-xs text-fg-muted">
-          Follow incoming assets and confirmations. Watched transactions are marked in the blocks
-          above, a watched DID shows the NFTs it holds, and a watched @handle where it points.
-        </p>
+        <p className="text-xs text-fg-muted">{t("panel.intro")}</p>
         <form
           onSubmit={onSubmit}
           className="flex flex-wrap gap-2 rounded-xl border border-border bg-bg/50 p-2"
         >
           <label htmlFor="watchlist-add" className="sr-only">
-            Add an address, @handle, DID or transaction id to your watchlist
+            {t("panel.addLabel")}
           </label>
           <input
             id="watchlist-add"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Address, @handle, DID or transaction id"
+            placeholder={t("panel.placeholder")}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "watchlist-add-error" : undefined}
             className="h-10 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
@@ -166,18 +161,17 @@ export function WatchlistPanel() {
             className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
           >
             <Plus size={15} aria-hidden="true" />
-            Watch
+            {t("panel.watch")}
           </button>
         </form>
         {error ? (
           <p id="watchlist-add-error" role="alert" className="text-xs text-danger">
-            {error}
+            {t("panel.invalid")}
           </p>
         ) : null}
         {items.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 px-4 text-center text-sm text-fg-faint">
-            Nothing watched yet. Add an address, @handle, DID or transaction above, or use the Watch
-            button on its page.
+            {t("panel.empty")}
           </p>
         ) : (
           <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
@@ -201,7 +195,10 @@ export function WatchlistPanel() {
                   projectedItems={projectedItems}
                   projectedBlocks={projected.blocks}
                   onConfirmed={(it, height) =>
-                    notify(`Confirmed: ${it.label}`, height ? `Block ${height}` : undefined)
+                    notify(
+                      t("panel.notifyConfirmed", { label: it.label }),
+                      height ? t("common.block", { height: String(height) }) : undefined
+                    )
                   }
                   onRemove={() => remove("tx", item.id)}
                 />
@@ -211,8 +208,12 @@ export function WatchlistPanel() {
                   item={item}
                   projectedItems={projectedItems}
                   projectedBlocks={projected.blocks}
-                  onConfirmed={(it, txId) => notify(`Confirmed: ${it.label}`, shortId(txId))}
-                  onReceived={(it, txId) => notify(`Incoming to ${it.label}`, shortId(txId))}
+                  onConfirmed={(it, txId) =>
+                    notify(t("panel.notifyConfirmed", { label: it.label }), shortId(txId))
+                  }
+                  onReceived={(it, txId) =>
+                    notify(t("panel.notifyIncoming", { label: it.label }), shortId(txId))
+                  }
                   onRemove={() => remove("address", item.id)}
                 />
               )

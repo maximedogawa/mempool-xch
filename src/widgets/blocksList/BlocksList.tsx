@@ -12,6 +12,7 @@ import { shortId } from "@/shared/lib/chia/hex";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -31,6 +32,7 @@ import {
 const PAGE = 25;
 
 export function BlocksList() {
+  const t = useT("blocksList");
   const { client, endpoints } = useSettings();
   const queryClient = useQueryClient();
   const lookupPool = usePoolLookup();
@@ -83,10 +85,10 @@ export function BlocksList() {
       <CardHeader
         title={
           <span>
-            Blocks
+            {t("title")}
             {peak !== null ? (
               <span className="tabular ml-2 normal-case tracking-normal text-fg-faint">
-                peak {formatNumber(peak)}
+                {t("peak", { height: formatNumber(peak) })}
               </span>
             ) : null}
           </span>
@@ -99,7 +101,7 @@ export function BlocksList() {
               onChange={(e) => setTxOnly(e.target.checked)}
               className="accent-[var(--primary)]"
             />
-            Transaction blocks only
+            {t("txOnly")}
           </label>
         }
       />
@@ -107,7 +109,7 @@ export function BlocksList() {
         {query.error ? (
           <EmptyState
             tone="danger"
-            title="Could not load blocks"
+            title={t("loadError")}
             description={String((query.error as Error).message)}
           />
         ) : query.isLoading && rows.length === 0 ? (
@@ -120,14 +122,14 @@ export function BlocksList() {
           <Table>
             <thead>
               <tr>
-                <Th>Height</Th>
-                <Th>Type</Th>
-                <Th className="hidden sm:table-cell">Age</Th>
-                <Th className="hidden text-right md:table-cell">Reward claims</Th>
-                <Th className="text-right">Fees</Th>
-                <Th className="hidden text-right md:table-cell">XCH moved</Th>
-                <Th className="hidden lg:table-cell">Pool</Th>
-                <Th className="hidden xl:table-cell">Header hash</Th>
+                <Th>{t("height")}</Th>
+                <Th>{t("type")}</Th>
+                <Th className="hidden sm:table-cell">{t("age")}</Th>
+                <Th className="hidden text-right md:table-cell">{t("rewardClaims")}</Th>
+                <Th className="text-right">{t("fees")}</Th>
+                <Th className="hidden text-right md:table-cell">{t("xchMoved")}</Th>
+                <Th className="hidden lg:table-cell">{t("pool")}</Th>
+                <Th className="hidden xl:table-cell">{t("headerHash")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -152,7 +154,7 @@ export function BlocksList() {
                             : "bg-surface-2 text-fg-faint"
                         )}
                       >
-                        {b.isTransactionBlock ? "tx block" : "no tx"}
+                        {b.isTransactionBlock ? t("txBlock") : t("noTx")}
                       </span>
                     </Td>
                     <Td className="tabular hidden whitespace-nowrap text-fg-muted sm:table-cell">
@@ -180,7 +182,11 @@ export function BlocksList() {
                         "hidden text-xs lg:table-cell",
                         pool ? "text-fg-muted" : "mono text-fg-faint"
                       )}
-                      title={pool ? `${pool.name} · payout ${b.poolPuzzleHash}` : b.poolPuzzleHash}
+                      title={
+                        pool
+                          ? t("poolTitle", { pool: pool.name, hash: b.poolPuzzleHash })
+                          : b.poolPuzzleHash
+                      }
                     >
                       {pool ? pool.name : shortId(b.poolPuzzleHash, 8, 4)}
                     </Td>
@@ -199,9 +205,12 @@ export function BlocksList() {
         <div className="flex items-center justify-between gap-2 text-xs text-fg-faint">
           <span>
             {rows.length > 0
-              ? `Heights ${formatNumber(oldestShown ?? 0)} – ${formatNumber(rows[0]!.height)}`
+              ? t("heights", {
+                  from: formatNumber(oldestShown ?? 0),
+                  to: formatNumber(rows[0]!.height),
+                })
               : ""}
-            {query.isFetching ? " · updating…" : ""}
+            {query.isFetching ? t("updating") : ""}
           </span>
           <div className="flex gap-2">
             <Button
@@ -213,7 +222,7 @@ export function BlocksList() {
                 )
               }
             >
-              Newer
+              {t("newer")}
             </Button>
             <Button
               size="sm"
@@ -221,14 +230,14 @@ export function BlocksList() {
               onClick={() => setTop(peak)}
               className={top === null ? "hidden" : undefined}
             >
-              Latest
+              {t("latest")}
             </Button>
             <Button
               size="sm"
               disabled={oldestShown === null || oldestShown === undefined || oldestShown <= 0}
               onClick={() => setTop((oldestShown ?? 1) - 1)}
             >
-              Older
+              {t("older")}
             </Button>
           </div>
         </div>

@@ -1,4 +1,7 @@
+"use client";
+
 import type { HTMLAttributes } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import type { TxSummaryKind } from "@/shared/lib/rpc/types";
@@ -48,44 +51,44 @@ export function Badge({
   );
 }
 
-const KIND_LABELS: Record<TxKindHint, { label: string; tone: Tone }> = {
-  xch: { label: "XCH", tone: "xch" },
-  cat: { label: "CAT", tone: "cat" },
-  nft: { label: "NFT", tone: "nft" },
-  did: { label: "DID", tone: "did" },
-  offer: { label: "Offer", tone: "offer" },
-  pool: { label: "Pool", tone: "info" },
-  singleton: { label: "Singleton", tone: "did" },
-  unknown: { label: "Unknown", tone: "unknown" },
+const KIND_TONES: Record<TxKindHint, Tone> = {
+  xch: "xch",
+  cat: "cat",
+  nft: "nft",
+  did: "did",
+  offer: "offer",
+  pool: "info",
+  singleton: "did",
+  unknown: "unknown",
 };
 
 export function KindBadge({ kind, className }: { kind: TxKindHint; className?: string }) {
-  const k = KIND_LABELS[kind];
+  const t = useT("ui");
   return (
-    <Badge tone={k.tone} className={className}>
-      {k.label}
+    <Badge tone={KIND_TONES[kind]} className={className}>
+      {t(`kind.${kind}`)}
     </Badge>
   );
 }
 
-const SUMMARY_KIND: Record<TxSummaryKind, { label: string; tone: Tone }> = {
-  transfer: { label: "Transfer", tone: "xch" },
-  swap: { label: "Swap", tone: "offer" },
-  mint: { label: "Mint", tone: "nft" },
-  melt: { label: "Melt", tone: "warning" },
-  combine: { label: "Combine", tone: "neutral" },
-  split: { label: "Split", tone: "neutral" },
-  pool: { label: "Pool", tone: "info" },
-  revoke: { label: "Revoke", tone: "danger" },
-  clawback: { label: "Clawback", tone: "warning" },
-  unknown: { label: "Unknown", tone: "unknown" },
+const SUMMARY_TONES: Record<TxSummaryKind, Tone> = {
+  transfer: "xch",
+  swap: "offer",
+  mint: "nft",
+  melt: "warning",
+  combine: "neutral",
+  split: "neutral",
+  pool: "info",
+  revoke: "danger",
+  clawback: "warning",
+  unknown: "unknown",
 };
 
 export function SummaryKindBadge({ kind, className }: { kind: TxSummaryKind; className?: string }) {
-  const k = SUMMARY_KIND[kind];
+  const t = useT("ui");
   return (
-    <Badge tone={k.tone} className={className}>
-      {k.label}
+    <Badge tone={SUMMARY_TONES[kind]} className={className}>
+      {t(`summaryKind.${kind}`)}
     </Badge>
   );
 }
@@ -95,11 +98,14 @@ export function StatusBadge({
 }: {
   status: "pending" | "confirmed" | "removed" | "unknown";
 }) {
-  const map = {
-    pending: { label: "Pending", tone: "warning" as Tone },
-    confirmed: { label: "Confirmed", tone: "primary" as Tone },
-    removed: { label: "Dropped", tone: "danger" as Tone },
-    unknown: { label: "Unknown", tone: "neutral" as Tone },
-  }[status];
-  return <Badge tone={map.tone}>{map.label}</Badge>;
+  const t = useT("ui");
+  const tone = (
+    {
+      pending: "warning",
+      confirmed: "primary",
+      removed: "danger",
+      unknown: "neutral",
+    } as const
+  )[status];
+  return <Badge tone={tone}>{t(`status.${status}`)}</Badge>;
 }

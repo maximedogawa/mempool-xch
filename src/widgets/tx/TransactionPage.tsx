@@ -28,6 +28,7 @@ import type {
   TxSummary,
   TxSummaryEvent,
 } from "@/shared/lib/rpc/types";
+import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   AssetAmount,
@@ -53,6 +54,7 @@ import { useRawTransaction, useTransaction } from "./useTransaction";
 import { costVerdict, waitedSeconds } from "./verdict";
 
 function RawJson({ label, value }: { label: string; value: unknown }) {
+  const t = useT("tx");
   const [open, setOpen] = useState(false);
   return (
     <Card>
@@ -65,7 +67,7 @@ function RawJson({ label, value }: { label: string; value: unknown }) {
             ) : (
               <ChevronDown size={14} aria-hidden="true" />
             )}{" "}
-            {open ? "Hide" : "Show"} raw JSON
+            {open ? t("rawJson.hide") : t("rawJson.show")}
           </Button>
         }
       />
@@ -81,10 +83,11 @@ function RawJson({ label, value }: { label: string; value: unknown }) {
 }
 
 function Memos({ memos }: { memos: string[] }) {
+  const t = useT("tx");
   if (memos.length === 0) return null;
   return (
     <Card>
-      <CardHeader title={`Memos (${memos.length})`} />
+      <CardHeader title={t("memos.title", { count: memos.length })} />
       <CardBody>
         <ul className="flex flex-col gap-1.5">
           {memos.map((m, i) => {
@@ -97,7 +100,7 @@ function Memos({ memos }: { memos: string[] }) {
                 {text ? (
                   <span className="break-words">{text}</span>
                 ) : (
-                  <span className="text-fg-faint">binary memo (likely a hint or puzzle hash)</span>
+                  <span className="text-fg-faint">{t("memos.binary")}</span>
                 )}
                 <Hash
                   value={m}
@@ -136,6 +139,7 @@ function AssetList({ amounts }: { amounts: AssetAmounts }) {
 const MAX_PARTICIPANTS = 50;
 
 function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
+  const t = useT("tx");
   const { networkConfig } = useSettings();
   const raw = event.raw;
   const participants = event.participants.slice(0, MAX_PARTICIPANTS);
@@ -162,9 +166,13 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
   return (
     <div className="rounded-sm border border-border bg-bg p-3">
       <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-fg-faint">Event {index + 1}</span>
+        <span className="text-fg-faint">{t("event.title", { n: index + 1 })}</span>
         <span className="font-semibold">{event.type}</span>
-        {amm?.protocol ? <span className="text-xs text-fg-faint">via {amm.protocol}</span> : null}
+        {amm?.protocol ? (
+          <span className="text-xs text-fg-faint">
+            {t("event.via", { protocol: amm.protocol })}
+          </span>
+        ) : null}
         {typeof raw.action === "string" ? (
           <span className="text-xs text-fg-faint">{raw.action}</span>
         ) : null}
@@ -173,9 +181,9 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[11px] uppercase tracking-wider text-fg-muted">
-              <th className="py-1 font-semibold">Participant</th>
-              <th className="py-1 font-semibold">Sent</th>
-              <th className="py-1 font-semibold">Received</th>
+              <th className="py-1 font-semibold">{t("event.participant")}</th>
+              <th className="py-1 font-semibold">{t("event.sent")}</th>
+              <th className="py-1 font-semibold">{t("event.received")}</th>
             </tr>
           </thead>
           <tbody>
@@ -197,20 +205,22 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
       ) : null}
       {event.participants.length > participants.length ? (
         <p className="mt-1 text-xs text-fg-faint">
-          …and {event.participants.length - participants.length} more participants (see raw JSON).
+          {t("event.moreParticipants", {
+            count: event.participants.length - participants.length,
+          })}
         </p>
       ) : null}
       {legs.length > 0 ? (
         <ul className="mt-2 flex flex-col gap-1 text-sm">
           {legs.map((leg, i) => (
             <li key={i} className="flex flex-wrap items-center gap-2">
-              <span className="text-fg-faint">Leg {i + 1}</span>
+              <span className="text-fg-faint">{t("event.leg", { n: i + 1 })}</span>
               {leg.p2 ? (
                 <Hash value={addr(leg.p2)} href={routes.address(addr(leg.p2))} head={6} tail={4} />
               ) : null}
-              <span className="text-xs text-fg-faint">sent</span>{" "}
+              <span className="text-xs text-fg-faint">{t("event.legSent")}</span>{" "}
               <span className="text-danger">{JSON.stringify(leg.sent)}</span>
-              <span className="text-xs text-fg-faint">received</span>{" "}
+              <span className="text-xs text-fg-faint">{t("event.legReceived")}</span>{" "}
               <span className="text-primary">{JSON.stringify(leg.received)}</span>
             </li>
           ))}
@@ -218,35 +228,41 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
       ) : null}
       {minted ? (
         <p className="mt-2 text-sm">
-          Minted {minted.asset_type?.toUpperCase()}{" "}
-          {minted.asset_id && minted.asset_type !== "nft" ? (
-            <CatRef
-              assetId={minted.asset_id}
-              amountText={minted.amount ? formatCat(BigInt(minted.amount)) : undefined}
-              showId
-            />
-          ) : minted.asset_id ? (
-            <Hash
-              value={minted.asset_id}
-              href={routes.nft(minted.asset_id.replace(/^0x/, ""))}
-              head={6}
-              tail={4}
-            />
-          ) : null}
+          {t.rich("event.minted", {
+            type: minted.asset_type?.toUpperCase() ?? "",
+            asset: () =>
+              minted.asset_id && minted.asset_type !== "nft" ? (
+                <CatRef
+                  assetId={minted.asset_id}
+                  amountText={minted.amount ? formatCat(BigInt(minted.amount)) : undefined}
+                  showId
+                />
+              ) : minted.asset_id ? (
+                <Hash
+                  value={minted.asset_id}
+                  href={routes.nft(minted.asset_id.replace(/^0x/, ""))}
+                  head={6}
+                  tail={4}
+                />
+              ) : null,
+          })}
         </p>
       ) : null}
       {melted ? (
         <p className="mt-2 text-sm">
-          Melted {melted.asset_type?.toUpperCase()}{" "}
-          {melted.asset_id && melted.asset_type !== "nft" ? (
-            <CatRef
-              assetId={melted.asset_id}
-              amountText={melted.amount ? formatCat(BigInt(melted.amount)) : undefined}
-              showId
-            />
-          ) : melted.asset_id ? (
-            <Hash value={melted.asset_id} head={6} tail={4} />
-          ) : null}
+          {t.rich("event.melted", {
+            type: melted.asset_type?.toUpperCase() ?? "",
+            asset: () =>
+              melted.asset_id && melted.asset_type !== "nft" ? (
+                <CatRef
+                  assetId={melted.asset_id}
+                  amountText={melted.amount ? formatCat(BigInt(melted.amount)) : undefined}
+                  showId
+                />
+              ) : melted.asset_id ? (
+                <Hash value={melted.asset_id} head={6} tail={4} />
+              ) : null,
+          })}
         </p>
       ) : null}
     </div>
@@ -254,19 +270,20 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
 }
 
 function SemanticSummary({ summary }: { summary: TxSummary }) {
+  const t = useT("tx");
   return (
     <Card>
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Summary <SummaryKindBadge kind={summary.kind} />
-            <Tooltip text="Semantic interpretation provided by the Coinset indexer: who sent and received which assets." />
+            {t("summary.title")} <SummaryKindBadge kind={summary.kind} />
+            <Tooltip text={t("summary.hint")} />
           </span>
         }
       />
       <CardBody className="flex flex-col gap-2">
         {summary.events.length === 0 ? (
-          <p className="text-sm text-fg-faint">No semantic events for this transaction.</p>
+          <p className="text-sm text-fg-faint">{t("summary.noEvents")}</p>
         ) : (
           summary.events.map((e, i) => <EventCard key={i} event={e} index={i} />)
         )}
@@ -276,6 +293,7 @@ function SemanticSummary({ summary }: { summary: TxSummary }) {
 }
 
 export function TransactionPage({ id }: { id: string | null }) {
+  const t = useT("tx");
   const { endpoints, networkConfig } = useSettings();
   const tx = useTransaction(id);
   const state = useBlockchainState();
@@ -295,12 +313,7 @@ export function TransactionPage({ id }: { id: string | null }) {
   const raw = useRawTransaction(id, settled);
 
   if (!id) {
-    return (
-      <EmptyState
-        title="No transaction id"
-        description="Open a transaction from the dashboard or paste an id into the search box."
-      />
-    );
+    return <EmptyState title={t("noId.title")} description={t("noId.description")} />;
   }
   if (tx.isLoading) {
     return (
@@ -319,9 +332,9 @@ export function TransactionPage({ id }: { id: string | null }) {
     return (
       <EmptyState
         tone="danger"
-        title="Could not load the transaction"
+        title={t("loadError")}
         description={errorMessage(tx.error)}
-        action={<Button onClick={() => tx.refetch()}>Retry</Button>}
+        action={<Button onClick={() => tx.refetch()}>{t("retry")}</Button>}
       />
     );
   }
@@ -331,20 +344,8 @@ export function TransactionPage({ id }: { id: string | null }) {
       <div className="flex flex-col gap-4">
         <Heading id={id} status="unknown" />
         <EmptyState
-          title="Transaction not found"
-          description={
-            <>
-              No pending spend bundle with this id is in the mempool
-              {endpoints.isCoinset
-                ? " and Coinset has no confirmed or dropped transaction with it"
-                : ""}
-              . Spend bundles that were dropped from the mempool without confirming are not retained
-              by nodes, so they cannot be shown.
-              {!endpoints.isCoinset
-                ? " Confirmed transaction lookups need a Coinset endpoint; with a custom node, search the coin ids instead."
-                : ""}
-            </>
-          }
+          title={t("notFound.title")}
+          description={endpoints.isCoinset ? t("notFound.coinset") : t("notFound.customNode")}
         />
       </div>
     );
@@ -356,10 +357,7 @@ export function TransactionPage({ id }: { id: string | null }) {
       return (
         <div className="flex flex-col gap-4">
           <Heading id={id} status="pending" />
-          <p className="text-sm text-fg-muted">
-            Pending in the index. Waiting for the node to provide the spend bundle; checking every
-            10 seconds.
-          </p>
+          <p className="text-sm text-fg-muted">{t("pendingInIndex")}</p>
           {view.summary ? <SemanticSummary summary={view.summary} /> : null}
         </div>
       );
@@ -376,52 +374,75 @@ export function TransactionPage({ id }: { id: string | null }) {
         />
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <StatTile
-            label="Fee"
+            label={t("stats.fee")}
             value={formatAmount(item.fee)}
-            sub={item.fee === 0n ? "0-fee spend" : `${item.fee.toString()} mojo`}
+            sub={item.fee === 0n ? t("stats.zeroFeeSpend") : `${item.fee.toString()} mojo`}
             tone={item.fee === 0n ? "default" : "primary"}
           />
           <StatTile
-            label="Cost"
+            label={t("stats.cost")}
             value={formatCost(item.cost)}
-            sub={`${formatNumber(item.cost)} CLVM cost`}
-            hint="Total CLVM cost of the spend bundle; blocks hold 11B cost."
+            sub={t("stats.clvmCost", { cost: formatNumber(item.cost) })}
+            hint={t("stats.costHint")}
           />
-          <StatTile label="Fee / cost" value={`${formatFeeRate(rate)}`} sub="mojo per cost" />
           <StatTile
-            label="Projected block"
-            value={position ? `#${position.block.index + 1}` : projected.isLoading ? "…" : "n/a"}
+            label={t("stats.feePerCost")}
+            value={`${formatFeeRate(rate)}`}
+            sub={t("stats.mojoPerCost")}
+          />
+          <StatTile
+            label={t("stats.projectedBlock")}
+            value={
+              position
+                ? `#${position.block.index + 1}`
+                : projected.isLoading
+                  ? "…"
+                  : t("notAvailable")
+            }
             sub={
               position
-                ? `${formatEta(position.block.etaSeconds)} · position ${position.position + 1} of ${position.block.items.length}`
-                : "not in the summarised mempool yet"
+                ? t("stats.projectedPosition", {
+                    eta: formatEta(position.block.etaSeconds),
+                    position: position.position + 1,
+                    total: position.block.items.length,
+                  })
+                : t("stats.notInSummary")
             }
             tone="primary"
-            hint="Where this bundle lands when the mempool is packed by fee per cost into 11B-cost blocks."
+            hint={t("stats.projectedHint")}
           />
         </div>
         <p className="text-xs text-fg-faint">
-          {item.spendBundle.coinSpends.length} coin spend
-          {item.spendBundle.coinSpends.length === 1 ? "" : "s"} · {item.removals.length} removals →{" "}
-          {item.additions.length} additions · spends{" "}
-          <AssetAmount assets={bundleAssets(item)} kind={view.kind} full />
-          {view.assetIds.length > 0 ? (
-            <>
-              {" "}
-              · asset{view.assetIds.length > 1 ? "s" : ""}{" "}
-              {view.assetIds.map((a) =>
-                view.kind === "cat" ? (
-                  <CatRef key={a} assetId={a} showId className="ml-1" />
-                ) : (
-                  <Hash key={a} value={a} href={routes.nft(a)} head={6} tail={4} className="ml-1" />
-                )
-              )}
-            </>
-          ) : null}
-          {" · "}updates live; refreshes every 10 s while pending.
+          {t.rich("pending.line", {
+            coinSpends: t("pending.coinSpends", { count: item.spendBundle.coinSpends.length }),
+            removals: item.removals.length,
+            additions: item.additions.length,
+            amount: () => <AssetAmount assets={bundleAssets(item)} kind={view.kind} full />,
+            assets: () =>
+              view.assetIds.length > 0 ? (
+                <>
+                  {" "}
+                  · {t("pending.assets", { count: view.assetIds.length })}{" "}
+                  {view.assetIds.map((a) =>
+                    view.kind === "cat" ? (
+                      <CatRef key={a} assetId={a} showId className="ml-1" />
+                    ) : (
+                      <Hash
+                        key={a}
+                        value={a}
+                        href={routes.nft(a)}
+                        head={6}
+                        tail={4}
+                        className="ml-1"
+                      />
+                    )
+                  )}
+                </>
+              ) : null,
+          })}
         </p>
         <Card>
-          <CardHeader title="Coins" />
+          <CardHeader title={t("coins")} />
           <CardBody>
             <FlowDiagram flow={flow} fee={item.fee} />
           </CardBody>
@@ -429,7 +450,7 @@ export function TransactionPage({ id }: { id: string | null }) {
         {view.summary ? <SemanticSummary summary={view.summary} /> : null}
         <Memos memos={memos} />
         <RawJson
-          label="Spend bundle"
+          label={t("rawJson.spendBundle")}
           value={{
             spend_bundle_name: item.name,
             fee: item.fee,
@@ -463,7 +484,7 @@ export function TransactionPage({ id }: { id: string | null }) {
       <Heading id={id} status={view.status} kind={<SummaryKindBadge kind={summary.kind} />} />
       <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
         <StatTile
-          label={view.status === "removed" ? "Dropped" : "Block"}
+          label={view.status === "removed" ? t("stats.dropped") : t("stats.block")}
           value={
             summary.confirmedHeight !== null ? (
               <Link
@@ -478,15 +499,15 @@ export function TransactionPage({ id }: { id: string | null }) {
           }
           sub={
             confirmations !== null
-              ? `${formatNumber(confirmations)} confirmation${confirmations === 1 ? "" : "s"}`
+              ? t("stats.confirmations", { count: confirmations })
               : view.status === "removed"
-                ? "removed from the mempool"
+                ? t("stats.removedFromMempool")
                 : undefined
           }
           tone={view.status === "removed" ? "danger" : "primary"}
         />
         <StatTile
-          label="Time"
+          label={t("stats.time")}
           value={
             summary.confirmedAtMs
               ? formatAge(summary.confirmedAtMs)
@@ -503,21 +524,21 @@ export function TransactionPage({ id }: { id: string | null }) {
           }
         />
         <StatTile
-          label="Fee"
+          label={t("stats.fee")}
           value={formatAmount(summary.feeMojos)}
-          sub={summary.cost > 0 ? `${formatFeeRate(rate)} mojo / cost` : undefined}
+          sub={summary.cost > 0 ? t("stats.feeRate", { rate: formatFeeRate(rate) }) : undefined}
         />
         <StatTile
-          label="Cost"
-          value={summary.cost > 0 ? formatCost(summary.cost) : "n/a"}
+          label={t("stats.cost")}
+          value={summary.cost > 0 ? formatCost(summary.cost) : t("notAvailable")}
           sub={
             summary.source === "inferred"
-              ? "inferred from chain (no cost recorded)"
-              : `${formatNumber(summary.cost)} CLVM cost`
+              ? t("stats.inferredCost")
+              : t("stats.clvmCost", { cost: formatNumber(summary.cost) })
           }
         />
         <StatTile
-          label="Verdict"
+          label={t("stats.verdict")}
           value={verdict.label}
           sub={verdict.detail}
           tone={summary.feeMojos === 0n ? "default" : "primary"}
@@ -525,63 +546,72 @@ export function TransactionPage({ id }: { id: string | null }) {
       </div>
       {summary.confirmedHeight !== null ? (
         <div className="text-xs text-fg-faint" data-testid="farmed-by">
-          Farmed by{" "}
-          {record ? (
-            poolEntry ? (
-              <a
-                href={poolEntry.url}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-accent hover:underline"
+          {t.rich("farmedBy.line", {
+            who: () =>
+              record ? (
+                poolEntry ? (
+                  <a
+                    href={poolEntry.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-accent hover:underline"
+                  >
+                    {poolEntry.name}
+                  </a>
+                ) : soloFarmer ? (
+                  <span className="text-fg-muted">{t("farmedBy.soloFarmer")}</span>
+                ) : (
+                  t.rich("farmedBy.unidentifiedPool", {
+                    address: () => (
+                      <Hash
+                        value={puzzleHashToAddress(
+                          record.poolPuzzleHash,
+                          networkConfig.addressPrefix
+                        )}
+                        href={routes.address(
+                          puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix)
+                        )}
+                        head={8}
+                        tail={5}
+                      />
+                    ),
+                  })
+                )
+              ) : confirmedBlock.isLoading ? (
+                "…"
+              ) : (
+                t("unknown")
+              ),
+            link: (chunks) => (
+              <Link
+                href={routes.block(summary.confirmedHeight!)}
+                className="text-accent hover:underline"
               >
-                {poolEntry.name}
-              </a>
-            ) : soloFarmer ? (
-              <span className="text-fg-muted">an unidentified solo farmer</span>
-            ) : (
-              <>
-                an unidentified pool at{" "}
-                <Hash
-                  value={puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix)}
-                  href={routes.address(
-                    puzzleHashToAddress(record.poolPuzzleHash, networkConfig.addressPrefix)
-                  )}
-                  head={8}
-                  tail={5}
-                />
-              </>
-            )
-          ) : confirmedBlock.isLoading ? (
-            "…"
-          ) : (
-            "unknown"
-          )}
-          {" · "}
-          <Link
-            href={routes.block(summary.confirmedHeight)}
-            className="text-accent hover:underline"
-          >
-            block details
-          </Link>
+                {chunks}
+              </Link>
+            ),
+          })}
         </div>
       ) : null}
       {summary.firstSeenMs ? (
         <p className="text-xs text-fg-faint">
-          First seen in the mempool {formatAge(summary.firstSeenMs)} (
-          {formatDateTime(summary.firstSeenMs)}).
+          {t("firstSeen", {
+            age: formatAge(summary.firstSeenMs),
+            date: formatDateTime(summary.firstSeenMs),
+          })}
           {waited !== null ? (
             <>
               {" "}
-              Waited {formatDuration(waited)} before{" "}
-              {view.status === "removed" ? "being removed" : "confirming"} — based on a first-seen
-              sample, not a consensus fact.
+              {t(view.status === "removed" ? "waitedRemoved" : "waitedConfirming", {
+                duration: formatDuration(waited),
+              })}
             </>
           ) : null}
         </p>
       ) : null}
       <SemanticSummary summary={summary} />
       <Card>
-        <CardHeader title="Coins" />
+        <CardHeader title={t("coins")} />
         <CardBody>
           <FlowDiagram flow={flow} fee={summary.feeMojos} />
         </CardBody>
@@ -589,12 +619,12 @@ export function TransactionPage({ id }: { id: string | null }) {
       {raw.data ? <CoinSpends raw={raw.data} /> : null}
       <Memos memos={collectMemos(summary.events)} />
       <RawJson
-        label="Transaction summary"
+        label={t("rawJson.summary")}
         value={{ ...summary, events: summary.events.map((e) => e.raw) }}
       />
       {raw.data ? (
         <RawJson
-          label="Spend bundle"
+          label={t("rawJson.spendBundle")}
           value={{
             source: raw.data.source,
             spend_bundle_name: raw.data.item.name,
@@ -615,28 +645,29 @@ export function TransactionPage({ id }: { id: string | null }) {
  * and created, which the semantic summary above folds into per-participant flows.
  */
 function CoinSpends({ raw }: { raw: RawTransaction }) {
+  const t = useT("tx");
   const { item, source } = raw;
   const { kind, assetIds } = classifyMempoolItem(item);
   const flow = flowFromCoins(item.removals, item.additions, kind, assetIds);
   return (
     <Card>
       <CardHeader
-        title={`Coin spends (${item.spendBundle.coinSpends.length})`}
+        title={t("coinSpends.title", { count: item.spendBundle.coinSpends.length })}
         action={
           <span className="inline-flex items-center gap-2 text-[11px] text-fg-faint">
             <AssetBadge kind={kind} assetId={assetIds[0]} />
-            {source === "inferred" ? (
-              <Tooltip text="Coinset never saw this bundle in the mempool; the spends are rebuilt from the block it landed in, so fee and cost are what the block records." />
-            ) : null}
+            {source === "inferred" ? <Tooltip text={t("coinSpends.inferredHint")} /> : null}
           </span>
         }
       />
       <CardBody className="flex flex-col gap-2">
         <p className="text-xs text-fg-faint">
-          {item.removals.length} coin{item.removals.length === 1 ? "" : "s"} spent →{" "}
-          {item.additions.length} created · {formatCost(item.cost)} cost · spends{" "}
-          <AssetAmount assets={bundleAssets(item)} kind={kind} full />
-          {source === "inferred" ? " · rebuilt from the block" : " · as seen in the mempool"}
+          {t.rich(source === "inferred" ? "coinSpends.lineInferred" : "coinSpends.lineMempool", {
+            spent: t("coinSpends.coins", { count: item.removals.length }),
+            created: item.additions.length,
+            cost: formatCost(item.cost),
+            amount: () => <AssetAmount assets={bundleAssets(item)} kind={kind} full />,
+          })}
         </p>
         <FlowDiagram flow={flow} fee={item.fee} />
       </CardBody>
@@ -653,11 +684,12 @@ function Heading({
   status: "pending" | "confirmed" | "removed" | "unknown";
   kind?: React.ReactNode;
 }) {
+  const t = useT("tx");
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-semibold">Transaction</h1>
+          <h1 className="text-xl font-semibold">{t("heading")}</h1>
           <StatusBadge status={status} />
           {kind}
         </div>

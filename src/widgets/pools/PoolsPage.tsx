@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { addressToPuzzleHash, puzzleHashToAddress } from "@/shared/lib/chia/address";
+import { useT } from "@/shared/i18n/useT";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import type { PoolGroup } from "@/shared/lib/pools/share";
 import { routes } from "@/shared/lib/routes";
@@ -30,13 +31,10 @@ const COLLAPSED_ROWS = 25;
 /** Payout addresses listed per pool before "+N more". */
 const COLLAPSED_PAYOUTS = 3;
 
-const BOTH_SHARES_HINT =
-  "The pool reward (7/8) and the farmer reward (1/8) go to the same address on every block, so this is not a PlotNFT of the official pool protocol: a solo farmer, or an operator with its own protocol.";
-
 /** Matches a group by pool name, label, claim target or payout address (hex or bech32). */
-function matches(group: PoolGroup, needle: string): boolean {
+function matches(group: PoolGroup, needle: string, label: string): boolean {
   if (needle === "") return true;
-  if (groupLabel(group).toLowerCase().includes(needle)) return true;
+  if (label.toLowerCase().includes(needle)) return true;
   const hash = addressToPuzzleHash(needle) ?? needle.replace(/^0x/, "");
   // A couple of hex characters would match nearly every hash.
   if (!/^[0-9a-f]{6,64}$/.test(hash)) return false;
@@ -47,11 +45,12 @@ function matches(group: PoolGroup, needle: string): boolean {
 }
 
 export function PoolsPage() {
+  const t = useT("pools");
   const { share, windowStart, windowEnd, canResolveClaims, resolving, error } = usePoolShare();
   const [search, setSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
   const needle = search.trim().toLowerCase();
-  const matching = share ? share.groups.filter((g) => matches(g, needle)) : [];
+  const matching = share ? share.groups.filter((g) => matches(g, needle, groupLabel(g, t))) : [];
   const visible = showAll || needle !== "" ? matching : matching.slice(0, COLLAPSED_ROWS);
   const rankByKey = new Map(share ? share.groups.map((g, rank) => [g.key, rank] as const) : []);
   const namedPools = share ? share.groups.filter((g) => g.kind === "pool").length : 0;
@@ -59,51 +58,61 @@ export function PoolsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold">Pools</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
-          label="Blocks"
+          label={t("stats.blocks")}
           value={share ? formatNumber(share.totalBlocks) : "…"}
           sub={
             windowStart !== null && windowEnd !== null
-              ? `heights ${formatNumber(windowStart)} – ${formatNumber(windowEnd)}`
+              ? t("stats.heights", {
+                  start: formatNumber(windowStart),
+                  end: formatNumber(windowEnd),
+                })
               : undefined
           }
         />
         <StatTile
-          label="Largest"
+          label={t("stats.largest")}
           value={largest ? formatPercent(largest.share, 1) : "…"}
-          sub={largest ? groupLabel(largest) : undefined}
-          hint="The biggest single group in the window."
+          sub={largest ? groupLabel(largest, t) : undefined}
+          hint={t("stats.largestHint")}
         />
         <StatTile
-          label="Named pools"
+          label={t("stats.named")}
           value={share ? formatPercent(share.namedShare, 1) : "…"}
           sub={
-            share ? `${formatNumber(share.namedBlocks)} blocks · ${namedPools} pools` : undefined
+            share
+              ? t("stats.namedSub", {
+                  blocks: formatNumber(share.namedBlocks),
+                  pools: namedPools,
+                })
+              : undefined
           }
-          hint="Share won by pools in the registry, each confirmed from the pool's own pool_info endpoint or another recorded source."
+          hint={t("stats.namedHint")}
         />
         <StatTile
-          label="Payout addresses"
+          label={t("stats.payouts")}
           value={share ? formatNumber(share.payoutCount) : "…"}
-          sub={share ? `in ${formatNumber(share.groups.length)} groups` : undefined}
-          hint="Distinct pool payout addresses that won a block in the window. Every PlotNFT farmer has their own, so a pool owns many."
+          sub={
+            share ? t("stats.payoutsSub", { count: formatNumber(share.groups.length) }) : undefined
+          }
+          hint={t("stats.payoutsHint")}
         />
       </div>
 
       <Card>
         <CardHeader
-          title="Share by pool"
+          title={t("share.title")}
           action={
             share ? (
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search pool or address"
-                aria-label="Search pool or address"
+                placeholder={t("share.search")}
+                aria-label={t("share.search")}
                 className="h-8 w-44 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
               />
             ) : null
@@ -111,11 +120,7 @@ export function PoolsPage() {
         />
         <CardBody className="flex flex-col gap-4">
           {error ? (
-            <EmptyState
-              tone="danger"
-              title="Could not load pool share"
-              description={error.message}
-            />
+            <EmptyState tone="danger" title={t("share.loadError")} description={error.message} />
           ) : !share ? (
             <div className="flex flex-col gap-3">
               <Skeleton className="h-3 w-full" />
@@ -127,30 +132,25 @@ export function PoolsPage() {
             <>
               <PoolShareBar share={share} />
               {!canResolveClaims ? (
-                <p className="text-xs text-fg-faint">
-                  Reward claims come from Coinset&apos;s indexed API, which a custom node does not
-                  offer: PlotNFT farmers are listed one by one here instead of under their pool.
-                </p>
+                <p className="text-xs text-fg-faint">{t("share.noClaims")}</p>
               ) : resolving > 0 ? (
                 <p role="status" className="text-xs text-fg-muted">
-                  Checking where {formatNumber(resolving)} payout{" "}
-                  {resolving === 1 ? "address has its" : "addresses have their"} rewards claimed;
-                  pools grow as results arrive. Your browser remembers them for the next visit.
+                  {t("share.resolving", { count: resolving })}
                 </p>
               ) : null}
-              <div role="region" aria-label="Share by pool">
+              <div role="region" aria-label={t("share.title")}>
                 {matching.length === 0 ? (
                   <p className="py-6 text-center text-sm text-fg-faint">
-                    No pool or address matches &quot;{search}&quot;.
+                    {t("share.noMatch", { search })}
                   </p>
                 ) : (
                   <Table>
                     <thead>
                       <tr>
-                        <Th>Pool</Th>
-                        <Th>Payout addresses</Th>
-                        <Th className="text-right">Blocks</Th>
-                        <Th className="text-right">Share</Th>
+                        <Th>{t("share.colPool")}</Th>
+                        <Th>{t("share.colPayouts")}</Th>
+                        <Th className="text-right">{t("share.colBlocks")}</Th>
+                        <Th className="text-right">{t("share.colShare")}</Th>
                       </tr>
                     </thead>
                     <tbody>
@@ -174,8 +174,8 @@ export function PoolsPage() {
                   aria-expanded={showAll}
                 >
                   {showAll
-                    ? `Show the top ${COLLAPSED_ROWS}`
-                    : `Show all ${formatNumber(matching.length)} rows`}
+                    ? t("share.showTop", { count: COLLAPSED_ROWS })
+                    : t("share.showAll", { count: formatNumber(matching.length) })}
                 </Button>
               ) : null}
             </>
@@ -184,19 +184,14 @@ export function PoolsPage() {
       </Card>
 
       <p className="max-w-3xl text-xs text-fg-faint">
-        A block&apos;s payout address and the claim that empties it are both on chain, so the
-        grouping is exact; only the names come from a registry, matched against the target address a
-        pool publishes at its <span className="mono">pool_info</span> endpoint. An address whose
-        rewards were never claimed (a fresh PlotNFT, or a pool that has not collected yet) stays
-        &quot;Unknown&quot; until it is. Know a pool that is missing? Add a sourced entry to{" "}
-        <span className="mono">src/shared/lib/pools/registry.json</span> (see the wiki&apos;s
-        contribution note).
+        {t.rich("footnote", { code: (c) => <span className="mono">{c}</span> })}
       </p>
     </div>
   );
 }
 
 function PoolRow({ group, color }: { group: PoolGroup; color: string }) {
+  const t = useT("pools");
   const { networkConfig } = useSettings();
   const [expanded, setExpanded] = useState(false);
   const address = (hash: string) => puzzleHashToAddress(hash, networkConfig.addressPrefix);
@@ -227,24 +222,27 @@ function PoolRow({ group, color }: { group: PoolGroup; color: string }) {
                   <Tooltip text={group.entry.source} />
                 </>
               ) : (
-                <span className="text-fg-muted">{groupLabel(group)}</span>
+                <span className="text-fg-muted">{groupLabel(group, t)}</span>
               )}
               {group.bothShares ? (
                 <>
-                  <Badge>both shares</Badge>
-                  <Tooltip text={BOTH_SHARES_HINT} />
+                  <Badge>{t("row.bothShares")}</Badge>
+                  <Tooltip text={t("row.bothSharesHint")} />
                 </>
               ) : null}
             </span>
             {group.claimTarget ? (
               <span className="text-xs text-fg-faint">
-                claims to{" "}
-                <Hash
-                  value={address(group.claimTarget)}
-                  href={routes.address(address(group.claimTarget))}
-                  head={8}
-                  tail={6}
-                />
+                {t.rich("row.claimsTo", {
+                  hash: () => (
+                    <Hash
+                      value={address(group.claimTarget!)}
+                      href={routes.address(address(group.claimTarget!))}
+                      head={8}
+                      tail={6}
+                    />
+                  ),
+                })}
               </span>
             ) : null}
           </div>
@@ -279,7 +277,7 @@ function PoolRow({ group, color }: { group: PoolGroup; color: string }) {
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
           >
-            {expanded ? "Show fewer" : `+${formatNumber(hidden)} more`}
+            {expanded ? t("row.showFewer") : t("row.more", { count: formatNumber(hidden) })}
           </Button>
         ) : null}
       </Td>

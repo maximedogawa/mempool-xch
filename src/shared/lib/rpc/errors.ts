@@ -1,4 +1,6 @@
 /** Errors distinguish network failures, non-success RPC responses and malformed JSON. */
+import { plainT } from "@/shared/i18n/plain";
+
 export type RpcErrorKind = "network" | "http" | "rpc" | "malformed" | "not_found" | "aborted";
 
 export class RpcError extends Error {
@@ -25,19 +27,22 @@ export class RpcError extends Error {
 
   /** Short user-facing description. */
   get userMessage(): string {
+    const t = plainT("common");
     switch (this.kind) {
       case "network":
-        return "Could not reach the node. Check your connection or the configured endpoint.";
+        return t("rpcError.network");
       case "http":
-        return `The node answered with HTTP ${this.status ?? "error"}.`;
+        return this.status === undefined
+          ? t("rpcError.httpUnknown")
+          : t("rpcError.http", { status: String(this.status) });
       case "rpc":
         return this.message;
       case "malformed":
-        return "The node returned a response that could not be parsed.";
+        return t("rpcError.malformed");
       case "not_found":
-        return "Not found.";
+        return t("rpcError.notFound");
       case "aborted":
-        return "Request cancelled.";
+        return t("rpcError.aborted");
     }
   }
 }

@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { formatAmount, formatCat, formatNumber } from "@/shared/lib/chia/amounts";
 import { formatAge } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
@@ -41,19 +42,24 @@ import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 
 function Unavailable({ what }: { what: string }) {
+  const t = useT("address");
   return (
     <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)] px-3 py-2 text-xs text-fg-muted">
-      <span className="font-semibold text-warning">Unavailable with a custom node:</span> {what}{" "}
-      need the Coinset indexed API. Switch the endpoint back to Coinset in{" "}
-      <Link href={routes.settings()} className="text-accent hover:underline">
-        settings
-      </Link>{" "}
-      to see them.
+      {t.rich("unavailable", {
+        what,
+        b: (chunks) => <span className="font-semibold text-warning">{chunks}</span>,
+        link: (chunks) => (
+          <Link href={routes.settings()} className="text-accent hover:underline">
+            {chunks}
+          </Link>
+        ),
+      })}
     </p>
   );
 }
 
 export function AddressPage() {
+  const t = useT("address");
   const raw = useDetailId("address") ?? "";
   const { networkConfig, endpoints } = useSettings();
   const resolved = useMemo(
@@ -70,8 +76,11 @@ export function AddressPage() {
     return (
       <EmptyState
         tone="danger"
-        title="Not a valid address"
-        description={`Expected an ${networkConfig.addressPrefix}1… address, a 32-byte puzzle hash or a did:chia: id. Got: ${raw || "(empty)"}`}
+        title={t("invalid.title")}
+        description={t("invalid.description", {
+          prefix: networkConfig.addressPrefix,
+          raw: raw || t("invalid.empty"),
+        })}
       />
     );
   }
@@ -89,7 +98,7 @@ export function AddressPage() {
       {resolved.address ? <SageAddressPanel address={resolved.address} /> : null}
       <Card>
         <CardHeader
-          title={isDid ? "DID" : "Address"}
+          title={isDid ? t("header.did") : t("header.address")}
           action={
             <span className="flex items-center gap-2">
               <Badge tone={endpoints.network === "mainnet" ? "primary" : "warning"}>
@@ -107,11 +116,11 @@ export function AddressPage() {
         <CardBody className="flex flex-col gap-4 md:flex-row md:items-start">
           <div
             className="shrink-0 self-center rounded-card bg-white p-2 md:self-start"
-            aria-label={`QR code for ${addressText}`}
+            aria-label={t("header.qrLabel", { address: addressText })}
             role="img"
           >
             <QRCodeSVG
-              title="QR code of this address"
+              title={t("header.qrTitle")}
               value={addressText}
               size={132}
               level="M"
@@ -122,7 +131,7 @@ export function AddressPage() {
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                {isDid ? "DID id" : "Address"}
+                {isDid ? t("header.didId") : t("header.address")}
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-base">
                 {addressText}
@@ -131,7 +140,7 @@ export function AddressPage() {
             </div>
             <div className="min-w-0">
               <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                {isDid ? "Launcher id" : "Puzzle hash"}
+                {isDid ? t("header.launcherId") : t("header.puzzleHash")}
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-xs text-fg-muted">
                 0x{ph}
@@ -141,7 +150,7 @@ export function AddressPage() {
             {handle.data ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  XCHandles
+                  {t("header.handles")}
                 </dt>
                 <dd className="flex flex-wrap items-center gap-2 text-sm">
                   <Link
@@ -152,7 +161,7 @@ export function AddressPage() {
                   </Link>
                   {handle.data.count > 1 ? (
                     <span className="text-xs text-fg-faint">
-                      +{handle.data.count - 1} more resolve here
+                      {t("header.moreHandles", { count: handle.data.count - 1 })}
                     </span>
                   ) : null}
                 </dd>
@@ -161,7 +170,7 @@ export function AddressPage() {
             {!isDid ? (
               <div className="min-w-0">
                 <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  Other network prefix
+                  {t("header.otherPrefix")}
                 </dt>
                 <dd className="mono flex min-w-0 items-center gap-1 break-all text-xs text-fg-faint">
                   {otherPrefixAddress(ph, networkConfig.addressPrefix)}
@@ -177,81 +186,86 @@ export function AddressPage() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
-          label="XCH balance"
+          label={t("stats.xchBalance")}
           value={
             xchBalance !== undefined ? (
               formatAmount(xchBalance)
             ) : data.xch.isLoading || data.coins.isLoading ? (
               <Skeleton className="h-6 w-24" />
             ) : (
-              "n/a"
+              t("notAvailable")
             )
           }
           sub={
             data.indexed && data.xch.data
               ? pendingDelta !== 0n
-                ? `pending ${pendingDelta > 0n ? "+" : "−"}${formatAmount(pendingDelta < 0n ? -pendingDelta : pendingDelta)}`
-                : "no pending change"
-              : "from unspent coins"
+                ? t("stats.pending", {
+                    amount: `${pendingDelta > 0n ? "+" : "−"}${formatAmount(pendingDelta < 0n ? -pendingDelta : pendingDelta)}`,
+                  })
+                : t("stats.noPendingChange")
+              : t("stats.fromUnspent")
           }
           tone="primary"
         />
         <StatTile
-          label="CAT balances"
+          label={t("stats.catBalances")}
           value={
             data.indexed
               ? data.cats.data
                 ? formatNumber(data.cats.data.filter((c) => c.confirmed > 0n).length)
                 : "…"
-              : "n/a"
+              : t("notAvailable")
           }
-          sub={data.indexed ? "tokens held" : "needs Coinset"}
+          sub={data.indexed ? t("stats.tokensHeld") : t("needsCoinset")}
         />
         {isDid ? (
           <StatTile
-            label="NFTs"
+            label={t("stats.nfts")}
             href={did.available ? routes.ownedNfts(resolved.didId ?? addressText) : undefined}
             value={
               !did.available
-                ? "n/a"
+                ? t("notAvailable")
                 : did.isLoading
                   ? "…"
                   : did.profile?.ownedNfts !== null && did.profile?.ownedNfts !== undefined
                     ? formatNumber(did.profile.ownedNfts)
-                    : "n/a"
+                    : t("notAvailable")
             }
-            sub={did.available ? "held · View NFTs →" : "needs mainnet"}
-            hint="NFTs attributed to this DID by MintGarden, not coins hinted to its launcher id."
+            sub={did.available ? t("stats.didNftsSub") : t("stats.needsMainnet")}
+            hint={t("stats.didNftsHint")}
           />
         ) : (
           <StatTile
-            label="NFTs"
+            label={t("stats.nfts")}
             href={data.indexed ? routes.ownedNfts(addressText) : undefined}
             value={
               data.indexed
                 ? data.nfts.data !== undefined
                   ? formatNumber(data.nfts.data)
                   : "…"
-                : "n/a"
+                : t("notAvailable")
             }
-            sub={data.indexed ? "owned · View NFTs →" : "needs Coinset"}
+            sub={data.indexed ? t("stats.ownedNftsSub") : t("needsCoinset")}
           />
         )}
         <StatTile
-          label="Unspent coins"
+          label={t("stats.unspentCoins")}
           value={unspentCount !== null ? formatNumber(unspentCount) : "…"}
           sub={
             coins
-              ? `${formatNumber(coins.xchCoins.length)} XCH · ${coins.hintedCoins ? `${formatNumber(coins.hintedCoins.length)} hinted` : "hinted n/a"}`
+              ? t("stats.unspentSub", {
+                  xch: formatNumber(coins.xchCoins.length),
+                  hinted: coins.hintedCoins
+                    ? t("stats.hinted", { count: coins.hintedCoins.length })
+                    : t("stats.hintedNa"),
+                })
               : undefined
           }
-          hint="Coins locked to this puzzle hash plus CAT, NFT and DID coins hinted to it."
+          hint={t("stats.unspentHint")}
         />
       </div>
 
-      {!data.indexed ? (
-        <Unavailable what="Balances by asset, NFT count, pending and confirmed transaction history" />
-      ) : null}
+      {!data.indexed ? <Unavailable what={t("unavailableWhat")} /> : null}
 
       {isDid && did.available ? <AddressNfts owner={{ kind: "did", id: ph }} /> : null}
 
@@ -259,15 +273,15 @@ export function AddressPage() {
       data.cats.data &&
       data.cats.data.some((c) => c.confirmed > 0n || c.pending !== 0n) ? (
         <Card>
-          <CardHeader title="CAT balances" />
+          <CardHeader title={t("cats.title")} />
           <CardBody>
             <Table>
               <thead>
                 <tr>
-                  <Th>Token</Th>
-                  <Th className="hidden md:table-cell">Asset id</Th>
-                  <Th className="text-right">Confirmed</Th>
-                  <Th className="text-right">Pending</Th>
+                  <Th>{t("cats.token")}</Th>
+                  <Th className="hidden md:table-cell">{t("cats.assetId")}</Th>
+                  <Th className="text-right">{t("cats.confirmed")}</Th>
+                  <Th className="text-right">{t("cats.pending")}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -284,7 +298,7 @@ export function AddressPage() {
                           >
                             <AssetImage
                               urls={token?.iconUrl ? [token.iconUrl] : []}
-                              alt={token?.name ?? "token"}
+                              alt={token?.name ?? t("cats.tokenAlt")}
                               className="h-6 w-6 shrink-0"
                               rounded="rounded-full"
                             />
@@ -312,8 +326,12 @@ export function AddressPage() {
       {data.indexed ? (
         <Card>
           <CardHeader
-            title={`Pending transactions${data.pending.transactions.length ? ` (${data.pending.transactions.length})` : ""}`}
-            action={<span className="text-[11px] text-fg-faint">refreshes every 10 s</span>}
+            title={
+              data.pending.transactions.length
+                ? t("pending.titleCount", { count: data.pending.transactions.length })
+                : t("pending.title")
+            }
+            action={<span className="text-[11px] text-fg-faint">{t("pending.refreshes")}</span>}
           />
           <CardBody>
             <TxSummaryList
@@ -322,7 +340,7 @@ export function AddressPage() {
               error={data.pending.error}
               viewedP2={ph}
               tokens={tokens.data}
-              emptyText="No pending transactions for this address."
+              emptyText={t("pending.empty")}
               hasMore={data.pending.hasMore}
               onLoadMore={data.pending.loadMore}
               loadingMore={data.pending.loadingMore}
@@ -332,7 +350,7 @@ export function AddressPage() {
       ) : null}
 
       <Card>
-        <CardHeader title={data.indexed ? "Transaction history" : "Unspent coins"} />
+        <CardHeader title={data.indexed ? t("history.title") : t("history.unspentTitle")} />
         <CardBody>
           {data.indexed ? (
             <TxSummaryList
@@ -341,7 +359,7 @@ export function AddressPage() {
               error={data.history.error}
               viewedP2={ph}
               tokens={tokens.data}
-              emptyText="No confirmed transactions found for this address."
+              emptyText={t("history.empty")}
               hasMore={data.history.hasMore}
               onLoadMore={data.history.loadMore}
               loadingMore={data.history.loadingMore}
@@ -353,7 +371,7 @@ export function AddressPage() {
       </Card>
 
       {data.indexed && !isDid ? (
-        <OffersCard scope={{ kind: "address", p2: ph }} title="Offers made from this address" />
+        <OffersCard scope={{ kind: "address", p2: ph }} title={t("offersTitle")} />
       ) : null}
     </div>
   );
@@ -364,6 +382,7 @@ function otherPrefixAddress(ph: string, prefix: "xch" | "txch"): string {
 }
 
 function CoinList({ coins, loading }: { coins: CoinFallback | undefined; loading: boolean }) {
+  const t = useT("address");
   if (loading && !coins) return <Skeleton className="h-24 w-full" />;
   const all = coins
     ? [
@@ -371,15 +390,15 @@ function CoinList({ coins, loading }: { coins: CoinFallback | undefined; loading
         ...(coins.hintedCoins ?? []).map((c) => ({ c, hinted: true })),
       ]
     : [];
-  if (all.length === 0) return <EmptyState title="No unspent coins." />;
+  if (all.length === 0) return <EmptyState title={t("coins.empty")} />;
   return (
     <Table>
       <thead>
         <tr>
-          <Th>Coin</Th>
-          <Th>Type</Th>
-          <Th className="text-right">Amount</Th>
-          <Th className="text-right">Confirmed</Th>
+          <Th>{t("coins.coin")}</Th>
+          <Th>{t("coins.type")}</Th>
+          <Th className="text-right">{t("coins.amount")}</Th>
+          <Th className="text-right">{t("coins.confirmed")}</Th>
         </tr>
       </thead>
       <tbody>
@@ -389,7 +408,11 @@ function CoinList({ coins, loading }: { coins: CoinFallback | undefined; loading
               <Hash value={c.name} href={routes.coin(c.name)} />
             </Td>
             <Td>
-              {hinted ? <Badge tone="cat">hinted asset</Badge> : <Badge tone="xch">XCH</Badge>}
+              {hinted ? (
+                <Badge tone="cat">{t("coins.hintedAsset")}</Badge>
+              ) : (
+                <Badge tone="xch">XCH</Badge>
+              )}
             </Td>
             <Td className="tabular text-right">
               {hinted ? `${formatNumber(Number(c.coin.amount))} mojo` : formatAmount(c.coin.amount)}

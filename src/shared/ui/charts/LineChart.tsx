@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import type { Point } from "@/shared/lib/charts/smoothing";
 
@@ -28,6 +29,7 @@ export function LineChart({
   className?: string;
 }) {
   const id = useId();
+  const t = useT("ui");
   const [hover, setHover] = useState<number | null>(null);
   const width = 800;
   const pad = { l: 44, r: 8, t: 8, b: 22 };
@@ -88,13 +90,19 @@ export function LineChart({
         className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
         style={{ height }}
       >
-        Not enough data yet.
+        {t("chart.notEnough")}
       </div>
     );
   }
 
   const hoverPoint = hover !== null ? points[hover] : null;
-  const summary = `${ariaLabel}. ${points.length} points from ${formatTime(points[0]!.t)} to ${formatTime(points[points.length - 1]!.t)}. Latest ${formatValue(model.latest)}.`;
+  const summary = t("chart.lineSummary", {
+    label: ariaLabel,
+    count: points.length,
+    from: formatTime(points[0]!.t),
+    to: formatTime(points[points.length - 1]!.t),
+    latest: formatValue(model.latest),
+  });
 
   const onMove = (clientX: number, target: SVGSVGElement) => {
     const rect = target.getBoundingClientRect();

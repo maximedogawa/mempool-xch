@@ -5,19 +5,14 @@ import { useEffect, useState } from "react";
 import { useBlockchainState } from "@/shared/api/hooks";
 import { describeChannel } from "@/shared/lib/live/channel";
 import { formatNumber } from "@/shared/lib/chia/amounts";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Tooltip } from "@/shared/ui/Tooltip";
 
-const LABEL = {
-  live: "Live",
-  connecting: "Connecting",
-  offline: "Offline",
-} as const;
-
-type PillTone = keyof typeof LABEL;
+type PillTone = "live" | "connecting" | "offline";
 
 /**
  * Connection pill: a pulsing green ring while updates are arriving, a spinner while connecting,
@@ -29,6 +24,7 @@ type PillTone = keyof typeof LABEL;
  * actually on stays one hover away in the tooltip, and in the footer and settings page.
  */
 export function ConnectionIndicator({ compact = false }: { compact?: boolean }) {
+  const t = useT("shell");
   const { status, transport, lastEventAt, peakHeight } = useLive();
   const { endpoints } = useSettings();
   const state = useBlockchainState();
@@ -38,7 +34,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
     const id = setInterval(() => tick((n) => n + 1), 5_000);
     return () => clearInterval(id);
   }, []);
-  const age = lastEventAt ? formatAge(lastEventAt) : "no data yet";
+  const age = lastEventAt ? formatAge(lastEventAt) : t("connection.noData");
   const channel = describeChannel({
     status,
     transport,
@@ -49,8 +45,9 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
   const tone: PillTone = status === "polling" ? "live" : status;
   const hint =
     status === "connecting"
-      ? `Connecting: ${channel.name}…`
-      : `${channel.name}: ${channel.detail} Last update ${age}.`;
+      ? t("connection.connectingHint", { channel: channel.name })
+      : t("connection.hint", { channel: channel.name, detail: channel.detail, age });
+  const label = t(`connection.${tone}`);
   const styles = {
     live: "border-primary/40 bg-primary-soft text-primary",
     connecting: "border-border bg-surface text-fg-muted",
@@ -80,7 +77,7 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
             <span className="relative h-2 w-2 shrink-0 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
           )}
         </span>
-        {!compact ? <span className="whitespace-nowrap">{LABEL[tone]}</span> : null}
+        {!compact ? <span className="whitespace-nowrap">{label}</span> : null}
         {!compact && tone === "live" ? (
           <Zap size={12} aria-hidden="true" className="-ml-1 hidden md:inline" />
         ) : null}
@@ -94,7 +91,14 @@ export function ConnectionIndicator({ compact = false }: { compact?: boolean }) 
             {age}
           </span>
         ) : null}
-        <span className="sr-only">{`${LABEL[tone]} via ${channel.name}, peak ${peak ?? "unknown"}, last update ${age}`}</span>
+        <span className="sr-only">
+          {t("connection.srStatus", {
+            label,
+            channel: channel.name,
+            peak: peak ?? t("connection.unknownPeak"),
+            age,
+          })}
+        </span>
       </span>
     </Tooltip>
   );

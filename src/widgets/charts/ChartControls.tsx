@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { RANGES, type RangeId } from "@/shared/lib/charts/range";
 import { SMOOTHING_LEVELS, type SmoothingId } from "@/shared/lib/charts/smoothing";
@@ -49,10 +50,7 @@ function RadioRow<T extends string>({
   );
 }
 
-const SCALES: readonly { id: ScaleId; label: string }[] = [
-  { id: "linear", label: "Linear" },
-  { id: "log", label: "Log" },
-];
+const SCALES: readonly ScaleId[] = ["linear", "log"];
 
 export function ChartControls({
   value,
@@ -61,23 +59,25 @@ export function ChartControls({
   value: ChartControlsState;
   onChange: (next: ChartControlsState) => void;
 }) {
+  const t = useT("charts");
+  const scales = SCALES.map((id) => ({ id, label: t(`controls.${id}`) }));
   return (
     <div className="flex flex-col gap-3 rounded-sm border border-border bg-bg-elevated p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
       <RadioRow
-        label="Range"
+        label={t("controls.range")}
         options={RANGES}
         selected={value.range}
         onSelect={(range) => onChange({ ...value, range })}
       />
       <RadioRow
-        label="Smoothing"
+        label={t("controls.smoothing")}
         options={SMOOTHING_LEVELS}
         selected={value.smoothing}
         onSelect={(smoothing) => onChange({ ...value, smoothing })}
       />
       <RadioRow
-        label="Scale"
-        options={SCALES}
+        label={t("controls.scale")}
+        options={scales}
         selected={value.scale}
         onSelect={(scale) => onChange({ ...value, scale })}
       />

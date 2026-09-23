@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { feePerCost, formatAmount, formatCost, formatFeeRate } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
 import { squarify } from "@/shared/lib/treemap";
@@ -20,6 +21,7 @@ export function BlockTreemap({
   transactions: TxSummary[];
   blockCost: number;
 }) {
+  const t = useT("block");
   const [hover, setHover] = useState<TxSummary | null>(null);
   const cells = useMemo(
     () =>
@@ -32,9 +34,13 @@ export function BlockTreemap({
   );
   const total = transactions.reduce((s, t) => s + t.cost, 0);
   if (cells.length === 0) {
-    return <p className="py-6 text-center text-sm text-fg-faint">No cost data for this block.</p>;
+    return <p className="py-6 text-center text-sm text-fg-faint">{t("treemap.empty")}</p>;
   }
-  const label = `Treemap of ${transactions.length} transactions sized by cost (${formatCost(total)} of ${formatCost(blockCost)}) and coloured by fee per cost`;
+  const label = t("treemap.label", {
+    count: transactions.length,
+    used: formatCost(total),
+    max: formatCost(blockCost),
+  });
   return (
     <div className="relative">
       <svg
@@ -53,7 +59,11 @@ export function BlockTreemap({
             <Link
               key={tx.id}
               href={routes.tx(tx.id)}
-              aria-label={`Transaction ${shortId(tx.id)}, cost ${formatCost(tx.cost)}, fee ${formatAmount(tx.feeMojos)}`}
+              aria-label={t("treemap.cell", {
+                id: shortId(tx.id),
+                cost: formatCost(tx.cost),
+                fee: formatAmount(tx.feeMojos),
+              })}
             >
               <g
                 onMouseEnter={() => setHover(tx)}
@@ -108,8 +118,11 @@ export function BlockTreemap({
         >
           <div className="mono text-fg">{shortId(hover.id, 10, 8)}</div>
           <div className="text-fg-muted">
-            Cost {formatCost(hover.cost)} · Fee {formatAmount(hover.feeMojos)} ·{" "}
-            {formatFeeRate(feePerCost(hover.feeMojos, hover.cost))} mojo/cost
+            {t("treemap.tooltip", {
+              cost: formatCost(hover.cost),
+              fee: formatAmount(hover.feeMojos),
+              rate: formatFeeRate(feePerCost(hover.feeMojos, hover.cost)),
+            })}
           </div>
         </div>
       ) : null}

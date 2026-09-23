@@ -2,22 +2,24 @@
 
 import { ChevronDown } from "lucide-react";
 import { NETWORK_IDS, NETWORKS, type NetworkId } from "@/shared/config/networks";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export function NetworkSwitch({ className }: { className?: string }) {
+  const t = useT("shell");
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const isTestnet = settings.network !== "mainnet";
   return (
     <label className={cn("relative inline-flex items-center", className)}>
-      <span className="sr-only">Network</span>
+      <span className="sr-only">{t("network.label")}</span>
       <select
         value={settings.network}
         onChange={(e) => update({ network: e.target.value as NetworkId })}
         disabled={inSage}
-        title={inSage ? "The network follows the Sage wallet" : undefined}
+        title={inSage ? t("network.followsSage") : undefined}
         className={cn(
           "h-8 cursor-pointer appearance-none rounded-full border pl-3 pr-7 text-xs font-semibold uppercase tracking-wide focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           isTestnet

@@ -1,4 +1,7 @@
+"use client";
+
 import changelog from "@/shared/config/changelog.json";
+import { useT } from "@/shared/i18n/useT";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 
 const REPO = "https://github.com/maximedogawa/mempool-xch";
@@ -23,24 +26,27 @@ export function previousOf(tagged: string[], version: string): string | null {
  * image and the offline Sage export, so it never calls the GitHub API.
  */
 export function ChangelogPage() {
+  const t = useT("changelog");
   const releases = changelog.releases as Release[];
   const current = process.env.NEXT_PUBLIC_APP_VERSION ?? "";
   const tagged = releases.filter((r) => r.version !== "unreleased").map((r) => r.version);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold">Changelog</h1>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <p className="mt-2 text-sm text-fg-muted">
-          Every release of mempoolxch.space, generated from the repository&apos;s tags and commit
-          messages. The published release notes live on{" "}
-          <ExternalLink href={`${REPO}/releases`} className="text-accent hover:underline">
-            GitHub
-          </ExternalLink>
-          , and the full commit history is{" "}
-          <ExternalLink href={`${REPO}/commits`} className="text-accent hover:underline">
-            there too
-          </ExternalLink>
-          .
+          {t.rich("intro", {
+            releases: (c) => (
+              <ExternalLink href={`${REPO}/releases`} className="text-accent hover:underline">
+                {c}
+              </ExternalLink>
+            ),
+            commits: (c) => (
+              <ExternalLink href={`${REPO}/commits`} className="text-accent hover:underline">
+                {c}
+              </ExternalLink>
+            ),
+          })}
         </p>
       </header>
       <ol className="flex flex-col gap-6">
@@ -48,16 +54,16 @@ export function ChangelogPage() {
           <li key={r.version} className="flex flex-col gap-2" data-testid={`release-${r.version}`}>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="text-base font-semibold text-fg">
-                {r.version === "unreleased" ? "Unreleased" : `v${r.version}`}
+                {r.version === "unreleased" ? t("unreleased") : `v${r.version}`}
               </h2>
               {r.date ? (
                 <span className="text-xs text-fg-faint">{r.date}</span>
               ) : (
-                <span className="text-xs text-fg-faint">on the branch, not tagged yet</span>
+                <span className="text-xs text-fg-faint">{t("untagged")}</span>
               )}
               {r.version === current ? (
                 <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
-                  running
+                  {t("running")}
                 </span>
               ) : null}
               {r.version === "unreleased" ? (
@@ -66,7 +72,7 @@ export function ChangelogPage() {
                     href={`${REPO}/compare/${tagged[0]}...main`}
                     className="text-xs text-accent hover:underline"
                   >
-                    compare on GitHub
+                    {t("compareOnGitHub")}
                   </ExternalLink>
                 ) : null
               ) : (
@@ -75,14 +81,14 @@ export function ChangelogPage() {
                     href={`${REPO}/releases/tag/${r.version}`}
                     className="text-xs text-accent hover:underline"
                   >
-                    release notes
+                    {t("releaseNotes")}
                   </ExternalLink>
                   {previousOf(tagged, r.version) ? (
                     <ExternalLink
                       href={`${REPO}/compare/${previousOf(tagged, r.version)}...${r.version}`}
                       className="text-xs text-fg-faint hover:text-accent hover:underline"
                     >
-                      compare
+                      {t("compare")}
                     </ExternalLink>
                   ) : null}
                 </>
@@ -97,8 +103,10 @@ export function ChangelogPage() {
         ))}
       </ol>
       <p className="text-xs text-fg-faint">
-        Generated {changelog.generatedAt}. Regenerate with{" "}
-        <span className="mono">bun run changelog</span> after tagging.
+        {t.rich("footer", {
+          date: changelog.generatedAt,
+          code: (c) => <span className="mono">{c}</span>,
+        })}
       </p>
     </div>
   );

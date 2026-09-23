@@ -1,9 +1,18 @@
 import { routes } from "@/shared/lib/routes";
 
+/** Message group in the `learn` namespace holding an article's title, summary and body. */
+export type LearnArticleKey =
+  | "whatIsChia"
+  | "proofOfSpaceAndTime"
+  | "farmingAndPlotting"
+  | "whatIsTheMempool"
+  | "offersAndTrading"
+  | "questions";
+
 export interface LearnArticleMeta {
   slug: string;
-  title: string;
-  summary: string;
+  /** `learn` message group: `<key>.title`, `<key>.summary`. */
+  key: LearnArticleKey;
   /** Minutes to read, rounded. */
   minutes: number;
 }
@@ -12,43 +21,32 @@ export interface LearnArticleMeta {
 export const LEARN_ARTICLES: LearnArticleMeta[] = [
   {
     slug: "what-is-chia",
-    title: "What is Chia?",
-    summary:
-      "A blockchain secured by disk space instead of electricity or stake, with coins that are tiny programs.",
+    key: "whatIsChia",
     minutes: 4,
   },
   {
     slug: "proof-of-space-and-time",
-    title: "Proof of space and time",
-    summary:
-      "How plots, challenges and verifiable delay functions decide who farms the next block.",
+    key: "proofOfSpaceAndTime",
     minutes: 5,
   },
   {
     slug: "farming-and-plotting",
-    title: "Farming and plotting",
-    summary: "What a plot is, what a farmer does every nine seconds, and where pools fit in.",
+    key: "farmingAndPlotting",
     minutes: 4,
   },
   {
     slug: "what-is-the-mempool",
-    title: "What is the mempool?",
-    summary:
-      "Where spend bundles wait, how the node picks them for a block, and what this site shows you about it.",
+    key: "whatIsTheMempool",
     minutes: 5,
   },
   {
     slug: "offers-and-trading",
-    title: "Offers and trading",
-    summary:
-      "Peer-to-peer swaps of XCH, CATs and NFTs without an exchange, and how they look on chain.",
+    key: "offersAndTrading",
     minutes: 4,
   },
   {
     slug: "questions",
-    title: "Common questions",
-    summary:
-      "Short answers to the things people ask most: fees, confirmations, coins, addresses and reorgs.",
+    key: "questions",
     minutes: 5,
   },
 ];

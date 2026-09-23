@@ -8,6 +8,7 @@ import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
+import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import {
   Badge,
@@ -45,6 +46,7 @@ export function useReorgs(limit = 20) {
  * and how many blocks were reorganised out. Coinset-only; a custom node has no such log.
  */
 export function ReorgHistory() {
+  const t = useT("blocks");
   const { client } = useSettings();
   const reorgs = useReorgs();
   if (!client.hasIndexed) return null;
@@ -53,14 +55,14 @@ export function ReorgHistory() {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Reorg history
-            <Tooltip text="A reorg replaces the most recent block(s) with a competing chain. Chia reorgs are usually one block deep and harmless; a transaction in a reorged block is simply included again a block later." />
+            {t("reorgs.title")}
+            <Tooltip text={t("reorgs.hint")} />
           </span>
         }
         action={
           reorgs.data ? (
             <span className="text-xs text-fg-faint">
-              {reorgs.data.reorgs.length} most recent, as detected by Coinset
+              {t("reorgs.mostRecent", { count: reorgs.data.reorgs.length })}
             </span>
           ) : null
         }
@@ -71,16 +73,16 @@ export function ReorgHistory() {
         ) : reorgs.error ? (
           <p className="text-sm text-danger">{errorMessage(reorgs.error)}</p>
         ) : !reorgs.data || reorgs.data.reorgs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-fg-faint">No reorgs recorded.</p>
+          <p className="py-4 text-center text-sm text-fg-faint">{t("reorgs.empty")}</p>
         ) : (
           <Table>
             <thead>
               <tr>
-                <Th>Detected</Th>
-                <Th className="text-right">Depth</Th>
-                <Th className="text-right">Rolled back to</Th>
-                <Th className="hidden md:table-cell">Old peak</Th>
-                <Th className="hidden md:table-cell">New peak</Th>
+                <Th>{t("reorgs.detected")}</Th>
+                <Th className="text-right">{t("reorgs.depth")}</Th>
+                <Th className="text-right">{t("reorgs.rolledBackTo")}</Th>
+                <Th className="hidden md:table-cell">{t("reorgs.oldPeak")}</Th>
+                <Th className="hidden md:table-cell">{t("reorgs.newPeak")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -91,7 +93,7 @@ export function ReorgHistory() {
                   </Td>
                   <Td className="text-right">
                     <Badge tone={r.depth > 1 ? "warning" : "neutral"}>
-                      {r.depth} block{r.depth === 1 ? "" : "s"}
+                      {t("reorgs.depthValue", { count: r.depth })}
                     </Badge>
                   </Td>
                   <Td className="tabular text-right">
@@ -101,7 +103,10 @@ export function ReorgHistory() {
                     >
                       #{formatNumber(r.newPeakHeight)}
                     </Link>
-                    <span className="text-fg-faint"> from #{formatNumber(r.oldPeakHeight)}</span>
+                    <span className="text-fg-faint">
+                      {" "}
+                      {t("reorgs.from", { height: formatNumber(r.oldPeakHeight) })}
+                    </span>
                   </Td>
                   <Td className="hidden md:table-cell">
                     <Hash value={r.oldPeakHash} head={8} tail={5} />

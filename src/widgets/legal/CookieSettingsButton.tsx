@@ -1,13 +1,15 @@
 "use client";
 
+import { useT } from "@/shared/i18n/useT";
 import { useConsent } from "@/shared/providers/ConsentProvider";
 import { Button } from "@/shared/ui/Button";
 
 export function CookieSettingsButton() {
   const { openSettings } = useConsent();
+  const t = useT("legal");
   return (
     <Button size="sm" onClick={openSettings}>
-      Cookie settings
+      {t("consent.settingsButton")}
     </Button>
   );
 }

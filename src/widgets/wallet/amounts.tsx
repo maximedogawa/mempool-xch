@@ -1,5 +1,6 @@
 "use client";
 
+import { decimalSeparator, formatInteger } from "@/shared/i18n/number";
 import { formatAmount } from "@/shared/lib/chia/amounts";
 import type { WalletCoinRef } from "@/shared/lib/sage/wallet";
 import { CatRef } from "@/shared/ui";
@@ -17,7 +18,7 @@ export function catUnits(ref: WalletCoinRef): string {
   const p = BigInt(10) ** BigInt(ref.precision);
   const whole = ref.amount / p;
   const frac = (ref.amount % p).toString().padStart(ref.precision, "0").replace(/0+$/, "");
-  return `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""}`;
+  return `${formatInteger(whole)}${frac ? `${decimalSeparator()}${frac}` : ""}`;
 }
 
 /** One wallet coin amount in its own unit; CATs resolve ticker and icon through the token registry. */

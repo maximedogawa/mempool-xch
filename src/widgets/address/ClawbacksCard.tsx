@@ -5,6 +5,7 @@ import { queryKeys } from "@/shared/api/queryKeys";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
 import { formatDuration } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { errorMessage } from "@/shared/lib/rpc/errors";
 import type { ClawbackCoin } from "@/shared/lib/rpc/types";
@@ -31,6 +32,7 @@ import { usePagedList } from "@/widgets/assets/usePagedList";
  * runs out, after which the receiver can claim them. Coinset-only; nothing rendered otherwise.
  */
 export function ClawbacksCard({ p2 }: { p2: string }) {
+  const t = useT("address");
   const { client, endpoints, networkConfig } = useSettings();
   const network = endpoints.network;
   const list = usePagedList<ClawbackCoin>({
@@ -62,13 +64,17 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Clawback coins
-            <Tooltip text="Coins sent to this address with a clawback timelock: the sender can pull them back until the timelock ends, then the receiver can claim them." />
+            {t("clawbacks.title")}
+            <Tooltip text={t("clawbacks.hint")} />
           </span>
         }
         action={
           list.items.some((c) => c.revocable) ? (
-            <Badge tone="warning">{list.items.filter((c) => c.revocable).length} revocable</Badge>
+            <Badge tone="warning">
+              {t("clawbacks.revocable", {
+                count: list.items.filter((c) => c.revocable).length,
+              })}
+            </Badge>
           ) : null
         }
       />
@@ -81,11 +87,11 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
           <Table>
             <thead>
               <tr>
-                <Th>Coin</Th>
-                <Th>Amount</Th>
-                <Th className="hidden md:table-cell">From</Th>
-                <Th className="text-right">Timelock</Th>
-                <Th className="text-right">State</Th>
+                <Th>{t("clawbacks.coin")}</Th>
+                <Th>{t("clawbacks.amount")}</Th>
+                <Th className="hidden md:table-cell">{t("clawbacks.from")}</Th>
+                <Th className="text-right">{t("clawbacks.timelock")}</Th>
+                <Th className="text-right">{t("clawbacks.state")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -111,9 +117,9 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
                     <Td className="tabular text-right">{formatDuration(c.seconds)}</Td>
                     <Td className="text-right">
                       {c.revocable ? (
-                        <Badge tone="warning">sender can claw back</Badge>
+                        <Badge tone="warning">{t("clawbacks.canClawBack")}</Badge>
                       ) : (
-                        <Badge tone="primary">claimable</Badge>
+                        <Badge tone="primary">{t("clawbacks.claimable")}</Badge>
                       )}
                     </Td>
                   </Tr>
@@ -130,7 +136,7 @@ export function ClawbacksCard({ p2 }: { p2: string }) {
             disabled={list.loadingMore}
             className="self-center"
           >
-            {list.loadingMore ? "Loading…" : "Load more"}
+            {list.loadingMore ? t("loading") : t("loadMore")}
           </Button>
         ) : null}
       </CardBody>

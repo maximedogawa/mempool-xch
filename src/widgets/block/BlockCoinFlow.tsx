@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
 import { buildCoinFlow, type CoinFlowGroup } from "@/shared/lib/blocks/coinFlow";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import type { CoinRecord } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -13,6 +14,7 @@ const GROUPS_PAGE = 25;
 const CHILDREN_SHOWN = 10;
 
 function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boolean }) {
+  const t = useT("block");
   const { networkConfig } = useSettings();
   const address = puzzleHashToAddress(record.coin.puzzleHash, networkConfig.addressPrefix);
   return (
@@ -26,7 +28,7 @@ function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boole
           tail={6}
           className="text-xs"
         />
-        {ephemeral ? <Badge tone="neutral">spent in this block</Badge> : null}
+        {ephemeral ? <Badge tone="neutral">{t("flow.spentInBlock")}</Badge> : null}
       </span>
       <Amount mojos={record.coin.amount} className="tabular" />
     </div>
@@ -34,13 +36,14 @@ function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boole
 }
 
 function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: ReadonlySet<string> }) {
+  const t = useT("block");
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? group.children : group.children.slice(0, CHILDREN_SHOWN);
   const hidden = group.children.length - shown.length;
   return (
     <li className="grid grid-cols-1 gap-2 border-b border-border/60 py-3 md:grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] md:gap-3">
       <div className="text-sm">
-        <span className="sr-only">Spent coin </span>
+        <span className="sr-only">{t("flow.spentCoin")} </span>
         <CoinLine record={group.parent} ephemeral={ephemeral.has(group.parent.name)} />
       </div>
       <ArrowRight
@@ -50,9 +53,12 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
       />
       <div className="flex flex-col gap-1 text-sm">
         {group.children.length === 0 ? (
-          <span className="text-fg-faint">Created no coins</span>
+          <span className="text-fg-faint">{t("flow.createdNone")}</span>
         ) : (
-          <ul aria-label={`${group.children.length} coins created`} className="flex flex-col gap-1">
+          <ul
+            aria-label={t("flow.coinsCreated", { count: group.children.length })}
+            className="flex flex-col gap-1"
+          >
             {shown.map((child) => (
               <li key={child.name}>
                 <CoinLine record={child} ephemeral={ephemeral.has(child.name)} />
@@ -67,7 +73,7 @@ function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: Readonly
             className="self-start"
             onClick={() => setExpanded(true)}
           >
-            Show {hidden} more
+            {t("flow.showHidden", { count: hidden })}
           </Button>
         ) : null}
       </div>
@@ -85,24 +91,22 @@ export function BlockCoinFlow({
 }) {
   const flow = useMemo(() => (data ? buildCoinFlow(data.additions, data.removals) : null), [data]);
   const [limit, setLimit] = useState(GROUPS_PAGE);
+  const t = useT("block");
 
   return (
     <Card>
       <CardHeader
-        title="Flow"
+        title={t("flow.title")}
         action={
           flow ? (
             <span className="tabular text-xs text-fg-faint">
-              {flow.groups.length} spent · {data!.additions.length} created
+              {t("flow.counts", { spent: flow.groups.length, created: data!.additions.length })}
             </span>
           ) : null
         }
       />
       <CardBody className="flex flex-col gap-3">
-        <p className="text-sm text-fg-muted">
-          Each coin spent in this block, and the coins its spend created. A new coin records its
-          parent&apos;s coin id, so every link here is exact.
-        </p>
+        <p className="text-sm text-fg-muted">{t("flow.intro")}</p>
         {loading || !flow ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 3 }, (_, i) => (
@@ -110,23 +114,18 @@ export function BlockCoinFlow({
             ))}
           </div>
         ) : flow.groups.length === 0 && flow.rewards.length === 0 ? (
-          <p className="py-4 text-center text-sm text-fg-faint">
-            No coins were spent or created in this block.
-          </p>
+          <p className="py-4 text-center text-sm text-fg-faint">{t("flow.empty")}</p>
         ) : (
           <>
             {flow.rewards.length > 0 ? (
               <section
-                aria-label="Reward coins"
+                aria-label={t("flow.rewardCoins")}
                 className="flex flex-col gap-1 rounded-sm border border-border bg-bg p-3 text-sm"
               >
                 <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted">
-                  Rewards paid out ({flow.rewards.length})
+                  {t("flow.rewardsTitle", { count: flow.rewards.length })}
                 </h3>
-                <p className="text-xs text-fg-faint">
-                  Farmer and pool rewards for earlier blocks. They are created from nothing, so they
-                  have no spent parent.
-                </p>
+                <p className="text-xs text-fg-faint">{t("flow.rewardsIntro")}</p>
                 <ul className="flex flex-col gap-1">
                   {flow.rewards.map((r) => (
                     <li key={r.name}>
@@ -137,7 +136,7 @@ export function BlockCoinFlow({
               </section>
             ) : null}
             {flow.groups.length > 0 ? (
-              <ul aria-label="Spent coins and the coins they created" className="flex flex-col">
+              <ul aria-label={t("flow.groupsLabel")} className="flex flex-col">
                 {flow.groups.slice(0, limit).map((group) => (
                   <Group key={group.parent.name} group={group} ephemeral={flow.ephemeral} />
                 ))}
@@ -145,18 +144,15 @@ export function BlockCoinFlow({
             ) : null}
             {flow.groups.length > limit ? (
               <div className="flex items-center justify-between text-xs text-fg-faint">
-                <span>
-                  Showing {limit} of {flow.groups.length} spent coins
-                </span>
+                <span>{t("flow.showing", { shown: limit, total: flow.groups.length })}</span>
                 <Button size="sm" onClick={() => setLimit((l) => l + GROUPS_PAGE)}>
-                  Show more
+                  {t("showMore")}
                 </Button>
               </div>
             ) : null}
             {flow.unlinked.length > 0 ? (
               <p className="text-xs text-warning">
-                {flow.unlinked.length} created coins have no parent among this block&apos;s spent
-                coins.
+                {t("flow.unlinked", { count: flow.unlinked.length })}
               </p>
             ) : null}
           </>

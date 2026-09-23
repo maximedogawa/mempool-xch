@@ -4,6 +4,7 @@ import { formatAmount, formatFeeRate, formatCost } from "@/shared/lib/chia/amoun
 import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
+import { useT } from "@/shared/i18n/useT";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
@@ -25,6 +26,7 @@ export function ProjectedBlocks({
   selected: number | null;
   onSelect: (index: number | null) => void;
 }) {
+  const t = useT("blocks");
   const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (
@@ -37,14 +39,9 @@ export function ProjectedBlocks({
   }
   if (blocks.length === 0) {
     return (
-      <BlockCube
-        fill={0}
-        gradient=""
-        variant="empty"
-        ariaLabel="Mempool is empty: the next block will carry no transactions"
-      >
-        <span className="text-xs text-fg-faint">Empty</span>
-        <span className="text-[11px] text-fg-faint">mempool</span>
+      <BlockCube fill={0} gradient="" variant="empty" ariaLabel={t("projected.emptyLabel")}>
+        <span className="text-xs text-fg-faint">{t("projected.empty")}</span>
+        <span className="text-[11px] text-fg-faint">{t("projected.mempool")}</span>
       </BlockCube>
     );
   }
@@ -52,17 +49,26 @@ export function ProjectedBlocks({
   return (
     <ul
       className="flex min-w-max flex-row-reverse items-end gap-4"
-      aria-label="Projected next blocks"
+      aria-label={t("projected.listLabel")}
     >
       {blocks.map((block) => {
         const watched = block.items.filter((item) => watchedIds?.has(item.id)).length;
         const zero = block.maxFeeRate === 0;
         const yours = mine.size ? block.items.filter((i) => mine.has(i.id)).length : 0;
-        const label = `Projected block ${block.index + 1}: ${block.items.length} spend bundles${yours ? `, ${yours} of yours` : ""}${watched ? `, ${watched} watched` : ""}, ${Math.round(block.fill * 100)}% full, fee rate ${formatFeeRate(block.minFeeRate)} to ${formatFeeRate(block.maxFeeRate)} mojo per cost, ${formatEta(block.etaSeconds)}`;
+        const label = t("projected.cubeLabel", {
+          n: block.index + 1,
+          bundles: t("projected.bundles", { count: block.items.length }),
+          yours: yours ? t("projected.yoursPart", { count: yours }) : "",
+          watched: watched ? t("projected.watchedPart", { count: watched }) : "",
+          percent: Math.round(block.fill * 100),
+          min: formatFeeRate(block.minFeeRate),
+          max: formatFeeRate(block.maxFeeRate),
+          eta: formatEta(block.etaSeconds),
+        });
         return (
           <li key={block.index} className="flex flex-col items-center gap-1">
             <span className="tabular h-4 text-xs font-semibold text-fg-muted">
-              {block.index === 0 ? "Next block" : `+${block.index}`}
+              {block.index === 0 ? t("projected.nextBlock") : `+${block.index}`}
             </span>
             <BlockCube
               fill={block.fill}
@@ -82,24 +88,27 @@ export function ProjectedBlocks({
               </span>
               <span className="tabular text-[10px] font-medium text-warning/90">
                 {zero
-                  ? "0 fee"
+                  ? t("projected.zeroFee")
                   : `${formatFeeRate(block.minFeeRate)} – ${formatFeeRate(block.maxFeeRate)} mojo/cost`}
               </span>
               <span className="tabular mt-1.5 text-[13px] font-semibold">
                 {formatAmount(block.totalFee)}
               </span>
               <span className="tabular text-[11px] text-fg/80">
-                {block.items.length} tx · {formatCost(block.totalCost)}
+                {t("projected.txCount", {
+                  count: block.items.length,
+                  cost: formatCost(block.totalCost),
+                })}
               </span>
               {watched ? <WatchedBlockBadge count={watched} /> : null}
               {yours ? (
                 <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">
-                  {yours} yours
+                  {t("projected.yours", { count: yours })}
                 </span>
               ) : null}
             </BlockCube>
             <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">
-              In {formatEta(block.etaSeconds)}
+              {t("projected.inEta", { eta: formatEta(block.etaSeconds) })}
             </span>
           </li>
         );

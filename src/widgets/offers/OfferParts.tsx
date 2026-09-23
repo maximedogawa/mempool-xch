@@ -6,26 +6,32 @@ import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
 import { routes } from "@/shared/lib/routes";
 import type { OfferSide, OfferStatus } from "@/shared/lib/rpc/types";
 import { Badge, CatRef, Hash } from "@/shared/ui";
+import { useT } from "@/shared/i18n/useT";
 
-export const OFFER_STATUS_LABEL: Record<
+export const OFFER_STATUS: Record<
   OfferStatus,
-  { label: string; tone: "primary" | "info" | "warning" | "danger" | "neutral" }
+  {
+    key: "open" | "pending" | "confirmed" | "cancelPending" | "cancelled" | "expired";
+    tone: "primary" | "info" | "warning" | "danger" | "neutral";
+  }
 > = {
-  open: { label: "Open", tone: "primary" },
-  pending: { label: "Taking", tone: "info" },
-  confirmed: { label: "Taken", tone: "neutral" },
-  cancel_pending: { label: "Cancelling", tone: "warning" },
-  cancelled: { label: "Cancelled", tone: "danger" },
-  expired: { label: "Expired", tone: "warning" },
+  open: { key: "open", tone: "primary" },
+  pending: { key: "pending", tone: "info" },
+  confirmed: { key: "confirmed", tone: "neutral" },
+  cancel_pending: { key: "cancelPending", tone: "warning" },
+  cancelled: { key: "cancelled", tone: "danger" },
+  expired: { key: "expired", tone: "warning" },
 };
 
 export function OfferStatusBadge({ status }: { status: OfferStatus }) {
-  const s = OFFER_STATUS_LABEL[status];
-  return <Badge tone={s.tone}>{s.label}</Badge>;
+  const t = useT("offers");
+  const s = OFFER_STATUS[status];
+  return <Badge tone={s.tone}>{t(`status.${s.key}`)}</Badge>;
 }
 
 /** One side of an offer as "0.5 XCH + 12 SBX + NFT nft1…"; an empty side reads as "nothing". */
 export function OfferSideView({ side, className }: { side: OfferSide; className?: string }) {
+  const t = useT("offers");
   const parts: React.ReactNode[] = [];
   if (side.xch > 0n) parts.push(<span key="xch">{formatAmount(side.xch)}</span>);
   side.cats.forEach((c) =>
@@ -50,7 +56,8 @@ export function OfferSideView({ side, className }: { side: OfferSide; className?
       </Link>
     );
   });
-  if (parts.length === 0) return <span className={className ?? "text-fg-faint"}>nothing</span>;
+  if (parts.length === 0)
+    return <span className={className ?? "text-fg-faint"}>{t("nothing")}</span>;
   return (
     <span
       className={["inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5", className]

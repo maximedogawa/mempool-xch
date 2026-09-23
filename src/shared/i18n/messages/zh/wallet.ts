@@ -1,0 +1,115 @@
+import type { Translation } from "../../translate";
+import type en from "../en/wallet";
+
+const messages: Translation<typeof en> = {
+  sageBadge: "来自您的 Sage 钱包",
+  enableInSage: "在 Sage 中启用",
+  direction: {
+    sent: "已发送",
+    received: "已接收",
+    transaction: "交易",
+  },
+  stats: {
+    balance: "余额",
+    pending: "待确认",
+    inFlight: "笔交易进行中",
+    coins: "币",
+    unspentInWallet: "钱包中未花费",
+    sync: "同步",
+    syncedCoins: "{synced} / {total} 个币",
+    history: "历史",
+    historySub: "笔交易 · {coins} 个币",
+  },
+  addressPanel: {
+    title: "您的钱包",
+    open: "打开我的钱包 →",
+  },
+  coinPanel: {
+    title: "您的币",
+    amount: "金额",
+    address: "地址",
+    created: "创建于",
+    spent: "花费于",
+    pending: "待确认",
+    unspent: "未花费",
+    blockHeight: "区块高度",
+    stillInWallet: "仍在钱包中",
+  },
+  priceChip: {
+    title: "来自您的 Sage 钱包的 XCH 价格，{age}",
+  },
+  txRow: {
+    pending: "待确认 · {kind}",
+    block: "区块 {height}",
+    inMempool: "在内存池中",
+  },
+  loadMore: {
+    transactions: "{loaded} / {total} 笔交易",
+    coins: "{loaded} / {total} 个币",
+    loading: "加载中…",
+    more: "加载更多",
+  },
+  enable: {
+    assetBalances: "Sage 对资产余额的访问已关闭。",
+    balanceAddress: "Sage 对您的余额和地址的访问已关闭。",
+    history: "Sage 对您的交易历史的访问已关闭。",
+    coins: "Sage 对您的币的访问已关闭。",
+  },
+  tabs: {
+    label: "钱包分区",
+    assets: "资产",
+    transactions: "交易",
+    coins: "币",
+  },
+  asset: {
+    owned: "持有 {count} 个",
+    txCount: "{count} 笔交易",
+    coins: { other: "{count} 个币" },
+  },
+  assets: {
+    title: "资产 · {count}",
+    partial: "从前 {loaded} / {total} 笔交易中发现 · 滚动「交易」以查找更多",
+  },
+  page: {
+    outsideTitle: "请在 Sage 钱包中打开 mempoolxch.space",
+    outsideDescription:
+      "此页面直接从您的钱包读取余额、待确认交易、资产和币。在浏览器中，请改为搜索您的地址。",
+    backToDashboard: "返回概览",
+    title: "我的钱包",
+    fromSage: "来自 Sage",
+    intro:
+      "余额、资产、交易和币来自您的 Sage 钱包；内存池、区块和其他地址仍通过已配置的节点来自 {network}。",
+    openAddress: "<link>在区块浏览器中打开此地址</link>。",
+    noAnswerTitle: "Sage 未响应",
+    noAnswerDescription: "无法连接钱包桥接。请从 Sage 的应用列表重新打开此应用。",
+    receiveAddress: "收款地址",
+    pendingTitle: "待确认 · {count}",
+    transactions: "交易",
+    newestFirst: "最新优先",
+    noTransactions: "暂无交易。",
+    coins: "币",
+    unspentNewestFirst: "未花费，最新优先",
+    noCoins: "没有可显示的币。",
+    colCoin: "币",
+    colAddress: "地址",
+    colAmount: "金额",
+    colCreated: "创建于",
+  },
+  pending: {
+    title: "您进行中的交易",
+    titleCount: "您进行中的交易 · {count}",
+    confirmedIn: "已在区块 <link>{height}</link> 中确认",
+    confirmed: "已确认",
+    submitted: "{age}提交",
+    mute: "关闭确认提示音",
+    unmute: "交易确认时播放提示音",
+    chimeOn: "交易确认时提示音已开启",
+    chimeOff: "提示音已关闭",
+    walletLink: "钱包",
+    allowNotice: "允许 Sage 共享待确认交易，以便在此跟踪。",
+    reading: "正在读取钱包…",
+    empty: "没有进行中的交易。新发送的交易会显示在这里，并附带其在队列中的位置。",
+  },
+};
+
+export default messages;

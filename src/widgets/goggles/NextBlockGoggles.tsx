@@ -19,6 +19,7 @@ import { squarify } from "@/shared/lib/treemap";
 import { AssetAmount, AssetIcon, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 import { UNCLASSIFIED, isVeiled } from "@/shared/lib/nft/sensitivity";
 import { fetchNftMetadata } from "@/widgets/assets/nftMetadata";
+import { useT } from "@/shared/i18n/useT";
 
 const W = 800;
 const H = 190;
@@ -35,16 +36,8 @@ type FeeFilter = "any" | (typeof FEE_BANDS)[number]["id"];
 type OnlyFilter = "all" | "new" | "yours";
 type ColorMode = "fee" | "kind";
 
-const KIND_FILTERS: { id: KindFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "xch", label: "XCH" },
-  { id: "cat", label: "CAT" },
-  { id: "nft", label: "NFT" },
-  { id: "offer", label: "Offers" },
-  { id: "did", label: "DID" },
-  { id: "pool", label: "Pool" },
-  { id: "singleton", label: "Singleton" },
-];
+/** Filter chips in display order; each id is also its label key under `kinds`. */
+const KIND_FILTERS = ["all", "xch", "cat", "nft", "offer", "did", "pool", "singleton"] as const;
 
 export const KIND_COLOR: Record<TxKindHint, string> = {
   xch: "var(--kind-xch)",
@@ -104,6 +97,7 @@ function Chip({
  * animated per frame in JavaScript.
  */
 export function NextBlockGoggles() {
+  const t = useT("goggles");
   const { blocks, summary, isLoading } = useProjectedBlocks(8);
   const [kind, setKind] = useState<KindFilter>("all");
   const [fee, setFee] = useState<FeeFilter>("any");
@@ -225,8 +219,15 @@ export function NextBlockGoggles() {
   );
 
   const label = next
-    ? `Next block composition: ${next.items.length} spend bundles, ${formatCost(next.totalCost)} of ${formatCost(blockMax)} cost (${formatPercent(next.fill)} full), ${formatEta(next.etaSeconds)}`
-    : "Next block composition";
+    ? t("ariaLabel", {
+        count: next.items.length,
+        cost: formatCost(next.totalCost),
+        max: formatCost(blockMax),
+        percent: formatPercent(next.fill),
+        eta: formatEta(next.etaSeconds),
+      })
+    : t("ariaLabelEmpty");
+  const strong = (c: React.ReactNode) => <span className="tabular font-semibold text-fg">{c}</span>;
   const fillTone = next
     ? next.fill > 0.9
       ? "var(--fee-5)"
@@ -240,7 +241,7 @@ export function NextBlockGoggles() {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Next block
+            {t("title")}
             {next ? (
               <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] normal-case tracking-normal text-primary">
                 {formatEta(next.etaSeconds)}
@@ -251,7 +252,7 @@ export function NextBlockGoggles() {
         action={
           <div
             role="group"
-            aria-label="Colour cells by"
+            aria-label={t("colourBy")}
             className="inline-flex overflow-hidden rounded-full border border-border"
           >
             {(["fee", "kind"] as const).map((m) => (
@@ -265,7 +266,7 @@ export function NextBlockGoggles() {
                   mode === m ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg"
                 )}
               >
-                {m === "fee" ? "Fee" : "Kind"}
+                {m === "fee" ? t("modeFee") : t("modeKind")}
               </button>
             ))}
           </div>
@@ -275,9 +276,7 @@ export function NextBlockGoggles() {
         {isLoading && !next ? (
           <Skeleton className="h-[190px] w-full" />
         ) : !next ? (
-          <p className="py-10 text-center text-sm text-fg-faint">
-            The mempool is empty: the next transaction block will carry no spends.
-          </p>
+          <p className="py-10 text-center text-sm text-fg-faint">{t("empty")}</p>
         ) : (
           <>
             <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
@@ -290,23 +289,19 @@ export function NextBlockGoggles() {
                   {formatPercent(next.fill)}
                 </span>
                 <span className="text-xs text-fg-muted">
-                  full · {formatCost(next.totalCost)} of {formatCost(blockMax)} cost
+                  {t("fullOf", { cost: formatCost(next.totalCost), max: formatCost(blockMax) })}
                 </span>
               </div>
               <div className="flex flex-wrap items-baseline gap-x-3 text-xs text-fg-muted">
-                <span>
-                  <span className="tabular font-semibold text-fg">{next.items.length}</span> bundles
-                </span>
-                <span>
-                  fees{" "}
-                  <span className="tabular font-semibold text-fg">
-                    {formatAmount(next.totalFee)}
-                  </span>
-                </span>
+                <span>{t.rich("bundles", { count: next.items.length, b: strong })}</span>
+                <span>{t.rich("fees", { amount: formatAmount(next.totalFee), b: strong })}</span>
                 {freshCount > 0 ? (
                   <span className="text-primary">
-                    <span className="tabular font-semibold">+{freshCount}</span> in the last{" "}
-                    {Math.round(FRESH_MS / 1000)} s
+                    {t.rich("fresh", {
+                      count: freshCount,
+                      seconds: Math.round(FRESH_MS / 1000),
+                      b: (c) => <span className="tabular font-semibold">{c}</span>,
+                    })}
                   </span>
                 ) : null}
               </div>
@@ -315,21 +310,24 @@ export function NextBlockGoggles() {
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               <div
                 role="group"
-                aria-label="Filter by asset kind"
+                aria-label={t("filterKind")}
                 className="flex flex-wrap items-center gap-1"
               >
-                {KIND_FILTERS.filter((f) => f.id === "all" || (perKind[f.id]?.count ?? 0) > 0).map(
-                  (f) => (
+                {KIND_FILTERS.filter((id) => id === "all" || (perKind[id]?.count ?? 0) > 0).map(
+                  (id) => (
                     <Chip
-                      key={f.id}
-                      active={kind === f.id}
-                      onClick={() => setKind(f.id)}
-                      title={`${perKind[f.id]?.count ?? 0} bundles · ${formatCost(perKind[f.id]?.cost ?? 0)} cost`}
-                      swatch={f.id !== "all" ? KIND_COLOR[f.id] : undefined}
+                      key={id}
+                      active={kind === id}
+                      onClick={() => setKind(id)}
+                      title={t("kindChipTitle", {
+                        count: perKind[id]?.count ?? 0,
+                        cost: formatCost(perKind[id]?.cost ?? 0),
+                      })}
+                      swatch={id !== "all" ? KIND_COLOR[id] : undefined}
                     >
-                      {f.label}{" "}
+                      {t(`kinds.${id}`)}{" "}
                       <span className="tabular font-normal text-fg-muted">
-                        {perKind[f.id]?.count ?? 0}
+                        {perKind[id]?.count ?? 0}
                       </span>
                     </Chip>
                   )
@@ -337,21 +335,21 @@ export function NextBlockGoggles() {
               </div>
               <div
                 role="group"
-                aria-label="Filter by fee band"
+                aria-label={t("filterFee")}
                 className="flex flex-wrap items-center gap-1"
               >
                 <Chip active={fee === "any"} onClick={() => setFee("any")}>
-                  Any fee
+                  {t("anyFee")}
                 </Chip>
                 {FEE_BANDS.filter((b) => (perBand[b.id] ?? 0) > 0).map((b) => (
                   <Chip
                     key={b.id}
                     active={fee === b.id}
                     onClick={() => setFee(b.id)}
-                    title={`${b.label} mojo per cost`}
+                    title={t("bandTitle", { band: b.label })}
                     swatch={`var(${b.cssVar})`}
                   >
-                    {b.id === "zero" ? "0 fee" : `${b.label} m/c`}{" "}
+                    {b.id === "zero" ? t("zeroFee") : t("bandChip", { band: b.label })}{" "}
                     <span className="tabular font-normal text-fg-muted">{perBand[b.id]}</span>
                   </Chip>
                 ))}
@@ -359,7 +357,7 @@ export function NextBlockGoggles() {
               {freshCount > 0 || yoursCount > 0 ? (
                 <div
                   role="group"
-                  aria-label="Show only"
+                  aria-label={t("showOnly")}
                   className="flex flex-wrap items-center gap-1"
                 >
                   {freshCount > 0 ? (
@@ -367,7 +365,8 @@ export function NextBlockGoggles() {
                       active={only === "new"}
                       onClick={() => setOnly(only === "new" ? "all" : "new")}
                     >
-                      New <span className="tabular font-normal text-fg-muted">{freshCount}</span>
+                      {t("onlyNew")}{" "}
+                      <span className="tabular font-normal text-fg-muted">{freshCount}</span>
                     </Chip>
                   ) : null}
                   {yoursCount > 0 ? (
@@ -375,7 +374,8 @@ export function NextBlockGoggles() {
                       active={only === "yours"}
                       onClick={() => setOnly(only === "yours" ? "all" : "yours")}
                     >
-                      Yours <span className="tabular font-normal text-fg-muted">{yoursCount}</span>
+                      {t("onlyYours")}{" "}
+                      <span className="tabular font-normal text-fg-muted">{yoursCount}</span>
                     </Chip>
                   ) : null}
                 </div>
@@ -460,7 +460,13 @@ export function NextBlockGoggles() {
                     <Link
                       key={item.id}
                       href={routes.tx(item.id)}
-                      aria-label={`${yours ? "Your " : ""}spend bundle ${shortId(item.id)}, ${item.kind}, ${amountText}, cost ${formatCost(item.cost)}, ${formatFeeRate(item.feeRate)} mojo per cost`}
+                      aria-label={t(yours ? "cellLabelYours" : "cellLabel", {
+                        id: shortId(item.id),
+                        kind: item.kind,
+                        amount: amountText,
+                        cost: formatCost(item.cost),
+                        rate: formatFeeRate(item.feeRate),
+                      })}
                     >
                       <g
                         className={cn("treemap-cell", fresh && "treemap-cell-fresh")}
@@ -538,7 +544,7 @@ export function NextBlockGoggles() {
                                   fill="#0a0d18"
                                   className="pointer-events-none"
                                 >
-                                  YOURS
+                                  {t("yoursBadge")}
                                 </text>
                               </>
                             ) : null}
@@ -603,18 +609,20 @@ export function NextBlockGoggles() {
                     </span>
                     {mine.has(hover.id) ? (
                       <span className="rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase text-[#0a0d18]">
-                        yours
+                        {t("yoursChip")}
                       </span>
                     ) : null}
                   </div>
                   <div className="mono mt-0.5 text-fg-muted">{shortId(hover.id, 10, 6)}</div>
                   <div className="text-fg-muted">
-                    {formatCost(hover.cost)} cost · fee {formatAmount(BigInt(hover.fee))} ·{" "}
-                    {formatFeeRate(hover.feeRate)} m/c
+                    {t("hoverCost", {
+                      cost: formatCost(hover.cost),
+                      fee: formatAmount(BigInt(hover.fee)),
+                      rate: formatFeeRate(hover.feeRate),
+                    })}
                   </div>
                   <div className="text-fg-faint">
-                    {hover.spends} coin spend{hover.spends === 1 ? "" : "s"} · seen{" "}
-                    {formatAge(hover.firstSeen)}
+                    {t("hoverSpends", { count: hover.spends, age: formatAge(hover.firstSeen) })}
                   </div>
                 </div>
               ) : null}
@@ -622,41 +630,36 @@ export function NextBlockGoggles() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-faint">
               <span aria-live="polite">
-                {filtering ? (
-                  <>
-                    Showing{" "}
-                    <span className="tabular font-medium text-fg-muted">{matched.length}</span> of{" "}
-                    {next.items.length} bundles ·{" "}
-                    {formatCost(matched.reduce((s, i) => s + i.cost, 0))} cost
-                  </>
-                ) : (
-                  <>
-                    Bundles are packed by fee per cost, the same order the node uses; the block
-                    fills from the bottom up.
-                  </>
-                )}
+                {filtering
+                  ? t.rich("showing", {
+                      matched: matched.length,
+                      total: next.items.length,
+                      cost: formatCost(matched.reduce((s, i) => s + i.cost, 0)),
+                      b: (c) => <span className="tabular font-medium text-fg-muted">{c}</span>,
+                    })
+                  : t("packedHint")}
               </span>
               <span className="inline-flex flex-wrap items-center gap-2">
-                <span>size = cost</span>
+                <span>{t("legendSize")}</span>
                 <span>·</span>
                 {mode === "fee" ? (
                   <span className="inline-flex items-center gap-1">
-                    colour = fee band
+                    {t("legendFee")}
                     {FEE_BANDS.map((b) => (
                       <span
                         key={b.id}
                         aria-hidden="true"
                         className="inline-block h-2 w-2 rounded-sm"
                         style={{ background: `var(${b.cssVar})` }}
-                        title={`${b.label} mojo/cost`}
+                        title={t("legendBandTitle", { band: b.label })}
                       />
                     ))}
                   </span>
                 ) : (
-                  <span>colour = asset kind</span>
+                  <span>{t("legendKind")}</span>
                 )}
                 <span>·</span>
-                <span>white ring = new</span>
+                <span>{t("legendNew")}</span>
               </span>
             </div>
           </>

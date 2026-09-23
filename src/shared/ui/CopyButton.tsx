@@ -2,23 +2,26 @@
 
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 
 export function CopyButton({
   value,
-  label = "Copy",
+  label,
   className,
 }: {
   value: string;
   label?: string;
   className?: string;
 }) {
+  const t = useT("ui");
   const [copied, setCopied] = useState(false);
+  const text = label ?? t("copy");
   return (
     <button
       type="button"
-      aria-label={`${label} to clipboard`}
-      title={label}
+      aria-label={t("copyToClipboard", { label: text })}
+      title={text}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(value);

@@ -3,8 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Wallet } from "lucide-react";
 import Link from "next/link";
-import { formatAmount, formatNumber, formatXch } from "@/shared/lib/chia/amounts";
+import { formatAmount, formatNumber, formatPercent, formatXch } from "@/shared/lib/chia/amounts";
 import { formatAge } from "@/shared/lib/format/time";
+import { formatFixed } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import {
   checkWalletAddress,
@@ -17,10 +19,16 @@ import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Hash, StatTile } from "@/shared/ui";
 
+/** Share of the wallet's coins that Sage has synced, as a locale percentage. */
+export function syncPercent(synced: number, total: number): string {
+  return formatPercent(total ? synced / Math.max(1, total) : 1, 0);
+}
+
 function SageBadge() {
+  const t = useT("wallet");
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-      <Wallet size={11} aria-hidden="true" /> from your Sage wallet
+      <Wallet size={11} aria-hidden="true" /> {t("sageBadge")}
     </span>
   );
 }
@@ -30,6 +38,7 @@ function SageBadge() {
  * transactions and coin count come straight from the wallet bridge, ahead of the indexed data.
  */
 export function SageAddressPanel({ address }: { address: string }) {
+  const t = useT("wallet");
   const { inSage } = useSage();
   const { networkConfig } = useSettings();
   const mine = useQuery({
@@ -51,36 +60,39 @@ export function SageAddressPanel({ address }: { address: string }) {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Your wallet <SageBadge />
+            {t("addressPanel.title")} <SageBadge />
           </span>
         }
         action={
           <Link href={routes.wallet()} className="text-xs font-medium text-accent hover:underline">
-            Open My wallet →
+            {t("addressPanel.open")}
           </Link>
         }
       />
       <CardBody className="grid grid-cols-2 gap-2 md:grid-cols-4">
-        <StatTile label="Balance" value={`${formatXch(w.balance, 6)} ${w.ticker}`} tone="primary" />
         <StatTile
-          label="Pending"
+          label={t("stats.balance")}
+          value={`${formatXch(w.balance, 6)} ${w.ticker}`}
+          tone="primary"
+        />
+        <StatTile
+          label={t("stats.pending")}
           value={formatNumber(w.pending.length)}
-          sub="transactions in flight"
+          sub={t("stats.inFlight")}
           tone={w.pending.length ? "warning" : "default"}
         />
         <StatTile
-          label="Coins"
+          label={t("stats.coins")}
           value={formatNumber(w.totalCoinCount)}
-          sub="unspent in the wallet"
+          sub={t("stats.unspentInWallet")}
         />
         <StatTile
-          label="Sync"
-          value={
-            w.totalCoins
-              ? `${Math.round((w.syncedCoins / Math.max(1, w.totalCoins)) * 100)}%`
-              : "100%"
-          }
-          sub={`${formatNumber(w.syncedCoins)} of ${formatNumber(w.totalCoins)} coins`}
+          label={t("stats.sync")}
+          value={syncPercent(w.syncedCoins, w.totalCoins)}
+          sub={t("stats.syncedCoins", {
+            synced: formatNumber(w.syncedCoins),
+            total: formatNumber(w.totalCoins),
+          })}
         />
       </CardBody>
     </Card>
@@ -89,6 +101,7 @@ export function SageAddressPanel({ address }: { address: string }) {
 
 /** On a coin page inside Sage: the wallet's own record of the coin, when it owns it. */
 export function SageCoinPanel({ coinId }: { coinId: string }) {
+  const t = useT("wallet");
   const { inSage } = useSage();
   const { networkConfig } = useSettings();
   const coin = useQuery({
@@ -104,25 +117,25 @@ export function SageCoinPanel({ coinId }: { coinId: string }) {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Your coin <SageBadge />
+            {t("coinPanel.title")} <SageBadge />
           </span>
         }
       />
       <CardBody className="grid grid-cols-2 gap-2 md:grid-cols-4">
-        <StatTile label="Amount" value={formatAmount(c.amount)} tone="primary" />
+        <StatTile label={t("coinPanel.amount")} value={formatAmount(c.amount)} tone="primary" />
         <StatTile
-          label="Address"
+          label={t("coinPanel.address")}
           value={<Hash value={c.address} href={routes.address(c.address)} head={8} tail={5} />}
         />
         <StatTile
-          label="Created"
-          value={c.createdHeight ? formatNumber(c.createdHeight) : "pending"}
-          sub="block height"
+          label={t("coinPanel.created")}
+          value={c.createdHeight ? formatNumber(c.createdHeight) : t("coinPanel.pending")}
+          sub={t("coinPanel.blockHeight")}
         />
         <StatTile
-          label="Spent"
-          value={c.spentHeight ? formatNumber(c.spentHeight) : "unspent"}
-          sub={c.spentHeight ? "block height" : "still in the wallet"}
+          label={t("coinPanel.spent")}
+          value={c.spentHeight ? formatNumber(c.spentHeight) : t("coinPanel.unspent")}
+          sub={c.spentHeight ? t("coinPanel.blockHeight") : t("coinPanel.stillInWallet")}
           tone={c.spentHeight ? "default" : "primary"}
         />
       </CardBody>
@@ -132,6 +145,7 @@ export function SageCoinPanel({ coinId }: { coinId: string }) {
 
 /** XCH price chip from the wallet's own feed, header only, Sage only. */
 export function SagePriceChip() {
+  const t = useT("wallet");
   const { inSage } = useSage();
   const { granted } = useSageCapability("wallet.get_xch_usd_price");
   const price = useQuery({
@@ -144,9 +158,9 @@ export function SagePriceChip() {
   return (
     <span
       className="tabular hidden items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-fg-muted md:inline-flex"
-      title={`XCH price from your Sage wallet, ${formatAge(price.dataUpdatedAt)}`}
+      title={t("priceChip.title", { age: formatAge(price.dataUpdatedAt) })}
     >
-      XCH <span className="font-semibold text-fg">${price.data.toFixed(2)}</span>
+      XCH <span className="font-semibold text-fg">${formatFixed(price.data, 2)}</span>
     </span>
   );
 }
