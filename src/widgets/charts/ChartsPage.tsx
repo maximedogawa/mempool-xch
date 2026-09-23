@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { formatAmount, formatCost, formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
+import {
+  formatAmount,
+  formatCost,
+  formatFeeRate,
+  formatNumber,
+  formatPercent,
+} from "@/shared/lib/chia/amounts";
 import { formatBytes } from "@/shared/lib/charts/format";
 import { formatDuration } from "@/shared/lib/format/time";
 import { intlTag } from "@/shared/i18n/active";
@@ -15,14 +21,15 @@ import {
   useBlocksChartSeries,
   useMempoolChartSeries,
   useNetworkChartSeries,
+  usePriceHistory,
+  useTxBlockSampleSeries,
 } from "./useChartSeries";
 
 /**
- * Series that no provider answers today are kept here (spec, note and placement) but not
- * rendered: a page of greyed-out cards reads as broken. Flip this to preview them, or delete
- * the flag once each has a data source (backlog TASK-083).
+ * Only series with a real data source are listed: a page of greyed-out "not available" cards
+ * reads as broken. Coin-set aggregates (unspent coins, active puzzle hashes, coin age) were
+ * dropped for that reason: no public endpoint answers them.
  */
-const SHOW_PLANNED_CHARTS = false;
 
 function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => string {
   if (range === "6h" || range === "24h")
@@ -58,10 +65,7 @@ type ChartId =
   | "timeBetweenTxBlocks"
   | "netspace"
   | "difficulty"
-  | "blocksPerHour"
-  | "unspentCoins"
-  | "activePuzzleHashes"
-  | "coinAge";
+  | "blocksPerHour";
 
 export function ChartsPage() {
   const t = useT("charts");
@@ -76,6 +80,8 @@ export function ChartsPage() {
   const blocks = useBlocksChartSeries(controls.range);
   const network = useNetworkChartSeries(controls.range);
   const mempool = useMempoolChartSeries(controls.range);
+  const sampledBlocks = useTxBlockSampleSeries(controls.range);
+  const price = usePriceHistory(controls.range);
 
   const spec = (id: ChartId, technical: string, formatValue: (v: number) => string): ChartSpec => ({
     title: t(`${id}.title`),
@@ -84,8 +90,6 @@ export function ChartsPage() {
     formatValue,
     formatTime,
   });
-  const noCoinset = t("notes.noCoinset");
-  const needsAggregate = t("notes.needsCoinsetAggregate");
   const perWindow = t("notes.perWindow");
   const sameSample = t("notes.sameSample");
   const sampledOnly = t("notes.sampledOnly");
@@ -104,17 +108,16 @@ export function ChartsPage() {
 
       <ChartControls value={controls} onChange={setControls} />
 
-      {SHOW_PLANNED_CHARTS ? (
-        <Section title={t("sections.market")}>
-          <ChartCard
-            spec={spec("price", t("price.technical"), (v) => `$${formatFixed(v, 4)}`)}
-            points={null}
-            unavailable={t("price.unavailable")}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        </Section>
-      ) : null}
+      <Section title={t("sections.market")}>
+        <ChartCard
+          spec={spec("price", t("price.technical"), (v) => `${formatFixed(v, 3)} USDT`)}
+          points={price.data ?? null}
+          loading={price.isLoading}
+          unavailable={price.isError ? t("price.unavailable") : undefined}
+          smoothing={controls.smoothing}
+          scale={controls.scale}
+        />
+      </Section>
 
       <Section title={t("sections.mempool")}>
         <ChartCard
@@ -138,15 +141,13 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        {SHOW_PLANNED_CHARTS ? (
-          <ChartCard
-            spec={spec("medianFeeRate", t("medianFeeRate.technical"), (v) => formatFixed(v, 3))}
-            points={null}
-            unavailable={t("medianFeeRate.unavailable")}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        ) : null}
+        <ChartCard
+          spec={spec("medianFeeRate", t("medianFeeRate.technical"), (v) => formatFeeRate(v))}
+          points={mempool.available ? mempool.medianFeeRate : null}
+          unavailable={mempool.available ? undefined : sampledOnly}
+          smoothing={controls.smoothing}
+          scale={controls.scale}
+        />
       </Section>
 
       <Section title={t("sections.blocks")}>
@@ -159,15 +160,13 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        {SHOW_PLANNED_CHARTS ? (
-          <ChartCard
-            spec={spec("costPerTxBlock", t("costPerTxBlock.technical"), formatCost)}
-            points={null}
-            unavailable={t("costPerTxBlock.unavailable")}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        ) : null}
+        <ChartCard
+          spec={spec("costPerTxBlock", t("costPerTxBlock.technical"), formatCost)}
+          points={sampledBlocks.cost}
+          loading={sampledBlocks.isLoading}
+          smoothing={controls.smoothing}
+          scale={controls.scale}
+        />
         <ChartCard
           spec={spec("txBlocksPerHour", perWindow, (v) => formatFixed(v, 1))}
           points={blocks.series?.txBlocksPerHour ?? null}
@@ -175,17 +174,15 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        {SHOW_PLANNED_CHARTS ? (
-          <ChartCard
-            spec={spec("spendsPerTxBlock", t("spendsPerTxBlock.technical"), (v) =>
-              formatFixed(v, 0)
-            )}
-            points={null}
-            unavailable={t("spendsPerTxBlock.unavailable")}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        ) : null}
+        <ChartCard
+          spec={spec("spendsPerTxBlock", t("spendsPerTxBlock.technical"), (v) =>
+            formatNumber(Math.round(v))
+          )}
+          points={sampledBlocks.spends}
+          loading={sampledBlocks.isLoading}
+          smoothing={controls.smoothing}
+          scale={controls.scale}
+        />
         <ChartCard
           spec={spec("shareOfTxBlocks", perWindow, (v) => formatPercent(v, 1))}
           points={blocks.series?.shareOfTxBlocks ?? null}
@@ -215,15 +212,13 @@ export function ChartsPage() {
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
-        {SHOW_PLANNED_CHARTS ? (
-          <ChartCard
-            spec={spec("difficulty", t("difficulty.technical"), (v) => formatNumber(v))}
-            points={null}
-            unavailable={t("difficulty.unavailable")}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        ) : null}
+        <ChartCard
+          spec={spec("difficulty", t("difficulty.technical"), (v) => formatNumber(Math.round(v)))}
+          points={network.difficulty}
+          loading={network.isLoading}
+          smoothing={controls.smoothing}
+          scale={controls.scale}
+        />
         <ChartCard
           spec={spec("blocksPerHour", perWindow, (v) => formatFixed(v, 1))}
           points={network.blocksPerHour}
@@ -232,32 +227,6 @@ export function ChartsPage() {
           scale={controls.scale}
         />
       </Section>
-
-      {SHOW_PLANNED_CHARTS ? (
-        <Section title={t("sections.coinSet")}>
-          <ChartCard
-            spec={spec("unspentCoins", needsAggregate, formatNumber)}
-            points={null}
-            unavailable={noCoinset}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-          <ChartCard
-            spec={spec("activePuzzleHashes", needsAggregate, formatNumber)}
-            points={null}
-            unavailable={noCoinset}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-          <ChartCard
-            spec={spec("coinAge", needsAggregate, (v) => formatDuration(v))}
-            points={null}
-            unavailable={noCoinset}
-            smoothing={controls.smoothing}
-            scale={controls.scale}
-          />
-        </Section>
-      ) : null}
     </div>
   );
 }

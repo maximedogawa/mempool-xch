@@ -16,6 +16,28 @@ export interface BlockWindowStats {
   shareOfTxBlocks: number;
   /** Average seconds between consecutive transaction blocks; null with fewer than two. */
   avgSecondsBetweenTxBlocks: number | null;
+  /**
+   * Median difficulty in the window; null without two consecutive heights. A block's weight is
+   * the cumulative difficulty of the chain up to it, so the weight step from one height to the
+   * next is that block's difficulty.
+   */
+  difficulty: number | null;
+}
+
+/** Median weight step between consecutive heights (see BlockWindowStats.difficulty). */
+export function windowDifficulty(records: BlockRecord[]): number | null {
+  const sorted = [...records].sort((a, b) => a.height - b.height);
+  const steps: number[] = [];
+  for (let i = 1; i < sorted.length; i += 1) {
+    const prev = sorted[i - 1]!;
+    const cur = sorted[i]!;
+    if (cur.height === prev.height + 1 && cur.weight > prev.weight)
+      steps.push(Number(cur.weight - prev.weight));
+  }
+  if (steps.length === 0) return null;
+  steps.sort((a, b) => a - b);
+  const mid = Math.floor(steps.length / 2);
+  return steps.length % 2 === 1 ? steps[mid]! : (steps[mid - 1]! + steps[mid]!) / 2;
 }
 
 /** One window's stats, or null when it carries no timestamped (transaction) block to anchor on. */
@@ -48,6 +70,7 @@ export function aggregateBlockWindow(records: BlockRecord[]): BlockWindowStats |
     blocksPerHour: (records.length / spanSeconds) * 3600,
     shareOfTxBlocks: txBlocks.length / records.length,
     avgSecondsBetweenTxBlocks,
+    difficulty: windowDifficulty(records),
   };
 }
 
@@ -57,6 +80,7 @@ export interface BlockSeries {
   blocksPerHour: Point[];
   shareOfTxBlocks: Point[];
   timeBetweenTxBlocks: Point[];
+  difficulty: Point[];
 }
 
 export function blockWindowSeries(windows: BlockRecord[][]): BlockSeries {
@@ -69,5 +93,21 @@ export function blockWindowSeries(windows: BlockRecord[][]): BlockSeries {
     timeBetweenTxBlocks: stats
       .filter((s) => s.avgSecondsBetweenTxBlocks !== null)
       .map((s) => ({ t: s.t, v: s.avgSecondsBetweenTxBlocks! })),
+    difficulty: stats
+      .filter((s) => s.difficulty !== null)
+      .map((s) => ({ t: s.t, v: s.difficulty! })),
   };
+}
+
+/**
+ * The newest transaction block of each window: the bounded sample the cost and spends series
+ * fetch in full (one get_block and one get_additions_and_removals each), so a range costs as
+ * many block fetches as it has windows, not as many as it has blocks.
+ */
+export function newestTxBlockPerWindow(windows: BlockRecord[][]): BlockRecord[] {
+  return windows.flatMap((records) => {
+    const tx = records.filter((r) => r.isTransactionBlock && r.timestamp !== null);
+    if (tx.length === 0) return [];
+    return [tx.reduce((a, b) => (b.height > a.height ? b : a))];
+  });
 }

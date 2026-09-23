@@ -10,7 +10,6 @@ const messages = {
     mempool: "Mempool",
     blocks: "Blocks",
     network: "Network",
-    coinSet: "Coin set",
   },
   card: {
     latest: "Latest",
@@ -28,9 +27,6 @@ const messages = {
     log: "Log",
   },
   notes: {
-    noCoinset:
-      "Coinset's indexed API has no aggregate endpoint for this (verified against its OpenAPI spec); a future provider such as nodexch could add it.",
-    needsCoinsetAggregate: "Would need a Coinset aggregate endpoint.",
     sampledOnly: "Only the last 2 hours are sampled in this browser; pick 6h or 24h to see it.",
     sameSample: "Same 2-hour browser sample as Cost used.",
     perWindow: "Counted per sampling window from get_block_records.",
@@ -38,11 +34,12 @@ const messages = {
       "Not available on this endpoint: get_network_space did not answer for this endpoint.",
   },
   price: {
-    title: "XCH price (USD)",
-    definition: "The XCH/USD spot price over time.",
-    technical: "Would come from Dexie's price data.",
+    title: "XCH price (USDT)",
+    definition: "The XCH/USDT spot price over time: the closing price of each candle.",
+    technical:
+      "Gate.io's public spot candlesticks for XCH_USDT, one request per range (5-minute candles for 6h up to weekly candles for All). USDT tracks the US dollar closely but is not the same thing.",
     unavailable:
-      "No verified public price-history endpoint yet. The Sage wallet shows a live spot price in the header when connected; this chart needs history, which Dexie does not publish a documented endpoint for today.",
+      "Gate.io's price history did not answer. It is fetched directly from this browser; try again later.",
   },
   costUsed: {
     title: "Cost used",
@@ -62,11 +59,10 @@ const messages = {
   },
   medianFeeRate: {
     title: "Median fee rate",
-    definition: "The middle fee rate among pending spend bundles.",
+    definition:
+      "The fee rate in the middle of the pending cost: half the cost waiting in the mempool pays more, half pays less.",
     technical:
-      "Not tracked by the browser sampler yet (it keeps totals per fee band, not the full distribution).",
-    unavailable:
-      "Not sampled yet: the mempool history keeps totals per fee band, not enough to recover a median.",
+      "Sampled in this browser with the other mempool series: bundles are ordered by fee rate (mojos per cost) and the rate at half the total pending cost is kept. Weighted by cost, so a few large free spends pull it towards 0.",
   },
   feesPerTxBlock: {
     title: "Fees per transaction block",
@@ -76,11 +72,9 @@ const messages = {
   },
   costPerTxBlock: {
     title: "Cost per transaction block",
-    definition: "Average CLVM cost used in a transaction block.",
+    definition: "CLVM cost used by a transaction block, out of the 11 billion a block allows.",
     technical:
-      "Not sampled at chart scale: exact cost needs a full get_block fetch per block, too heavy to sample across a range without a server-side cache. See a block's own page for its exact cost.",
-    unavailable:
-      "Not sampled at chart scale — needs one full-block fetch per block. See a block's own page for its exact cost.",
+      "For the newest transaction block of each sampling window: transactions_info.cost from get_block. One block per window (6 to 24 per range), each fetched once per session.",
   },
   txBlocksPerHour: {
     title: "Transaction blocks per hour",
@@ -88,11 +82,9 @@ const messages = {
   },
   spendsPerTxBlock: {
     title: "Spends per transaction block",
-    definition: "Average number of coins spent in a transaction block.",
+    definition: "Coins spent in a transaction block.",
     technical:
-      "Not sampled at chart scale: needs a per-block indexed or additions/removals fetch, too heavy to sample across a range without a server-side cache. See a block's own page for its spends.",
-    unavailable:
-      "Not sampled at chart scale — needs a per-block fetch. See a block's own page for its spends.",
+      "For the same sampled blocks as Cost per transaction block: the number of removals from get_additions_and_removals. Reward claims are created, not spent, so they are not counted.",
   },
   shareOfTxBlocks: {
     title: "Share of transaction blocks",
@@ -111,27 +103,13 @@ const messages = {
   },
   difficulty: {
     title: "Difficulty",
-    definition: "The node's current proof-of-space difficulty target.",
+    definition: "The proof-of-space difficulty blocks were farmed at.",
     technical:
-      "No verified way to recover historical difficulty from get_block_records; get_blockchain_state only reports the current value.",
-    unavailable:
-      "Not derivable from available endpoints without unverified math — a wrong number here would be worse than none. get_blockchain_state shows the current value on Settings.",
+      "From the block records the other series already fetch: a block's weight is the chain's cumulative difficulty, so the weight step from one height to the next is that block's difficulty. Median per sampling window. It changes once per epoch (4,608 blocks).",
   },
   blocksPerHour: {
     title: "Blocks per hour",
     definition: "All blocks (transaction and non-transaction) per hour.",
-  },
-  unspentCoins: {
-    title: "Unspent coins",
-    definition: "Total coins not yet spent.",
-  },
-  activePuzzleHashes: {
-    title: "Active puzzle hashes",
-    definition: "Distinct puzzle hashes holding coins.",
-  },
-  coinAge: {
-    title: "Coin age",
-    definition: "Average age of unspent coins.",
   },
 };
 
