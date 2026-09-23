@@ -57,6 +57,11 @@ jobs:
       - run: bun run test:e2e
         env:
           CI: true
+      # The same mocked specs against the Sage static export (playwright.sage.config.ts).
+      - run: bun run build:sage
+      - run: bun run test:e2e:sage
+        env:
+          CI: true
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

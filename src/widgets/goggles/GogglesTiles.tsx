@@ -74,6 +74,10 @@ function TileBody({ tile }: { tile: TileView }) {
           alt=""
           loading="lazy"
           decoding="async"
+          // A missing thumbnail leaves the plain tile colour, not a broken-image glyph.
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           className="goggles-tile-image pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
       ) : tile.icon ? (
