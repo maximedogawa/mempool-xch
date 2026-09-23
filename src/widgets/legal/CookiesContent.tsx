@@ -15,6 +15,7 @@ const NECESSARY = [
   { key: "mempool-xch:history:v1:<network>", row: "history" },
   { key: "mempool-xch:mempool-snapshot:v1:<network>", row: "snapshot" },
   { key: "mempool-xch:watchlist:v1", row: "watchlist" },
+  { key: "mempool-xch:goggles:v1", row: "goggles" },
   { key: "mempool-xch:sage-refused:v1", row: "sageRefused" },
   { key: "mempool-xch:consent:v1", row: "consent" },
 ] as const;

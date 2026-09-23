@@ -269,6 +269,11 @@ const messages: Translation<(typeof en)["messages"]> = {
           purpose: "Adressen und Transaktions-IDs, die Sie beobachten möchten",
           lifetime: "Bis Sie sie entfernen oder löschen",
         },
+        goggles: {
+          purpose:
+            "Ihre Filter und Ansichtseinstellungen für die Ansicht des nächsten Blocks auf der Übersicht",
+          lifetime: "Bis Sie die Filter zurücksetzen oder den Eintrag löschen",
+        },
         sageRefused: {
           purpose:
             "Sage-Berechtigungen, die Sie abgelehnt haben, damit Sie nicht erneut gefragt werden (nur Sage-App)",

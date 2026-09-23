@@ -247,6 +247,10 @@ const messages: Translation<(typeof en)["messages"]> = {
           purpose: "您选择关注的地址和交易 ID",
           lifetime: "直到您移除或清除",
         },
+        goggles: {
+          purpose: "您在概览页「下一个区块」视图中的筛选条件和显示选项",
+          lifetime: "直到您清除筛选条件或清除该条目",
+        },
         sageRefused: {
           purpose: "您拒绝的 Sage 权限，以免再次询问您（仅限 Sage 应用）",
           lifetime: "直到您清除",
