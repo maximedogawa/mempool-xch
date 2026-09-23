@@ -164,7 +164,7 @@ const messages = {
     },
     storage: {
       title: "3. Storage in your browser",
-      body: "The site keeps a few entries in your browser's local storage: your settings (network, node address, theme, language, sounds, whether you turned on browser notifications), a cache of the asset list, a short mempool history drawn while the page is open, your watchlist of addresses and transaction ids if you add any, which Sage permissions you declined, and your cookie choice. They stay on your device and are not sent to the operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time in your browser settings. Details are in the <link>cookie policy</link>.",
+      body: "The site keeps a few entries in your browser's local storage: your settings (network, node address, theme, language, sounds, whether you turned on browser notifications), a cache of the asset list, a short mempool history drawn while the page is open, your watchlist of addresses and transaction ids if you add any, your filters for the dashboard's next-block view, the node counts per country the network map last showed, which Sage permissions you declined, and your cookie choice. They stay on your device and are not sent to the operator. They are strictly necessary to provide what you asked for (§ 25(2) no. 2 TDDDG). You can delete them at any time in your browser settings. Details are in the <link>cookie policy</link>.",
       notifications:
         "If you turn on browser notifications for your watchlist, that permission is granted to this site by your browser and can be withdrawn there at any time; the operator never sees whether you turned it on.",
     },
@@ -268,6 +268,11 @@ const messages = {
         goggles: {
           purpose: "Your filters and view choices for the next-block view on the dashboard",
           lifetime: "Until you clear the filters or clear it",
+        },
+        mapSeen: {
+          purpose:
+            "Node counts per country the Network map last showed, so it animates only what changed",
+          lifetime: "Until you clear it; replaced with each newer snapshot",
         },
         sageRefused: {
           purpose: "Sage permissions you declined, so you are not asked again (Sage app only)",

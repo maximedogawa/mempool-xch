@@ -166,7 +166,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     },
     storage: {
       title: "3. Almacenamiento en tu navegador",
-      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e ID de transacción si añades alguno, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
+      body: "El sitio guarda algunas entradas en el almacenamiento local de tu navegador: tus ajustes (red, dirección del nodo, tema, idioma, sonidos, si activaste las notificaciones del navegador), una caché de la lista de activos, un breve historial de la mempool registrado mientras la página está abierta, tu lista de seguimiento de direcciones e ID de transacción si añades alguno, tus filtros de la vista del próximo bloque en el panel, el recuento de nodos por país que mostró por última vez el mapa de la red, qué permisos de Sage rechazaste y tu elección sobre cookies. Permanecen en tu dispositivo y no se envían al operador. Son estrictamente necesarias para prestar lo que has solicitado (§ 25(2) n.º 2 TDDDG). Puedes eliminarlas en cualquier momento en los ajustes de tu navegador. Encontrarás los detalles en la <link>política de cookies</link>.",
       notifications:
         "Si activas las notificaciones del navegador para tu lista de seguimiento, es tu navegador quien concede ese permiso a este sitio y puedes retirarlo allí en cualquier momento; el operador nunca ve si lo activaste.",
     },
@@ -271,6 +271,11 @@ const messages: Translation<(typeof en)["messages"]> = {
         goggles: {
           purpose: "Tus filtros y opciones de vista para la vista del próximo bloque en el panel",
           lifetime: "Hasta que quites los filtros o lo borres",
+        },
+        mapSeen: {
+          purpose:
+            "Recuento de nodos por país que mostró por última vez el mapa de la red, para animar solo lo que cambió",
+          lifetime: "Hasta que lo borres; se sustituye con cada instantánea más reciente",
         },
         sageRefused: {
           purpose:

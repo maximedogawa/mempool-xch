@@ -165,7 +165,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     },
     storage: {
       title: "3. Speicherung in Ihrem Browser",
-      body: "Die Website legt einige Einträge im lokalen Speicher Ihres Browsers ab: Ihre Einstellungen (Netzwerk, Node-Adresse, Design, Sprache, Töne, ob Sie Browser-Benachrichtigungen aktiviert haben), einen Cache der Asset-Liste, einen kurzen Mempool-Verlauf, der aufgezeichnet wird, während die Seite geöffnet ist, Ihre Beobachtungsliste mit Adressen und Transaktions-IDs, falls Sie welche hinzufügen, welche Sage-Berechtigungen Sie abgelehnt haben, und Ihre Cookie-Auswahl. Sie bleiben auf Ihrem Gerät und werden nicht an den Betreiber gesendet. Sie sind unbedingt erforderlich, um bereitzustellen, was Sie angefordert haben (§ 25 Abs. 2 Nr. 2 TDDDG). Sie können sie jederzeit in Ihren Browsereinstellungen löschen. Einzelheiten finden Sie in der <link>Cookie-Richtlinie</link>.",
+      body: "Die Website legt einige Einträge im lokalen Speicher Ihres Browsers ab: Ihre Einstellungen (Netzwerk, Node-Adresse, Design, Sprache, Töne, ob Sie Browser-Benachrichtigungen aktiviert haben), einen Cache der Asset-Liste, einen kurzen Mempool-Verlauf, der aufgezeichnet wird, während die Seite geöffnet ist, Ihre Beobachtungsliste mit Adressen und Transaktions-IDs, falls Sie welche hinzufügen, Ihre Filter für die Ansicht des nächsten Blocks auf der Übersicht, die zuletzt auf der Netzwerkkarte angezeigten Node-Zahlen pro Land, welche Sage-Berechtigungen Sie abgelehnt haben, und Ihre Cookie-Auswahl. Sie bleiben auf Ihrem Gerät und werden nicht an den Betreiber gesendet. Sie sind unbedingt erforderlich, um bereitzustellen, was Sie angefordert haben (§ 25 Abs. 2 Nr. 2 TDDDG). Sie können sie jederzeit in Ihren Browsereinstellungen löschen. Einzelheiten finden Sie in der <link>Cookie-Richtlinie</link>.",
       notifications:
         "Wenn Sie Browser-Benachrichtigungen für Ihre Beobachtungsliste aktivieren, erteilt Ihr Browser diese Berechtigung dieser Website, und Sie können sie dort jederzeit widerrufen; der Betreiber erfährt nie, ob Sie sie aktiviert haben.",
     },
@@ -273,6 +273,11 @@ const messages: Translation<(typeof en)["messages"]> = {
           purpose:
             "Ihre Filter und Ansichtseinstellungen für die Ansicht des nächsten Blocks auf der Übersicht",
           lifetime: "Bis Sie die Filter zurücksetzen oder den Eintrag löschen",
+        },
+        mapSeen: {
+          purpose:
+            "Die zuletzt auf der Netzwerkkarte angezeigten Node-Zahlen pro Land, damit nur Änderungen animiert werden",
+          lifetime: "Bis Sie den Eintrag löschen; mit jedem neueren Snapshot ersetzt",
         },
         sageRefused: {
           purpose:
