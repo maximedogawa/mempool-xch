@@ -57,21 +57,9 @@ const THEME_OPTIONS: {
   /** Preview swatch: page, card and accent, hard-coded so each shows its own theme. */
   swatch: [string, string, string];
 }[] = [
-  {
-    value: "dark",
-    icon: Moon,
-    swatch: ["#0f1220", "#232842", "#5ece7b"],
-  },
-  {
-    value: "light",
-    icon: Sun,
-    swatch: ["#eef1f7", "#ffffff", "#176c33"],
-  },
-  {
-    value: "system",
-    icon: Monitor,
-    swatch: ["#0f1220", "#ffffff", "#5ece7b"],
-  },
+  { value: "dark", icon: Moon, swatch: ["#0f1220", "#232842", "#5ece7b"] },
+  { value: "light", icon: Sun, swatch: ["#eef1f7", "#ffffff", "#176c33"] },
+  { value: "system", icon: Monitor, swatch: ["#0f1220", "#ffffff", "#5ece7b"] },
 ];
 
 /**
