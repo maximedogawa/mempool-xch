@@ -72,6 +72,17 @@ test.describe("tokens", () => {
     await expect(page).toHaveURL(/\/cat\//);
   });
 
+  test("shows dollar figures, the 30-day range and the bid/ask spread", async ({ page }) => {
+    await page.goto("/tokens");
+    const first = page.getByRole("region", { name: "Tokens" }).locator("tbody tr").first();
+    await expect(first).toContainText("Most Active Token");
+    // 0.0125 XCH at $2; 2,210.9 XCH of 30-day volume; bid 0.012 / ask 0.013 around 0.0125.
+    await expect(first).toContainText("$0.025");
+    await expect(first).toContainText("$4.4k");
+    await expect(first).toContainText("0.01–0.015");
+    await expect(first).toContainText("8.0%");
+  });
+
   test("falls back to the whole registry when Dexie market data is down", async ({ page }) => {
     await page.route(/https:\/\/api\.dexie\.space\/v3\/prices\/tickers.*/, (route) =>
       route.fulfill({ status: 503, body: "" })

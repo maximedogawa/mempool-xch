@@ -1,5 +1,11 @@
 import { expect, test } from "bun:test";
-import { dexieNumber, fetchTokenMarkets, formatXchFigure, normaliseTickers } from "./markets";
+import {
+  dexieNumber,
+  fetchTokenMarkets,
+  formatXchFigure,
+  normaliseTickers,
+  spreadRatio,
+} from "./markets";
 
 const SBX = "a628c1c2c6fcb74d53746157e438e108eab5c0bb3e5c80ff9b1910b3e4832913";
 
@@ -73,4 +79,11 @@ test("formatXchFigure", () => {
   expect(formatXchFigure(2210.91471)).toBe("2,211");
   expect(formatXchFigure(9.97123)).toBe("9.97");
   expect(formatXchFigure(0.00038908)).toBe("0.0003891");
+});
+
+test("spreadRatio is the bid/ask gap over the mid, and null when a side is missing or crossed", () => {
+  expect(spreadRatio({ bidXch: 0.9, askXch: 1.1 })).toBeCloseTo(0.2, 10);
+  expect(spreadRatio({ bidXch: null, askXch: 1 })).toBeNull();
+  expect(spreadRatio({ bidXch: 0, askXch: 1 })).toBeNull();
+  expect(spreadRatio({ bidXch: 1.2, askXch: 1 })).toBeNull();
 });

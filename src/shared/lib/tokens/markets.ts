@@ -85,3 +85,13 @@ export function formatXchFigure(value: number): string {
   if (abs < 1e-9) return value.toExponential(2);
   return value.toLocaleString("en-US", { maximumSignificantDigits: 4 });
 }
+
+/**
+ * Bid/ask spread as a share of the mid price; null unless both sides are quoted and not crossed.
+ * A wide spread says a token's last price is a weak guide to what it would fetch.
+ */
+export function spreadRatio(m: Pick<TokenMarket, "bidXch" | "askXch">): number | null {
+  const { bidXch: bid, askXch: ask } = m;
+  if (bid === null || ask === null || bid <= 0 || ask < bid) return null;
+  return (ask - bid) / ((ask + bid) / 2);
+}
