@@ -297,6 +297,10 @@ const messages = {
           purpose: "Addresses and transaction ids you chose to watch",
           lifetime: "Until you remove them or clear it",
         },
+        goggles: {
+          purpose: "Your filters and view choices for the next-block view on the dashboard",
+          lifetime: "Until you clear the filters or clear it",
+        },
         sageRefused: {
           purpose: "Sage permissions you declined, so you are not asked again (Sage app only)",
           lifetime: "Until you clear it",

@@ -302,6 +302,10 @@ const messages: Translation<typeof en> = {
           purpose: "Direcciones e ID de transacción que has decidido seguir",
           lifetime: "Hasta que los elimines o lo borres",
         },
+        goggles: {
+          purpose: "Tus filtros y opciones de vista para la vista del próximo bloque en el panel",
+          lifetime: "Hasta que quites los filtros o lo borres",
+        },
         sageRefused: {
           purpose:
             "Permisos de Sage que rechazaste, para que no se te vuelvan a pedir (solo en la app de Sage)",
