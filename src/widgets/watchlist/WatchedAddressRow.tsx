@@ -14,6 +14,7 @@ import { Hash } from "@/shared/ui";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
 import { useWatchedAddressHistory, useWatchedAddressPending } from "./useWatchedAddressPending";
+import { useT } from "@/shared/i18n/useT";
 import { ReceivedAssets, RemoveWatch, WatchQueue, WatchStatus } from "./WatchlistParts";
 
 export function WatchedAddressRow({
@@ -31,6 +32,7 @@ export function WatchedAddressRow({
   onReceived: (item: WatchItem, txId: string) => void;
   onRemove: () => void;
 }) {
+  const t = useT("watchlist");
   const { client, endpoints } = useSettings();
   const pending = useWatchedAddressPending(item.id);
   const history = useWatchedAddressHistory(item.id);
@@ -76,19 +78,26 @@ export function WatchedAddressRow({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-              Address
+              {t("address.kind")}
             </span>
             <WatchStatus pending={rows.length > 0 && !pending.isError}>
               <Eye size={11} aria-hidden="true" />
               {!client.hasIndexed
-                ? "Unavailable"
+                ? t("address.unavailable")
                 : pending.isError
-                  ? "Connection issue"
+                  ? t("common.connectionIssue")
                   : pending.isLoading
-                    ? "Checking…"
+                    ? t("common.checking")
                     : rows.length
-                      ? `${pending.data?.truncated ? "At least " : ""}${rows.length} pending`
-                      : "Watching"}
+                      ? t(
+                          pending.data?.truncated
+                            ? "address.atLeastPending"
+                            : "address.pendingCount",
+                          {
+                            count: rows.length,
+                          }
+                        )
+                      : t("common.watching")}
             </WatchStatus>
           </div>
           <Hash
@@ -104,16 +113,16 @@ export function WatchedAddressRow({
       </div>
       <div className="mt-3 border-t border-border/60 pt-3">
         {!client.hasIndexed ? (
-          <p className="text-xs text-fg-muted">Address activity needs a Coinset endpoint.</p>
+          <p className="text-xs text-fg-muted">{t("address.needsIndexed")}</p>
         ) : pending.isError ? (
           <p role="status" className="text-xs text-danger">
-            Could not refresh activity.{" "}
+            {t("address.refreshError")}{" "}
             <button className="underline" onClick={() => void pending.refetch()}>
-              Retry
+              {t("common.retry")}
             </button>
           </p>
         ) : pending.isLoading ? (
-          <p className="text-xs text-fg-faint">Checking for pending transactions…</p>
+          <p className="text-xs text-fg-faint">{t("address.checkingPending")}</p>
         ) : rows.length ? (
           <ul className="flex flex-col gap-2">
             {rows.slice(0, 5).map((tx) => {
@@ -153,13 +162,13 @@ export function WatchedAddressRow({
                   href={routes.address(item.label)}
                   className="text-xs text-accent hover:underline"
                 >
-                  View all pending activity →
+                  {t("address.viewAllPending")}
                 </Link>
               </li>
             ) : null}
           </ul>
         ) : (
-          <p className="text-xs text-fg-faint">No pending transactions</p>
+          <p className="text-xs text-fg-faint">{t("address.noPending")}</p>
         )}
         {latest && !history.isError ? (
           <div className="mt-3">
@@ -169,19 +178,19 @@ export function WatchedAddressRow({
         {latest && !history.isError ? (
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted">
             <CheckCircle2 size={13} className="text-primary" aria-hidden="true" />
-            <span>Latest confirmation</span>
+            <span>{t("address.latestConfirmation")}</span>
             <Hash value={latest.id} href={routes.tx(latest.id)} head={6} tail={4} />
             {latest.confirmedHeight !== null ? (
               <Link
                 href={routes.block(latest.confirmedHeight)}
                 className="tabular ml-auto text-primary hover:underline"
               >
-                Block {formatNumber(latest.confirmedHeight)}
+                {t("common.block", { height: formatNumber(latest.confirmedHeight) })}
               </Link>
             ) : null}
           </div>
         ) : history.isError ? (
-          <p className="mt-2 text-xs text-fg-faint">Recent confirmations unavailable.</p>
+          <p className="mt-2 text-xs text-fg-faint">{t("address.confirmationsUnavailable")}</p>
         ) : null}
       </div>
     </li>

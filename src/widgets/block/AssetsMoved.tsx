@@ -5,6 +5,7 @@ import { useTokenList } from "@/shared/api/useTokenList";
 import type { BlockAssetTotals } from "@/shared/lib/blocks/assetTotals";
 import { formatAmount, formatCat, formatNumber } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { AssetIcon, Card, CardBody, CardHeader, Skeleton, StatTile, Tooltip } from "@/shared/ui";
 
@@ -16,25 +17,25 @@ export function AssetsMoved({
   totals: BlockAssetTotals | undefined;
   loading: boolean;
 }) {
+  const t = useT("block");
   const tokens = useTokenList();
-  const hint =
-    totals?.source === "rpc"
-      ? "Without Coinset the figures are the gross amounts spent per kind (change included), from the block's coin spends."
-      : "Net amounts that changed hands: for every participant the XCH or CAT it received minus what it sent, summed. Change returned to the sender and fees are not counted.";
+  const hint = totals?.source === "rpc" ? t("moved.hintRpc") : t("moved.hintNet");
   return (
     <Card>
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Moved in this block <Tooltip text={hint} />
+            {t("moved.title")} <Tooltip text={hint} />
           </span>
         }
         action={
           totals ? (
             <span className="text-xs text-fg-faint">
               {totals.source === "coinset"
-                ? `${formatNumber(totals.count)} transactions${totals.partial ? " (first 200)" : ""}`
-                : `${formatNumber(totals.count)} coin spends`}
+                ? t(totals.partial ? "moved.transactionsPartial" : "moved.transactions", {
+                    count: totals.count,
+                  })
+                : t("moved.coinSpends", { count: totals.count })}
             </span>
           ) : null
         }
@@ -49,22 +50,22 @@ export function AssetsMoved({
                 label="XCH"
                 value={formatAmount(BigInt(totals.xch))}
                 tone="primary"
-                sub={totals.source === "rpc" ? "gross spent" : "net transferred"}
+                sub={totals.source === "rpc" ? t("moved.grossSpent") : t("moved.netTransferred")}
               />
               <StatTile
-                label="CAT transfers"
+                label={t("moved.catTransfers")}
                 value={formatNumber(totals.cats.length)}
-                sub={totals.cats.length ? "assets" : "none"}
+                sub={totals.cats.length ? t("moved.assets") : t("moved.none")}
               />
               <StatTile
-                label="NFTs"
+                label={t("moved.nfts")}
                 value={formatNumber(totals.nfts)}
-                sub="transferred or minted"
+                sub={t("moved.nftsSub")}
               />
               <StatTile
-                label="Pool / singleton"
+                label={t("moved.singletons")}
                 value={formatNumber(totals.singletons + totals.dids)}
-                sub={totals.source === "rpc" ? "spends" : "n/a with summaries"}
+                sub={totals.source === "rpc" ? t("moved.spends") : t("moved.naWithSummaries")}
               />
             </div>
             {totals.cats.length > 0 ? (

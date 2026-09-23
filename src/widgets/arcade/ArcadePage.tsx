@@ -5,6 +5,7 @@ import arcade from "@/shared/config/arcade.json";
 import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { Badge, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { PotPotatoCard } from "./PotPotatoCard";
@@ -62,6 +63,7 @@ function GameIcon({ game }: { game: Game }) {
 }
 
 function GameCard({ game }: { game: Game }) {
+  const t = useT("arcade");
   const [open, setOpen] = useState(false);
   return (
     <li
@@ -77,13 +79,13 @@ function GameCard({ game }: { game: Game }) {
               <Badge tone={game.status === "live" ? "primary" : "neutral"}>{game.status}</Badge>
             ) : null}
             {game.genre ? <Badge tone="info">{game.genre}</Badge> : null}
-            {game.verified ? <Badge tone="primary">verified</Badge> : null}
+            {game.verified ? <Badge tone="primary">{t("game.verified")}</Badge> : null}
           </div>
           <p className="text-sm text-fg-muted">{game.description}</p>
         </div>
       </div>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-fg-muted sm:grid-cols-4">
-        <dt className="text-fg-faint">Developer</dt>
+        <dt className="text-fg-faint">{t("game.developer")}</dt>
         <dd className="truncate">
           {game.developer ? (
             game.developer.url ? (
@@ -97,11 +99,11 @@ function GameCard({ game }: { game: Game }) {
             "—"
           )}
         </dd>
-        <dt className="text-fg-faint">Stake</dt>
+        <dt className="text-fg-faint">{t("game.stake")}</dt>
         <dd>{game.stakeTier ?? "—"}</dd>
-        <dt className="text-fg-faint">Licence</dt>
+        <dt className="text-fg-faint">{t("game.licence")}</dt>
         <dd>{game.license ?? "—"}</dd>
-        <dt className="text-fg-faint">Plays</dt>
+        <dt className="text-fg-faint">{t("game.plays")}</dt>
         <dd className="tabular">
           {game.stats?.totalPlays !== undefined ? formatNumber(game.stats.totalPlays) : "—"}
         </dd>
@@ -114,7 +116,7 @@ function GameCard({ game }: { game: Game }) {
             aria-expanded={open}
             className="text-xs font-medium text-accent hover:underline"
           >
-            {open ? "Hide how to play" : "How to play"}
+            {open ? t("game.hideHowToPlay") : t("game.howToPlay")}
           </button>
           {open ? <p className="mt-1 text-sm text-fg-muted">{game.instructions}</p> : null}
         </div>
@@ -125,12 +127,12 @@ function GameCard({ game }: { game: Game }) {
             href={game.playUrl}
             className="rounded-full border border-primary bg-primary-soft px-3 py-1 font-semibold text-primary hover:underline"
           >
-            Play
+            {t("game.play")}
           </ExternalLink>
         ) : null}
         {game.homepage ? (
           <ExternalLink href={game.homepage} className="text-accent hover:underline">
-            Homepage
+            {t("game.homepage")}
           </ExternalLink>
         ) : null}
       </div>
@@ -139,11 +141,6 @@ function GameCard({ game }: { game: Game }) {
 }
 
 const PHASES: RoomPhase[] = ["waiting", "playing", "closed"];
-const PHASE_TITLE: Record<RoomPhase, string> = {
-  waiting: "Waiting for an opponent",
-  playing: "In game",
-  closed: "Closed",
-};
 
 function matchesRoom(room: ArcadeRoom, needle: string): boolean {
   if (!needle) return true;
@@ -157,24 +154,31 @@ function matchesRoom(room: ArcadeRoom, needle: string): boolean {
 }
 
 function RoomRow({ room }: { room: ArcadeRoom }) {
+  const t = useT("arcade");
   return (
     <li className="flex flex-col gap-0.5 py-1.5 text-xs">
       <span className="flex items-center justify-between gap-2">
-        <span className="truncate font-medium text-fg">{room.gameName ?? "Table"}</span>
+        <span className="truncate font-medium text-fg">{room.gameName ?? t("rooms.table")}</span>
         {room.joinUrl && room.phase !== "closed" ? (
           <ExternalLink href={room.joinUrl} className="shrink-0 text-accent hover:underline">
-            {room.joinable ? "join" : "watch"}
+            {room.joinable ? t("rooms.join") : t("rooms.watch")}
           </ExternalLink>
         ) : null}
       </span>
       <span className="flex flex-wrap items-center gap-x-2 text-fg-muted">
-        <span>{room.players.length > 0 ? room.players.join(" vs ") : "no players yet"}</span>
-        {room.online > 0 ? <span className="text-primary">{room.online} online</span> : null}
-        {room.wagerMojos !== null ? <span>{formatAmount(room.wagerMojos)} wager</span> : null}
+        <span>
+          {room.players.length > 0
+            ? room.players.join(t("rooms.versusSeparator"))
+            : t("rooms.noPlayers")}
+        </span>
+        {room.online > 0 ? (
+          <span className="text-primary">{t("rooms.online", { count: room.online })}</span>
+        ) : null}
+        {room.wagerMojos !== null ? (
+          <span>{t("rooms.wager", { amount: formatAmount(room.wagerMojos) })}</span>
+        ) : null}
         {room.gamesPlayed > 0 ? (
-          <span>
-            {formatNumber(room.gamesPlayed)} game{room.gamesPlayed === 1 ? "" : "s"}
-          </span>
+          <span>{t("rooms.gamesPlayed", { count: room.gamesPlayed })}</span>
         ) : null}
         {room.updatedAt ? <span className="text-fg-faint">{formatAge(room.updatedAt)}</span> : null}
       </span>
@@ -187,6 +191,7 @@ function RoomRow({ room }: { room: ArcadeRoom }) {
  * the snapshot summary when there are no rewrites (Sage export) or the tracker is down.
  */
 function RoomsCard() {
+  const t = useT("arcade");
   const rooms = useArcadeRooms();
   const [needle, setNeedle] = useState("");
   const snapshot = arcade.rooms.byStatus as Record<string, number>;
@@ -195,7 +200,7 @@ function RoomsCard() {
   return (
     <Card className="lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
       <CardHeader
-        title="Game rooms"
+        title={t("rooms.title")}
         action={
           <span className="flex items-center gap-1.5 text-[11px] text-fg-faint">
             <span
@@ -206,10 +211,10 @@ function RoomsCard() {
               aria-hidden="true"
             />
             {view
-              ? `live · ${ROOMS_REFRESH_MS / 1000} s`
+              ? t("rooms.live", { seconds: ROOMS_REFRESH_MS / 1000 })
               : rooms.isLoading && ROOMS_LIVE
-                ? "loading…"
-                : `snapshot ${arcade.snapshotAt}`}
+                ? t("rooms.loading")
+                : t("rooms.snapshot", { date: arcade.snapshotAt })}
           </span>
         }
       />
@@ -220,8 +225,8 @@ function RoomsCard() {
               type="search"
               value={needle}
               onChange={(e) => setNeedle(e.target.value)}
-              placeholder="Search game or player"
-              aria-label="Search rooms"
+              placeholder={t("rooms.searchPlaceholder")}
+              aria-label={t("rooms.searchLabel")}
               className="w-full rounded-sm border border-border bg-bg px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
             />
             {PHASES.map((phase) => {
@@ -235,13 +240,17 @@ function RoomsCard() {
                 >
                   <summary className="flex cursor-pointer select-none items-center justify-between gap-2 px-2.5 py-1.5 text-xs font-medium text-fg">
                     <span>
-                      {PHASE_TITLE[phase]}
+                      {t(`rooms.phases.${phase}`)}
                       <span
                         className="ml-1.5 tabular text-fg-muted"
                         data-testid={`rooms-${phase}-count`}
                       >
-                        {formatNumber(list.length)}
-                        {needle.trim() ? ` of ${formatNumber(view.counts[phase])}` : ""}
+                        {needle.trim()
+                          ? t("rooms.countOf", {
+                              shown: list.length,
+                              total: view.counts[phase],
+                            })
+                          : formatNumber(list.length)}
                       </span>
                     </span>
                     <span
@@ -253,12 +262,12 @@ function RoomsCard() {
                   </summary>
                   {list.length === 0 ? (
                     <p className="px-2.5 pb-2 text-xs text-fg-faint">
-                      {needle.trim() ? "No match." : "None right now."}
+                      {needle.trim() ? t("rooms.noMatch") : t("rooms.noneNow")}
                     </p>
                   ) : (
                     <ul
                       className="flex flex-col divide-y divide-border/60 px-2.5 pb-1"
-                      aria-label={PHASE_TITLE[phase]}
+                      aria-label={t(`rooms.phases.${phase}`)}
                     >
                       {list.slice(0, 20).map((room) => (
                         <RoomRow key={room.id} room={room} />
@@ -271,23 +280,25 @@ function RoomsCard() {
           </>
         ) : (
           <p className="text-xs text-fg-muted">
-            <span className="tabular font-semibold text-fg">
-              {formatNumber(arcade.rooms.total)}
-            </span>{" "}
-            rooms announced on the tracker
-            {Object.keys(snapshot).length > 0
-              ? ` (${Object.entries(snapshot)
-                  .map(([status, n]) => `${formatNumber(n)} ${status}`)
-                  .join(", ")})`
-              : ""}
-            .
+            {t.rich("rooms.announced", {
+              count: arcade.rooms.total,
+              breakdown:
+                Object.keys(snapshot).length > 0
+                  ? t("rooms.breakdown", {
+                      list: Object.entries(snapshot)
+                        .map(([status, n]) => `${formatNumber(n)} ${status}`)
+                        .join(", "),
+                    })
+                  : "",
+              b: (c) => <span className="tabular font-semibold text-fg">{c}</span>,
+            })}
           </p>
         )}
         <ExternalLink
           href={arcade.tracker.roomsUrl}
           className="text-[11px] text-accent hover:underline"
         >
-          Open the arcade
+          {t("rooms.openArcade")}
         </ExternalLink>
       </CardBody>
     </Card>
@@ -299,6 +310,7 @@ function RoomsCard() {
  * on the arcade21 tracker (snapshot, bun run arcade) and the live rooms.
  */
 export function ArcadePage() {
+  const t = useT("arcade");
   const games = arcade.games as Game[];
   const [genre, setGenre] = useState<string>("all");
   const genres = [...new Set(games.map((g) => g.genre).filter((g): g is string => !!g))].sort();
@@ -307,11 +319,8 @@ export function ArcadePage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold">Arcade</h1>
-        <Tooltip
-          text="Games built with Chia's gaming protocol: two players lock a stake in a state channel on chain, play off chain with cryptographic fairness (mental poker for cards), and settle the result back on chain. Playing needs a Chia wallet with the gaming protocol; each game opens on the tracker's own site."
-          placement="bottom"
-        />
+        <h1 className="text-lg font-semibold">{t("title")}</h1>
+        <Tooltip text={t("titleHint")} placement="bottom" />
       </header>
 
       <PotPotatoCard />
@@ -319,8 +328,8 @@ export function ArcadePage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">Games</h2>
-            <div role="group" aria-label="Filter by genre" className="flex flex-wrap gap-1">
+            <h2 className="text-base font-semibold">{t("games")}</h2>
+            <div role="group" aria-label={t("filterByGenre")} className="flex flex-wrap gap-1">
               {["all", ...genres].map((g) => (
                 <button
                   key={g}
@@ -334,12 +343,12 @@ export function ArcadePage() {
                       : "border-border text-fg-muted hover:text-fg"
                   )}
                 >
-                  {g}
+                  {g === "all" ? t("allGenres") : g}
                 </button>
               ))}
             </div>
           </div>
-          <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label="Games">
+          <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label={t("games")}>
             {shown.map((g) => (
               <GameCard key={g.id} game={g} />
             ))}
@@ -349,11 +358,14 @@ export function ArcadePage() {
       </div>
 
       <p className="text-xs text-fg-faint">
-        Games are listed as their developers registered them on the{" "}
-        <ExternalLink href={arcade.tracker.url} className="text-accent hover:underline">
-          {arcade.tracker.name} tracker
-        </ExternalLink>
-        ; mempoolxch.space does not review them and stakes are real XCH.
+        {t.rich("disclaimer", {
+          tracker: arcade.tracker.name,
+          link: (c) => (
+            <ExternalLink href={arcade.tracker.url} className="text-accent hover:underline">
+              {c}
+            </ExternalLink>
+          ),
+        })}
       </p>
     </div>
   );

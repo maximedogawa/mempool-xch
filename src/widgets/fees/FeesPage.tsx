@@ -4,6 +4,8 @@ import { useState } from "react";
 import { formatAmount, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { intlTag } from "@/shared/i18n/active";
+import { useT } from "@/shared/i18n/useT";
 import { ChartCard, type ChartSpec } from "@/widgets/charts/ChartCard";
 import { ChartControls, type ChartControlsState } from "@/widgets/charts/ChartControls";
 import { useBlocksChartSeries } from "@/widgets/charts/useChartSeries";
@@ -15,21 +17,19 @@ import {
   FEES_PAGE_REFERENCE_COST,
 } from "./useFeesPageData";
 
-const TARGET_LABELS: Record<number, string> = {
-  60: "1 min",
-  120: "2 min",
-  300: "5 min",
-  600: "10 min",
-  1800: "30 min",
-};
-
 function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => string {
   if (range === "6h" || range === "24h")
-    return (t) => new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return (t) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+    return (t) =>
+      new Date(t).toLocaleTimeString(intlTag(), {
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      });
+  return (t) => new Date(t).toLocaleDateString(intlTag(), { day: "2-digit", month: "short" });
 }
 
 export function FeesPage() {
+  const t = useT("fees");
   const [controls, setControls] = useState<ChartControlsState>({
     range: "24h",
     smoothing: "smooth",
@@ -47,16 +47,16 @@ export function FeesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Fees</h1>
+          <h1 className="text-lg font-semibold">{t("page.title")}</h1>
           <Tooltip
-            text={`What the node estimates for a ${formatCost(FEES_PAGE_REFERENCE_COST)}-cost transfer, the mempool's current rate distribution, and what common spend shapes cost at the going rate. Read on request from Coinset, nothing stored on our server.`}
+            text={t("page.intro", { cost: formatCost(FEES_PAGE_REFERENCE_COST) })}
             placement="bottom"
           />
         </div>
       </header>
 
       <Card>
-        <CardHeader title="Node estimate" />
+        <CardHeader title={t("page.nodeEstimate")} />
         <CardBody className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {TARGET_TIMES_S.map((target, i) => {
@@ -64,11 +64,13 @@ export function FeesPage() {
               return (
                 <StatTile
                   key={target}
-                  label={`Within ${TARGET_LABELS[target]}`}
+                  label={t("page.withinMinutes", { count: target / 60 })}
                   value={mojos !== undefined ? formatAmount(mojos) : "…"}
                   sub={
                     mojos !== undefined
-                      ? `${formatFeeRate(Number(mojos) / FEES_PAGE_REFERENCE_COST)} mojo/cost`
+                      ? t("page.rateSub", {
+                          rate: formatFeeRate(Number(mojos) / FEES_PAGE_REFERENCE_COST),
+                        })
                       : undefined
                   }
                 />
@@ -76,19 +78,17 @@ export function FeesPage() {
             })}
           </div>
           <p className="text-xs text-fg-faint">
-            get_fee_estimate at {formatCost(FEES_PAGE_REFERENCE_COST)} cost. USD conversion is not
-            shown: no verified public price-history endpoint exists yet (same gap as the Market
-            chart on /charts).
+            {t("page.estimateNote", { cost: formatCost(FEES_PAGE_REFERENCE_COST) })}
           </p>
         </CardBody>
       </Card>
 
       <Card>
         <CardHeader
-          title="Rate distribution"
+          title={t("page.rateDistribution")}
           action={
             <span className="text-xs text-fg-faint">
-              {formatNumber(totalItems)} pending bundles
+              {t("page.pendingBundles", { count: totalItems })}
             </span>
           }
         />
@@ -98,14 +98,14 @@ export function FeesPage() {
               className="overflow-x-auto"
               tabIndex={0}
               role="region"
-              aria-label="Rate distribution"
+              aria-label={t("page.rateDistribution")}
             >
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
                   <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
-                    <th className="py-1.5 pr-3 font-semibold">Mojo/cost</th>
-                    <th className="py-1.5 pr-3 font-semibold">Bundles</th>
-                    <th className="py-1.5 font-semibold">Cost</th>
+                    <th className="py-1.5 pr-3 font-semibold">{t("page.colRate")}</th>
+                    <th className="py-1.5 pr-3 font-semibold">{t("page.colBundles")}</th>
+                    <th className="py-1.5 font-semibold">{t("page.colCost")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -129,10 +129,10 @@ export function FeesPage() {
 
       <Card>
         <CardHeader
-          title="What a transfer costs"
+          title={t("page.transferTitle")}
           action={
             <span className="text-xs text-fg-faint">
-              at the current rate, {formatFeeRate(currentRate)} mojo/cost
+              {t("page.atCurrentRate", { rate: formatFeeRate(currentRate) })}
             </span>
           }
         />
@@ -141,20 +141,20 @@ export function FeesPage() {
             className="overflow-x-auto"
             tabIndex={0}
             role="region"
-            aria-label="What a transfer costs"
+            aria-label={t("page.transferTitle")}
           >
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead>
                 <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
-                  <th className="py-1.5 pr-3 font-semibold">Spend</th>
-                  <th className="py-1.5 pr-3 font-semibold">Cost</th>
-                  <th className="py-1.5 font-semibold">Fee</th>
+                  <th className="py-1.5 pr-3 font-semibold">{t("page.colSpend")}</th>
+                  <th className="py-1.5 pr-3 font-semibold">{t("page.colCost")}</th>
+                  <th className="py-1.5 font-semibold">{t("page.colFee")}</th>
                 </tr>
               </thead>
               <tbody>
                 {transferCostEstimates(currentRate).map((row) => (
                   <tr key={row.id} className="border-t border-border/60">
-                    <td className="py-1.5 pr-3 font-medium text-fg">{row.label}</td>
+                    <td className="py-1.5 pr-3 font-medium text-fg">{t(`transfers.${row.id}`)}</td>
                     <td className="tabular py-1.5 pr-3 text-fg-faint">{formatCost(row.cost)}</td>
                     <td className="tabular py-1.5">
                       {formatAmount(BigInt(Math.round(row.feeMojos)))}
@@ -172,10 +172,9 @@ export function FeesPage() {
         <ChartCard
           spec={
             {
-              title: "Fees per transaction block",
-              definition: "Average total fees paid in a transaction block.",
-              technical:
-                "Averaged per sampling window from get_block_records (block_record.fees); bounded number of windows regardless of range.",
+              title: t("page.feesChart.title"),
+              definition: t("page.feesChart.definition"),
+              technical: t("page.feesChart.technical"),
               formatValue: (v) => formatAmount(BigInt(Math.max(0, Math.round(v)))),
               formatTime,
             } satisfies ChartSpec
@@ -188,24 +187,20 @@ export function FeesPage() {
         <ChartCard
           spec={
             {
-              title: "Median fee rate",
-              definition: "The middle fee rate among transactions in a block, over time.",
-              technical:
-                "Not sampled at chart scale: needs each block's per-transaction costs (an indexed fetch per block), too heavy to sample across a range without a server-side cache.",
+              title: t("page.medianChart.title"),
+              definition: t("page.medianChart.definition"),
+              technical: t("page.medianChart.technical"),
               formatValue: (v) => formatFeeRate(v),
               formatTime,
             } satisfies ChartSpec
           }
           points={null}
-          unavailable="Not sampled at chart scale — needs a per-block indexed fetch. Bundle fee rates in the mempool feed and transaction pages are exact."
+          unavailable={t("page.medianChart.unavailable")}
           smoothing={controls.smoothing}
           scale={controls.scale}
         />
       </div>
-      <p className="text-xs text-fg-faint">
-        Rates shown elsewhere — the mempool feed, transaction and block pages — are exact per-item
-        figures, not sampled.
-      </p>
+      <p className="text-xs text-fg-faint">{t("page.footer")}</p>
     </div>
   );
 }

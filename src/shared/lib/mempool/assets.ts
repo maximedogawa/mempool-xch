@@ -1,4 +1,5 @@
 import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
+import { plainT } from "@/shared/i18n/plain";
 import type { CompactAssets, TxKindHint } from "./types";
 
 export interface PrimaryAsset {
@@ -42,13 +43,13 @@ export function formatPrimaryAsset(asset: PrimaryAsset, ticker?: string | null):
     case "cat":
       return `${formatCat(asset.amount)} ${ticker ?? "CAT"}`;
     case "nft":
-      return `${asset.amount.toString()} NFT${asset.amount === 1n ? "" : "s"}`;
+      return plainT("common")("assets.nfts", { count: asset.amount });
     case "did":
-      return `${asset.amount.toString()} DID${asset.amount === 1n ? "" : "s"}`;
+      return plainT("common")("assets.dids", { count: asset.amount });
     case "singleton":
-      return `${asset.amount.toString()} singleton${asset.amount === 1n ? "" : "s"}`;
+      return plainT("common")("assets.singletons", { count: asset.amount });
     case "pool":
-      return `${asset.amount.toString()} pool claim${asset.amount === 1n ? "" : "s"}`;
+      return plainT("common")("assets.poolClaims", { count: asset.amount });
     default:
       return formatAmount(asset.amount);
   }
@@ -60,14 +61,14 @@ export function formatAssets(
   tickers: Record<string, string | undefined> = {}
 ): string {
   const assets = safeAssets(input);
+  const t = plainT("common");
   const parts: string[] = [];
   assets.cats.forEach((c) =>
     parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`)
   );
-  if (assets.nfts) parts.push(`${assets.nfts} NFT${assets.nfts === 1 ? "" : "s"}`);
-  if (assets.dids) parts.push(`${assets.dids} DID${assets.dids === 1 ? "" : "s"}`);
-  if (assets.singletons)
-    parts.push(`${assets.singletons} singleton${assets.singletons === 1 ? "" : "s"}`);
+  if (assets.nfts) parts.push(t("assets.nfts", { count: assets.nfts }));
+  if (assets.dids) parts.push(t("assets.dids", { count: assets.dids }));
+  if (assets.singletons) parts.push(t("assets.singletons", { count: assets.singletons }));
   if (BigInt(assets.xch) > 0n || parts.length === 0) parts.push(formatAmount(BigInt(assets.xch)));
   return parts.join(" + ");
 }

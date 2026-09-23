@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
 import type { TokenMap } from "@/shared/api/tokenList";
+import { useT } from "@/shared/i18n/useT";
 
 export interface TxSummaryListProps {
   transactions: TxSummary[];
@@ -33,11 +34,13 @@ export interface TxSummaryListProps {
 }
 
 function Direction({ dir }: { dir: "in" | "out" | "self" | "none" }) {
+  const t = useT("assets");
   if (dir === "in")
-    return <ArrowDownLeft size={14} className="text-primary" aria-label="incoming" />;
+    return <ArrowDownLeft size={14} className="text-primary" aria-label={t("txList.incoming")} />;
   if (dir === "out")
-    return <ArrowUpRight size={14} className="text-danger" aria-label="outgoing" />;
-  if (dir === "self") return <Repeat size={14} className="text-fg-faint" aria-label="self" />;
+    return <ArrowUpRight size={14} className="text-danger" aria-label={t("txList.outgoing")} />;
+  if (dir === "self")
+    return <Repeat size={14} className="text-fg-faint" aria-label={t("txList.self")} />;
   return null;
 }
 
@@ -56,6 +59,7 @@ export function TxSummaryList({
   onLoadMore,
   loadingMore,
 }: TxSummaryListProps) {
+  const t = useT("assets");
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -69,7 +73,7 @@ export function TxSummaryList({
     return (
       <EmptyState
         tone="danger"
-        title="Could not load transactions"
+        title={t("txList.loadError")}
         description={error instanceof Error ? error.message : String(error)}
       />
     );
@@ -79,7 +83,7 @@ export function TxSummaryList({
     <div className="flex flex-col gap-2">
       {error ? (
         <p role="alert" className="text-xs text-danger">
-          Could not refresh or load more transactions. Please try again.
+          {t("txList.refreshError")}
         </p>
       ) : null}
       <ul className="divide-y divide-border/60">
@@ -136,11 +140,13 @@ export function TxSummaryList({
                     flow.cats.length === 0 &&
                     flow.nftsIn.length === 0 &&
                     flow.nftsOut.length === 0 ? (
-                      <span className="text-xs text-fg-faint">no net change</span>
+                      <span className="text-xs text-fg-faint">{t("txList.noNetChange")}</span>
                     ) : null}
                   </>
                 ) : (
-                  <span className="tabular text-fg-muted">fee {formatAmount(tx.feeMojos)}</span>
+                  <span className="tabular text-fg-muted">
+                    {t("txList.fee", { amount: formatAmount(tx.feeMojos) })}
+                  </span>
                 )}
               </span>
               <span className="tabular w-[7.5rem] text-right text-xs text-fg-faint">
@@ -149,7 +155,7 @@ export function TxSummaryList({
                     #{formatNumber(tx.confirmedHeight)}
                   </Link>
                 ) : (
-                  "pending"
+                  t("txList.pending")
                 )}
                 {when ? <span className="block">{formatAge(when)}</span> : null}
               </span>
@@ -165,7 +171,7 @@ export function TxSummaryList({
           disabled={loadingMore}
           className="self-center"
         >
-          {loadingMore ? "Loading…" : "Load more"}
+          {loadingMore ? t("txList.loading") : t("txList.loadMore")}
         </Button>
       ) : null}
     </div>

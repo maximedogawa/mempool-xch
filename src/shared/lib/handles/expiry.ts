@@ -3,7 +3,7 @@
  * handle is "expiring soon" (its own /expiring?view=soon directory), so the same threshold marks
  * a watched handle as needing attention.
  */
-
+import { plainT } from "@/shared/i18n/plain";
 const DAY_MS = 86_400_000;
 export const EXPIRING_SOON_DAYS = 30;
 
@@ -18,14 +18,13 @@ export interface ExpiryInfo {
 }
 
 function span(days: number): string {
-  if (days < 1) return "less than a day";
-  if (days === 1) return "1 day";
-  if (days < 45) return `${days} days`;
+  const t = plainT("common");
+  if (days < 1) return t("expiry.lessThanDay");
+  if (days < 45) return t("expiry.days", { count: days });
   // Years and months are rounded down, never up: a term always reads as at least as short as it
   // is, which is the safe direction for a deadline.
-  if (days < 365) return `${Math.floor(days / 30)} months`;
-  const years = Math.floor(days / 365);
-  return `${years} year${years === 1 ? "" : "s"}`;
+  if (days < 365) return t("expiry.months", { count: Math.floor(days / 30) });
+  return t("expiry.years", { count: Math.floor(days / 365) });
 }
 
 /** `expiration` is unix seconds, as both registries report it. */
@@ -36,8 +35,8 @@ export function describeExpiry(expiration: number, nowMs = Date.now()): ExpiryIn
   return {
     days,
     text: expired
-      ? `${span(Math.floor(-remainingMs / DAY_MS))} ago`
-      : `in ${span(Math.floor(remainingMs / DAY_MS))}`,
+      ? plainT("common")("expiry.ago", { span: span(Math.floor(-remainingMs / DAY_MS)) })
+      : plainT("common")("expiry.in", { span: span(Math.floor(remainingMs / DAY_MS)) }),
     soon: !expired && days < EXPIRING_SOON_DAYS,
     expired,
   };

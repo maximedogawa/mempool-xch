@@ -19,6 +19,8 @@ import type { RpcClient } from "@/shared/lib/rpc/client";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Card, CardBody, CardHeader, Hash, Skeleton, StatTile, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { formatInteger } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 
 /**
  * Four vaults × three calls fired together is the kind of burst Coinset answers with a 503
@@ -80,6 +82,7 @@ async function loadVault(
  * coins say and points to Chia's own audit tooling for the full custody picture.
  */
 export function PrefarmTracker() {
+  const t = useT("prefarm");
   const { client, endpoints, networkConfig } = useSettings();
   const network = endpoints.network;
   const results = useQueries({
@@ -102,23 +105,20 @@ export function PrefarmTracker() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Prefarm tracker</h1>
-          <Tooltip
-            text="Chia Network created 21 million XCH before the first block. It is held in four custody vaults (cold and warm, in the US and Switzerland) with published audit rules. This page reads the vaults' coins from the chain; it does not estimate anything."
-            placement="bottom"
-          />
+          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <Tooltip text={t("tooltip")} placement="bottom" />
         </div>
       </header>
 
       {network !== "mainnet" ? (
         <p className="rounded-sm border border-warning/40 px-3 py-2 text-xs text-fg-muted">
-          The prefarm vaults exist on mainnet only; switch the network to see them.
+          {t("mainnetOnly")}
         </p>
       ) : null}
 
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatTile
-          label="Tracked on chain"
+          label={t("tracked")}
           value={
             loading && loaded.length === 0 ? (
               <Skeleton className="h-6 w-28" />
@@ -126,29 +126,32 @@ export function PrefarmTracker() {
               formatAmount(tracked)
             )
           }
-          sub={`${formatPercent(Number(tracked) / Number(PREFARM_TOTAL_MOJOS), 1)} of the 21,000,000 XCH prefarm`}
+          sub={t("trackedSub", {
+            percent: formatPercent(Number(tracked) / Number(PREFARM_TOTAL_MOJOS), 1),
+            total: formatInteger(21_000_000),
+          })}
           tone="primary"
-          hint="Sum of the four vaults' singleton coins and unspent coins at their known puzzle hashes."
+          hint={t("trackedHint")}
         />
         <StatTile
-          label="Cold vaults"
+          label={t("cold")}
           value={loaded.length ? formatAmount(cold) : "…"}
-          sub="90-day clawback custody"
+          sub={t("coldSub")}
         />
         <StatTile
-          label="Warm vaults"
+          label={t("warm")}
           value={loaded.length ? formatAmount(warm) : "…"}
-          sub="24-hour clawback custody"
+          sub={t("warmSub")}
         />
         <StatTile
-          label="Not at these addresses"
+          label={t("elsewhere")}
           value={
             loaded.length === PREFARM_VAULTS.length
               ? formatAmount(PREFARM_TOTAL_MOJOS - tracked)
               : "…"
           }
-          sub="spent, sold, or moved to addresses this page does not know"
-          hint="The prefarm has funded purchases, market making and grants since 2021, and a vault rekey changes its puzzle hash. Whatever is not at the known addresses is listed here, not guessed at."
+          sub={t("elsewhereSub")}
+          hint={t("elsewhereHint")}
         />
       </div>
 
@@ -161,14 +164,16 @@ export function PrefarmTracker() {
               <CardHeader
                 title={vault.name}
                 action={
-                  <Badge tone={vault.tier === "cold" ? "info" : "warning"}>{vault.tier}</Badge>
+                  <Badge tone={vault.tier === "cold" ? "info" : "warning"}>
+                    {t(`tier.${vault.tier}`)}
+                  </Badge>
                 }
               />
               <CardBody className="flex flex-col gap-3 text-sm">
                 {r.isLoading ? (
                   <Skeleton className="h-20 w-full" />
                 ) : r.error || !v ? (
-                  <p className="text-danger">Could not read this vault&apos;s coins right now.</p>
+                  <p className="text-danger">{t("readError")}</p>
                 ) : (
                   <>
                     <div className="flex items-baseline justify-between gap-3">
@@ -179,26 +184,26 @@ export function PrefarmTracker() {
                         {formatAmount(v.total)}
                       </span>
                       <span className="text-xs text-fg-faint">
-                        {formatNumber(v.coins.length)} coin{v.coins.length === 1 ? "" : "s"}
+                        {t("coins", { count: v.coins.length })}
                         {v.lastActivityTimestamp
-                          ? ` · last movement ${formatAge(v.lastActivityTimestamp * 1000)}`
+                          ? t("lastMovement", { age: formatAge(v.lastActivityTimestamp * 1000) })
                           : ""}
                       </span>
                     </div>
                     <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-xs sm:grid-cols-[auto_1fr]">
-                      <dt className="text-fg-muted">Custody</dt>
+                      <dt className="text-fg-muted">{t("custody")}</dt>
                       <dd>{vault.custody}</dd>
-                      <dt className="text-fg-muted">Launcher</dt>
+                      <dt className="text-fg-muted">{t("launcher")}</dt>
                       <dd>
                         <Hash value={vault.launcherId} head={10} tail={6} copy />
                         {v.singleton ? (
                           <span className="text-fg-faint">
                             {" "}
-                            · singleton coin at #{formatNumber(v.singleton.height)}
+                            {t("singletonAt", { height: formatNumber(v.singleton.height) })}
                           </span>
                         ) : null}
                       </dd>
-                      <dt className="text-fg-muted">Addresses</dt>
+                      <dt className="text-fg-muted">{t("addresses")}</dt>
                       <dd className="flex flex-col gap-0.5">
                         {vault.puzzleHashes.map((ph) => {
                           const address = puzzleHashToAddress(ph, networkConfig.addressPrefix);
@@ -228,17 +233,18 @@ export function PrefarmTracker() {
       </div>
 
       <p className="text-xs text-fg-faint">
-        Vault launcher ids are the ones Chia Network publishes for its own audit tooling (
-        <ExternalLink href="https://github.com/Chia-Network/prefarm-alert/tree/main/singleton-metadata">
-          prefarm-alert
-        </ExternalLink>
-        ); the custody rules are described in the{" "}
-        <ExternalLink href="https://docs.chia.net/guides/custody/prefarm-audit/">
-          prefarm audit guide
-        </ExternalLink>
-        . A vault rekey moves funds to a new puzzle hash; when that happens the balance here drops
-        until the new address is added, which is why the &ldquo;not at these addresses&rdquo; figure
-        is shown rather than folded into a total.
+        {t.rich("footnote", {
+          alert: (c) => (
+            <ExternalLink href="https://github.com/Chia-Network/prefarm-alert/tree/main/singleton-metadata">
+              {c}
+            </ExternalLink>
+          ),
+          guide: (c) => (
+            <ExternalLink href="https://docs.chia.net/guides/custody/prefarm-audit/">
+              {c}
+            </ExternalLink>
+          ),
+        })}
       </p>
     </div>
   );

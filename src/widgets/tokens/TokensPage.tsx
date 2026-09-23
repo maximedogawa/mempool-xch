@@ -28,29 +28,14 @@ import {
   Tr,
 } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import { useT } from "@/shared/i18n/useT";
 import { useTokenMarkets } from "./useTokenMarkets";
 
 const PAGE = 25;
 
-const WINDOWS: readonly { id: VolumeWindow; label: string; long: string }[] = [
-  { id: "d1", label: "24h", long: "24 hours" },
-  { id: "d7", label: "7d", long: "7 days" },
-  { id: "d30", label: "30d", long: "30 days" },
-];
-
-const FILTERS: readonly { id: TokenFilter; label: string }[] = [
-  { id: "traded", label: "Traded" },
-  { id: "liquid", label: "With liquidity" },
-  { id: "priced", label: "Priced" },
-  { id: "all", label: "All" },
-];
-
-const SORTS: readonly { id: TokenSort; label: string }[] = [
-  { id: "volume", label: "Volume" },
-  { id: "liquidity", label: "Liquidity" },
-  { id: "price", label: "Price" },
-  { id: "name", label: "Name" },
-];
+const WINDOWS: readonly VolumeWindow[] = ["d1", "d7", "d30"];
+const FILTERS: readonly TokenFilter[] = ["traded", "liquid", "priced", "all"];
+const SORTS: readonly TokenSort[] = ["volume", "liquidity", "price", "name"];
 
 function Choice<T extends string>({
   label,
@@ -129,13 +114,13 @@ function TokenTableRow({
       </Td>
       {WINDOWS.map((w) => (
         <Td
-          key={w.id}
+          key={w}
           className={cn(
             "tabular text-right",
-            w.id === period ? "font-medium text-fg" : "hidden text-fg-muted md:table-cell"
+            w === period ? "font-medium text-fg" : "hidden text-fg-muted md:table-cell"
           )}
         >
-          <Figure value={market?.volumeXch[w.id] ?? null} loading={marketsLoading} />
+          <Figure value={market?.volumeXch[w] ?? null} loading={marketsLoading} />
         </Td>
       ))}
       <Td className="tabular hidden text-right sm:table-cell">
@@ -146,6 +131,7 @@ function TokenTableRow({
 }
 
 export function TokensPage() {
+  const t = useT("tokens");
   const tokens = useTokenList();
   const markets = useTokenMarkets();
   const [filter, setFilter] = useState<TokenFilter>("traded");
@@ -170,24 +156,20 @@ export function TokensPage() {
   const pageCount = Math.max(1, Math.ceil(ordered.length / PAGE));
   const clampedPage = Math.min(page, pageCount - 1);
   const visible = ordered.slice(clampedPage * PAGE, clampedPage * PAGE + PAGE);
-  const windowLong = WINDOWS.find((w) => w.id === period)!.long;
   const loading = tokens.isLoading || (markets.isLoading && filter !== "all");
 
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Tokens</h1>
-          <Tooltip
-            text={`Every CAT the Dexie registry knows a name for, ${formatNumber(rows.length)} in total. Price, volume and liquidity are Dexie market data, all in XCH so tokens compare with each other: volume is the XCH traded against the token, liquidity the XCH side of its open offers (refreshed daily). One request covers every token's market data, nothing kept on our server. On-chain history is on each token's page.`}
-            placement="bottom"
-          />
+          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <Tooltip text={t("intro", { total: formatNumber(rows.length) })} placement="bottom" />
         </div>
       </header>
 
       <Card>
         <CardHeader
-          title="Tokens"
+          title={t("title")}
           action={
             <input
               type="search"
@@ -196,8 +178,8 @@ export function TokensPage() {
                 setSearch(e.target.value);
                 setPage(0);
               }}
-              placeholder="Search name, ticker or asset id"
-              aria-label="Search tokens"
+              placeholder={t("searchPlaceholder")}
+              aria-label={t("searchLabel")}
               className="h-8 w-48 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
             />
           }
@@ -205,16 +187,15 @@ export function TokensPage() {
         <CardBody className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <Choice
-              label="Show"
+              label={t("show")}
               value={activeFilter}
               options={FILTERS.map((f) => ({
-                ...f,
+                id: f,
                 label:
-                  f.id === "traded"
-                    ? `Traded in ${WINDOWS.find((w) => w.id === period)!.label}`
-                    : f.label,
-                count:
-                  markets.data || f.id === "all" || f.id === "liquid" ? counts[f.id] : undefined,
+                  f === "traded"
+                    ? t("filters.tradedIn", { window: t(`windows.${period}`) })
+                    : t(`filters.${f}`),
+                count: markets.data || f === "all" || f === "liquid" ? counts[f] : undefined,
               }))}
               onChange={(id) => {
                 setFilter(id);
@@ -222,18 +203,18 @@ export function TokensPage() {
               }}
             />
             <Choice
-              label="Period"
+              label={t("period")}
               value={period}
-              options={WINDOWS}
+              options={WINDOWS.map((w) => ({ id: w, label: t(`windows.${w}`) }))}
               onChange={(id) => {
                 setPeriod(id);
                 setPage(0);
               }}
             />
             <Choice
-              label="Sort"
+              label={t("sort")}
               value={sort}
-              options={SORTS}
+              options={SORTS.map((o) => ({ id: o, label: t(`sorts.${o}`) }))}
               onChange={(id) => {
                 setSort(id);
                 setPage(0);
@@ -243,13 +224,13 @@ export function TokensPage() {
 
           {markets.error ? (
             <p className="rounded-sm border border-border bg-bg p-3 text-sm text-fg-muted">
-              Dexie market data is unavailable right now, so prices and volume are missing.{" "}
+              {t("marketsError")}{" "}
               <button
                 type="button"
                 className="font-medium text-accent hover:underline"
                 onClick={() => void markets.refetch()}
               >
-                Try again
+                {t("tryAgain")}
               </button>
             </p>
           ) : null}
@@ -257,7 +238,7 @@ export function TokensPage() {
           {tokens.error ? (
             <EmptyState
               tone="danger"
-              title="Could not load the token registry"
+              title={t("registryError")}
               description={String((tokens.error as Error).message)}
             />
           ) : loading ? (
@@ -268,9 +249,7 @@ export function TokensPage() {
             </div>
           ) : ordered.length === 0 ? (
             <p className="py-6 text-center text-sm text-fg-faint">
-              {search.trim()
-                ? `No token matches "${search.trim()}" in this view.`
-                : `No token was traded in the last ${windowLong}.`}{" "}
+              {search.trim() ? t("noMatch", { query: search.trim() }) : t(`noTraded.${period}`)}{" "}
               {activeFilter !== "all" ? (
                 <button
                   type="button"
@@ -280,26 +259,26 @@ export function TokensPage() {
                     setPage(0);
                   }}
                 >
-                  Show all tokens
+                  {t("showAll")}
                 </button>
               ) : null}
             </p>
           ) : (
-            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tokens">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("title")}>
               <Table>
                 <thead>
                   <tr>
-                    <Th>Token</Th>
-                    <Th className="text-right">Price (XCH)</Th>
+                    <Th>{t("colToken")}</Th>
+                    <Th className="text-right">{t("colPrice")}</Th>
                     {WINDOWS.map((w) => (
                       <Th
-                        key={w.id}
-                        className={cn("text-right", w.id !== period && "hidden md:table-cell")}
+                        key={w}
+                        className={cn("text-right", w !== period && "hidden md:table-cell")}
                       >
-                        Volume {w.label} (XCH)
+                        {t("colVolume", { window: t(`windows.${w}`) })}
                       </Th>
                     ))}
-                    <Th className="hidden text-right sm:table-cell">Liquidity (XCH)</Th>
+                    <Th className="hidden text-right sm:table-cell">{t("colLiquidity")}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,9 +298,11 @@ export function TokensPage() {
           {ordered.length > PAGE ? (
             <div className="flex items-center justify-between gap-2 text-xs text-fg-faint">
               <span>
-                {formatNumber(clampedPage * PAGE + 1)}–
-                {formatNumber(Math.min(ordered.length, (clampedPage + 1) * PAGE))} of{" "}
-                {formatNumber(ordered.length)}
+                {t("range", {
+                  from: formatNumber(clampedPage * PAGE + 1),
+                  to: formatNumber(Math.min(ordered.length, (clampedPage + 1) * PAGE)),
+                  total: formatNumber(ordered.length),
+                })}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -329,14 +310,14 @@ export function TokensPage() {
                   disabled={clampedPage === 0}
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                 >
-                  Previous
+                  {t("previous")}
                 </Button>
                 <Button
                   size="sm"
                   disabled={clampedPage >= pageCount - 1}
                   onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
                 >
-                  Next
+                  {t("next")}
                 </Button>
               </div>
             </div>

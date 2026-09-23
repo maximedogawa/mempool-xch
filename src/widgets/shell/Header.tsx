@@ -5,18 +5,38 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SearchBox } from "@/features/search/SearchBox";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { normalisePath, routes } from "@/shared/lib/routes";
 import { useSage } from "@/shared/providers/SageProvider";
 import { Popover } from "@/shared/ui";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
+import { LanguageSwitch } from "./LanguageSwitch";
 import { NetworkSwitch } from "./NetworkSwitch";
 import { SagePriceChip } from "@/widgets/wallet/SagePanels";
 
+type NavLabel =
+  | "dashboard"
+  | "blocks"
+  | "mempool"
+  | "charts"
+  | "market"
+  | "map"
+  | "tokens"
+  | "nfts"
+  | "fees"
+  | "pools"
+  | "vaults"
+  | "learn"
+  | "help"
+  | "arcade"
+  | "wallet"
+  | "settings";
+
 interface NavItem {
   href: string;
-  label: string;
+  label: NavLabel;
   match: (p: string) => boolean;
 }
 
@@ -26,57 +46,57 @@ interface NavItem {
  * map of the site rather than a list.
  */
 const PRIMARY: NavItem[] = [
-  { href: routes.home(), label: "Dashboard", match: (p) => p === "/" },
+  { href: routes.home(), label: "dashboard", match: (p) => p === "/" },
   {
     href: routes.blocks(),
-    label: "Blocks",
+    label: "blocks",
     match: (p) => p.startsWith("/blocks") || p.startsWith("/block"),
   },
-  { href: routes.mempool(), label: "Mempool", match: (p) => p.startsWith("/mempool") },
-  { href: routes.charts(), label: "Charts", match: (p) => p.startsWith("/charts") },
-  { href: routes.market(), label: "Market", match: (p) => p.startsWith("/market") },
-  { href: routes.map(), label: "Map", match: (p) => p.startsWith("/map") },
+  { href: routes.mempool(), label: "mempool", match: (p) => p.startsWith("/mempool") },
+  { href: routes.charts(), label: "charts", match: (p) => p.startsWith("/charts") },
+  { href: routes.market(), label: "market", match: (p) => p.startsWith("/market") },
+  { href: routes.map(), label: "map", match: (p) => p.startsWith("/map") },
 ];
 
 interface NavGroup {
-  title: string;
+  title: "assets" | "network" | "learnPlay" | "liveChain" | "you";
   items: NavItem[];
 }
 
 const MORE_GROUPS: NavGroup[] = [
   {
-    title: "Assets",
+    title: "assets",
     items: [
       {
         href: routes.tokens(),
-        label: "Tokens",
+        label: "tokens",
         match: (p) => p.startsWith("/tokens") || p.startsWith("/cat"),
       },
       {
         href: routes.nftHome(),
-        label: "NFTs",
+        label: "nfts",
         match: (p) => p.startsWith("/nfts") || p.startsWith("/nft"),
       },
     ],
   },
   {
-    title: "Network",
+    title: "network",
     items: [
-      { href: routes.fees(), label: "Fees", match: (p) => p.startsWith("/fees") },
-      { href: routes.pools(), label: "Pools", match: (p) => p.startsWith("/pools") },
+      { href: routes.fees(), label: "fees", match: (p) => p.startsWith("/fees") },
+      { href: routes.pools(), label: "pools", match: (p) => p.startsWith("/pools") },
       {
         href: routes.vaults(),
-        label: "Vaults",
+        label: "vaults",
         match: (p) => p.startsWith("/vaults") || p.startsWith("/prefarm"),
       },
     ],
   },
   {
-    title: "Learn & play",
+    title: "learnPlay",
     items: [
-      { href: routes.learn(), label: "Learn", match: (p) => p.startsWith("/learn") },
-      { href: routes.docs(), label: "Help", match: (p) => p.startsWith("/docs") },
-      { href: routes.gaming(), label: "Arcade", match: (p) => p.startsWith("/gaming") },
+      { href: routes.learn(), label: "learn", match: (p) => p.startsWith("/learn") },
+      { href: routes.docs(), label: "help", match: (p) => p.startsWith("/docs") },
+      { href: routes.gaming(), label: "arcade", match: (p) => p.startsWith("/gaming") },
     ],
   },
 ];
@@ -84,6 +104,7 @@ const MORE_GROUPS: NavGroup[] = [
 const MORE: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  const t = useT("shell");
   return (
     <Link
       href={item.href}
@@ -93,10 +114,10 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         active && "text-fg"
       )}
     >
-      {item.label === "My wallet" ? (
+      {item.label === "wallet" ? (
         <Wallet size={14} className="mr-1 inline" aria-hidden="true" />
       ) : null}
-      {item.label}
+      {t(`nav.${item.label}`)}
       <span
         aria-hidden="true"
         className={cn(
@@ -110,6 +131,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 export function Header() {
   const pathname = normalisePath(usePathname() ?? "/");
+  const t = useT("shell");
   const [open, setOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -137,21 +159,21 @@ export function Header() {
   const { inSage } = useSage();
   const wallet: NavItem = {
     href: routes.wallet(),
-    label: "My wallet",
+    label: "wallet",
     match: (p) => p.startsWith("/wallet"),
   };
   const primary = inSage ? [...PRIMARY, wallet] : PRIMARY;
   const moreActive = MORE.some((item) => item.match(pathname));
   const settings: NavItem = {
     href: routes.settings(),
-    label: "Settings",
+    label: "settings",
     match: (p) => p.startsWith("/settings"),
   };
   const mobileGroups: NavGroup[] = [
-    // Not "Network": MORE_GROUPS has a group of that name, and titles key the list.
-    { title: "Live chain", items: primary },
+    // Not "network": MORE_GROUPS has a group of that name, and titles key the list.
+    { title: "liveChain", items: primary },
     ...MORE_GROUPS,
-    { title: "You", items: [settings] },
+    { title: "you", items: [settings] },
   ];
 
   return (
@@ -161,11 +183,11 @@ export function Header() {
     >
       <div aria-hidden="true" className="header-hairline absolute inset-x-0 bottom-0 h-px" />
       <div className="mx-auto flex h-[var(--header-h)] max-w-[1280px] items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <Link href={routes.home()} aria-label="mempoolxch.space home" className="shrink-0">
+        <Link href={routes.home()} aria-label={t("home")} className="shrink-0">
           <Logo />
         </Link>
         <nav
-          aria-label="Primary"
+          aria-label={t("primaryNav")}
           className={cn(
             "hidden shrink-0 items-center gap-0.5 transition-[opacity,width] duration-150 lg:flex",
             searchFocused && "lg:hidden"
@@ -175,7 +197,7 @@ export function Header() {
             <NavLink key={item.href} item={item} active={item.match(pathname)} />
           ))}
           <Popover
-            label="More pages"
+            label={t("morePages")}
             panelClassName="min-w-[26rem]"
             trigger={({ open: moreOpen, toggle }) => (
               <button
@@ -188,7 +210,7 @@ export function Header() {
                   (moreActive || moreOpen) && "text-fg"
                 )}
               >
-                More
+                {t("more")}
                 <ChevronDown
                   size={14}
                   aria-hidden="true"
@@ -206,12 +228,12 @@ export function Header() {
           >
             <div className="grid gap-x-3 gap-y-2 sm:grid-cols-3">
               {MORE_GROUPS.map((group) => (
-                <div key={group.title} className="flex flex-col">
+                <div key={t(`groups.${group.title}`)} className="flex flex-col">
                   <span
                     aria-hidden="true"
                     className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-faint"
                   >
-                    {group.title}
+                    {t(`groups.${group.title}`)}
                   </span>
                   {group.items.map((item) => {
                     const active = item.match(pathname);
@@ -226,7 +248,7 @@ export function Header() {
                           active && "bg-surface-2 text-fg"
                         )}
                       >
-                        {item.label}
+                        {t(`nav.${item.label}`)}
                       </Link>
                     );
                   })}
@@ -248,20 +270,21 @@ export function Header() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <SagePriceChip />
           <NetworkSwitch className="hidden sm:inline-flex" />
+          <LanguageSwitch className="hidden sm:inline-flex" />
           <ConnectionIndicator compact />
           <span aria-hidden="true" className="hidden h-6 w-px bg-border sm:block" />
           <Link
             href={routes.settings()}
-            aria-label="Settings"
-            title="Settings"
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
             className="hidden h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
           >
             <Settings size={18} aria-hidden="true" />
           </Link>
           <button
             type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
-            title={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t("closeMenu") : t("openMenu")}
+            title={open ? t("closeMenu") : t("openMenu")}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-sm text-fg-muted hover:bg-surface-2 lg:hidden"
@@ -273,12 +296,12 @@ export function Header() {
       {open ? (
         <nav
           ref={navRef}
-          aria-label="Mobile"
+          aria-label={t("mobileNav")}
           className="overflow-y-auto overscroll-contain border-t border-border bg-bg-elevated px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
         >
           <ul className="flex flex-col gap-1">
             {mobileGroups.map((group, index) => (
-              <li key={group.title}>
+              <li key={t(`groups.${group.title}`)}>
                 <span
                   aria-hidden="true"
                   className={cn(
@@ -286,7 +309,7 @@ export function Header() {
                     index > 0 && "mt-2 border-t border-border/60 pt-3"
                   )}
                 >
-                  {group.title}
+                  {t(`groups.${group.title}`)}
                 </span>
                 <ul className="flex flex-col gap-1">
                   {group.items.map((item) => (
@@ -300,15 +323,16 @@ export function Header() {
                           item.match(pathname) && "bg-surface-2 text-fg"
                         )}
                       >
-                        {item.label}
+                        {t(`nav.${item.label}`)}
                       </Link>
                     </li>
                   ))}
                 </ul>
               </li>
             ))}
-            <li className="pt-2 sm:hidden">
+            <li className="flex items-center gap-2 pt-2 sm:hidden">
               <NetworkSwitch />
+              <LanguageSwitch />
             </li>
           </ul>
         </nav>

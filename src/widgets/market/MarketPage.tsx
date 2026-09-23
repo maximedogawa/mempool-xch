@@ -11,6 +11,9 @@ import {
   type MarketQuote,
 } from "@/shared/lib/market/orderbook";
 import { Badge, Button, Card, CardBody, CardHeader, EmptyState, StatTile } from "@/shared/ui";
+import { intlTag } from "@/shared/i18n/active";
+import { formatFixed } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { DEX_QUOTE_ASSETS, type DexQuoteAsset, useMarketData } from "./useMarketData";
 
 function Price({ value, quote }: { value: number | null; quote: string }) {
@@ -28,13 +31,14 @@ function Depth({
   bids: { price: number; amount: number }[];
   asks: { price: number; amount: number }[];
 }) {
+  const t = useT("market");
   const rows = Math.max(bids.length, asks.length);
   return (
     <div className="grid grid-cols-2 gap-3 text-xs">
       <div>
         <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-primary">
-          <span>Bids</span>
-          <span>Amount · Price</span>
+          <span>{t("bids")}</span>
+          <span>{t("amountPrice")}</span>
         </div>
         {Array.from({ length: rows }, (_, i) => {
           const l = bids[i];
@@ -43,16 +47,16 @@ function Depth({
               key={`b${i}`}
               className="flex justify-between border-b border-border/50 py-1 text-fg-muted"
             >
-              <span>{l ? l.amount.toFixed(3) : "—"}</span>
-              <span className="text-primary">{l ? l.price.toFixed(4) : "—"}</span>
+              <span>{l ? formatFixed(l.amount, 3) : "—"}</span>
+              <span className="text-primary">{l ? formatFixed(l.price, 4) : "—"}</span>
             </div>
           );
         })}
       </div>
       <div>
         <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-danger">
-          <span>Asks</span>
-          <span>Price · Amount</span>
+          <span>{t("asks")}</span>
+          <span>{t("priceAmount")}</span>
         </div>
         {Array.from({ length: rows }, (_, i) => {
           const l = asks[i];
@@ -61,8 +65,8 @@ function Depth({
               key={`a${i}`}
               className="flex justify-between border-b border-border/50 py-1 text-fg-muted"
             >
-              <span className="text-danger">{l ? l.price.toFixed(4) : "—"}</span>
-              <span>{l ? l.amount.toFixed(3) : "—"}</span>
+              <span className="text-danger">{l ? formatFixed(l.price, 4) : "—"}</span>
+              <span>{l ? formatFixed(l.amount, 3) : "—"}</span>
             </div>
           );
         })}
@@ -72,6 +76,7 @@ function Depth({
 }
 
 export function MarketPage() {
+  const t = useT("market");
   const [quote, setQuote] = useState<MarketQuote>("USDT");
   const [dexAsset, setDexAsset] = useState<DexQuoteAsset>("BYC");
   const [reduced, setReduced] = useState(false);
@@ -93,17 +98,14 @@ export function MarketPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">Market</h1>
-          <p className="mt-1 max-w-2xl text-sm text-fg-muted">
-            A live battlefield for XCH liquidity across public order books and Dexie offers. Market
-            data is informational only, not financial advice.
-          </p>
+          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <p className="mt-1 max-w-2xl text-sm text-fg-muted">{t("intro")}</p>
         </div>
         <div className="flex items-center gap-2">
           <div
             className="flex rounded-sm border border-border p-0.5"
             role="group"
-            aria-label="Quote currency"
+            aria-label={t("quoteCurrency")}
           >
             {(["USDT", "USDC"] as const).map((q) => (
               <button
@@ -117,94 +119,95 @@ export function MarketPage() {
             ))}
           </div>
           <Button size="sm" onClick={() => setReduced((v) => !v)}>
-            {reduced ? "Animate" : "Reduce motion"}
+            {reduced ? t("animate") : t("reduceMotion")}
           </Button>
         </div>
       </header>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatTile
-          label="Best bid"
+          label={t("bestBid")}
           value={<Price value={cross.bid?.price ?? null} quote={quote} />}
-          sub={live ? `${live}/3 exchanges live` : "No live books"}
+          sub={live ? t("exchangesLive", { live }) : t("noLiveBooks")}
           tone="primary"
         />
         <StatTile
-          label="Best ask"
+          label={t("bestAsk")}
           value={<Price value={cross.ask?.price ?? null} quote={quote} />}
         />
         <StatTile
-          label="Cross spread"
+          label={t("crossSpread")}
           value={`${formatPrice(difference(cross.ask, cross.bid))} ${quote}`}
-          sub="best bid to best ask"
+          sub={t("bidToAsk")}
         />
         <StatTile
-          label="Sources"
+          label={t("sources")}
           value={`${live}/3`}
           sub={
-            data.updatedAt ? `updated ${new Date(data.updatedAt).toLocaleTimeString()}` : "waiting"
+            data.updatedAt
+              ? t("updated", { time: new Date(data.updatedAt).toLocaleTimeString(intlTag()) })
+              : t("waiting")
           }
         />
       </div>
-      <section aria-label="CEX order books">
+      <section aria-label={t("cexBooks")}>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold">CEX order books</h2>
-            <p className="mt-1 text-xs text-fg-faint">
-              Gate, OKX and HTX public XCH books.
-            </p>
+            <h2 className="text-sm font-semibold">{t("cexBooks")}</h2>
+            <p className="mt-1 text-xs text-fg-faint">{t("cexIntro")}</p>
           </div>
         </div>
         <div className={`grid grid-cols-1 gap-4 lg:grid-cols-3 ${reduced ? "" : "market-live"}`}>
           {data.sources.map((source) => {
-          const book = source.book;
-          const s = spread(book);
-          return (
-            <Card
-              key={`${source.exchange}-${source.at ?? "stale"}`}
-              className={book && !reduced ? "market-book" : undefined}
-            >
-              <CardHeader
-                title={
-                  <span className="flex items-center gap-2">
-                    {source.exchange}
-                    <Badge tone={book ? "primary" : "danger"}>{book ? "LIVE" : "STALE"}</Badge>
-                  </span>
-                }
-                action={
-                  <span className="text-[11px] text-fg-faint">
-                    {source.at
-                      ? new Date(source.at).toLocaleTimeString()
-                      : (source.error ?? "not available")}
-                  </span>
-                }
-              />
-              <CardBody>
-                {book ? (
-                  <>
-                    <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <div className="text-fg-faint">Bid</div>
-                        <Price value={bestBid(book)?.price ?? null} quote={quote} />
+            const book = source.book;
+            const s = spread(book);
+            return (
+              <Card
+                key={`${source.exchange}-${source.at ?? "stale"}`}
+                className={book && !reduced ? "market-book" : undefined}
+              >
+                <CardHeader
+                  title={
+                    <span className="flex items-center gap-2">
+                      {source.exchange}
+                      <Badge tone={book ? "primary" : "danger"}>
+                        {book ? t("live") : t("stale")}
+                      </Badge>
+                    </span>
+                  }
+                  action={
+                    <span className="text-[11px] text-fg-faint">
+                      {source.at
+                        ? new Date(source.at).toLocaleTimeString(intlTag())
+                        : (source.error ?? t("notAvailable"))}
+                    </span>
+                  }
+                />
+                <CardBody>
+                  {book ? (
+                    <>
+                      <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <div className="text-fg-faint">{t("bid")}</div>
+                          <Price value={bestBid(book)?.price ?? null} quote={quote} />
+                        </div>
+                        <div>
+                          <div className="text-fg-faint">{t("ask")}</div>
+                          <Price value={bestAsk(book)?.price ?? null} quote={quote} />
+                        </div>
+                        <div>
+                          <div className="text-fg-faint">{t("spread")}</div>
+                          <span className="tabular">
+                            {s ? `${formatFixed(s.percent, 2)}%` : "—"}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-fg-faint">Ask</div>
-                        <Price value={bestAsk(book)?.price ?? null} quote={quote} />
-                      </div>
-                      <div>
-                        <div className="text-fg-faint">Spread</div>
-                        <span className="tabular">{s ? `${s.percent.toFixed(2)}%` : "—"}</span>
-                      </div>
-                    </div>
-                    <Depth bids={book.bids} asks={book.asks} />
-                  </>
-                ) : (
-                  <EmptyState
-                    title="Source unavailable"
-                    description="It is excluded from the aggregate until a fresh book arrives."
-                  />
-                )}
-              </CardBody>
-            </Card>
+                      <Depth bids={book.bids} asks={book.asks} />
+                    </>
+                  ) : (
+                    <EmptyState title={t("sourceUnavailable")} description={t("sourceExcluded")} />
+                  )}
+                </CardBody>
+              </Card>
             );
           })}
         </div>
@@ -213,7 +216,7 @@ export function MarketPage() {
         <div
           className="flex rounded-sm border border-border p-0.5"
           role="group"
-          aria-label="Dexie quote asset"
+          aria-label={t("dexieQuoteAsset")}
         >
           {(Object.keys(DEX_QUOTE_ASSETS) as DexQuoteAsset[]).map((asset) => (
             <button
@@ -234,7 +237,7 @@ export function MarketPage() {
           action={
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-fg-faint">
-                {DEX_QUOTE_ASSETS[dexAsset].description}
+                {t(`assetDescriptions.${DEX_QUOTE_ASSETS[dexAsset].description}`)}
               </span>
               <a
                 className="text-[11px] text-accent hover:underline"
@@ -242,61 +245,58 @@ export function MarketPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Dexie pair
+                {t("dexiePair")}
               </a>
             </div>
           }
         />
         <CardBody>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-            <StatTile label="DEX bid" value={<Price value={data.dex.bid} quote={dexAsset} />} />
-            <StatTile label="DEX ask" value={<Price value={data.dex.ask} quote={dexAsset} />} />
+            <StatTile label={t("dexBid")} value={<Price value={data.dex.bid} quote={dexAsset} />} />
+            <StatTile label={t("dexAsk")} value={<Price value={data.dex.ask} quote={dexAsset} />} />
             <StatTile
-              label="DEX status"
-              value={data.dex.error ? "STALE" : data.dex.at ? "LIVE" : "…"}
-              sub={data.dex.error ?? "Open offers, best price"}
+              label={t("dexStatus")}
+              value={data.dex.error ? t("stale") : data.dex.at ? t("live") : "…"}
+              sub={data.dex.error ?? t("dexStatusSub")}
               tone={data.dex.error ? "danger" : "default"}
             />
-            <StatTile label="Source" value="Dexie" sub="Public offers API" />
+            <StatTile label={t("source")} value="Dexie" sub={t("publicOffersApi")} />
             <StatTile
-              label="DEX / CEX spread"
-              value={dexSpread ? `${dexSpread.percent.toFixed(2)}%` : "—"}
+              label={t("dexCexSpread")}
+              value={dexSpread ? `${formatFixed(dexSpread.percent, 2)}%` : "—"}
               sub={
                 dexSpread
                   ? `${formatPrice(dexSpread.absolute)} USDC`
                   : quote === "USDT"
-                    ? "Select USDC to compare"
+                    ? t("selectUsdc")
                     : dexAsset === "BYC"
-                      ? "Different quote asset; comparison disabled"
-                      : "Waiting for both books"
+                      ? t("differentQuote")
+                      : t("waitingBoth")
               }
             />
           </div>
           <p className="mt-3 text-xs text-fg-faint">
-            Dexie quotes are offers for {DEX_QUOTE_ASSETS[dexAsset].label}. They are not directly
-            comparable with {quote} unless both use the same quote asset. CEX books above are {quote}.
+            {t("dexNote", { asset: DEX_QUOTE_ASSETS[dexAsset].label, quote })}
           </p>
         </CardBody>
       </Card>
       <Card>
-        <CardHeader title="How to read this" />
+        <CardHeader title={t("howToRead")} />
         <CardBody className="space-y-2 text-sm text-fg-muted">
+          <p>{t("howToReadBody")}</p>
           <p>
-            Buyers face sellers around the midpoint. Best bid is the highest price buyers currently
-            show; best ask is the lowest seller price. A stale source stays visible with its last
-            update and never affects the cross-exchange aggregate.
-          </p>
-          <p>
-            Inspired by the battlefield layout on{" "}
-            <a
-              className="text-accent hover:underline"
-              href="https://xchmempool.com/battlefield"
-              target="_blank"
-              rel="noreferrer"
-            >
-              XCHMempool Battlefield
-            </a>
-            ; the implementation and visuals here are original.
+            {t.rich("inspired", {
+              link: (c) => (
+                <a
+                  className="text-accent hover:underline"
+                  href="https://xchmempool.com/battlefield"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {c}
+                </a>
+              ),
+            })}
           </p>
         </CardBody>
       </Card>

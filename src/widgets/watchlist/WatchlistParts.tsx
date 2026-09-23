@@ -9,6 +9,7 @@ import { CatRef } from "@/shared/ui";
 import { cn } from "@/shared/lib/cn";
 import { formatEta } from "@/shared/lib/format/time";
 import type { PendingStatus } from "@/shared/lib/wallet/pendingTracker";
+import { useT } from "@/shared/i18n/useT";
 
 export function WatchStatus({
   children,
@@ -32,11 +33,12 @@ export function WatchStatus({
 }
 
 export function RemoveWatch({ label, onRemove }: { label: string; onRemove: () => void }) {
+  const t = useT("watchlist");
   return (
     <button
       type="button"
       onClick={onRemove}
-      aria-label={`Stop watching ${label}`}
+      aria-label={t("parts.stopWatching", { label })}
       className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-fg-faint transition-colors hover:bg-danger/10 hover:text-danger focus-visible:outline-2 focus-visible:outline-primary"
     >
       <X size={15} aria-hidden="true" />
@@ -45,21 +47,22 @@ export function RemoveWatch({ label, onRemove }: { label: string; onRemove: () =
 }
 
 export function WatchQueue({ status }: { status: PendingStatus }) {
+  const t = useT("watchlist");
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
       <span className="inline-flex items-center gap-1.5 font-semibold text-warning">
         <Clock3 size={12} aria-hidden="true" />
         {status.blockIndex === 0
-          ? "Next block"
+          ? t("parts.nextBlock")
           : status.blockIndex !== null
-            ? `Projected block ${status.blockIndex + 1}`
+            ? t("parts.projectedBlock", { n: status.blockIndex + 1 })
             : status.phase === "waiting"
-              ? "Waiting in queue"
-              : "Awaiting mempool"}
+              ? t("parts.waiting")
+              : t("parts.awaitingMempool")}
       </span>
       {status.position !== null ? (
         <span className="tabular text-fg-muted">
-          Position {status.position} / {status.blockSize}
+          {t("parts.position", { position: status.position, size: status.blockSize ?? "" })}
         </span>
       ) : null}
       {status.etaSeconds !== null ? (
@@ -73,10 +76,11 @@ export function WatchQueue({ status }: { status: PendingStatus }) {
 }
 
 export function WatchedBlockBadge({ count }: { count: number }) {
+  const t = useT("watchlist");
   return (
     <span className="mt-1 inline-flex h-5 items-center gap-1 rounded-full border border-warning/60 bg-bg/90 px-2 text-[10px] font-bold text-warning shadow-sm">
       <Eye size={11} aria-hidden="true" />
-      {count} watched
+      {t("parts.watchedBadge", { count })}
     </span>
   );
 }
@@ -91,6 +95,7 @@ export function ReceivedAssets({
   p2: string;
   pending?: boolean;
 }) {
+  const t = useT("watchlist");
   const flow = deriveAddressFlow(tx, p2);
   const cats = flow.cats.filter((cat) => cat.amount > 0n);
   const nfts = flow.nftsIn.filter((id) => !flow.nftsOut.includes(id));
@@ -104,7 +109,7 @@ export function ReceivedAssets({
         )}
       >
         <ArrowDownLeft size={13} aria-hidden="true" />
-        {pending ? "Incoming" : "Received"}
+        {pending ? t("parts.incoming") : t("parts.received")}
       </span>
       {flow.xch > 0n ? (
         <span className="tabular inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary-soft px-2 py-1 text-primary">
@@ -120,10 +125,13 @@ export function ReceivedAssets({
           <CatRef assetId={cat.assetId} />
         </span>
       ))}
-      {cats.length > 3 ? <span className="text-fg-muted">+{cats.length - 3} tokens</span> : null}
+      {cats.length > 3 ? (
+        <span className="text-fg-muted">{t("parts.moreTokens", { count: cats.length - 3 })}</span>
+      ) : null}
       {nfts.length ? (
         <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-fg">
-          <ImageIcon size={12} aria-hidden="true" />+{nfts.length} NFT{nfts.length === 1 ? "" : "s"}
+          <ImageIcon size={12} aria-hidden="true" />
+          {t("parts.nfts", { count: nfts.length })}
         </span>
       ) : null}
     </div>

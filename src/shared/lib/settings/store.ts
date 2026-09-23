@@ -1,10 +1,11 @@
 /**
- * User settings: active network, RPC endpoint per network, theme. Persisted in
+ * User settings: active network, RPC endpoint per network, theme, language. Persisted in
  * localStorage; a tiny external store so React reads it with useSyncExternalStore and the
  * non-React data layer can read it too.
  */
 import { isCoinsetUrl, NETWORKS, NETWORK_IDS, type NetworkId } from "@/shared/config/networks";
 import { browserStorage } from "@/shared/lib/browserStorage";
+import { isLocale, type LocalePreference } from "@/shared/i18n/config";
 
 export type ThemePreference = "dark" | "light" | "system";
 
@@ -18,6 +19,8 @@ export interface Settings {
   sounds: boolean;
   /** Opt-in browser notifications for the watchlist. Off until the visitor turns it on. */
   notifications: boolean;
+  /** UI language; "auto" follows the browser's languages. */
+  locale: LocalePreference;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -32,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
   recentBlocks: 8,
   sounds: true,
   notifications: false,
+  locale: "auto",
 };
 
 export interface ResolvedEndpoints {
@@ -80,7 +84,8 @@ function sanitise(raw: unknown): Settings {
       : 8;
   const sounds = r.sounds !== false;
   const notifications = r.notifications === true;
-  return { network, endpoints, theme, recentBlocks, sounds, notifications };
+  const locale: LocalePreference = isLocale(r.locale) ? r.locale : "auto";
+  return { network, endpoints, theme, recentBlocks, sounds, notifications, locale };
 }
 
 type Listener = () => void;

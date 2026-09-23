@@ -1,10 +1,31 @@
 /** Smoothing control for chart series: a centred moving average over neighbouring points. */
+import { plainT } from "@/shared/i18n/plain";
+
 export type SmoothingId = "raw" | "smooth" | "very-smooth";
 
 export const SMOOTHING_LEVELS: readonly { id: SmoothingId; label: string; window: number }[] = [
-  { id: "raw", label: "Raw", window: 1 },
-  { id: "smooth", label: "Smooth", window: 3 },
-  { id: "very-smooth", label: "Very smooth", window: 7 },
+  // Getters so the labels follow the UI language at render time.
+  {
+    id: "raw",
+    get label() {
+      return plainT("common")("smoothing.raw");
+    },
+    window: 1,
+  },
+  {
+    id: "smooth",
+    get label() {
+      return plainT("common")("smoothing.smooth");
+    },
+    window: 3,
+  },
+  {
+    id: "very-smooth",
+    get label() {
+      return plainT("common")("smoothing.verySmooth");
+    },
+    window: 7,
+  },
 ];
 
 export function smoothingById(id: SmoothingId) {

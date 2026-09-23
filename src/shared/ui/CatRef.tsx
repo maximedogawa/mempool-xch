@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAsset } from "@/shared/api/useTokenList";
 import { shortId } from "@/shared/lib/chia/hex";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { AssetIcon } from "./AssetBadge";
@@ -30,10 +31,11 @@ export function CatRef({
   showId?: boolean;
   className?: string;
 }) {
+  const t = useT("ui");
   const id = assetId.toLowerCase().replace(/^0x/, "");
   const token = useAsset(id);
   const label = token?.symbol ?? `CAT ${shortId(id, 4, 4)}`;
-  const title = token ? `${token.name} (${token.symbol}) · 0x${id}` : `Unknown CAT · 0x${id}`;
+  const title = token ? `${token.name} (${token.symbol}) · 0x${id}` : t("cat.unknown", { id });
   return (
     <Link
       href={routes.cat(id)}

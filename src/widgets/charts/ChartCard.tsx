@@ -7,6 +7,8 @@ import {
   type SmoothingId,
   type Point,
 } from "@/shared/lib/charts/smoothing";
+import { formatInteger } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
 import { LineChart } from "@/shared/ui/charts/LineChart";
 import type { ScaleId } from "./ChartControls";
@@ -48,6 +50,7 @@ export function ChartCard({
   smoothing: SmoothingId;
   scale: ScaleId;
 }) {
+  const t = useT("charts");
   const smoothed = useMemo(
     () => (points ? smoothSeries(points, smoothingById(smoothing).window) : null),
     [points, smoothing]
@@ -77,21 +80,21 @@ export function ChartCard({
             />
             {stats ? (
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                <StatTile label="Latest" value={spec.formatValue(stats.latest)} />
-                <StatTile label="Average" value={spec.formatValue(stats.average)} />
-                <StatTile label="Highest" value={spec.formatValue(stats.highest)} />
-                <StatTile label="Points" value={String(stats.count)} />
+                <StatTile label={t("card.latest")} value={spec.formatValue(stats.latest)} />
+                <StatTile label={t("card.average")} value={spec.formatValue(stats.average)} />
+                <StatTile label={t("card.highest")} value={spec.formatValue(stats.highest)} />
+                <StatTile label={t("card.points")} value={formatInteger(stats.count)} />
               </div>
             ) : null}
           </>
         ) : (
           <div className="flex h-[200px] items-center justify-center text-sm text-fg-faint">
-            Not enough data yet.
+            {t("card.notEnoughData")}
           </div>
         )}
         <details className="text-xs text-fg-faint">
           <summary className="cursor-pointer select-none font-medium text-fg-muted">
-            Definition &amp; technical note
+            {t("card.definition")}
           </summary>
           <p className="mt-1">{spec.definition}</p>
           <p className="mt-1">{spec.technical}</p>

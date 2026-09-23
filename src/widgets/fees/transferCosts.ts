@@ -4,17 +4,17 @@
  * publishes, times the current fee rate.
  */
 export interface TransferCostRow {
-  id: string;
-  label: string;
+  /** Also the row's label key under `transfers` in the fees messages. */
+  id: "plain" | "threeInputs" | "cat" | "nft" | "offer";
   cost: number;
 }
 
 export const TRANSFER_COSTS: readonly TransferCostRow[] = [
-  { id: "plain", label: "Plain transfer", cost: 11_000_000 },
-  { id: "three-input", label: "Transfer with 3 inputs", cost: 22_000_000 },
-  { id: "cat", label: "Send a CAT", cost: 36_000_000 },
-  { id: "nft", label: "Transfer an NFT", cost: 60_000_000 },
-  { id: "offer", label: "Accept an offer", cost: 90_000_000 },
+  { id: "plain", cost: 11_000_000 },
+  { id: "threeInputs", cost: 22_000_000 },
+  { id: "cat", cost: 36_000_000 },
+  { id: "nft", cost: 60_000_000 },
+  { id: "offer", cost: 90_000_000 },
 ];
 
 export interface TransferCostEstimate extends TransferCostRow {

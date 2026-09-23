@@ -9,6 +9,7 @@ import { usePoolLookup } from "@/shared/lib/pools/usePoolLookup";
 import { routes } from "@/shared/lib/routes";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import type { RecentBlocksResult } from "@/shared/api/hooks";
+import { useT } from "@/shared/i18n/useT";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
@@ -52,6 +53,7 @@ export function RecentBlocks({
   loading: boolean;
   blockMaxCost: number;
 }) {
+  const t = useT("blocks");
   const now = useNow();
   const lookupPool = usePoolLookup();
   // Only the newest cube animates, so the newest height already shown is all there is to keep.
@@ -78,7 +80,7 @@ export function RecentBlocks({
   }
   const blocks = data?.txBlocks ?? [];
   return (
-    <ul className="flex min-w-max items-end gap-4" aria-label="Recent transaction blocks">
+    <ul className="flex min-w-max items-end gap-4" aria-label={t("recent.listLabel")}>
       {blocks.map((block, i) => {
         const watched = watchedConfirmed?.get(block.height)?.size ?? 0;
         const older = blocks[i + 1];
@@ -92,7 +94,15 @@ export function RecentBlocks({
             (block.rewardClaimsIncorporated?.length ?? 0) * 0.02
         );
         const pool = lookupPool(block.poolPuzzleHash);
-        const label = `Block ${formatNumber(block.height)}${watched ? `, ${watched} watched` : ""}, ${formatAge(ageMs, now)}, fees ${formatAmount(fees)}, ${pool ? `farmed by ${pool.name}` : `farmer ${shortId(block.farmerPuzzleHash)}`}`;
+        const label = t("recent.cubeLabel", {
+          height: formatNumber(block.height),
+          watched: watched ? t("recent.watchedPart", { count: watched }) : "",
+          age: formatAge(ageMs, now),
+          fees: formatAmount(fees),
+          farmer: pool
+            ? t("recent.farmedByPool", { pool: pool.name })
+            : t("recent.farmerHash", { hash: shortId(block.farmerPuzzleHash) }),
+        });
         return (
           <li key={block.height} className="flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
@@ -112,11 +122,13 @@ export function RecentBlocks({
                 <span className="tabular text-[15px] font-bold leading-tight">
                   {formatAmount(fees)}
                 </span>
-                <span className="text-[10px] font-medium text-fg/70">total fees</span>
+                <span className="text-[10px] font-medium text-fg/70">{t("recent.totalFees")}</span>
                 <span className="tabular mt-1.5 text-[11px] text-fg/85">
                   {totals[i]?.data
-                    ? `${formatAmount(BigInt(totals[i]!.data!.xch))} moved`
-                    : `${block.rewardClaimsIncorporated?.length ?? 0} reward claims`}
+                    ? t("recent.moved", { amount: formatAmount(BigInt(totals[i]!.data!.xch)) })
+                    : t("recent.rewardClaims", {
+                        count: block.rewardClaimsIncorporated?.length ?? 0,
+                      })}
                 </span>
                 <span className="tabular text-[11px] text-fg/75">{formatAge(ageMs, now)}</span>
                 {watched ? <WatchedBlockBadge count={watched} /> : null}
@@ -128,8 +140,8 @@ export function RecentBlocks({
                 )}
                 title={
                   pool
-                    ? `${pool.name} · farmer ${block.farmerPuzzleHash}`
-                    : `Farmer ${block.farmerPuzzleHash}`
+                    ? t("recent.poolTitle", { pool: pool.name, hash: block.farmerPuzzleHash })
+                    : t("recent.farmerTitle", { hash: block.farmerPuzzleHash })
                 }
               >
                 <span
@@ -142,7 +154,11 @@ export function RecentBlocks({
             </div>
             {gap > 0 ? (
               <Tooltip
-                text={`${gap} non-transaction block${gap > 1 ? "s" : ""} between ${formatNumber(block.height)} and ${formatNumber(older!.height)} (they carry no spends)`}
+                text={t("recent.gap", {
+                  count: gap,
+                  newer: formatNumber(block.height),
+                  older: formatNumber(older!.height),
+                })}
               >
                 <span className="mb-[72px] inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-border bg-surface px-1.5 text-[10px] text-fg-muted">
                   +{gap}
@@ -154,7 +170,7 @@ export function RecentBlocks({
       })}
       {blocks.length === 0 ? (
         <li className="text-sm text-fg-faint">
-          No transaction blocks in the recent window ({formatNumber(blockMaxCost)} cost each).
+          {t("recent.empty", { cost: formatNumber(blockMaxCost) })}
         </li>
       ) : null}
     </ul>

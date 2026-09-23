@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 
 export interface StackedSeries {
@@ -36,6 +37,7 @@ export function StackedAreaChart({
   className?: string;
 }) {
   const id = useId();
+  const t = useT("ui");
   const [hover, setHover] = useState<number | null>(null);
   const width = 800;
   const pad = { l: 44, r: 8, t: 8, b: 22 };
@@ -81,13 +83,19 @@ export function StackedAreaChart({
         className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
         style={{ height }}
       >
-        Collecting samples… history starts when the app is opened.
+        {t("chart.collecting")}
       </div>
     );
   }
 
   const hoverPoint = hover !== null ? points[hover] : null;
-  const summary = `${ariaLabel}. ${points.length} samples from ${formatTime(points[0]!.t)} to ${formatTime(points[points.length - 1]!.t)}. Latest total ${formatValue(model.totals[model.totals.length - 1] ?? 0)}.`;
+  const summary = t("chart.stackedSummary", {
+    label: ariaLabel,
+    count: points.length,
+    from: formatTime(points[0]!.t),
+    to: formatTime(points[points.length - 1]!.t),
+    latest: formatValue(model.totals[model.totals.length - 1] ?? 0),
+  });
 
   const onMove = (clientX: number, target: SVGSVGElement) => {
     const rect = target.getBoundingClientRect();
@@ -197,7 +205,7 @@ export function StackedAreaChart({
               </div>
             ))}
           <div className="mt-1 border-t border-border pt-1 text-fg">
-            Total {formatValue(hoverPoint.values.reduce((a, b) => a + b, 0))}
+            {t("chart.total", { value: formatValue(hoverPoint.values.reduce((a, b) => a + b, 0)) })}
           </div>
         </div>
       ) : null}

@@ -11,6 +11,7 @@
  * that flag alone catches nothing; the collection and creator verdicts are MintGarden's own and
  * are what actually decide. All four are read, and the strongest verdict wins.
  */
+import { plainT } from "@/shared/i18n/plain";
 
 export type SensitivityLevel = "clear" | "sensitive" | "blocked";
 
@@ -143,6 +144,7 @@ export function sensitivityText(sensitivity: Sensitivity): SensitivityText {
     .map((w) => (w.length > 5 && w === w.toUpperCase() ? w.toLowerCase() : w));
   const joined = words.join(" ");
   const reason = joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : null;
-  const title = "Sensitive content";
-  return { title, reason, summary: reason ? `${title}. Reason: ${reason}` : title };
+  const t = plainT("common");
+  const title = t("sensitivity.title");
+  return { title, reason, summary: reason ? t("sensitivity.summary", { title, reason }) : title };
 }

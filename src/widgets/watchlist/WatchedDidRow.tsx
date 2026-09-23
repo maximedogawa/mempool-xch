@@ -9,6 +9,7 @@ import type { WatchItem } from "@/shared/lib/watchlist/store";
 import { Hash } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { useDidHoldings } from "@/widgets/did/useDidProfile";
+import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchStatus } from "./WatchlistParts";
 
 /**
@@ -17,6 +18,7 @@ import { RemoveWatch, WatchStatus } from "./WatchlistParts";
  * MintGarden rather than pending transactions.
  */
 export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: () => void }) {
+  const t = useT("watchlist");
   const didId = item.label.startsWith("did:chia:") ? item.label : launcherIdToDidId(item.id);
   const { profile, collections, isLoading, available } = useDidHoldings(item.id);
   const owned = profile?.ownedNfts ?? null;
@@ -26,7 +28,7 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
         {profile?.avatarUrl ? (
           <AssetImage
             urls={[profile.avatarUrl]}
-            alt={profile.name ?? "DID avatar"}
+            alt={profile.name ?? t("did.avatarAlt")}
             className="h-10 w-10 shrink-0"
             rounded="rounded-xl"
           />
@@ -43,12 +45,12 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
             <WatchStatus>
               <Eye size={11} aria-hidden="true" />
               {!available
-                ? "Mainnet only"
+                ? t("common.mainnetOnly")
                 : isLoading
-                  ? "Checking…"
+                  ? t("common.checking")
                   : owned !== null
-                    ? `${formatNumber(owned)} NFT${owned === 1 ? "" : "s"}`
-                    : "Watching"}
+                    ? t("did.nftCount", { count: owned })
+                    : t("common.watching")}
             </WatchStatus>
           </div>
           {profile?.name ? (
@@ -69,9 +71,7 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
       </div>
       <div className="mt-3 border-t border-border/60 pt-3">
         {!available ? (
-          <p className="text-xs text-fg-muted">
-            DID holdings come from MintGarden, which indexes mainnet only.
-          </p>
+          <p className="text-xs text-fg-muted">{t("did.mainnetNote")}</p>
         ) : collections?.length ? (
           <>
             <ul className="flex flex-wrap gap-1.5">
@@ -92,7 +92,7 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
               ))}
               {collections.length > 4 ? (
                 <li className="self-center text-[11px] text-fg-faint">
-                  +{collections.length - 4} more
+                  {t("did.moreCollections", { count: collections.length - 4 })}
                 </li>
               ) : null}
             </ul>
@@ -101,14 +101,14 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
               className="mt-2 inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
             >
               <ImageIcon size={13} aria-hidden="true" />
-              View the NFTs it holds →
+              {t("did.viewNfts")}
             </Link>
           </>
         ) : isLoading ? (
-          <p className="text-xs text-fg-faint">Loading holdings…</p>
+          <p className="text-xs text-fg-faint">{t("did.loadingHoldings")}</p>
         ) : (
           <p className="text-xs text-fg-faint">
-            MintGarden lists no NFTs for this DID{owned === null ? " yet" : ""}.
+            {owned === null ? t("did.noNftsYet") : t("did.noNfts")}
           </p>
         )}
       </div>

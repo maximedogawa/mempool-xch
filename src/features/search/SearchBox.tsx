@@ -4,6 +4,7 @@ import { AtSign, Loader2, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
@@ -60,6 +61,7 @@ export function SearchBox({
   /** Fires when the box gains or truly loses focus (a click on the clear button or a candidate does not count as losing it). */
   onFocusChange?: (focused: boolean) => void;
 }) {
+  const t = useT("search");
   const router = useRouter();
   const { client, endpoints } = useSettings();
   const [value, setValue] = useState("");
@@ -124,9 +126,7 @@ export function SearchBox({
       try {
         const matches = await resolveText(target.value);
         if (matches.length === 0) {
-          setError(
-            `No matches for "${target.value}". Try an exact block height, tx id, address, coin id, an nft1 id, a CAT asset id or an @handle.`
-          );
+          setError(t("noMatches", { query: target.value }));
         } else {
           setCandidates(matches);
         }
@@ -153,7 +153,7 @@ export function SearchBox({
       className={cn("relative w-full", className)}
     >
       <label htmlFor="global-search" className="sr-only">
-        Search transactions, blocks, addresses, coins and assets
+        {t("label")}
       </label>
       <div className="relative">
         <Search
@@ -185,11 +185,7 @@ export function SearchBox({
           }}
           onFocus={() => onFocusChange?.(true)}
           onBlur={handleBlur}
-          placeholder={
-            size === "lg"
-              ? "Search tx, block, address, coin, CAT or NFT…"
-              : "Search tx id, block, address, coin, CAT or NFT…"
-          }
+          placeholder={size === "lg" ? t("placeholderLarge") : t("placeholder")}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "global-search-error" : undefined}
           className={cn(
@@ -209,7 +205,7 @@ export function SearchBox({
             <button
               type="button"
               onClick={clear}
-              aria-label="Clear search"
+              aria-label={t("clear")}
               className="rounded-full p-1.5 text-fg-faint hover:bg-surface-2 hover:text-fg"
             >
               <X size={size === "lg" ? 16 : 14} aria-hidden="true" />
@@ -227,7 +223,7 @@ export function SearchBox({
           <button
             type="submit"
             disabled={busy}
-            aria-label="Search"
+            aria-label={t("submit")}
             className={cn(
               "flex items-center justify-center rounded-full bg-primary font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60",
               size === "lg" ? "h-8 w-8" : "px-2 py-1 text-xs"
@@ -238,7 +234,7 @@ export function SearchBox({
             ) : size === "lg" ? (
               <Search size={15} aria-hidden="true" />
             ) : (
-              "Go"
+              t("go")
             )}
           </button>
         </div>
@@ -255,7 +251,7 @@ export function SearchBox({
       {candidates ? (
         <div className="absolute left-0 right-0 top-full z-30 mt-1 rounded-sm border border-border bg-bg-elevated p-1 shadow-card">
           <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-fg-faint">
-            {candidates.length > 1 ? "Several matches, pick one" : "Best guess"}
+            {candidates.length > 1 ? t("severalMatches") : t("bestGuess")}
           </p>
           {candidates.map((c) =>
             c.kind === "collection" ? (

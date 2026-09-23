@@ -8,18 +8,17 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { EmptyState, Hash } from "@/shared/ui";
 import { AddressNfts } from "@/widgets/address/AddressNfts";
 import { resolveAddressId } from "@/widgets/address/resolveAddressId";
+import { useT } from "@/shared/i18n/useT";
 
 /** The NFT gallery of an address or of a DID; both are owners MintGarden indexes. */
 export function OwnedNftsPage() {
+  const t = useT("nft");
   const raw = useDetailId("nfts/owned") ?? "";
   const { networkConfig } = useSettings();
   const resolved = resolveAddressId(raw, networkConfig.addressPrefix);
   if (!resolved)
     return (
-      <EmptyState
-        title="Not a valid address"
-        description="Open the NFT count on an address or DID page to browse its holdings."
-      />
+      <EmptyState title={t("owned.invalidTitle")} description={t("owned.invalidDescription")} />
     );
   const isDid = resolved.kind === "did";
   const owner = resolved.didId ?? resolved.address ?? resolved.puzzleHash;
@@ -31,11 +30,15 @@ export function OwnedNftsPage() {
           className="inline-flex items-center gap-1.5 self-start text-sm text-accent hover:underline"
         >
           <ArrowLeft size={15} aria-hidden="true" />
-          Back to {isDid ? "DID" : "address"}
+          {isDid ? t("owned.backToDid") : t("owned.backToAddress")}
         </Link>
-        <h1 className="text-xl font-semibold">Owned NFTs</h1>
+        <h1 className="text-xl font-semibold">{t("owned.title")}</h1>
         <div className="text-sm text-fg-muted">
-          Held by <Hash value={owner} href={routes.address(owner)} head={14} tail={8} copy />
+          {t.rich("owned.heldBy", {
+            owner: () => (
+              <Hash value={owner} href={routes.address(owner)} head={14} tail={8} copy />
+            ),
+          })}
         </div>
       </header>
       {networkConfig.id === "mainnet" ? (
@@ -44,10 +47,7 @@ export function OwnedNftsPage() {
           owner={{ kind: resolved.kind, id: resolved.puzzleHash }}
         />
       ) : (
-        <EmptyState
-          title="NFT gallery is available on mainnet"
-          description="MintGarden does not provide testnet holdings. The address overview still shows the node’s NFT count."
-        />
+        <EmptyState title={t("owned.mainnetTitle")} description={t("owned.mainnetDescription")} />
       )}
     </div>
   );

@@ -1,0 +1,53 @@
+import type { Translation } from "../../translate";
+import type en from "../en/goggles";
+
+const messages: Translation<typeof en> = {
+  title: "下一个区块",
+  colourBy: "单元格着色依据",
+  modeFee: "手续费",
+  modeKind: "类型",
+  kinds: {
+    all: "全部",
+    xch: "XCH",
+    cat: "CAT",
+    nft: "NFT",
+    offer: "报价",
+    did: "DID",
+    pool: "矿池",
+    singleton: "单例",
+  },
+  empty: "内存池为空：下一个交易区块将不包含任何花费。",
+  ariaLabel: {
+    other: "下一个区块构成：{count} 个花费包，成本 {cost} / {max}（已满 {percent}），{eta}",
+  },
+  ariaLabelEmpty: "下一个区块构成",
+  fullOf: "已满 · 成本 {cost} / {max}",
+  bundles: { other: "<b>{count}</b> 个花费包" },
+  fees: "手续费 <b>{amount}</b>",
+  fresh: "最近 {seconds} 秒内 <b>+{count}</b>",
+  filterKind: "按资产类型筛选",
+  kindChipTitle: { other: "{count} 个花费包 · 成本 {cost}" },
+  filterFee: "按费率区间筛选",
+  anyFee: "任意手续费",
+  bandTitle: "每单位成本 {band} mojo",
+  zeroFee: "0 手续费",
+  bandChip: "{band} m/c",
+  showOnly: "仅显示",
+  onlyNew: "新增",
+  onlyYours: "您的",
+  cellLabel: "花费包 {id}，{kind}，{amount}，成本 {cost}，每单位成本 {rate} mojo",
+  cellLabelYours: "您的花费包 {id}，{kind}，{amount}，成本 {cost}，每单位成本 {rate} mojo",
+  yoursBadge: "您的",
+  yoursChip: "您的",
+  hoverCost: "成本 {cost} · 手续费 {fee} · {rate} m/c",
+  hoverSpends: { other: "{count} 个币花费 · {age}发现" },
+  showing: "显示 {total} 个花费包中的 <b>{matched}</b> 个 · 成本 {cost}",
+  packedHint: "花费包按每单位成本的手续费打包，与节点使用的顺序相同；区块从下往上填充。",
+  legendSize: "大小 = 成本",
+  legendFee: "颜色 = 费率区间",
+  legendKind: "颜色 = 资产类型",
+  legendNew: "白色圆环 = 新增",
+  legendBandTitle: "{band} mojo/成本",
+};
+
+export default messages;

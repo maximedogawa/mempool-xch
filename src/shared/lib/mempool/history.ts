@@ -14,6 +14,23 @@ export interface MempoolSample {
   count: number;
   /** Total fees in mojos, as a number (display only). */
   fees: number;
+  /**
+   * Cost-weighted median fee rate (mojos per cost): the rate of the bundle at the middle of the
+   * pending cost when bundles are ordered by rate. Absent on samples stored before it existed.
+   */
+  medianFeeRate?: number;
+}
+
+/** See MempoolSample.medianFeeRate; 0 for an empty mempool. */
+export function costWeightedMedianFeeRate(items: { cost: number; feeRate: number }[]): number {
+  const sorted = items.filter((i) => i.cost > 0).sort((a, b) => a.feeRate - b.feeRate);
+  const total = sorted.reduce((sum, i) => sum + i.cost, 0);
+  let seen = 0;
+  for (const item of sorted) {
+    seen += item.cost;
+    if (seen >= total / 2) return item.feeRate;
+  }
+  return 0;
 }
 
 export const HISTORY_KEY_PREFIX = "mempool-xch:history:v1:";
@@ -31,7 +48,13 @@ export function sampleFromSummary(
     const idx = FEE_BANDS.indexOf(feeBandFor(item.feeRate));
     bands[idx] = (bands[idx] ?? 0) + item.cost;
   });
-  return { t, bands, count: summary.items.length, fees: Number(summary.state.mempoolFees) };
+  return {
+    t,
+    bands,
+    count: summary.items.length,
+    fees: Number(summary.state.mempoolFees),
+    medianFeeRate: costWeightedMedianFeeRate(summary.items),
+  };
 }
 
 export function appendSample(

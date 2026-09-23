@@ -9,6 +9,7 @@ import { launcherIdToDidId, puzzleHashToAddress } from "@/shared/lib/chia/addres
 import { fetchHandle, formatHandle, parseHandle } from "@/shared/lib/handles/xchandles";
 import { mintGardenCollectionUrl, searchMintGarden } from "@/shared/lib/nft/mintgarden";
 import type { Sensitivity } from "@/shared/lib/nft/sensitivity";
+import { plainT } from "@/shared/i18n/plain";
 import { routes } from "@/shared/lib/routes";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { NETWORKS } from "@/shared/config/networks";
@@ -34,6 +35,7 @@ const SEARCH_RESULT_LIMIT = 5;
  * results, and a name nobody has taken leaves the MintGarden matches exactly as they were.
  */
 export async function resolveText(value: string): Promise<SearchMatch[]> {
+  const t = plainT("search");
   const handle = parseHandle(value);
   const [{ nfts, collections }, handleRecord] = await Promise.all([
     searchMintGarden(value),
@@ -46,7 +48,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
             kind: "handle",
             label:
               handleRecord.status === "expired"
-                ? `${formatHandle(handle)} (expired handle)`
+                ? t("match.expiredHandle", { handle: formatHandle(handle) })
                 : formatHandle(handle),
             href: routes.handle(handle),
           },
@@ -56,7 +58,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
     ...handleMatch,
     ...nfts.slice(0, SEARCH_RESULT_LIMIT).map((n) => ({
       kind: "nft" as const,
-      label: n.name ?? "NFT",
+      label: n.name ?? t("match.nft"),
       href: routes.nft(n.nftId),
       thumbnailUrl: n.thumbnailUrl,
       sensitivity: n.sensitivity,
@@ -64,7 +66,7 @@ export async function resolveText(value: string): Promise<SearchMatch[]> {
     // No in-app collection detail page yet; link out to MintGarden's own, same as the collections list page does.
     ...collections.slice(0, SEARCH_RESULT_LIMIT).map((c) => ({
       kind: "collection" as const,
-      label: c.name ?? "Collection",
+      label: c.name ?? t("match.collection"),
       href: mintGardenCollectionUrl(c.id),
       thumbnailUrl: c.thumbnailUrl,
       sensitivity: c.sensitivity,
@@ -92,15 +94,21 @@ export async function resolveHex32(
     probe(() => client.getBlockRecord(hex)),
     client.hasIndexed ? probe(() => client.getOffer(hex)) : Promise.resolve(null),
   ]);
+  const t = plainT("search");
   const matches: SearchMatch[] = [];
-  if (mempoolItem || tx) matches.push({ kind: "tx", label: "Transaction", href: routes.tx(hex) });
-  if (coin) matches.push({ kind: "coin", label: "Coin", href: routes.coin(hex) });
+  if (mempoolItem || tx)
+    matches.push({ kind: "tx", label: t("match.transaction"), href: routes.tx(hex) });
+  if (coin) matches.push({ kind: "coin", label: t("match.coin"), href: routes.coin(hex) });
   if (block)
-    matches.push({ kind: "block", label: `Block ${block.height}`, href: routes.block(hex) });
+    matches.push({
+      kind: "block",
+      label: t("match.block", { height: block.height }),
+      href: routes.block(hex),
+    });
   if (offer)
     matches.push({
       kind: "offer",
-      label: `Offer (${offer.status.replace("_", " ")})`,
+      label: t("match.offer", { status: offer.status.replace("_", " ") }),
       href: routes.offer(hex),
     });
   if (matches.length > 0) return matches;
@@ -111,16 +119,20 @@ export async function resolveHex32(
     client.hasIndexed ? probe(() => client.getSingletonInfo(hex)) : Promise.resolve(null),
   ]);
   if (singleton?.singletonType === "nft")
-    matches.push({ kind: "nft", label: "NFT", href: routes.nft(hex) });
+    matches.push({ kind: "nft", label: t("match.nft"), href: routes.nft(hex) });
   else if (singleton?.singletonType === "did")
     // As the did:chia: id, so the page opens as a DID rather than reading the launcher id as a
     // puzzle hash.
-    matches.push({ kind: "did", label: "DID", href: routes.address(launcherIdToDidId(hex)) });
+    matches.push({
+      kind: "did",
+      label: t("match.did"),
+      href: routes.address(launcherIdToDidId(hex)),
+    });
   if (catCoins && catCoins.length > 0 && !singleton) {
-    matches.push({ kind: "cat", label: "CAT asset", href: routes.cat(hex), assetId: hex });
+    matches.push({ kind: "cat", label: t("match.cat"), href: routes.cat(hex), assetId: hex });
   }
   const address = puzzleHashToAddress(hex, NETWORKS[network].addressPrefix);
-  matches.push({ kind: "address", label: "Address (puzzle hash)", href: routes.address(address) });
+  matches.push({ kind: "address", label: t("match.address"), href: routes.address(address) });
   return matches;
 }
 

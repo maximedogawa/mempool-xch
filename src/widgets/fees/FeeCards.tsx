@@ -5,17 +5,18 @@ import { CHIA } from "@/shared/config/networks";
 import { formatAmount, formatFeeRate } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
+import { formatInteger } from "@/shared/i18n/number";
+import { useT } from "@/shared/i18n/useT";
 import { CapacityBar, Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
 
-const TARGET_LABELS: Record<(typeof FEE_TARGETS_S)[number], string> = {
-  60: "Next block",
-  300: "~5 minutes",
-  600: "~10 minutes",
-};
-
-const REFERENCE_HINT = `Chia fees are paid per CLVM cost, not per byte. Estimates are for a reference spend of ${CHIA.REFERENCE_SPEND_COST.toLocaleString("en-US")} cost (a typical single XCH send). Multiply the mojo-per-cost rate by your spend's cost for the fee.`;
+const TARGET_LABELS = {
+  60: "nextBlock",
+  300: "fiveMinutes",
+  600: "tenMinutes",
+} as const satisfies Record<(typeof FEE_TARGETS_S)[number], string>;
 
 export function FeeCards() {
+  const t = useT("fees");
   const fee = useFeeEstimate();
   const summary = useMempoolSummary();
   const state = summary.data?.state;
@@ -26,7 +27,12 @@ export function FeeCards() {
 
   return (
     <Card>
-      <CardHeader title="Transaction fees" action={<Tooltip text={REFERENCE_HINT} />} />
+      <CardHeader
+        title={t("cards.title")}
+        action={
+          <Tooltip text={t("cards.hint", { cost: formatInteger(CHIA.REFERENCE_SPEND_COST) })} />
+        }
+      />
       <CardBody className="flex flex-col gap-3">
         <div className="grid grid-cols-3 gap-2">
           {FEE_TARGETS_S.map((target, i) => {
@@ -41,7 +47,7 @@ export function FeeCards() {
                 style={band ? { borderBottom: `3px solid var(${band.cssVar})` } : undefined}
               >
                 <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {TARGET_LABELS[target]}
+                  {t(`cards.targets.${TARGET_LABELS[target]}`)}
                 </span>
                 {fee.isLoading ? (
                   <Skeleton className="h-6 w-16" />
@@ -49,12 +55,14 @@ export function FeeCards() {
                   <>
                     <span className="tabular text-lg font-semibold leading-tight">
                       {formatFeeRate(rate)}{" "}
-                      <span className="text-xs font-normal text-fg-muted">mojo/cost</span>
+                      <span className="text-xs font-normal text-fg-muted">
+                        {t("cards.mojoPerCost")}
+                      </span>
                     </span>
                     <span className="tabular text-xs text-fg-faint">{formatAmount(estimate!)}</span>
                   </>
                 ) : (
-                  <span className="text-sm text-fg-faint">n/a</span>
+                  <span className="text-sm text-fg-faint">{t("cards.notAvailable")}</span>
                 )}
               </div>
             );
@@ -73,20 +81,18 @@ export function FeeCards() {
           {state ? (
             zeroFeeOk ? (
               <>
-                <span className="font-semibold">Capacity available.</span>{" "}
-                <span className="text-fg-muted">0-fee spends are accepted.</span>
+                <span className="font-semibold">{t("cards.capacityAvailable")}</span>{" "}
+                <span className="text-fg-muted">{t("cards.zeroFeeAccepted")}</span>
               </>
             ) : (
               <>
                 <span className="font-semibold">
                   {minFeeRate > 0
-                    ? `Above ${formatFeeRate(Math.max(minFeeRate, 5))} mojo/cost to enter.`
-                    : "Near capacity."}
+                    ? t("cards.aboveToEnter", { rate: formatFeeRate(Math.max(minFeeRate, 5)) })
+                    : t("cards.nearCapacity")}
                 </span>{" "}
                 <span className="text-fg-muted">
-                  {minFeeRate > 0
-                    ? "A full mempool takes at least 5 mojo/cost and only above the cheapest spends it can evict."
-                    : "Paid spends go ahead of the 0-fee backlog."}
+                  {minFeeRate > 0 ? t("cards.fullMempool") : t("cards.paidAhead")}
                 </span>
               </>
             )
@@ -94,9 +100,11 @@ export function FeeCards() {
         </p>
         {fee.data ? (
           <p className="text-xs text-fg-faint">
-            Last transaction block paid {formatAmount(fee.data.feesLastBlock)} in fees at{" "}
-            {formatFeeRate(fee.data.feeRateLastBlock)} mojo/cost · current rate{" "}
-            {formatFeeRate(fee.data.currentFeeRate)} mojo/cost.
+            {t("cards.lastBlock", {
+              fees: formatAmount(fee.data.feesLastBlock),
+              rate: formatFeeRate(fee.data.feeRateLastBlock),
+              current: formatFeeRate(fee.data.currentFeeRate),
+            })}
           </p>
         ) : null}
       </CardBody>

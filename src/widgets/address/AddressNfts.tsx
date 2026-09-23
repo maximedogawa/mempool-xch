@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { Button, Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
@@ -13,6 +14,7 @@ import { ADDRESS_NFT_PAGE_SIZE, fetchAddressNfts, type NftOwner } from "./fetchA
 
 /** At most 20 cards mounted. No prefetch, full-wallet enumeration or per-NFT metadata calls. */
 export function AddressNfts({ owner }: { owner: NftOwner }) {
+  const t = useT("address");
   const { hydrated } = useSettings();
   const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const [page, setPage] = useState(0);
@@ -59,42 +61,45 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
     setSearch("");
   };
   return (
-    <Card role="region" aria-label={owner.kind === "did" ? "DID NFTs" : "Address NFTs"}>
+    <Card
+      role="region"
+      aria-label={owner.kind === "did" ? t("nfts.didRegion") : t("nfts.addressRegion")}
+    >
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
             <ImageIcon size={16} aria-hidden="true" />
-            NFTs held
+            {t("nfts.title")}
           </span>
         }
         action={
           <span className="text-xs text-fg-faint">
-            {ADDRESS_NFT_PAGE_SIZE} per page · MintGarden
+            {t("nfts.perPage", { count: ADDRESS_NFT_PAGE_SIZE })}
           </span>
         }
       />
       <CardBody className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="relative flex-1">
-            <span className="sr-only">Filter NFTs on this page</span>
+            <span className="sr-only">{t("nfts.filterPage")}</span>
             <Search size={15} aria-hidden="true" className="absolute left-3 top-3 text-fg-faint" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filter this page by name or NFT ID"
+              placeholder={t("nfts.filterPlaceholder")}
               className="h-10 w-full rounded-lg border border-border bg-bg pl-9 pr-3 text-sm outline-none focus:border-primary"
             />
           </label>
           <label>
-            <span className="sr-only">Filter NFTs by collection</span>
+            <span className="sr-only">{t("nfts.filterCollection")}</span>
             <select
-              aria-label="Filter NFTs by collection"
+              aria-label={t("nfts.filterCollection")}
               value={collection}
               onChange={(e) => setFilter(e.target.value)}
               className="h-10 w-full max-w-full rounded-lg border border-border bg-bg px-3 text-sm outline-none focus:border-primary sm:max-w-64"
             >
-              <option value="">All collections</option>
+              <option value="">{t("nfts.allCollections")}</option>
               {Object.entries(collections)
                 .sort((a, b) => a[1].localeCompare(b[1]))
                 .map(([id, name]) => (
@@ -105,18 +110,15 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
             </select>
           </label>
         </div>
-        <p className="text-xs text-fg-faint">
-          Search filters this page. Choose a collection seen on a visited page to browse all its
-          holdings.
-        </p>
+        <p className="text-xs text-fg-faint">{t("nfts.help")}</p>
         {query.isError ? (
           <div
             role="alert"
             className="flex items-center justify-between gap-3 rounded-lg border border-danger/30 p-3 text-sm text-danger"
           >
-            <span>Could not load NFTs.</span>
+            <span>{t("nfts.loadError")}</span>
             <Button size="sm" onClick={() => void query.refetch()}>
-              Retry
+              {t("retry")}
             </Button>
           </div>
         ) : query.isPending ? (
@@ -152,7 +154,7 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
                     className="mt-1 truncate text-xs text-fg-faint"
                     title={nft.collectionName ?? undefined}
                   >
-                    {nft.collectionName ?? "No collection"}
+                    {nft.collectionName ?? t("nfts.noCollection")}
                   </p>
                 </div>
               </li>
@@ -160,15 +162,14 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
           </ul>
         ) : (
           <p className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-fg-muted">
-            {search
-              ? "No NFTs match on this page. Try another page or clear the filter."
-              : "No NFTs on this page."}
+            {search ? t("nfts.noMatch") : t("nfts.empty")}
           </p>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
           <span role="status" className="tabular text-xs text-fg-muted">
-            Page {page + 1}
-            {query.data ? ` · ${filtered.length} shown` : ""}
+            {query.data
+              ? t("nfts.pageShown", { page: page + 1, count: filtered.length })
+              : t("nfts.page", { page: page + 1 })}
           </span>
           <div className="flex gap-2">
             <Button
@@ -180,7 +181,7 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
               }}
             >
               <ChevronLeft size={14} aria-hidden="true" />
-              Previous
+              {t("nfts.previous")}
             </Button>
             <Button
               size="sm"
@@ -192,7 +193,7 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
                 setSearch("");
               }}
             >
-              Next {ADDRESS_NFT_PAGE_SIZE}
+              {t("nfts.next", { count: ADDRESS_NFT_PAGE_SIZE })}
               <ChevronRight size={14} aria-hidden="true" />
             </Button>
           </div>

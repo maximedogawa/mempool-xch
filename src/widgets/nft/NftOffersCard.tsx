@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { formatAge } from "@/shared/lib/format/time";
 import { dexieOfferUrl } from "@/shared/lib/nft/mintgarden";
 import { Card, CardBody, CardHeader, CopyButton, Skeleton } from "@/shared/ui";
+import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { useNftOffers } from "./useNftSection";
 
@@ -14,6 +15,7 @@ import { useNftOffers } from "./useNftSection";
  * to Dexie or hands over the offer file to paste into a wallet instead of a one-click accept.
  */
 export function NftOffersCard({ nftId, enabled }: { nftId: string; enabled: boolean }) {
+  const t = useT("nft");
   const offers = useNftOffers(nftId, enabled);
   if (!enabled) return null;
 
@@ -22,8 +24,8 @@ export function NftOffersCard({ nftId, enabled }: { nftId: string; enabled: bool
       <CardHeader
         title={
           offers.data && offers.data.length > 0
-            ? `Open offers (${offers.data.length})`
-            : "Open offers"
+            ? t("offers.titleCount", { count: offers.data.length })
+            : t("offers.title")
         }
       />
       <CardBody className="flex flex-col gap-3">
@@ -46,34 +48,28 @@ export function NftOffersCard({ nftId, enabled }: { nftId: string; enabled: bool
                     : o.requested.map((r) => `${r.amount} ${r.code}`).join(" + ")}
                   {o.dateFound ? (
                     <span className="ml-2 text-xs font-normal text-fg-faint">
-                      found {formatAge(o.dateFound)}
+                      {t("offers.found", { age: formatAge(o.dateFound) })}
                     </span>
                   ) : null}
                 </span>
                 <span className="flex items-center gap-2">
-                  <CopyButton value={o.offerFile} label="Copy offer file" />
+                  <CopyButton value={o.offerFile} label={t("offers.copyOfferFile")} />
                   <a
                     href={dexieOfferUrl(o.id)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
                   >
-                    View on Dexie <ExternalLink size={11} aria-hidden="true" />
+                    {t("offers.viewOnDexie")} <ExternalLink size={11} aria-hidden="true" />
                   </a>
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="py-2 text-center text-sm text-fg-faint">
-            No open offers on Dexie right now.
-          </p>
+          <p className="py-2 text-center text-sm text-fg-faint">{t("offers.none")}</p>
         )}
-        <p className="text-xs text-fg-faint">
-          To accept one, paste the offer file into Sage or another Chia wallet, or take it directly
-          on Dexie — this app cannot submit the trade for you; Sage&apos;s app bridge does not yet
-          expose a way to accept an offer.
-        </p>
+        <p className="text-xs text-fg-faint">{t("offers.howToAccept")}</p>
       </CardBody>
     </Card>
   );

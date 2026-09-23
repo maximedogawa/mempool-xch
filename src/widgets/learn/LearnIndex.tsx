@@ -1,16 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LEARN_ARTICLES, learnHref } from "./articles";
 
 export function LearnIndex() {
+  const t = useT("learn");
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold">Learn</h1>
-        <p className="mt-2 text-sm text-fg-muted">
-          Short explanations of the things this explorer shows, written for people who use Chia
-          rather than build it. Each article links to the page where you can watch the concept live.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("index.title")}</h1>
+        <p className="mt-2 text-sm text-fg-muted">{t("index.intro")}</p>
       </header>
       <ol className="flex flex-col gap-3">
         {LEARN_ARTICLES.map((a, i) => (
@@ -23,28 +24,34 @@ export function LearnIndex() {
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="font-semibold text-fg">{a.title}</span>
-                <span className="text-sm text-fg-muted">{a.summary}</span>
-                <span className="text-xs text-fg-faint">{a.minutes} min read</span>
+                <span className="font-semibold text-fg">{t(`${a.key}.title`)}</span>
+                <span className="text-sm text-fg-muted">{t(`${a.key}.summary`)}</span>
+                <span className="text-xs text-fg-faint">
+                  {t("article.minRead", { minutes: a.minutes })}
+                </span>
               </span>
             </Link>
           </li>
         ))}
       </ol>
       <p className="text-sm text-fg-muted">
-        Also worth a look: the{" "}
-        <Link href={routes.prefarm()} className="text-accent hover:underline">
-          prefarm tracker
-        </Link>
-        , the{" "}
-        <Link href={routes.docs()} className="text-accent hover:underline">
-          help page
-        </Link>{" "}
-        about this site, and the{" "}
-        <Link href={routes.status()} className="text-accent hover:underline">
-          status page
-        </Link>{" "}
-        for the services it depends on.
+        {t.rich("index.alsoWorth", {
+          prefarm: (c) => (
+            <Link href={routes.prefarm()} className="text-accent hover:underline">
+              {c}
+            </Link>
+          ),
+          docs: (c) => (
+            <Link href={routes.docs()} className="text-accent hover:underline">
+              {c}
+            </Link>
+          ),
+          status: (c) => (
+            <Link href={routes.status()} className="text-accent hover:underline">
+              {c}
+            </Link>
+          ),
+        })}
       </p>
     </div>
   );
