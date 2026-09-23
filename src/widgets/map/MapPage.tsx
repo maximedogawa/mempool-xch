@@ -368,7 +368,9 @@ export function MapPage() {
     return acc;
   }, [peerHosts, peerGeo.data]);
 
-  const snapshotAge = dash ? formatAge(Date.parse(dash.observedAt), clock ?? undefined) : "—";
+  // Until the page clock is known (prerender and hydration) there is no "now" to count from:
+  // falling back to Date.now() baked the build time into the HTML and broke hydration.
+  const snapshotAge = dash && clock !== null ? formatAge(Date.parse(dash.observedAt), clock) : "—";
   const visibleCountries = showAllCountries ? matchedRows : matchedRows.slice(0, COUNTRY_ROWS);
 
   const bold = (c: ReactNode) => <strong className="text-fg">{c}</strong>;
