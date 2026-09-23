@@ -180,6 +180,9 @@ test.describe("network map", () => {
   }) => {
     await at(page, OBSERVED + DAY);
     await mockCoinset(page);
+    // A hydration mismatch makes React re-render the page and detach the map mid-test.
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/map");
     const viewport = page.locator(".map-viewport");
     const arc = page.locator(".map-arc").first();
@@ -188,6 +191,7 @@ test.describe("network map", () => {
     await viewport.scrollIntoViewIfNeeded();
     await expect(viewport).not.toHaveAttribute("data-paused", "true");
     expect(await arc.evaluate((el) => getComputedStyle(el).animationPlayState)).toBe("running");
+    expect(pageErrors).toEqual([]);
 
     await page.evaluate(() => {
       Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
