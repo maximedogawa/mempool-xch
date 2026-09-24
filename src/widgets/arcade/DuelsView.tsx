@@ -110,9 +110,9 @@ function GameTile({ game }: { game: DuelGame }) {
         </div>
         <ExternalLink
           href={game.url}
-          className="shrink-0 rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-semibold hover:underline"
+          className="shrink-0 rounded-full border border-primary bg-primary-soft px-3 py-1 text-xs font-semibold text-primary hover:underline"
         >
-          <span className="text-primary">{t("duels.play")}</span>
+          {t("duels.play")}
         </ExternalLink>
       </div>
       <p className="line-clamp-3 text-sm text-fg-muted">{game.description}</p>
@@ -364,10 +364,9 @@ export function DuelsView({ provider }: { provider: GamingProvider }) {
           <div className="flex flex-wrap gap-2">
             <ExternalLink
               href={links.newRoom(provider.appUrl)}
-              className="inline-flex h-9 items-center rounded-sm bg-primary px-3.5 text-sm font-semibold hover:bg-primary-strong"
+              className="inline-flex h-9 items-center rounded-sm bg-primary px-3.5 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
             >
-              {/* globals.css colours every <a> with inherit, unlayered, so the colour sits on a span. */}
-              <span className="text-primary-fg">{t("duels.openRoom")}</span>
+              {t("duels.openRoom")}
             </ExternalLink>
             <ExternalLink
               href={links.rooms(provider.appUrl)}

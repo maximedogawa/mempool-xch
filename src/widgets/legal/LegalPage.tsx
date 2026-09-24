@@ -90,4 +90,4 @@ export function List({ children }: { children: ReactNode }) {
 }
 
 /** Inline link style shared by the legal texts. */
-export const linkClass = "text-accent hover:underline";
+export const linkClass = "text-accent underline underline-offset-2";
