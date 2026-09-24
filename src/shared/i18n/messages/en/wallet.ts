@@ -1,4 +1,6 @@
 /** Sage wallet page, wallet panels and the pending-transaction tracker (src/widgets/wallet). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   sageBadge: "from your Sage wallet",
   enableInSage: "Enable in Sage",
@@ -70,6 +72,7 @@ const messages = {
       "seen in the first {loaded} of {total} transactions · scroll Transactions to find more",
   },
   page: {
+    portfolio: "Portfolio",
     outsideTitle: "Open mempoolxch.space inside the Sage wallet",
     outsideDescription:
       "This page reads balances, pending transactions, assets and coins directly from your wallet. In a browser, search for your address instead.",
@@ -112,4 +115,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("wallet", messages);

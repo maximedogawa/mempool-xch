@@ -6,9 +6,10 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 export function NetworkSwitch({ className }: { className?: string }) {
-  const t = useT("shell");
+  const t = useT(shellNs);
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const isTestnet = settings.network !== "mainnet";

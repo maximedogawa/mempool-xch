@@ -6,6 +6,7 @@
 import { plainT } from "@/shared/i18n/plain";
 import { decodeBech32m } from "@/shared/lib/chia/address";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
+import searchNs from "@/shared/i18n/messages/en/search";
 
 export type SearchTarget =
   | { kind: "height"; height: number }
@@ -18,7 +19,7 @@ export type SearchTarget =
   | { kind: "invalid"; reason: string };
 
 export function parseSearchInput(raw: string): SearchTarget {
-  const t = plainT("search");
+  const t = plainT(searchNs);
   const input = raw.trim();
   if (input === "") return { kind: "invalid", reason: t("invalid.empty") };
 

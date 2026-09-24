@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/wallet";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   sageBadge: "de tu billetera Sage",
   enableInSage: "Activar en Sage",
   direction: {
@@ -72,6 +72,7 @@ const messages: Translation<typeof en> = {
       "vistos en las primeras {loaded} de {total} transacciones · desplázate por Transacciones para encontrar más",
   },
   page: {
+    portfolio: "Cartera",
     outsideTitle: "Abre mempoolxch.space dentro de la billetera Sage",
     outsideDescription:
       "Esta página lee saldos, transacciones pendientes, activos y monedas directamente de tu billetera. En un navegador, busca tu dirección.",

@@ -4,8 +4,14 @@
  * mempoolxch.space design tokens: mempool.space's dark navy base with the accent
  * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
  * Every colour used by components is a token here so Sage's theme can remap them later.
+ *
+ * `html:root`, not `:root`: inside Sage, sage-app-sdk's getSageClient() mounts the wallet's
+ * shadcn variables in a late `:root { --primary: …; --accent: …; --border: …; --radius: … }`
+ * style, whose names collide with ours. Same specificity would let it win and turn the dark
+ * theme's green white; one extra type selector keeps ours, and `:root[data-theme="light"]`
+ * below still outranks this block (TASK-095).
  */
-:root {
+html:root {
   color-scheme: dark;
 
   --bg: #0f1220;
@@ -37,6 +43,9 @@
   --primary-strong: #3aac59;
   --primary-soft: rgba(94, 206, 123, 0.14);
   --primary-fg: #06210f;
+  /* Fresh-row flash behind text: the most green a row can carry while --fg-faint and every other
+     row colour keep 4.5:1 (TASK-095). --primary-soft (14%) left the faint fee text at 4.2:1. */
+  --row-flash: rgba(94, 206, 123, 0.06);
 
   --accent: #7dd3fc;
   --warning: #f5c542;
@@ -58,6 +67,21 @@
   --block-top: #2a3157;
   --block-empty: #1a1e33;
   --projected-face: #17283a;
+  /* Cube lighting, per theme (BlockCube reads these; light mode can't shade with black). */
+  --cube-top-hi: color-mix(in srgb, var(--block-top) 78%, white 14%);
+  --cube-side-from: color-mix(in srgb, var(--block-side) 85%, black);
+  --cube-side-to: color-mix(in srgb, var(--block-side) 55%, black);
+  --cube-glass: color-mix(in srgb, var(--block-face) 88%, transparent);
+  --cube-grid: rgba(255, 255, 255, 0.035);
+  --cube-fill-shade: rgba(0, 0, 0, 0.18);
+  --cube-edge:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 -18px 30px -18px rgba(0, 0, 0, 0.45);
+  --cube-drop: 0 14px 26px -14px rgba(0, 0, 0, 0.7);
+  --cube-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  /* A single-band fee fill fades toward this. */
+  --cube-shade: #000;
+  --confirmed-fill: linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%);
+  --strip-bg: linear-gradient(180deg, var(--bg-elevated), color-mix(in srgb, var(--bg) 85%, black));
 
   --kind-xch: #5ece7b;
   --kind-cat: #8aa4ff;
@@ -65,6 +89,14 @@
   --kind-did: #f5c542;
   --kind-offer: #7dd3fc;
   --kind-unknown: #67708f;
+  /* Portfolio allocation donut: XCH, four tokens by value, grey "Other". Checked with the dataviz
+     palette validator on --surface (lightness band, chroma, colour-blind separation, contrast). */
+  --alloc-0: #008300;
+  --alloc-1: #3987e5;
+  --alloc-2: #d95926;
+  --alloc-3: #9085e9;
+  --alloc-4: #c98500;
+  --alloc-other: #67708f;
 
   --radius: 10px;
   --radius-sm: 6px;
@@ -74,12 +106,14 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f4f6fb;
+  /* Layered light: a cool grey page, white cards lifted by a soft shadow, a paler grey for
+     chips and inputs, and borders a step darker (TASK-095). */
+  --bg: #eef1f7;
   --bg-elevated: #ffffff;
   --surface: #ffffff;
-  --surface-2: #eef1f8;
-  --surface-hover: #e4e8f3;
-  --border: #d9deec;
+  --surface-2: #f2f4f9;
+  --surface-hover: #e8ecf5;
+  --border: #dce1ec;
   --map-land: #c9d0e3;
   --map-bg: #eaf0fb;
   --map-grid: rgb(47 154 77 / 0.07);
@@ -91,26 +125,57 @@
   --region-africa: #a855c7;
   --region-oceania: #d1701f;
   --region-unmapped: #7b849f;
-  --border-strong: #b9c1d9;
+  --border-strong: #c2c9db;
   --fg: #10142a;
   --fg-muted: #4d5674;
-  --fg-faint: #5f6886;
-  --primary: #2f9a4d;
-  --primary-strong: #237a3b;
-  --primary-soft: rgba(47, 154, 77, 0.12);
+  --fg-faint: #586180;
+  /* Text colours below keep 4.5:1 on every light surface and on their own soft tint. */
+  --primary: #176c33;
+  --primary-strong: #11552a;
+  --primary-soft: rgba(23, 108, 51, 0.1);
   --primary-fg: #ffffff;
-  --accent: #0a7ea4;
-  --warning: #b78a00;
-  --danger: #c93a47;
-  --danger-soft: rgba(201, 58, 71, 0.12);
-  --info: #4a63d8;
-  --fee-0: #9aa3c2;
-  --block-face: #dfe5f4;
-  --block-side: #b9c3de;
-  --block-top: #eef1f8;
-  --block-empty: #e8ecf6;
-  --projected-face: #d5e9f5;
-  --shadow: 0 10px 30px rgba(20, 30, 60, 0.12);
+  /* Accent links sit at 4.6:1 on white, so any tint behind them fails AA: the edge bar alone. */
+  --row-flash: transparent;
+  --accent: #066890;
+  --warning: #7a5700;
+  --danger: #a82c39;
+  --danger-soft: rgba(168, 44, 57, 0.1);
+  --info: #3f56c4;
+  --fee-0: #c3cce2;
+  --block-face: #e9eef8;
+  --block-side: #c9d2e8;
+  --block-top: #eef2fa;
+  --block-empty: #e9edf6;
+  --projected-face: #dcecf7;
+  /* Frosted-glass cubes: a white top, cool blue-grey sides, and navy-tinted shadows. */
+  --cube-top-hi: #ffffff;
+  --cube-side-from: #d3daea;
+  --cube-side-to: #b4bfd8;
+  --cube-glass: rgba(255, 255, 255, 0.8);
+  --cube-grid: rgba(40, 60, 120, 0.05);
+  --cube-fill-shade: rgba(20, 40, 90, 0.06);
+  --cube-edge:
+    inset 0 0 0 1px rgba(30, 50, 110, 0.12), inset 0 -18px 30px -18px rgba(30, 50, 110, 0.16);
+  --cube-drop: 0 16px 24px -14px rgba(30, 50, 110, 0.35);
+  --cube-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  --cube-shade: #ffffff;
+  --confirmed-fill: linear-gradient(165deg, #9adcec 0%, #62c483 100%);
+  --strip-bg: linear-gradient(180deg, #ffffff, #e6ebf5);
+  /* Asset-kind hues darkened for light surfaces: each keeps 4.5:1 as badge text on its own
+     15-20% tint over white or --surface-2 (the dark hues fell to 1.8:1 here; TASK-095). */
+  --kind-xch: #1b5a2d;
+  --kind-cat: #3d51b1;
+  --kind-nft: #7b3e91;
+  --kind-did: #705400;
+  --kind-offer: #08607d;
+  --kind-unknown: #52586b;
+  --alloc-0: #008300;
+  --alloc-1: #2a78d6;
+  --alloc-2: #eb6834;
+  --alloc-3: #4a3aa7;
+  --alloc-4: #eda100;
+  --alloc-other: #7b849f;
+  --shadow: 0 1px 2px rgba(16, 24, 56, 0.06), 0 10px 28px -12px rgba(16, 24, 56, 0.16);
 }
 
 @theme inline {
@@ -208,20 +273,42 @@ body {
   }
 }
 
-@keyframes market-tick {
+/* Market battlefield: a fill lands on the side it took (a dot that fades, a ring that spreads). */
+@keyframes market-hit {
   0% {
-    border-color: var(--border);
-  }
-  40% {
-    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    transform: scale(0.3);
+    opacity: 0.95;
   }
   100% {
-    border-color: var(--border);
+    transform: scale(1);
+    opacity: 0;
   }
 }
 
-.market-book {
-  animation: market-tick 900ms ease-out;
+@keyframes market-hit-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.market-hit,
+.market-hit-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+
+.market-hit {
+  animation: market-hit 1.4s ease-out forwards;
+}
+
+.market-hit-ring {
+  animation: market-hit-ring 1.4s ease-out forwards;
 }
 
 @keyframes block-in {
@@ -239,12 +326,17 @@ body {
   animation: block-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* A fresh row flashes a green edge bar (rows using it pad their left edge to keep it clear of
+   the text) plus a tint light enough that the text stays AA. The bar is inset because the lists
+   sit in scroll containers, which clip anything drawn outside the row. */
 @keyframes row-in {
   from {
-    background: var(--primary-soft);
+    background: var(--row-flash);
+    box-shadow: inset 3px 0 0 var(--primary);
   }
   to {
     background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
   }
 }
 
@@ -331,57 +423,165 @@ body {
   animation: cube-glow 3s ease-in-out infinite;
 }
 
-/* Treemap cells slide to their new place instead of jumping */
-.treemap-cell rect {
+/*
+ * Next-block goggles (src/widgets/goggles). Tiles are absolutely positioned and placed with
+ * transforms; GogglesTiles animates them with the Web Animations API (transform and opacity
+ * only). No will-change: a full block has ~1,000 tiles and layers are promoted per animation.
+ */
+.goggles-canvas {
+  contain: layout paint;
+}
+
+.goggles-capacity {
+  background-image: repeating-linear-gradient(135deg, var(--border) 0 1px, transparent 1px 8px);
+  transition: height 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.goggles-fill-line {
+  height: 14px;
+  pointer-events: none;
+  border-top: 1.5px solid color-mix(in srgb, var(--primary) 90%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 26%, transparent),
+    transparent
+  );
+  transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.goggles-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  transform-origin: 0 0;
+  background-image: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 0.2),
+    rgb(255 255 255 / 0) 55%,
+    rgb(0 0 0 / 0.12)
+  );
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
   transition:
-    x 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    fill 300ms ease;
+    opacity 220ms ease,
+    filter 220ms ease,
+    background-color 300ms ease;
 }
 
-@keyframes cell-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.goggles-tile[data-dim] {
+  opacity: 0.14;
+  filter: saturate(0.3);
 }
 
-.treemap-cell {
-  animation: cell-in 350ms ease-out both;
-  transform-box: fill-box;
-  transform-origin: center;
+.goggles-tile:hover {
+  z-index: 1;
+  filter: brightness(1.15);
 }
 
-/* Next-block goggles: the fill line and the empty capacity above it move with the treemap. */
-.goggles-glide {
-  transition:
-    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    fill 300ms ease;
+.goggles-tile:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
 }
 
-/* A bundle that just arrived: bright ring that fades out, then only the fresh count remains. */
-@keyframes fresh-ring {
+.goggles-tile-image {
+  opacity: 0.88;
+}
+
+/* Yours: an inset ring in the brand colour. New: a small white dot that pulses three times. */
+.goggles-mark-yours {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px var(--primary),
+    inset 0 0 0 3px rgb(0 0 0 / 0.35);
+}
+
+@keyframes goggles-new-pulse {
   0% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0.9;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.35),
+      0 0 0 0 rgb(255 255 255 / 0.75);
   }
   100% {
-    opacity: 0.35;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.35),
+      0 0 0 6px rgb(255 255 255 / 0);
   }
 }
 
-.treemap-fresh-ring {
-  animation: fresh-ring 3s ease-out both;
-  opacity: 0.35;
+.goggles-mark-new {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+  animation: goggles-new-pulse 1.6s ease-out 3;
+}
+
+/* Background tab: CSS animations hold still (the JS ones are not started at all). */
+.goggles-paused * {
+  animation-play-state: paused !important;
+}
+
+.goggles-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.goggles-frame-label,
+.goggles-depart-label {
+  position: absolute;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: 3px;
+  background: rgb(10 13 24 / 0.72);
+  color: #fff;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.goggles-frame-label {
+  left: 3px;
+  top: 3px;
+  max-width: calc(100% - 6px);
+  padding: 2px 4px;
+  font-size: 10px;
+}
+
+.goggles-depart-label {
+  right: 8px;
+  top: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.goggles-legend-new {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+.goggles-legend-yours {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px var(--primary);
 }
 
 /* Network map ------------------------------------------------------------- */
@@ -476,6 +676,53 @@ body {
   transform-origin: center;
 }
 
+/* A country that is new since the last snapshot or scan grows in; one whose count moved rings. */
+@keyframes map-node-enter {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.map-node-enter {
+  animation: map-node-enter 700ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes map-node-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.map-node-ring {
+  animation: map-node-ring 700ms ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* Hidden tab or map scrolled away: every map animation holds, including the endless ones. */
+.map-viewport[data-paused="true"] *,
+.map-viewport[data-paused="true"] *::before,
+.map-viewport[data-paused="true"] *::after {
+  animation-play-state: paused !important;
+}
+
 .map-viewport {
   background-color: var(--map-bg);
   background-image:
@@ -568,12 +815,18 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .map-pulse,
   .map-arc,
-  .map-peer-ring {
+  .map-peer-ring,
+  .map-node-enter,
+  .map-node-ring {
     animation: none;
   }
 
   .map-pulse {
     opacity: 0.5;
+  }
+
+  .map-node-ring {
+    display: none;
   }
 
   .map-node,

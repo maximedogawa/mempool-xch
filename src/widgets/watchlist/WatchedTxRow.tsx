@@ -14,6 +14,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useTransaction } from "@/widgets/tx/useTransaction";
 import { useT } from "@/shared/i18n/useT";
 import { RemoveWatch, WatchQueue, WatchStatus } from "./WatchlistParts";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 export function WatchedTxRow({
   item,
@@ -28,7 +29,7 @@ export function WatchedTxRow({
   onConfirmed: (item: WatchItem, height: number | null) => void;
   onRemove: () => void;
 }) {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const tx = useTransaction(item.id);
   const { client } = useSettings();
   const previous = useRef<string | null>(null);

@@ -13,17 +13,18 @@ import {
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { setActiveLocale } from "./active";
 import { DEFAULT_LOCALE, INTL_TAGS, resolveLocale, type Locale } from "./config";
-import { cachedMessages, englishMessages, loadMessages } from "./messages";
+import { cachedMessages, loadMessages } from "./messages";
 import type { Messages } from "./messages/types";
 
 interface I18nContextValue {
   locale: Locale;
-  messages: Messages;
+  /** Translations of the active locale; null for English (the namespaces carry it). */
+  messages: Messages | null;
 }
 
 const I18nContext = createContext<I18nContextValue>({
   locale: DEFAULT_LOCALE,
-  messages: englishMessages,
+  messages: null,
 });
 
 const subscribeLanguages = (onChange: () => void) => {
@@ -45,15 +46,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const wanted = hydrated
     ? resolveLocale(settings.locale, languages ? languages.split(",") : [])
     : DEFAULT_LOCALE;
-  const [loaded, setLoaded] = useState<{ locale: Locale; messages: Messages }>({
+  const [loaded, setLoaded] = useState<I18nContextValue>({
     locale: DEFAULT_LOCALE,
-    messages: englishMessages,
+    messages: null,
   });
   const ready = cachedMessages(wanted);
-  const current = ready ? { locale: wanted, messages: ready } : loaded;
+  const current = ready !== undefined ? { locale: wanted, messages: ready } : loaded;
 
   useEffect(() => {
-    if (cachedMessages(wanted)) return;
+    if (cachedMessages(wanted) !== undefined) return;
     let cancelled = false;
     loadMessages(wanted)
       .then((messages) => {

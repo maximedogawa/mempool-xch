@@ -1,6 +1,6 @@
 {
   "name": "mempool-xch",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "license": "MIT",
   "homepage": "https://mempoolxch.space",
@@ -24,13 +24,16 @@
     "test": "bun test",
     "test:unit": "bun test",
     "test:e2e": "playwright test --config playwright.config.ts",
+    "test:e2e:sage": "playwright test --config playwright.sage.config.ts",
     "test:live": "LIVE=1 playwright test --config playwright.config.ts --grep @live",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changelog": "bun run scripts/changelog/generate.ts",
     "map:land": "bun run scripts/map/generate-land-dots.ts",
+    "map:dashboard": "bun run scripts/map/import-dashboard.ts",
     "arcade": "bun run scripts/arcade/fetch-games.ts",
-    "perf": "bun run scripts/perf/measure.ts"
+    "perf": "bun run scripts/perf/measure.ts",
+    "perf:budget": "bun run scripts/perf/js-budget.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",

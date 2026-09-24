@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { articleBySlug, LEARN_ARTICLES, learnHref } from "./articles";
+import learnNs from "@/shared/i18n/messages/en/learn";
 
 /** Shared frame for a Learn article: breadcrumb, title, prose, previous/next links. */
 export function LearnArticle({ slug, children }: { slug: string; children: ReactNode }) {
-  const t = useT("learn");
+  const t = useT(learnNs);
   const index = LEARN_ARTICLES.findIndex((a) => a.slug === slug);
   const meta = articleBySlug(slug);
   const prev = index > 0 ? LEARN_ARTICLES[index - 1] : undefined;

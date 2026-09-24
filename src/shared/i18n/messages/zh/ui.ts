@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/ui";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   copy: "复制",
   copyToClipboard: "{label}到剪贴板",
   yours: "您的",

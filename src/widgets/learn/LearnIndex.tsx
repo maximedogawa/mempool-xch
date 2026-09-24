@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LEARN_ARTICLES, learnHref } from "./articles";
+import learnNs from "@/shared/i18n/messages/en/learn";
 
 export function LearnIndex() {
-  const t = useT("learn");
+  const t = useT(learnNs);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header>

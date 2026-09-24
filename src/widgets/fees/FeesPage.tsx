@@ -16,6 +16,7 @@ import {
   TARGET_TIMES_S,
   FEES_PAGE_REFERENCE_COST,
 } from "./useFeesPageData";
+import feesNs from "@/shared/i18n/messages/en/fees";
 
 function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => string {
   if (range === "6h" || range === "24h")
@@ -29,7 +30,7 @@ function formatTimeForRange(range: ChartControlsState["range"]): (t: number) => 
 }
 
 export function FeesPage() {
-  const t = useT("fees");
+  const t = useT(feesNs);
   const [controls, setControls] = useState<ChartControlsState>({
     range: "24h",
     smoothing: "smooth",

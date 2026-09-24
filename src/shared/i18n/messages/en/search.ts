@@ -1,4 +1,6 @@
 /** Global search box and its input parsing and resolving (src/features/search). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   label: "Search transactions, blocks, addresses, coins and assets",
   placeholderLarge: "Search tx, block, address, coin, CAT or NFT…",
@@ -33,4 +35,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("search", messages);

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/blocksList";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "区块",
   peak: "最新高度 {height}",
   txOnly: "仅交易区块",

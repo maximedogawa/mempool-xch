@@ -64,8 +64,11 @@ function save(network: NetworkId, registry: NodeRegistry) {
  * (round-robin, alternating IPv4 and IPv6) over DNS-over-HTTPS, new addresses join the
  * registry and one GeoJS batch places the newest unlocated ones. Pauses while the tab is
  * hidden; the registry persists in localStorage per network so the map fills up across visits.
+ *
+ * The map page only scans as its fallback (`enabled`): when the dashboard snapshot is missing,
+ * stale or for another network. Disabled, it sends nothing and holds an empty registry.
  */
-export function useNodeScan(network: NetworkId): NodeScanState {
+export function useNodeScan(network: NetworkId, enabled = true): NodeScanState {
   const [registry, setRegistry] = useState<NodeRegistry>(emptyRegistry);
   const [scanning, setScanning] = useState(false);
   const [scans, setScans] = useState(0);
@@ -84,6 +87,7 @@ export function useNodeScan(network: NetworkId): NodeScanState {
   );
 
   useEffect(() => {
+    if (!enabled) return;
     const initial = load(network);
     registryRef.current = initial;
     setRegistry(initial);
@@ -166,7 +170,7 @@ export function useNodeScan(network: NetworkId): NodeScanState {
       document.removeEventListener("visibilitychange", onVisibility);
       setScanning(false);
     };
-  }, [network, commit]);
+  }, [network, commit, enabled]);
 
   return {
     registry,

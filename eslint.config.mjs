@@ -8,6 +8,8 @@ export default [
   {
     ignores: [
       "**/.next/**",
+      // Agent worktrees (Claude Code) live under .claude/ and are separate checkouts.
+      "**/.claude/**",
       "**/out/**",
       "**/sage-snapshot/**",
       "**/node_modules/**",

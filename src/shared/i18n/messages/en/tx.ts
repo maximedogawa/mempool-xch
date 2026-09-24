@@ -1,4 +1,6 @@
 /** Transaction detail page, coin flow diagram and cost verdict (src/widgets/tx). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   heading: "Transaction",
   retry: "Retry",
@@ -130,4 +132,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("tx", messages);

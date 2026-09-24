@@ -5,12 +5,14 @@
  * actually makes, kept in sync with it and with the wiki's architecture/data-sources.md.
  * Headings and descriptions live in the "api" message namespace, keyed by group id and method.
  */
-import type apiMessages from "@/shared/i18n/messages/en/api";
+import type apiNs from "@/shared/i18n/messages/en/api";
+
+type ApiMessages = (typeof apiNs)["messages"];
 
 /** Endpoint methods; each has its description under `endpoints` in the "api" messages. */
-export type ApiMethod = keyof (typeof apiMessages)["endpoints"];
+export type ApiMethod = keyof ApiMessages["endpoints"];
 /** Group ids; each has its heading under `groups` in the "api" messages. */
-export type ApiGroupId = keyof (typeof apiMessages)["groups"];
+export type ApiGroupId = keyof ApiMessages["groups"];
 
 export interface ApiEndpoint {
   method: ApiMethod;

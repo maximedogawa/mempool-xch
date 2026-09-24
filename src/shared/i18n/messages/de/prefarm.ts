@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/prefarm";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Prefarm-Tracker",
   tooltip:
     "Chia Network hat vor dem ersten Block 21 Millionen XCH erzeugt. Sie liegen in vier Verwahrungs-Vaults (kalt und warm, in den USA und der Schweiz) mit veröffentlichten Prüfregeln. Diese Seite liest die Coins der Vaults direkt aus der Chain; sie schätzt nichts.",

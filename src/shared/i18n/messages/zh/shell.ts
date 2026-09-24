@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/shell";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   home: "mempoolxch.space 首页",
   primaryNav: "主导航",
   mobileNav: "移动端导航",
@@ -18,6 +18,7 @@ const messages: Translation<typeof en> = {
     market: "市场",
     map: "地图",
     tokens: "代币",
+    portfolio: "投资组合",
     nfts: "NFT",
     fees: "手续费",
     pools: "矿池",

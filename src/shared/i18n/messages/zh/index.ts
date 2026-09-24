@@ -26,6 +26,7 @@ import goggles from "./goggles";
 import handle from "./handle";
 import learn from "./learn";
 import legal from "./legal";
+import consent from "./consent";
 import map from "./map";
 import market from "./market";
 import mempool from "./mempool";
@@ -33,6 +34,7 @@ import mempoolList from "./mempoolList";
 import nft from "./nft";
 import offers from "./offers";
 import pools from "./pools";
+import portfolio from "./portfolio";
 import prefarm from "./prefarm";
 import shell from "./shell";
 import status from "./status";
@@ -69,6 +71,7 @@ const messages: Messages = {
   handle,
   learn,
   legal,
+  consent,
   map,
   market,
   mempool,
@@ -76,6 +79,7 @@ const messages: Messages = {
   nft,
   offers,
   pools,
+  portfolio,
   prefarm,
   shell,
   status,

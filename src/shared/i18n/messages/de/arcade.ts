@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/arcade";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Arcade",
   titleHint:
     "Spiele auf Basis des Chia-Gaming-Protokolls: Zwei Spieler sperren einen Einsatz in einem State Channel on-chain, spielen off-chain mit kryptografischer Fairness (Mental Poker für Karten) und rechnen das Ergebnis wieder on-chain ab. Zum Spielen brauchen Sie eine Chia-Wallet mit Gaming-Protokoll; jedes Spiel öffnet sich auf der Website des Trackers.",

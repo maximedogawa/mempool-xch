@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/wallet";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   sageBadge: "aus Ihrer Sage-Wallet",
   enableInSage: "In Sage aktivieren",
   direction: {
@@ -72,6 +72,7 @@ const messages: Translation<typeof en> = {
       "gefunden in den ersten {loaded} von {total} Transaktionen · unter „Transaktionen“ weiterscrollen, um mehr zu finden",
   },
   page: {
+    portfolio: "Portfolio",
     outsideTitle: "Öffnen Sie mempoolxch.space in der Sage-Wallet",
     outsideDescription:
       "Diese Seite liest Guthaben, ausstehende Transaktionen, Assets und Coins direkt aus Ihrer Wallet. Im Browser suchen Sie stattdessen nach Ihrer Adresse.",

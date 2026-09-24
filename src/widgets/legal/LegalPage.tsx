@@ -6,6 +6,7 @@ import { LEGAL_UPDATED } from "@/shared/config/legal";
 import { intlTag } from "@/shared/i18n/active";
 import { useLocale, useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
+import legalNs from "@/shared/i18n/messages/en/legal";
 
 const PAGES = [
   { href: routes.legalTerms(), label: "terms" },
@@ -35,7 +36,7 @@ export function LegalPage({
   intro?: ReactNode;
   children: ReactNode;
 }) {
-  const t = useT("legal");
+  const t = useT(legalNs);
   const locale = useLocale();
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-6">

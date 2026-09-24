@@ -1,0 +1,117 @@
+{
+  "id": "86cf7465730146e233b2fb01114879110ff3cb76b3dc122caf8732ac4c537860",
+  "encoded_id": "nft1sm8hgetnq9rwyvajlvq3zjrezy8l8jmkk0wpyt90sue2cnzn0psq4zgmsu",
+  "is_blocked": false,
+  "data": {
+    "data_uris": [
+      "https://defiant-black-skink.myfilebase.com/ipfs/QmeM6MBn5EJ4JmUAov1EgukNmrQe3KMpYfTtE1FsgMGqmL"
+    ],
+    "data_hash": "8484b46495c2e21968e992ef51d776c96b50a9e9e48f860b3b1efb1c1face2df",
+    "data_type": 3,
+    "thumbnail_uri": "https://assets.mainnet.mintgarden.io/thumbnails/8484b46495c2e21968e992ef51d776c96b50a9e9e48f860b3b1efb1c1face2df_512.webp",
+    "preview_uri": null,
+    "integrity_state": 1,
+    "metadata_hash": "4cc5a128b166ab36f733c37cdd14548e8a4148f6e281b45463424297e291077f",
+    "metadata_json": {
+      "data": {
+        "url": "https://defiant-black-skink.myfilebase.com/ipfs/QmeM6MBn5EJ4JmUAov1EgukNmrQe3KMpYfTtE1FsgMGqmL",
+        "name": "Today",
+        "@type": "VideoObject",
+        "sha256": "8484b46495c2e21968e992ef51d776c96b50a9e9e48f860b3b1efb1c1face2df",
+        "creator": {
+          "url": "https://mintgarden.io/TheWardedOnes",
+          "name": "Fiend Studios",
+          "@type": "Organization",
+          "identifier": {
+            "@type": "PropertyValue",
+            "value": "https://x.com/FiendStudios",
+            "propertyID": "Twitter"
+          }
+        },
+        "@context": "https://schema.org/",
+        "thumbnail": {
+          "url": "https://defiant-black-skink.myfilebase.com/ipfs/QmUDEh3tgw6PvBxje7McwaE99AMYi7wdQL51RbE5KTQWnx",
+          "name": "today_icon",
+          "@type": "ImageObject",
+          "sha256": "a26686290a4368f471bca169527aa1e6486fdcf64c8342c098136afc15311b90",
+          "encodingFormat": "image/png"
+        },
+        "encodingFormat": "video/mp4"
+      },
+      "name": "Today",
+      "format": "CHIP-0015",
+      "attributes": [
+        {
+          "value": "Emotional Rap",
+          "trait_type": "Genre"
+        },
+        {
+          "value": "Recovery",
+          "trait_type": "Theme"
+        },
+        {
+          "value": "Somber",
+          "trait_type": "Mood"
+        },
+        {
+          "value": "Realistic Cinematic",
+          "trait_type": "Visual Style"
+        },
+        {
+          "value": "Rick",
+          "trait_type": "Main Character"
+        },
+        {
+          "value": "Abandoned Hospital",
+          "trait_type": "Setting"
+        },
+        {
+          "value": "3:00+ – Full Song",
+          "trait_type": "Runtime"
+        },
+        {
+          "value": "https://x.com/FiendStudios",
+          "trait_type": "Twitter"
+        }
+      ],
+      "collection": {
+        "id": "5300e532-afd5-4b0b-af62-b0528e5df772",
+        "name": "FlipThisMusic",
+        "attributes": [
+          {
+            "type": "icon",
+            "value": "https://defiant-black-skink.myfilebase.com/ipfs/QmTs9fuhhpdXmEHHv6VDZegFrCZaAFa62fYormGfAwD4sy"
+          },
+          {
+            "type": "banner",
+            "value": "https://defiant-black-skink.myfilebase.com/ipfs/QmPAbumDWGVBEpR5F8s4Jt6moxXJyUecWjhYwKFzZD4PY1"
+          },
+          {
+            "type": "description",
+            "value": "music from the mind of Rick the Fiend"
+          }
+        ]
+      },
+      "description": "a day in the life of recovery",
+      "minting_tool": "Fiend Studios",
+      "sensitive_content": false
+    },
+    "license_hash": "eb82b7537e0cbcda27a8ddecf149d18b6726ee33d191cdd2e5f25124d1576271",
+    "license_integrity_state": 1,
+    "edition_number": 6,
+    "edition_total": 10
+  },
+  "collection": {
+    "id": "col1v4s4nmdexj0zt5q3h2e98cua3p65c36y06m8dlwsg6vur6t9qdcs5r20kd",
+    "name": "FlipThisMusic",
+    "sensitive_content": false,
+    "blocked_content": false,
+    "blocked_content_reason": null
+  },
+  "creator": {
+    "name": "The Warded Ones",
+    "minting_blocked": false,
+    "minting_blocked_reason": null
+  },
+  "royalty_percentage": 690
+}

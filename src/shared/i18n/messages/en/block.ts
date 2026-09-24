@@ -1,4 +1,6 @@
 /** Block detail page: details, moved assets, transactions, treemap and coins (src/widgets/block). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   showMore: "Show more",
   loading: "Loading…",
@@ -159,4 +161,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("block", messages);

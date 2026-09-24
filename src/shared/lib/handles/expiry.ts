@@ -4,6 +4,7 @@
  * a watched handle as needing attention.
  */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 const DAY_MS = 86_400_000;
 export const EXPIRING_SOON_DAYS = 30;
 
@@ -18,7 +19,7 @@ export interface ExpiryInfo {
 }
 
 function span(days: number): string {
-  const t = plainT("common");
+  const t = plainT(commonNs);
   if (days < 1) return t("expiry.lessThanDay");
   if (days < 45) return t("expiry.days", { count: days });
   // Years and months are rounded down, never up: a term always reads as at least as short as it
@@ -35,8 +36,8 @@ export function describeExpiry(expiration: number, nowMs = Date.now()): ExpiryIn
   return {
     days,
     text: expired
-      ? plainT("common")("expiry.ago", { span: span(Math.floor(-remainingMs / DAY_MS)) })
-      : plainT("common")("expiry.in", { span: span(Math.floor(remainingMs / DAY_MS)) }),
+      ? plainT(commonNs)("expiry.ago", { span: span(Math.floor(-remainingMs / DAY_MS)) })
+      : plainT(commonNs)("expiry.in", { span: span(Math.floor(remainingMs / DAY_MS)) }),
     soon: !expired && days < EXPIRING_SOON_DAYS,
     expired,
   };

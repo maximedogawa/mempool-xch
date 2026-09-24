@@ -7,6 +7,7 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { AssetIcon } from "./AssetBadge";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * One CAT, resolved through the shared token registry: icon + ticker (name and full
@@ -31,7 +32,7 @@ export function CatRef({
   showId?: boolean;
   className?: string;
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const id = assetId.toLowerCase().replace(/^0x/, "");
   const token = useAsset(id);
   const label = token?.symbol ?? `CAT ${shortId(id, 4, 4)}`;

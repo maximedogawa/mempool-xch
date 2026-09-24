@@ -1,4 +1,6 @@
 /** CAT and NFT detail pages and the shared transaction list (src/widgets/assets). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   empty: "(empty)",
   coinsetNotice:
@@ -61,4 +63,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("assets", messages);

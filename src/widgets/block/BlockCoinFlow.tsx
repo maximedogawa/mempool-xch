@@ -9,12 +9,13 @@ import { routes } from "@/shared/lib/routes";
 import type { CoinRecord } from "@/shared/lib/rpc/types";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Amount, Badge, Button, Card, CardBody, CardHeader, Hash, Skeleton } from "@/shared/ui";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 const GROUPS_PAGE = 25;
 const CHILDREN_SHOWN = 10;
 
 function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boolean }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const { networkConfig } = useSettings();
   const address = puzzleHashToAddress(record.coin.puzzleHash, networkConfig.addressPrefix);
   return (
@@ -36,7 +37,7 @@ function CoinLine({ record, ephemeral }: { record: CoinRecord; ephemeral?: boole
 }
 
 function Group({ group, ephemeral }: { group: CoinFlowGroup; ephemeral: ReadonlySet<string> }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? group.children : group.children.slice(0, CHILDREN_SHOWN);
   const hidden = group.children.length - shown.length;
@@ -91,7 +92,7 @@ export function BlockCoinFlow({
 }) {
   const flow = useMemo(() => (data ? buildCoinFlow(data.additions, data.removals) : null), [data]);
   const [limit, setLimit] = useState(GROUPS_PAGE);
-  const t = useT("block");
+  const t = useT(blockNs);
 
   return (
     <Card>

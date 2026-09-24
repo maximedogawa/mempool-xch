@@ -2,6 +2,8 @@ import { useT } from "@/shared/i18n/useT";
 import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { shortId } from "@/shared/lib/chia/hex";
 import type { PoolGroup, PoolShare } from "@/shared/lib/pools/share";
+import poolsNs from "@/shared/i18n/messages/en/pools";
+import type { MessageKey, Translator } from "@/shared/i18n/translate";
 
 /** Cycled by rank across the largest groups; reuses existing theme tokens rather than adding new ones. */
 const POOL_PALETTE = [
@@ -22,7 +24,7 @@ export function poolColor(rank: number): string {
   return POOL_PALETTE[rank] ?? OTHER_COLOR;
 }
 
-type PoolsT = ReturnType<typeof useT<"pools">>;
+type PoolsT = Translator<MessageKey<(typeof poolsNs)["messages"]>>;
 
 export function groupLabel(group: PoolGroup, t: PoolsT): string {
   if (group.entry) return group.entry.name;
@@ -32,7 +34,7 @@ export function groupLabel(group: PoolGroup, t: PoolsT): string {
 
 /** Decorative horizontal share bar: one segment per leading group plus one for everything else. */
 export function PoolShareBar({ share }: { share: PoolShare }) {
-  const t = useT("pools");
+  const t = useT(poolsNs);
   if (share.totalBlocks === 0) return null;
   const leading = share.groups.slice(0, POOL_PALETTE.length);
   const otherShare = Math.max(0, 1 - leading.reduce((sum, g) => sum + g.share, 0));

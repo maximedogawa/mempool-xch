@@ -1,4 +1,6 @@
 /** Shared UI primitives and charts (src/shared/ui). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   copy: "Copy",
   copyToClipboard: "{label} to clipboard",
@@ -64,4 +66,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("ui", messages);

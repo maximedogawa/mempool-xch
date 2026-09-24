@@ -1,10 +1,11 @@
 "use client";
 
 import { useT } from "@/shared/i18n/useT";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 /** First focusable element on every page: jumps keyboard users past the header to <main>. */
 export function SkipLink() {
-  const t = useT("shell");
+  const t = useT(shellNs);
   return (
     <a
       href="#main"

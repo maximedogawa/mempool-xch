@@ -1,4 +1,6 @@
 /** src/widgets/learn: the Learn index, the article frame and every Learn article. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   index: {
     title: "Learn",
@@ -156,4 +158,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("learn", messages);

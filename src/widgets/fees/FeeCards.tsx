@@ -8,6 +8,7 @@ import { feeBandFor } from "@/shared/lib/mempool/feeBands";
 import { formatInteger } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
 import { CapacityBar, Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
+import feesNs from "@/shared/i18n/messages/en/fees";
 
 const TARGET_LABELS = {
   60: "nextBlock",
@@ -16,7 +17,7 @@ const TARGET_LABELS = {
 } as const satisfies Record<(typeof FEE_TARGETS_S)[number], string>;
 
 export function FeeCards() {
-  const t = useT("fees");
+  const t = useT(feesNs);
   const fee = useFeeEstimate();
   const summary = useMempoolSummary();
   const state = summary.data?.state;

@@ -9,6 +9,7 @@ import { Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
 import { AssetImage } from "@/shared/ui/AssetImage";
 import { useT } from "@/shared/i18n/useT";
 import { useDidHoldings } from "./useDidProfile";
+import didNs from "@/shared/i18n/messages/en/did";
 
 /**
  * The public face of a DID: the MintGarden profile and the collections its NFTs come from.
@@ -16,7 +17,7 @@ import { useDidHoldings } from "./useDidProfile";
  * actually got back.
  */
 export function DidProfileCard({ launcherId, didId }: { launcherId: string; didId: string }) {
-  const t = useT("did");
+  const t = useT(didNs);
   const { profile, collections, isLoading, available } = useDidHoldings(launcherId);
   if (!available)
     return (

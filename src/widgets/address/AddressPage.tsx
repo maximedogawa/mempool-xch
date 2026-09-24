@@ -2,6 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { useDetailId } from "@/shared/hooks/useDetailId";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo } from "react";
 import { puzzleHashToAddress } from "@/shared/lib/chia/address";
@@ -40,9 +41,20 @@ import { useAddressHandle } from "@/widgets/handle/useHandle";
 import { OffersCard } from "@/widgets/offers/OffersCard";
 import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
+import { holdingsFromBalances } from "@/shared/lib/portfolio/valuation";
+import addressNs from "@/shared/i18n/messages/en/address";
+
+/**
+ * The portfolio (chart, prices, Dexie's ticker list) only shows for an address that holds
+ * something, so its code and requests stay out of the page until then.
+ */
+const PortfolioView = dynamic(
+  () => import("@/widgets/portfolio/PortfolioView").then((m) => m.PortfolioView),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full" /> }
+);
 
 function Unavailable({ what }: { what: string }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   return (
     <p className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_10%,transparent)] px-3 py-2 text-xs text-fg-muted">
       {t.rich("unavailable", {
@@ -59,7 +71,7 @@ function Unavailable({ what }: { what: string }) {
 }
 
 export function AddressPage() {
-  const t = useT("address");
+  const t = useT(addressNs);
   const raw = useDetailId("address") ?? "";
   const { networkConfig, endpoints } = useSettings();
   const resolved = useMemo(
@@ -71,6 +83,14 @@ export function AddressPage() {
   // Shares its queries with the profile card below (same key), so a DID costs no extra request.
   const did = useDidHoldings(resolved?.kind === "did" ? resolved.puzzleHash : null);
   const handle = useAddressHandle(resolved?.kind === "address" ? resolved.puzzleHash : null);
+  const xchData = data.xch.data;
+  const catData = data.cats.data;
+  // The portfolio needs both balances; an address holding nothing gets no empty chart.
+  const portfolioHoldings = useMemo(() => {
+    if (resolved?.kind !== "address" || !xchData || !catData) return null;
+    const holdings = holdingsFromBalances(xchData, catData);
+    return holdings.some((h) => h.amount > 0n) ? holdings : null;
+  }, [resolved?.kind, xchData, catData]);
 
   if (!resolved) {
     return (
@@ -269,6 +289,15 @@ export function AddressPage() {
 
       {isDid && did.available ? <AddressNfts owner={{ kind: "did", id: ph }} /> : null}
 
+      {portfolioHoldings ? (
+        <section aria-labelledby="address-portfolio" className="flex flex-col gap-3">
+          <h2 id="address-portfolio" className="text-base font-semibold">
+            {t("portfolioTitle")}
+          </h2>
+          <PortfolioView holdings={portfolioHoldings} compact />
+        </section>
+      ) : null}
+
       {data.indexed &&
       data.cats.data &&
       data.cats.data.some((c) => c.confirmed > 0n || c.pending !== 0n) ? (
@@ -382,7 +411,7 @@ function otherPrefixAddress(ph: string, prefix: "xch" | "txch"): string {
 }
 
 function CoinList({ coins, loading }: { coins: CoinFallback | undefined; loading: boolean }) {
-  const t = useT("address");
+  const t = useT(addressNs);
   if (loading && !coins) return <Skeleton className="h-24 w-full" />;
   const all = coins
     ? [

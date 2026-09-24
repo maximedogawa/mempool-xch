@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, BellOff, Eye, Plus, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellOff, Eye, PieChart, Plus, Volume2, VolumeX } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
 import { formatHandle, parseHandle } from "@/shared/lib/handles/xchandles";
@@ -12,6 +13,7 @@ import {
   sendNotification,
 } from "@/shared/lib/notify/browser";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
+import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
@@ -20,6 +22,7 @@ import { WatchedDidRow } from "./WatchedDidRow";
 import { WatchedHandleRow } from "./WatchedHandleRow";
 import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
+import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /**
  * Follow addresses, transactions, DIDs and XCHandles handles without a Sage wallet: pending
@@ -28,7 +31,7 @@ import { useWatchlist } from "./useWatchlist";
  * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
  */
 export function WatchlistPanel() {
-  const t = useT("watchlist");
+  const t = useT(watchlistNs);
   const { settings, update } = useSettings();
   const { items, add, remove } = useWatchlist();
   const projected = useProjectedBlocks(8);
@@ -98,6 +101,15 @@ export function WatchlistPanel() {
         }
         action={
           <span className="inline-flex items-center gap-2">
+            {items.some((i) => i.kind === "address") ? (
+              <Link
+                href={routes.portfolio()}
+                className="inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-border px-2.5 text-xs font-semibold text-fg-muted hover:text-fg"
+              >
+                <PieChart size={14} aria-hidden="true" />
+                {t("panel.portfolio")}
+              </Link>
+            ) : null}
             <button
               type="button"
               onClick={toggleSound}

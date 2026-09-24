@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/feed";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   latestTransactions: "最新交易",
   paused: "已暂停",
   mempoolLink: "内存池 →",

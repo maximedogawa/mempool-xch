@@ -1,4 +1,6 @@
 /** Status page: health of the services the site depends on (src/widgets/status). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Status",
   tooltip:
@@ -59,4 +61,4 @@ const messages = {
     "The site itself is a static app served from mempoolxch.space (health endpoint <code>/up</code>); everything else is fetched by your browser from the services above. Coinset publishes its own status independently of this page.",
 };
 
-export default messages;
+export default defineNamespace("status", messages);

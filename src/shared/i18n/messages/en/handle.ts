@@ -1,4 +1,6 @@
 /** The XCHandles handle page (src/widgets/handle). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   status: {
     active: "Registered",
@@ -40,4 +42,4 @@ const messages = {
   openOnXchandles: "Open it on XCHandles",
 };
 
-export default messages;
+export default defineNamespace("handle", messages);

@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/arcade";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Arcade",
   titleHint:
     "Juegos creados con el protocolo de juegos de Chia: dos jugadores bloquean una apuesta en un canal de estado en la cadena, juegan fuera de la cadena con equidad criptográfica (póker mental para las cartas) y liquidan el resultado de vuelta en la cadena. Para jugar necesitas una billetera de Chia con el protocolo de juegos; cada juego se abre en el sitio del propio tracker.",

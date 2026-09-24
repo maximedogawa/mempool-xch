@@ -20,6 +20,7 @@ import {
   type ArcadeRoom,
   type RoomPhase,
 } from "./useArcadeRooms";
+import arcadeNs from "@/shared/i18n/messages/en/arcade";
 
 interface Game {
   id: string;
@@ -67,7 +68,7 @@ function GameIcon({ game }: { game: Game }) {
 }
 
 function GameCard({ game }: { game: Game }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const [open, setOpen] = useState(false);
   return (
     <li
@@ -158,7 +159,7 @@ function matchesRoom(room: ArcadeRoom, needle: string): boolean {
 }
 
 function RoomRow({ room }: { room: ArcadeRoom }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   return (
     <li className="flex flex-col gap-0.5 py-1.5 text-xs">
       <span className="flex items-center justify-between gap-2">
@@ -195,7 +196,7 @@ function RoomRow({ room }: { room: ArcadeRoom }) {
  * the snapshot summary when there are no rewrites (Sage export) or the tracker is down.
  */
 function RoomsCard() {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const rooms = useArcadeRooms();
   const [needle, setNeedle] = useState("");
   const snapshot = arcade.rooms.byStatus as Record<string, number>;
@@ -311,7 +312,7 @@ function RoomsCard() {
 
 /** The arcade21 catalogue (snapshot, bun run arcade) and its live rooms: mainnet, behind a flag. */
 function Arcade21Section() {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const games = arcade.games as Game[];
   const [genre, setGenre] = useState<string>("all");
   const genres = [...new Set(games.map((g) => g.genre).filter((g): g is string => !!g))].sort();
@@ -367,7 +368,7 @@ function Arcade21Section() {
 
 /** Mainnet with the arcade21 flag off: say why, and hand over to the network where games run. */
 function PausedCard() {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const { update } = useSettings();
   const target = gamingNetwork();
   const provider = target ? gamingProviderFor(target) : null;
@@ -401,7 +402,7 @@ function PausedCard() {
  * catalogue only while FEATURES.arcadeMainnet is on.
  */
 export function ArcadePage() {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const { settings, networkConfig } = useSettings();
   const provider = gamingProviderFor(settings.network);
 

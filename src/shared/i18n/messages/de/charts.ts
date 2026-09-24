@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/charts";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Diagramme",
   tooltipCoinset:
     "Datenreihen werden bei Bedarf aus Coinset erzeugt – auf unserem Server wird nichts gespeichert. Reihen, die noch kein Anbieter liefern kann, werden nicht aufgeführt.",

@@ -15,6 +15,7 @@ import {
 import { useT } from "@/shared/i18n/useT";
 import { Badge, Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import arcadeNs from "@/shared/i18n/messages/en/arcade";
 import { DUELS_REFRESH_MS, useDuelGames, useDuelLeaderboard, useDuelRooms } from "./useDuels";
 
 const FAUCET_URL = "https://testnet11-faucet.chia.net/";
@@ -91,7 +92,7 @@ function LiveDot({ on, label }: { on: boolean; label: string }) {
 }
 
 function GameTile({ game }: { game: DuelGame }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const [open, setOpen] = useState(false);
   return (
     <li
@@ -134,7 +135,7 @@ function GameTile({ game }: { game: DuelGame }) {
 }
 
 function RoomLine({ room, app, action }: { room: DuelRoom; app: string; action: string }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const tone = room.phase === "live" ? "primary" : room.phase === "open" ? "info" : "neutral";
   return (
     <li className="flex flex-col gap-1 py-2 text-xs">
@@ -172,7 +173,7 @@ function RoomLine({ room, app, action }: { room: DuelRoom; app: string; action: 
 }
 
 function RoomsCard({ provider }: { provider: GamingProvider }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const rooms = useDuelRooms(provider);
   const view = rooms.data;
   return (
@@ -263,7 +264,7 @@ function RoomsCard({ provider }: { provider: GamingProvider }) {
 }
 
 function LeaderboardCard({ provider }: { provider: GamingProvider }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const board = useDuelLeaderboard(provider);
   const rows: LeaderboardRow[] = board.data?.items ?? [];
   return (
@@ -337,7 +338,7 @@ function LeaderboardCard({ provider }: { provider: GamingProvider }) {
  * opens the provider's own app, which holds the wallet connection and the state channel.
  */
 export function DuelsView({ provider }: { provider: GamingProvider }) {
-  const t = useT("arcade");
+  const t = useT(arcadeNs);
   const games = useDuelGames(provider);
   const rooms = useDuelRooms(provider);
   const board = useDuelLeaderboard(provider);

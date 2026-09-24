@@ -8,18 +8,18 @@ import {
   WS_URL,
   type ApiEndpoint,
 } from "@/shared/config/apiReference";
-import apiEnglish from "@/shared/i18n/messages/en/api";
 import { useT } from "@/shared/i18n/useT";
 import { Badge, Card, CardBody, CardHeader, CopyButton } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { routes } from "@/shared/lib/routes";
+import apiNs from "@/shared/i18n/messages/en/api";
 
 function curl(endpoint: ApiEndpoint): string {
   return `curl -s -X POST ${RPC_BASE}/${endpoint.method} \\\n  -H "content-type: application/json" \\\n  -d '${endpoint.body}'`;
 }
 
 function EndpointRow({ endpoint }: { endpoint: ApiEndpoint }) {
-  const t = useT("api");
+  const t = useT(apiNs);
   const [open, setOpen] = useState(false);
   return (
     <li className="border-b border-border/60 py-2.5 last:border-b-0">
@@ -55,7 +55,7 @@ function EndpointRow({ endpoint }: { endpoint: ApiEndpoint }) {
 
 const SITE = "https://mempoolxch.space";
 
-type EmbedId = keyof typeof apiEnglish.embeds.items;
+type EmbedId = keyof typeof apiNs.messages.embeds.items;
 
 const EMBEDS: { id: EmbedId; path: string; height: number }[] = [
   { id: "blocks", path: "/embed/blocks.html", height: 120 },
@@ -66,7 +66,7 @@ const EMBEDS: { id: EmbedId; path: string; height: number }[] = [
 
 function snippet(e: (typeof EMBEDS)[number], theme: "dark" | "light"): string {
   const sep = e.path.includes("?") ? "&" : "?";
-  return `<iframe src="${SITE}${e.path}${sep}theme=${theme}" width="100%" height="${e.height}" style="border:0;border-radius:10px" loading="lazy" title="${apiEnglish.embeds.items[e.id].title} · mempoolxch.space"></iframe>`;
+  return `<iframe src="${SITE}${e.path}${sep}theme=${theme}" width="100%" height="${e.height}" style="border:0;border-radius:10px" loading="lazy" title="${apiNs.messages.embeds.items[e.id].title} · mempoolxch.space"></iframe>`;
 }
 
 /**
@@ -74,7 +74,7 @@ function snippet(e: (typeof EMBEDS)[number], theme: "dark" | "light"): string {
  * The snippet itself stays English (its iframe title lands on someone else's site).
  */
 function Embeds() {
-  const t = useT("api");
+  const t = useT(apiNs);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const badge = `![Chia tx status](${SITE}/api/badge/tx/<tx id>.svg)`;
   return (
@@ -159,7 +159,7 @@ function Embeds() {
 const code = (c: ReactNode) => <span className="mono">{c}</span>;
 
 export function ApiPage() {
-  const t = useT("api");
+  const t = useT(apiNs);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header className="flex flex-col gap-2">

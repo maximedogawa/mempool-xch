@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/watchlist";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   common: {
     checking: "检查中…",
     watching: "关注中",
@@ -11,6 +11,7 @@ const messages: Translation<typeof en> = {
     block: "区块 {height}",
   },
   panel: {
+    portfolio: "投资组合",
     title: "关注列表",
     titleCount: "关注列表 · {count}",
     muteChime: "关闭关注列表提示音",

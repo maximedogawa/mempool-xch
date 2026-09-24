@@ -1,6 +1,7 @@
 import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
 import { plainT } from "@/shared/i18n/plain";
 import type { CompactAssets, TxKindHint } from "./types";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export interface PrimaryAsset {
   kind: TxKindHint;
@@ -43,13 +44,13 @@ export function formatPrimaryAsset(asset: PrimaryAsset, ticker?: string | null):
     case "cat":
       return `${formatCat(asset.amount)} ${ticker ?? "CAT"}`;
     case "nft":
-      return plainT("common")("assets.nfts", { count: asset.amount });
+      return plainT(commonNs)("assets.nfts", { count: asset.amount });
     case "did":
-      return plainT("common")("assets.dids", { count: asset.amount });
+      return plainT(commonNs)("assets.dids", { count: asset.amount });
     case "singleton":
-      return plainT("common")("assets.singletons", { count: asset.amount });
+      return plainT(commonNs)("assets.singletons", { count: asset.amount });
     case "pool":
-      return plainT("common")("assets.poolClaims", { count: asset.amount });
+      return plainT(commonNs)("assets.poolClaims", { count: asset.amount });
     default:
       return formatAmount(asset.amount);
   }
@@ -61,7 +62,7 @@ export function formatAssets(
   tickers: Record<string, string | undefined> = {}
 ): string {
   const assets = safeAssets(input);
-  const t = plainT("common");
+  const t = plainT(commonNs);
   const parts: string[] = [];
   assets.cats.forEach((c) =>
     parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`)

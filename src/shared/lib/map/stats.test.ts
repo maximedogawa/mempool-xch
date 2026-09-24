@@ -5,16 +5,23 @@ import snapshot from "./dashboardSnapshot.json";
 import {
   concentration,
   countryRows,
+  countsOf,
+  diffCountries,
+  historyPoints,
   regionRows,
+  scanRows,
   transportRows,
   UNMAPPED,
   versionBreakdown,
+  versionHistoryPoints,
 } from "./stats";
 
 const SNAPSHOT = snapshot as DashboardSnapshot;
 
 function make(partial: Partial<DashboardSnapshot>): DashboardSnapshot {
   return {
+    schema: 2,
+    asns: null,
     source: "test",
     observedAt: "2026-09-19T22:06:28.695Z",
     network: "mainnet",
@@ -157,5 +164,96 @@ describe("concentration", () => {
 
   test("an empty snapshot has no leader", () => {
     expect(concentration([])).toEqual({ countriesForHalf: 0, topShare: 0, topLabel: null });
+  });
+});
+
+describe("seeder-scan fallback rows", () => {
+  const geo = (countryCode: string, country: string) => ({
+    countryCode,
+    country,
+    city: null,
+    lat: 0,
+    lon: 0,
+    org: null,
+  });
+
+  test("groups located nodes by country code, with the crawler's names and last seen", () => {
+    const rows = scanRows({
+      version: 1,
+      nodes: {
+        a: { ip: "a", firstSeen: 1, lastSeen: 10, hits: 1, geo: geo("DE", "Germany") },
+        b: { ip: "b", firstSeen: 1, lastSeen: 30, hits: 1, geo: geo("DE", "Germany") },
+        c: { ip: "c", firstSeen: 1, lastSeen: 20, hits: 1, geo: geo("RU", "Russian Federation") },
+        d: { ip: "d", firstSeen: 1, lastSeen: 40, hits: 1, geo: null },
+        e: { ip: "e", firstSeen: 1, lastSeen: 50, hits: 1 },
+      },
+    });
+    expect(rows.map((row) => [row.key, row.label, row.nodes, row.lastSeen])).toEqual([
+      ["DE", "Germany", 2, 30],
+      ["RU", "Russia", 1, 20],
+    ]);
+    // Shares are of the located nodes only; unplaced and pending ones do not count.
+    expect(rows[0]).toMatchObject({ share: 2 / 3, rank: 1, region: "Europe", code: "DE" });
+    expect(rows[0]!.lat).not.toBeNull();
+  });
+
+  test("an unknown code keeps GeoJS's name and is unmapped", () => {
+    const rows = scanRows({
+      version: 1,
+      nodes: { a: { ip: "a", firstSeen: 1, lastSeen: 1, hits: 1, geo: geo("XX", "Atlantis") } },
+    });
+    expect(rows[0]).toMatchObject({ label: "Atlantis", region: UNMAPPED, lat: null });
+  });
+});
+
+describe("entrance diff", () => {
+  const rows = [
+    { key: "DE", nodes: 5 },
+    { key: "US", nodes: 3 },
+    { key: "FR", nodes: 1 },
+  ];
+
+  test("a first visit plays every country in", () => {
+    expect([...diffCountries(null, rows).values()]).toEqual(["new", "new", "new"]);
+  });
+
+  test("a newer state plays only new and changed countries", () => {
+    const diff = diffCountries({ DE: 5, US: 2 }, rows);
+    expect(Object.fromEntries(diff)).toEqual({ US: "changed", FR: "new" });
+    expect(diffCountries(countsOf(rows), rows).size).toBe(0);
+  });
+});
+
+describe("history points", () => {
+  test("population series skip gaps and carry their sample time", () => {
+    const history = {
+      start: 1_000,
+      step: 10,
+      total: [5, null, 7],
+      capacity: [1, 1, 1],
+      ipv4: [3, 3, 3],
+      ipv6: [2, 2, 2],
+    };
+    expect(historyPoints(history, "total")).toEqual([
+      { t: 1_000, v: 5 },
+      { t: 1_020, v: 7 },
+    ]);
+    expect(historyPoints(null, "total")).toEqual([]);
+  });
+
+  test("version history stacks with zeros for absent versions and drops empty samples", () => {
+    const result = versionHistoryPoints({
+      start: 0,
+      step: 10,
+      series: [
+        { label: "2.7.4", values: [null, null, 4] },
+        { label: "other", values: [null, 2, 3] },
+      ],
+    });
+    expect(result.labels).toEqual(["2.7.4", "other"]);
+    expect(result.points).toEqual([
+      { t: 10, values: [0, 2] },
+      { t: 20, values: [4, 3] },
+    ]);
   });
 });

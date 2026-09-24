@@ -7,6 +7,7 @@ import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { findProjectedPosition, type ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { feeBandFor, type FeeBand } from "@/shared/lib/mempool/feeBands";
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type PendingPhase =
   /** Sage reports it pending but the summarised mempool has not seen it yet. */
@@ -103,7 +104,7 @@ export function trackPending(
 }
 
 export function pendingLine(s: PendingStatus): string {
-  const t = plainT("common");
+  const t = plainT(commonNs);
   switch (s.phase) {
     case "broadcast":
       return t("pending.broadcast");

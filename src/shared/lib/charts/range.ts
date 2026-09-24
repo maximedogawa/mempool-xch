@@ -1,5 +1,6 @@
 /** Chart range presets, shared by every chart on /charts. */
 import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type RangeId = "6h" | "24h" | "7d" | "30d" | "1y" | "all";
 
@@ -25,7 +26,7 @@ export const RANGES: readonly RangeDef[] = [
     id: "all",
     // A getter so the label follows the UI language at render time.
     get label() {
-      return plainT("common")("range.all");
+      return plainT(commonNs)("range.all");
     },
     ms: null,
     windows: 24,

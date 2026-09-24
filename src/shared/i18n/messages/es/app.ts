@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/app";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   invalidCoin: {
     title: "ID de moneda no válido",
     description: "Un ID de moneda son 32 bytes en hex, con o sin prefijo 0x.",

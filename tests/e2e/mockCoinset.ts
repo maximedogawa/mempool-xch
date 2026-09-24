@@ -657,9 +657,24 @@ export async function mockCoinset(page: Page, { consent = true }: { consent?: bo
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+  await mockXchTicker(page);
 }
 
-function dexieTicker(assetId: string, price: string, d1: string, d7: string, d30: string) {
+/** Gate.io's XCH/USDT ticker, asked by every page that shows a dollar value: $2, up 5 %. */
+export async function mockXchTicker(page: Page) {
+  await page.route(/https:\/\/api\.gateio\.ws\/api\/v4\/spot\/tickers.*/, (route) =>
+    json(route, [{ currency_pair: "XCH_USDT", last: "2", change_percentage: "5" }])
+  );
+}
+
+function dexieTicker(
+  assetId: string,
+  price: string,
+  d1: string,
+  d7: string,
+  d30: string,
+  book: { bid: string; ask: string; low_30d: string; high_30d: string } | null = null
+) {
   return {
     ticker_id: `${assetId}_xch`,
     base_currency: assetId,
@@ -670,12 +685,18 @@ function dexieTicker(assetId: string, price: string, d1: string, d7: string, d30
     target_volume_30d: d30,
     bid: null,
     ask: null,
+    ...book,
   };
 }
 
 /** Busy trades every day, quiet only within the month, silent has a price but no trades. */
 const DEXIE_TICKERS = [
-  dexieTicker(TOKEN_ACTIVE, "0.0125", "42.5", "310", "2210.9"),
+  dexieTicker(TOKEN_ACTIVE, "0.0125", "42.5", "310", "2210.9", {
+    bid: "0.012",
+    ask: "0.013",
+    low_30d: "0.01",
+    high_30d: "0.015",
+  }),
   dexieTicker(TOKEN_QUIET, "3.5", "0", "0", "7.25"),
   dexieTicker(TOKEN_SILENT, "0.5", "0", "0", "0"),
 ];

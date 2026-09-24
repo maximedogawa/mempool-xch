@@ -11,9 +11,10 @@ import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { NftEventRow } from "./NftEventRow";
 import { useNftEvents, useTopCollections } from "./useNftSection";
+import nftNs from "@/shared/i18n/messages/en/nft";
 
 export function NftHomePage() {
-  const t = useT("nft");
+  const t = useT(nftNs);
   const collections = useTopCollections("30", 6);
   const activity = useNftEvents(undefined, 8);
   const mints = useNftEvents(["mint"], 6);

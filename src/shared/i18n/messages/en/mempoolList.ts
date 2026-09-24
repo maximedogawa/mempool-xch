@@ -1,4 +1,6 @@
 /** The /mempool page: stats and the sortable list of pending bundles (src/widgets/mempoolList). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   spendBundles: "Spend bundles",
   summarised: "{count} summarised",
@@ -32,4 +34,4 @@ const messages = {
   showMore: "Show more",
 };
 
-export default messages;
+export default defineNamespace("mempoolList", messages);

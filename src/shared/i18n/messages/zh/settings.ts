@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/settings";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "设置",
   channel: "<strong>实时通道：{name}。</strong>{detail} 所有数据均直接从端点读取。",
   network: {
@@ -35,9 +35,13 @@ const messages: Translation<typeof en> = {
   appearance: {
     title: "外观",
     theme: "主题",
-    dark: "深色（mempool.space 风格）",
+    dark: "深色",
+    darkHint: "mempool.space 风格",
     light: "浅色",
-    system: "跟随系统",
+    lightHint: "明亮清晰",
+    system: "系统",
+    systemHint: "跟随设备",
+    sageLocked: "在 Sage 中，应用跟随钱包的主题（当前为{theme}）。请在 Sage 的设置中更改。",
     language: "语言",
     languageAuto: "自动（浏览器语言）",
     chime: "确认提示音",

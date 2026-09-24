@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/did";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Perfil",
   mainnetOnly: "Los perfiles y las tenencias de NFT vienen de MintGarden, que solo indexa mainnet.",
   avatarAlt: "Avatar del DID",

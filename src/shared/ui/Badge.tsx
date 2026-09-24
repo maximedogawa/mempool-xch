@@ -5,6 +5,7 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import type { TxSummaryKind } from "@/shared/lib/rpc/types";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 type Tone =
   | "neutral"
@@ -63,7 +64,7 @@ const KIND_TONES: Record<TxKindHint, Tone> = {
 };
 
 export function KindBadge({ kind, className }: { kind: TxKindHint; className?: string }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   return (
     <Badge tone={KIND_TONES[kind]} className={className}>
       {t(`kind.${kind}`)}
@@ -85,7 +86,7 @@ const SUMMARY_TONES: Record<TxSummaryKind, Tone> = {
 };
 
 export function SummaryKindBadge({ kind, className }: { kind: TxSummaryKind; className?: string }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   return (
     <Badge tone={SUMMARY_TONES[kind]} className={className}>
       {t(`summaryKind.${kind}`)}
@@ -98,7 +99,7 @@ export function StatusBadge({
 }: {
   status: "pending" | "confirmed" | "removed" | "unknown";
 }) {
-  const t = useT("ui");
+  const t = useT(uiNs);
   const tone = (
     {
       pending: "warning",

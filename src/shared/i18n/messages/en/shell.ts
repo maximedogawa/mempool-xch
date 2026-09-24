@@ -1,4 +1,6 @@
 /** Header, footer, navigation and the app frame (src/widgets/shell). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   home: "mempoolxch.space home",
   primaryNav: "Primary",
@@ -16,6 +18,7 @@ const messages = {
     market: "Market",
     map: "Map",
     tokens: "Tokens",
+    portfolio: "Portfolio",
     nfts: "NFTs",
     fees: "Fees",
     pools: "Pools",
@@ -74,4 +77,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("shell", messages);

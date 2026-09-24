@@ -11,6 +11,7 @@ import { formatAge, formatEta } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import { fetchWalletPending, type WalletCoinRef, type WalletTx } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
+import { useNftSensitivity } from "@/shared/lib/nft/useNftSensitivity";
 import { walletPendingKey } from "@/shared/lib/sage/usePendingIds";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import {
@@ -27,6 +28,7 @@ import { useSettings } from "@/shared/providers/SettingsProvider";
 import { AssetIcon, Button, Card, CardBody, CardHeader, Hash } from "@/shared/ui";
 import { useT } from "@/shared/i18n/useT";
 import { kindOf, WalletAmount } from "./amounts";
+import walletNs from "@/shared/i18n/messages/en/wallet";
 
 /** Confirmed rows stay on the dashboard this long. */
 const KEEP_CONFIRMED_MS = 3 * 60_000;
@@ -66,7 +68,7 @@ function MiniQueue({ status }: { status: PendingStatus }) {
 }
 
 function StatusLine({ status, confirmed }: { status: PendingStatus; confirmed: Confirmed | null }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   if (confirmed) {
     return (
       <span className="inline-flex flex-wrap items-center gap-1.5 text-primary">
@@ -139,7 +141,10 @@ function PendingRow({
   const received = tx.created.filter(mine);
   const sent = tx.spent.filter(mine);
   const primary = sent[0] ?? received[0];
-  const t = useT("wallet");
+  const primarySensitivity = useNftSensitivity(
+    primary && kindOf(primary) === "nft" ? primary.assetId : null
+  );
+  const t = useT(walletNs);
   return (
     <li
       className={cn(
@@ -159,6 +164,7 @@ function PendingRow({
             assetId={primary.assetId ?? undefined}
             iconUrl={primary.iconUrl}
             size={22}
+            sensitivity={primarySensitivity}
           />
         ) : (
           <Wallet size={18} aria-hidden="true" />
@@ -214,7 +220,7 @@ function PendingRow({
  * one lands in a block. Renders nothing outside Sage.
  */
 export function WalletPending() {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage, walletAddress } = useSage();
   const { client, endpoints, settings, update } = useSettings();
   const txBatch = useLiveValue("txBatch");

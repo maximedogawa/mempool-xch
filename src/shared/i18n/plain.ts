@@ -3,17 +3,22 @@
  * whose messages I18nProvider has loaded before switching to it.
  */
 import { getActiveLocale } from "./active";
-import { cachedMessages, englishMessages } from "./messages";
-import type { EnglishMessages, Namespace } from "./messages/types";
-import { createTranslator, type MessageKey, type MessageTree, type Translator } from "./translate";
+import { cachedMessages } from "./messages";
+import {
+  createTranslator,
+  type MessageKey,
+  type MessageTree,
+  type NamespaceDef,
+  type Translator,
+} from "./translate";
 
-export function plainT<N extends Namespace>(
-  namespace: N
-): Translator<MessageKey<EnglishMessages[N]>> {
+export function plainT<N extends string, M>(
+  namespace: NamespaceDef<N, M>
+): Translator<MessageKey<M>> {
   const locale = getActiveLocale();
   return createTranslator(
     locale,
-    cachedMessages(locale)?.[namespace] as MessageTree | undefined,
-    englishMessages[namespace] as MessageTree
+    (cachedMessages(locale) as Record<string, MessageTree> | null | undefined)?.[namespace.name],
+    namespace.messages as MessageTree
   );
 }

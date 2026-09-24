@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/api";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "API-Referenz",
   titleHint:
     "mempoolxch.space hat keine eigene Server-API: Jede Seite, die Sie sehen, liest einen Chain-Endpunkt direkt aus Ihrem Browser, genau wie diese App. Diese Seite dokumentiert die Aufrufe, die die App selbst macht, damit Sie sie ebenfalls nutzen können – gegen den öffentlichen Endpunkt von Coinset oder Ihren eigenen Node.",

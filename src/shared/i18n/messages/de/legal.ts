@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/legal";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   page: {
     navLabel: "Rechtliche Seiten",
     nav: {
@@ -13,41 +13,6 @@ const messages: Translation<typeof en> = {
     lastUpdated: "Stand: {date}",
     translationNote:
       "Diese Übersetzung dient nur der Information. Bei Abweichungen gilt die englische Fassung.",
-  },
-  consent: {
-    title: "Cookies und lokaler Speicher",
-    intro:
-      "Diese Website speichert in Ihrem Browser nur, was sie zum Funktionieren braucht. Nichts für Analyse oder Werbung wird geladen, sofern Sie es hier nicht erlauben.",
-    cookiePolicy: "Cookie-Richtlinie",
-    privacyPolicy: "Datenschutzerklärung",
-    signal:
-      "Ihr Browser sendet ein Do-Not-Track- oder Global-Privacy-Control-Signal, daher bleiben Analyse und Werbung deaktiviert.",
-    categoriesLegend: "Kategorien",
-    categories: {
-      necessary: {
-        label: "Unbedingt erforderlich",
-        detail:
-          "Ihre Einstellungen, Caches und diese Auswahl, gespeichert in Ihrem Browser. Immer aktiv.",
-      },
-      analytics: {
-        label: "Analyse",
-        detail: "Anonyme Nutzungsstatistiken. Derzeit nicht verwendet.",
-      },
-      advertising: {
-        label: "Werbung",
-        detail: "Werbung und Werbemessung. Derzeit nicht verwendet.",
-      },
-    },
-    rejectAll: "Alle ablehnen",
-    saveChoice: "Auswahl speichern",
-    acceptAll: "Alle akzeptieren",
-    close: "Schließen",
-    settingsButton: "Cookie-Einstellungen",
-  },
-  disclaimer: {
-    label: "Haftungshinweis",
-    text: "Alpha-Software, die sich noch stark verändert. Keine Finanzberatung – prüfen Sie alles in Ihrer eigenen Wallet. <link>Nutzungsbedingungen</link>",
-    dismiss: "Haftungshinweis schließen",
   },
   terms: {
     title: "Nutzungsbedingungen",
@@ -197,12 +162,10 @@ const messages: Translation<typeof en> = {
       },
       noProxy:
         "Der Server ruft keine Chain- oder Asset-Daten in Ihrem Auftrag ab: Er liefert nur die Anwendung selbst aus (HTML, Skripte, Styles). Jede Abfrage, die Sie vornehmen, ist eine Anfrage Ihres eigenen Browsers an Coinset, Dexie, MintGarden, XCHandles, öffentliche Marktdatenquellen oder Ihren eigenen Node, wie in den folgenden Abschnitten beschrieben.",
-      market:
-        "Die Seite „Markt“ liest öffentliche Orderbücher von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) sowie öffentliche XCH-Offers für ByteCash (BYC, den USD-Stablecoin von Circuit) und wUSDC.b von Dexie. Diese Anfragen enthalten keine Zugangsdaten zu Konten. Eine Quelle kann nicht verfügbar oder ratenbegrenzt sein; die Seite kennzeichnet sie dann als veraltet und nimmt sie aus ihrem Gesamtwert heraus.",
     },
     storage: {
       title: "3. Speicherung in Ihrem Browser",
-      body: "Die Website legt einige Einträge im lokalen Speicher Ihres Browsers ab: Ihre Einstellungen (Netzwerk, Node-Adresse, Design, Sprache, Töne, ob Sie Browser-Benachrichtigungen aktiviert haben), einen Cache der Asset-Liste, einen kurzen Mempool-Verlauf, der aufgezeichnet wird, während die Seite geöffnet ist, Ihre Beobachtungsliste mit Adressen und Transaktions-IDs, falls Sie welche hinzufügen, welche Sage-Berechtigungen Sie abgelehnt haben, und Ihre Cookie-Auswahl. Sie bleiben auf Ihrem Gerät und werden nicht an den Betreiber gesendet. Sie sind unbedingt erforderlich, um bereitzustellen, was Sie angefordert haben (§ 25 Abs. 2 Nr. 2 TDDDG). Sie können sie jederzeit in Ihren Browsereinstellungen löschen. Einzelheiten finden Sie in der <link>Cookie-Richtlinie</link>.",
+      body: "Die Website legt einige Einträge im lokalen Speicher Ihres Browsers ab: Ihre Einstellungen (Netzwerk, Node-Adresse, Design, Sprache, Töne, ob Sie Browser-Benachrichtigungen aktiviert haben), einen Cache der Asset-Liste, einen kurzen Mempool-Verlauf, der aufgezeichnet wird, während die Seite geöffnet ist, Ihre Beobachtungsliste mit Adressen und Transaktions-IDs, falls Sie welche hinzufügen, Ihre Filter für die Ansicht des nächsten Blocks auf der Übersicht, die zuletzt auf der Netzwerkkarte angezeigten Node-Zahlen pro Land, welche Sage-Berechtigungen Sie abgelehnt haben, und Ihre Cookie-Auswahl. Sie bleiben auf Ihrem Gerät und werden nicht an den Betreiber gesendet. Sie sind unbedingt erforderlich, um bereitzustellen, was Sie angefordert haben (§ 25 Abs. 2 Nr. 2 TDDDG). Sie können sie jederzeit in Ihren Browsereinstellungen löschen. Einzelheiten finden Sie in der <link>Cookie-Richtlinie</link>.",
       notifications:
         "Wenn Sie Browser-Benachrichtigungen für Ihre Beobachtungsliste aktivieren, erteilt Ihr Browser diese Berechtigung dieser Website, und Sie können sie dort jederzeit widerrufen; der Betreiber erfährt nie, ob Sie sie aktiviert haben.",
     },
@@ -222,7 +185,11 @@ const messages: Translation<typeof en> = {
         coinset:
           "Coinset (api.coinset.org): alle Chain-Daten – der Mempool, Blöcke, Transaktionen, Adressen, Coins und Assets, die Sie ansehen, sowie die Live-Aktualisierungen –, sofern Sie unten keinen anderen Node eingeben.",
         node: "Ein Full Node, den Sie in den Einstellungen eingeben: Alle Chain-Daten kommen dann von dort statt von Coinset.",
-        map: "Nur während die Seite „Netzwerkkarte“ geöffnet ist: Cloudflare DNS (cloudflare-dns.com, mit dns.google als Ausweichlösung) beantwortet DNS-Anfragen für die Chia-Introducer, und GeoJS (get.geojs.io) schätzt den Standort der Node-Adressen, die diese Antworten enthalten. Zur Abfrage werden nur Node-Adressen gesendet, niemals Ihre; die ermittelten Adressen werden eine Woche lang im lokalen Speicher Ihres Browsers aufbewahrt.",
+        map: "Seite „Netzwerkkarte“: Ihre Node-Statistiken sind ein Snapshot des öffentlichen Peer-Info-Dashboards von Chia Network (dashboard.chia.net), der mit dieser Website ausgeliefert wird; für ihre Anzeige wird also niemand kontaktiert. Nur wenn dieser Snapshot fehlt, älter als 30 Tage ist oder nicht zum gewählten Netzwerk gehört, weicht die Seite, solange sie geöffnet ist, auf einen laufenden Scan aus: Cloudflare DNS (cloudflare-dns.com, mit dns.google als Ausweichlösung) beantwortet DNS-Anfragen für die Chia-Introducer, und GeoJS (get.geojs.io) schätzt den Standort der Node-Adressen, die diese Antworten enthalten; die ermittelten Adressen werden eine Woche lang im lokalen Speicher Ihres Browsers aufbewahrt. Richten Sie die Einstellungen auf Ihren eigenen Node aus, werden auch die Adressen seiner verbundenen Peers an GeoJS gesendet. Zur Abfrage werden nur Node-Adressen gesendet, niemals Ihre. Außerdem merkt sich die Seite im lokalen Speicher die zuletzt gesehenen Länderzahlen, um Änderungen hervorzuheben.",
+        market:
+          "Nur während die Seite „Markt“ geöffnet ist: die öffentlichen Marktdaten-APIs von Gate.io (api.gateio.ws), OKX (www.okx.com) und HTX (api.huobi.pro) für XCH-Orderbücher und die letzten Trades, alle 5 Sekunden, sowie Dexie (api.dexie.space) für offene XCH-Offers gegen die Stablecoins BYC, wUSDC.b, wUSDC und wUSDT. Die Anfragen enthalten keine Konto-, Schlüssel- oder Wallet-Daten; die Börsen sehen sie wie jeden anderen Aufruf ihrer API.",
+        xchPrice:
+          "XCH-Preis: Auf den Seiten Token, Portfolio und Adresse sowie für den Preisverlauf der Seite „Charts“ stammen der XCH/USD-Preis und seine 24-Stunden-Änderung von der öffentlichen Marktdaten-API von Gate.io (api.gateio.ws), höchstens einmal pro Minute abgefragt. Die Anfragen enthalten keine Konto-, Schlüssel- oder Wallet-Daten.",
       },
       basis:
         "Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse ist die Anzeige der von Ihnen angeforderten Blockchain-Inhalte. Einige dieser Anbieter verarbeiten Daten möglicherweise außerhalb des Europäischen Wirtschaftsraums, zum Beispiel in den Vereinigten Staaten, wo das Datenschutzniveau niedriger sein kann. Es gelten deren eigene Datenschutzerklärungen.",
@@ -303,6 +270,16 @@ const messages: Translation<typeof en> = {
         watchlist: {
           purpose: "Adressen und Transaktions-IDs, die Sie beobachten möchten",
           lifetime: "Bis Sie sie entfernen oder löschen",
+        },
+        goggles: {
+          purpose:
+            "Ihre Filter und Ansichtseinstellungen für die Ansicht des nächsten Blocks auf der Übersicht",
+          lifetime: "Bis Sie die Filter zurücksetzen oder den Eintrag löschen",
+        },
+        mapSeen: {
+          purpose:
+            "Die zuletzt auf der Netzwerkkarte angezeigten Node-Zahlen pro Land, damit nur Änderungen animiert werden",
+          lifetime: "Bis Sie den Eintrag löschen; mit jedem neueren Snapshot ersetzt",
         },
         sageRefused: {
           purpose:

@@ -1,4 +1,6 @@
 /** Offer lists and the offer detail page (src/widgets/offers). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   status: {
     open: "Open",
@@ -77,4 +79,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("offers", messages);

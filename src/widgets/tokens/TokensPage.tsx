@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTokenList } from "@/shared/api/useTokenList";
-import { formatNumber } from "@/shared/lib/chia/amounts";
+import { formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import {
@@ -13,7 +13,9 @@ import {
   type TokenRow,
   type TokenSort,
 } from "@/shared/lib/tokens/listing";
-import { formatXchFigure, type VolumeWindow } from "@/shared/lib/tokens/markets";
+import { formatUsd, formatUsdCompact } from "@/shared/lib/portfolio/format";
+import { formatXchFigure, spreadRatio, type VolumeWindow } from "@/shared/lib/tokens/markets";
+import { useXchPrice } from "@/shared/api/useXchPrice";
 import { AssetIcon } from "@/shared/ui/AssetBadge";
 import {
   Button,
@@ -30,6 +32,7 @@ import {
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { useT } from "@/shared/i18n/useT";
 import { useTokenMarkets } from "./useTokenMarkets";
+import tokensNs from "@/shared/i18n/messages/en/tokens";
 
 const PAGE = 25;
 
@@ -79,22 +82,45 @@ function Choice<T extends string>({
   );
 }
 
-function Figure({ value, loading }: { value: number | null; loading: boolean }) {
+function Figure({
+  value,
+  loading,
+  usd,
+  compact = false,
+}: {
+  value: number | null;
+  loading: boolean;
+  /** XCH/USD: adds the dollar figure under the XCH one. */
+  usd?: number | null;
+  compact?: boolean;
+}) {
   if (loading) return <Skeleton className="ml-auto h-4 w-14" />;
   if (value === null || value === 0) return <span className="text-fg-faint">—</span>;
-  return <>{formatXchFigure(value)}</>;
+  return (
+    <span className="flex flex-col items-end">
+      <span>{formatXchFigure(value)}</span>
+      {usd ? (
+        <span className="text-xs text-fg-faint">
+          {compact ? formatUsdCompact(value * usd) : formatUsd(value * usd)}
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 function TokenTableRow({
   row,
   period,
   marketsLoading,
+  usd,
 }: {
   row: TokenRow;
   period: VolumeWindow;
   marketsLoading: boolean;
+  usd: number | null;
 }) {
   const { token, market } = row;
+  const spread = market ? spreadRatio(market) : null;
   return (
     <Tr>
       <Td>
@@ -110,7 +136,7 @@ function TokenTableRow({
         </a>
       </Td>
       <Td className="tabular text-right">
-        <Figure value={market?.lastPriceXch ?? null} loading={marketsLoading} />
+        <Figure value={market?.lastPriceXch ?? null} loading={marketsLoading} usd={usd} />
       </Td>
       {WINDOWS.map((w) => (
         <Td
@@ -120,20 +146,44 @@ function TokenTableRow({
             w === period ? "font-medium text-fg" : "hidden text-fg-muted md:table-cell"
           )}
         >
-          <Figure value={market?.volumeXch[w] ?? null} loading={marketsLoading} />
+          <Figure
+            value={market?.volumeXch[w] ?? null}
+            loading={marketsLoading}
+            usd={w === period ? usd : null}
+            compact
+          />
         </Td>
       ))}
       <Td className="tabular hidden text-right sm:table-cell">
-        <Figure value={row.liquidityXch} loading={false} />
+        <Figure value={row.liquidityXch} loading={false} usd={usd} compact />
+      </Td>
+      <Td className="tabular hidden text-right text-fg-muted lg:table-cell">
+        {marketsLoading ? (
+          <Skeleton className="ml-auto h-4 w-20" />
+        ) : market?.low30dXch && market.high30dXch ? (
+          `${formatXchFigure(market.low30dXch)}–${formatXchFigure(market.high30dXch)}`
+        ) : (
+          <span className="text-fg-faint">—</span>
+        )}
+      </Td>
+      <Td className="tabular hidden text-right text-fg-muted lg:table-cell">
+        {marketsLoading ? (
+          <Skeleton className="ml-auto h-4 w-10" />
+        ) : spread !== null ? (
+          formatPercent(spread, 1)
+        ) : (
+          <span className="text-fg-faint">—</span>
+        )}
       </Td>
     </Tr>
   );
 }
 
 export function TokensPage() {
-  const t = useT("tokens");
+  const t = useT(tokensNs);
   const tokens = useTokenList();
   const markets = useTokenMarkets();
+  const xchPrice = useXchPrice();
   const [filter, setFilter] = useState<TokenFilter>("traded");
   const [sort, setSort] = useState<TokenSort>("volume");
   const [period, setPeriod] = useState<VolumeWindow>("d30");
@@ -279,6 +329,13 @@ export function TokensPage() {
                       </Th>
                     ))}
                     <Th className="hidden text-right sm:table-cell">{t("colLiquidity")}</Th>
+                    <Th className="hidden text-right lg:table-cell">{t("colRange")}</Th>
+                    <Th className="hidden text-right lg:table-cell">
+                      <span className="inline-flex items-center gap-1">
+                        {t("colSpread")}
+                        <Tooltip text={t("spreadHint")} />
+                      </span>
+                    </Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -288,6 +345,7 @@ export function TokensPage() {
                       row={row}
                       period={period}
                       marketsLoading={markets.isLoading}
+                      usd={xchPrice.data?.usd ?? null}
                     />
                   ))}
                 </tbody>

@@ -1,4 +1,6 @@
 /** Pools page: farming pool share of recent blocks (src/widgets/pools). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Pools",
   group: {
@@ -55,4 +57,4 @@ const messages = {
     "A block's payout address and the claim that empties it are both on chain, so the grouping is exact; only the names come from a registry, matched against the target address a pool publishes at its <code>pool_info</code> endpoint. An address whose rewards were never claimed (a fresh PlotNFT, or a pool that has not collected yet) stays \"Unknown\" until it is. Know a pool that is missing? Add a sourced entry to <code>src/shared/lib/pools/registry.json</code> (see the wiki's contribution note).",
 };
 
-export default messages;
+export default defineNamespace("pools", messages);

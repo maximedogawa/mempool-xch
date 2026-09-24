@@ -21,11 +21,12 @@ import {
   Th,
   Tr,
 } from "@/shared/ui";
+import blockNs from "@/shared/i18n/messages/en/block";
 
 const PAGE = 100;
 
 function CoinTable({ rows, emptyText }: { rows: CoinRecord[]; emptyText: string }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const { networkConfig } = useSettings();
   const [limit, setLimit] = useState(PAGE);
   if (rows.length === 0)
@@ -90,7 +91,7 @@ export function BlockCoins({
   data: { additions: CoinRecord[]; removals: CoinRecord[] } | undefined;
   loading: boolean;
 }) {
-  const t = useT("block");
+  const t = useT(blockNs);
   const [tab, setTab] = useState<"additions" | "removals">("additions");
   return (
     <Card>

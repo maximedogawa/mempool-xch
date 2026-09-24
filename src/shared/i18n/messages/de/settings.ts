@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/settings";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Einstellungen",
   channel:
     "<strong>Live-Kanal: {name}.</strong> {detail} Alle Daten werden direkt vom Endpunkt gelesen.",
@@ -36,9 +36,14 @@ const messages: Translation<typeof en> = {
   appearance: {
     title: "Darstellung",
     theme: "Design",
-    dark: "Dunkel (mempool.space-Stil)",
+    dark: "Dunkel",
+    darkHint: "mempool.space-Stil",
     light: "Hell",
-    system: "Systemeinstellung",
+    lightHint: "hell und klar",
+    system: "System",
+    systemHint: "folgt Ihrem Gerät",
+    sageLocked:
+      "In Sage folgt die App dem Design der Wallet (aktuell {theme}). Ändern Sie es in den Einstellungen von Sage.",
     language: "Sprache",
     languageAuto: "Automatisch (Browsersprache)",
     chime: "Bestätigungston",

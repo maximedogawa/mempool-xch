@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/common";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   channel: {
     customName: "轮询（自定义节点）",
     customDetail: "每隔几秒轮询您位于 {host} 的节点；无实时推送，内存池在浏览器中获取。",

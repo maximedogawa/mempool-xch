@@ -12,6 +12,7 @@ import { useT } from "@/shared/i18n/useT";
 import { Card, CardBody, CardHeader, Skeleton, StatTile } from "@/shared/ui";
 import { LineChart } from "@/shared/ui/charts/LineChart";
 import type { ScaleId } from "./ChartControls";
+import chartsNs from "@/shared/i18n/messages/en/charts";
 
 export interface ChartSpec {
   title: string;
@@ -50,14 +51,14 @@ export function ChartCard({
   smoothing: SmoothingId;
   scale: ScaleId;
 }) {
-  const t = useT("charts");
+  const t = useT(chartsNs);
   const smoothed = useMemo(
     () => (points ? smoothSeries(points, smoothingById(smoothing).window) : null),
     [points, smoothing]
   );
   const stats = smoothed ? summarise(smoothed) : null;
   return (
-    <Card className={unavailable ? "opacity-70" : undefined}>
+    <Card className={unavailable ? "border-dashed shadow-none" : undefined}>
       <CardHeader title={spec.title} />
       <CardBody className="flex flex-col gap-3">
         {unavailable ? (

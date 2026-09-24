@@ -4,9 +4,10 @@ import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { LearnArticle } from "../LearnArticle";
 import { linkTag, PROSE_TAGS } from "./tags";
+import learnNs from "@/shared/i18n/messages/en/learn";
 
 export function OffersAndTrading() {
-  const t = useT("learn");
+  const t = useT(learnNs);
   return (
     <LearnArticle slug="offers-and-trading">
       <p>{t.rich("offersAndTrading.intro", PROSE_TAGS)}</p>

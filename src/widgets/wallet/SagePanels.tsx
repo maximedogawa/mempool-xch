@@ -12,12 +12,13 @@ import {
   checkWalletAddress,
   fetchWalletCoin,
   fetchWalletOverview,
-  fetchXchUsdPrice,
+  SAGE_PRICE_QUERY,
 } from "@/shared/lib/sage/wallet";
 import { useSageCapability } from "@/shared/lib/sage/useCapability";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Card, CardBody, CardHeader, Hash, StatTile } from "@/shared/ui";
+import walletNs from "@/shared/i18n/messages/en/wallet";
 
 /** Share of the wallet's coins that Sage has synced, as a locale percentage. */
 export function syncPercent(synced: number, total: number): string {
@@ -25,7 +26,7 @@ export function syncPercent(synced: number, total: number): string {
 }
 
 function SageBadge() {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
       <Wallet size={11} aria-hidden="true" /> {t("sageBadge")}
@@ -38,7 +39,7 @@ function SageBadge() {
  * transactions and coin count come straight from the wallet bridge, ahead of the indexed data.
  */
 export function SageAddressPanel({ address }: { address: string }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage } = useSage();
   const { networkConfig } = useSettings();
   const mine = useQuery({
@@ -101,7 +102,7 @@ export function SageAddressPanel({ address }: { address: string }) {
 
 /** On a coin page inside Sage: the wallet's own record of the coin, when it owns it. */
 export function SageCoinPanel({ coinId }: { coinId: string }) {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage } = useSage();
   const { networkConfig } = useSettings();
   const coin = useQuery({
@@ -145,15 +146,10 @@ export function SageCoinPanel({ coinId }: { coinId: string }) {
 
 /** XCH price chip from the wallet's own feed, header only, Sage only. */
 export function SagePriceChip() {
-  const t = useT("wallet");
+  const t = useT(walletNs);
   const { inSage } = useSage();
   const { granted } = useSageCapability("wallet.get_xch_usd_price");
-  const price = useQuery({
-    queryKey: ["sagePrice"],
-    queryFn: fetchXchUsdPrice,
-    enabled: inSage && granted,
-    refetchInterval: 60_000,
-  });
+  const price = useQuery({ ...SAGE_PRICE_QUERY, enabled: inSage && granted });
   if (!inSage || price.data === null || price.data === undefined) return null;
   return (
     <span

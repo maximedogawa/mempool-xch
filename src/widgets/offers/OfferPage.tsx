@@ -24,6 +24,7 @@ import {
 } from "@/shared/ui";
 import { useT } from "@/shared/i18n/useT";
 import { OFFER_STATUS, OfferSideView, OfferStatusBadge } from "./OfferParts";
+import offersNs from "@/shared/i18n/messages/en/offers";
 
 const DEXIE_OFFER_LOOKUP = "https://dexie.space/offers";
 
@@ -33,7 +34,7 @@ const DEXIE_OFFER_LOOKUP = "https://dexie.space/offers";
  * does not return it), so taking the offer happens on Dexie or in a wallet.
  */
 export function OfferPage() {
-  const t = useT("offers");
+  const t = useT(offersNs);
   const raw = useDetailId("offer") ?? "";
   const offerId = normaliseId32(raw);
   const { client, endpoints, networkConfig } = useSettings();
@@ -280,7 +281,7 @@ function Heading({
   id: string;
   status?: Parameters<typeof OfferStatusBadge>[0]["status"];
 }) {
-  const t = useT("offers");
+  const t = useT(offersNs);
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">

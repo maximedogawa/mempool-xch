@@ -9,6 +9,7 @@ import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
 import { BlockCube } from "./BlockCube";
+import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 const CUBE = 138;
 
@@ -26,7 +27,7 @@ export function ProjectedBlocks({
   selected: number | null;
   onSelect: (index: number | null) => void;
 }) {
-  const t = useT("blocks");
+  const t = useT(blocksNs);
   const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (
@@ -102,7 +103,7 @@ export function ProjectedBlocks({
               </span>
               {watched ? <WatchedBlockBadge count={watched} /> : null}
               {yours ? (
-                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-[#0a0d18] shadow-[0_0_10px_var(--primary)]">
+                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-primary-fg shadow-[0_0_10px_var(--primary)]">
                   {t("projected.yours", { count: yours })}
                 </span>
               ) : null}

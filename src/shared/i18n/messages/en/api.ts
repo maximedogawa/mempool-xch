@@ -1,4 +1,6 @@
 /** API reference page (src/widgets/api) and the endpoint descriptions of src/shared/config/apiReference.ts. */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "API reference",
   titleHint:
@@ -121,4 +123,4 @@ const messages = {
   },
 };
 
-export default messages;
+export default defineNamespace("api", messages);

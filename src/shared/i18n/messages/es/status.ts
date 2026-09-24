@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/status";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   title: "Estado",
   tooltip:
     "Medido ahora mismo desde tu navegador, igual que las páginas obtienen sus datos. No hay monitor en el servidor ni historial; una fila roja significa que tu conexión no puede acceder a ese servicio en este momento.",

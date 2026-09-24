@@ -11,6 +11,7 @@ import { formatAge } from "@/shared/lib/format/time";
 import { useLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Tooltip } from "@/shared/ui/Tooltip";
+import shellNs from "@/shared/i18n/messages/en/shell";
 
 type PillTone = "live" | "connecting" | "offline";
 
@@ -24,7 +25,7 @@ type PillTone = "live" | "connecting" | "offline";
  * actually on stays one hover away in the tooltip, and in the footer and settings page.
  */
 export function ConnectionIndicator({ compact = false }: { compact?: boolean }) {
-  const t = useT("shell");
+  const t = useT(shellNs);
   const { status, transport, lastEventAt, peakHeight } = useLive();
   const { endpoints } = useSettings();
   const state = useBlockchainState();

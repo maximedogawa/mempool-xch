@@ -1,4 +1,6 @@
 /** Settings form: network, endpoints, appearance and language (src/features/settings). */
+import { defineNamespace } from "../../translate";
+
 const messages = {
   title: "Settings",
   channel:
@@ -33,9 +35,14 @@ const messages = {
   appearance: {
     title: "Appearance",
     theme: "Theme",
-    dark: "Dark (mempool.space style)",
+    dark: "Dark",
+    darkHint: "mempool.space style",
     light: "Light",
-    system: "Follow system",
+    lightHint: "bright and crisp",
+    system: "System",
+    systemHint: "follows your device",
+    sageLocked:
+      "Inside Sage the app follows the wallet's theme (currently {theme}). Change it in Sage's settings.",
     language: "Language",
     languageAuto: "Automatic (browser language)",
     chime: "Confirmation chime",
@@ -46,4 +53,4 @@ const messages = {
   resetAll: "Reset all settings",
 };
 
-export default messages;
+export default defineNamespace("settings", messages);

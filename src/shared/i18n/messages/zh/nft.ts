@@ -1,7 +1,7 @@
 import type { Translation } from "../../translate";
 import type en from "../en/nft";
 
-const messages: Translation<typeof en> = {
+const messages: Translation<(typeof en)["messages"]> = {
   loading: "加载中…",
   showMore: "显示更多",
   untitled: "未命名",

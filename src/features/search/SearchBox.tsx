@@ -12,6 +12,7 @@ import { AssetImage } from "@/shared/ui/AssetImage";
 import { useCatLabel } from "@/shared/ui/CatRef";
 import { parseSearchInput } from "./parse";
 import { directRoute, resolveHex32, resolveText, type SearchMatch } from "./resolve";
+import searchNs from "@/shared/i18n/messages/en/search";
 
 function CandidateLabel({ match }: { match: SearchMatch }) {
   const ticker = useCatLabel(match.assetId);
@@ -61,7 +62,7 @@ export function SearchBox({
   /** Fires when the box gains or truly loses focus (a click on the clear button or a candidate does not count as losing it). */
   onFocusChange?: (focused: boolean) => void;
 }) {
-  const t = useT("search");
+  const t = useT(searchNs);
   const router = useRouter();
   const { client, endpoints } = useSettings();
   const [value, setValue] = useState("");
