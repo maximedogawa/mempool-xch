@@ -17,6 +17,11 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
 ENV NEXT_PUBLIC_COMMIT_SHA=$NEXT_PUBLIC_COMMIT_SHA
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+# Feature flags (src/shared/config/features.ts); empty keeps the built-in default.
+ARG NEXT_PUBLIC_FEATURE_ARCADE_MAINNET
+ARG NEXT_PUBLIC_FEATURE_GAMING_TESTNET
+ENV NEXT_PUBLIC_FEATURE_ARCADE_MAINNET=$NEXT_PUBLIC_FEATURE_ARCADE_MAINNET
+ENV NEXT_PUBLIC_FEATURE_GAMING_TESTNET=$NEXT_PUBLIC_FEATURE_GAMING_TESTNET
 
 # Sage static snapshot first (its own `next build` with output: export into ./out), then the
 # standalone server. Both invoke `next build`, so they must run in sequence.

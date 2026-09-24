@@ -6,8 +6,12 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { useT } from "@/shared/i18n/useT";
-import { Badge, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
+import { FEATURES } from "@/shared/config/features";
+import { gamingNetwork, gamingProviderFor } from "@/shared/config/gaming";
+import { useSettings } from "@/shared/providers/SettingsProvider";
+import { Badge, Button, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { DuelsView } from "./DuelsView";
 import { PotPotatoCard } from "./PotPotatoCard";
 import {
   ROOMS_LIVE,
@@ -305,11 +309,8 @@ function RoomsCard() {
   );
 }
 
-/**
- * Pot Potato on top (the only clock on the site that counts down), then the games registered
- * on the arcade21 tracker (snapshot, bun run arcade) and the live rooms.
- */
-export function ArcadePage() {
+/** The arcade21 catalogue (snapshot, bun run arcade) and its live rooms: mainnet, behind a flag. */
+function Arcade21Section() {
   const t = useT("arcade");
   const games = arcade.games as Game[];
   const [genre, setGenre] = useState<string>("all");
@@ -317,14 +318,7 @@ export function ArcadePage() {
   const shown = games.filter((g) => genre === "all" || g.genre === genre);
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <Tooltip text={t("titleHint")} placement="bottom" />
-      </header>
-
-      <PotPotatoCard />
-
+    <>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -367,6 +361,70 @@ export function ArcadePage() {
           ),
         })}
       </p>
+    </>
+  );
+}
+
+/** Mainnet with the arcade21 flag off: say why, and hand over to the network where games run. */
+function PausedCard() {
+  const t = useT("arcade");
+  const { update } = useSettings();
+  const target = gamingNetwork();
+  const provider = target ? gamingProviderFor(target) : null;
+  return (
+    <Card data-testid="arcade-paused">
+      <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex max-w-3xl flex-col gap-1">
+          <h2 className="text-base font-semibold text-fg">{t("paused.title")}</h2>
+          <p className="text-sm text-fg-muted">{t("paused.body")}</p>
+          {provider ? (
+            <p className="text-sm text-fg-muted">{t("paused.testnet", { name: provider.name })}</p>
+          ) : null}
+        </div>
+        {target ? (
+          <Button
+            variant="primary"
+            className="shrink-0"
+            onClick={() => update({ network: target })}
+          >
+            {t("paused.switch")}
+          </Button>
+        ) : null}
+      </CardBody>
+    </Card>
+  );
+}
+
+/**
+ * /gaming follows the selected network. A network with a live gaming provider (Testnet11:
+ * nokitlan) shows its duels; mainnet shows Pot Potato, read from the chain, and the arcade21
+ * catalogue only while FEATURES.arcadeMainnet is on.
+ */
+export function ArcadePage() {
+  const t = useT("arcade");
+  const { settings, networkConfig } = useSettings();
+  const provider = gamingProviderFor(settings.network);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-wrap items-center gap-2">
+        <h1 className="text-lg font-semibold">{t("title")}</h1>
+        <Tooltip text={t("titleHint")} placement="bottom" />
+        <Badge tone={settings.network === "mainnet" ? "neutral" : "warning"}>
+          {networkConfig.label}
+        </Badge>
+      </header>
+
+      {provider ? (
+        <DuelsView provider={provider} />
+      ) : settings.network === "mainnet" ? (
+        <>
+          <PotPotatoCard />
+          {FEATURES.arcadeMainnet ? <Arcade21Section /> : <PausedCard />}
+        </>
+      ) : (
+        <PausedCard />
+      )}
     </div>
   );
 }
