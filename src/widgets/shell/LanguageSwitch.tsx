@@ -1,13 +1,15 @@
 "use client";
 
-import { Languages } from "lucide-react";
 import { LOCALE_NAMES, LOCALES, type Locale } from "@/shared/i18n/config";
 import { useLocale, useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import shellNs from "@/shared/i18n/messages/en/shell";
 
-/** Header language picker; the choice persists in settings and applies without a reload. */
+/**
+ * Compact header language picker: shows only the short code (DE), the full names live in the
+ * dropdown. The choice persists in settings and applies without a reload.
+ */
 export function LanguageSwitch({ className }: { className?: string }) {
   const { update } = useSettings();
   const locale = useLocale();
@@ -15,21 +17,21 @@ export function LanguageSwitch({ className }: { className?: string }) {
   return (
     <label
       className={cn(
-        "relative inline-flex h-9 items-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg",
+        "relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-[11px] font-semibold uppercase text-fg-muted focus-within:ring-2 focus-within:ring-primary hover:bg-surface-2 hover:text-fg",
         className
       )}
       title={t("language")}
     >
-      <span className="sr-only">{t("language")}</span>
-      <Languages size={16} aria-hidden="true" className="pointer-events-none absolute left-2.5" />
+      <span aria-hidden="true">{locale}</span>
       <select
         value={locale}
         onChange={(e) => update({ locale: e.target.value as Locale })}
+        aria-label={t("language")}
         data-testid="language-switch"
-        className="h-9 cursor-pointer appearance-none bg-transparent pl-8 pr-2.5 text-xs font-semibold uppercase focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+        className="absolute inset-0 cursor-pointer appearance-none rounded-full opacity-0"
       >
         {LOCALES.map((id) => (
-          <option key={id} value={id} lang={id} className="bg-bg text-fg normal-case">
+          <option key={id} value={id} lang={id}>
             {id.toUpperCase()} · {LOCALE_NAMES[id]}
           </option>
         ))}

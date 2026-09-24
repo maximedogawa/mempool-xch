@@ -13,7 +13,6 @@ import { Popover } from "@/shared/ui";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { Logo } from "./Logo";
 import { LanguageSwitch } from "./LanguageSwitch";
-import { NetworkSwitch } from "./NetworkSwitch";
 import { SagePriceChip } from "@/widgets/wallet/SagePanels";
 import shellNs from "@/shared/i18n/messages/en/shell";
 
@@ -265,29 +264,23 @@ export function Header() {
           </Popover>
         </nav>
         <div className="min-w-0 flex-1">
-          <SearchBox
-            size="lg"
-            onFocusChange={setSearchFocused}
-            className={cn(
-              "transition-[max-width] duration-200 ease-out",
-              searchFocused ? "max-w-none" : "max-w-none lg:max-w-[260px]"
-            )}
-          />
+          <SearchBox size="lg" onFocusChange={setSearchFocused} />
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <SagePriceChip />
-          <NetworkSwitch className="hidden sm:inline-flex" />
-          <LanguageSwitch className="hidden sm:inline-flex" />
-          <ConnectionIndicator compact />
+          <ConnectionIndicator />
           <span aria-hidden="true" className="hidden h-6 w-px bg-border sm:block" />
-          <Link
-            href={routes.settings()}
-            aria-label={t("nav.settings")}
-            title={t("nav.settings")}
-            className="hidden h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
-          >
-            <Settings size={18} aria-hidden="true" />
-          </Link>
+          <div className="hidden items-center sm:inline-flex">
+            <LanguageSwitch />
+            <Link
+              href={routes.settings()}
+              aria-label={t("nav.settings")}
+              title={t("nav.settings")}
+              className="hidden h-9 w-9 items-center justify-center rounded-full text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline-flex"
+            >
+              <Settings size={18} aria-hidden="true" />
+            </Link>
+          </div>
           <button
             type="button"
             aria-label={open ? t("closeMenu") : t("openMenu")}
@@ -338,7 +331,6 @@ export function Header() {
               </li>
             ))}
             <li className="flex items-center gap-2 pt-2 sm:hidden">
-              <NetworkSwitch />
               <LanguageSwitch />
             </li>
           </ul>
