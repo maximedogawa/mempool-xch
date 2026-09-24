@@ -84,7 +84,7 @@ const messages = {
     },
     openSource: {
       title: "7. Open source",
-      body: "The software behind the Service is open source under the MIT License, which comes with its own disclaimer for the software. These terms cover the hosted Service.",
+      body: "The software behind the Service is open source under the GNU Affero General Public License (AGPL-3.0), which comes with its own disclaimer for the software. These terms cover the hosted Service.",
     },
     changes: {
       title: "8. Changes",
@@ -126,7 +126,7 @@ const messages = {
       title: "Open source and data sources",
       items: {
         source:
-          "Source code: <link>github.com/maximedogawa/mempool-xch</link> under the MIT License.",
+          "Source code: <link>github.com/maximedogawa/mempool-xch</link> under the GNU Affero General Public License (AGPL-3.0).",
         chain: "Chain data: <link>Coinset</link>, or a full node you configure.",
         cats: "CAT names and icons: <link>Dexie</link>.",
         nfts: "NFT metadata and images: <link>MintGarden</link> and the NFTs' own links.",

@@ -34,4 +34,12 @@ Architecture, data sources and guides live in the
 
 ## Licence
 
-[MIT](LICENSE). mempool.space was a visual reference only; no code was copied.
+Copyright (C) 2026 Maxim Edogawa and the mempoolxch.space contributors.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+[GNU Affero General Public License](LICENSE) as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version. It is distributed in the hope
+that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the licence for details.
+
+mempool.space was a visual reference only; no code was copied.
