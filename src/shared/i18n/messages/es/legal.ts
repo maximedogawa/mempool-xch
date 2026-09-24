@@ -85,7 +85,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     },
     openSource: {
       title: "7. Código abierto",
-      body: "El software en el que se basa el Servicio es de código abierto bajo la Licencia MIT, que incluye su propia exención de responsabilidad para el software. Estos términos se refieren al Servicio alojado.",
+      body: "El software en el que se basa el Servicio es de código abierto bajo la Licencia Pública General Affero de GNU (AGPL-3.0), que incluye su propia exención de responsabilidad para el software. Estos términos se refieren al Servicio alojado.",
     },
     changes: {
       title: "8. Cambios",
@@ -127,7 +127,7 @@ const messages: Translation<(typeof en)["messages"]> = {
       title: "Código abierto y fuentes de datos",
       items: {
         source:
-          "Código fuente: <link>github.com/maximedogawa/mempool-xch</link> bajo la Licencia MIT.",
+          "Código fuente: <link>github.com/maximedogawa/mempool-xch</link> bajo la Licencia Pública General Affero de GNU (AGPL-3.0).",
         chain: "Datos de la cadena: <link>Coinset</link>, o un nodo completo que configures.",
         cats: "Nombres e iconos de CAT: <link>Dexie</link>.",
         nfts: "Metadatos e imágenes de NFT: <link>MintGarden</link> y los propios enlaces de los NFT.",

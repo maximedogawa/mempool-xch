@@ -2,7 +2,8 @@
   "name": "mempool-xch",
   "version": "0.9.0",
   "private": true,
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
+  "author": "Maxim Edogawa",
   "homepage": "https://mempoolxch.space",
   "repository": {
     "type": "git",

@@ -77,7 +77,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     },
     openSource: {
       title: "7. 开源",
-      body: "本服务背后的软件依据 MIT 许可证开源，该许可证附有其自身针对软件的免责声明。本条款适用于托管的本服务。",
+      body: "本服务背后的软件依据 GNU Affero 通用公共许可证（AGPL-3.0）开源，该许可证附有其自身针对软件的免责声明。本条款适用于托管的本服务。",
     },
     changes: {
       title: "8. 变更",
@@ -117,7 +117,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     attribution: {
       title: "开源和数据来源",
       items: {
-        source: "源代码：<link>github.com/maximedogawa/mempool-xch</link>，采用 MIT 许可证。",
+        source:
+          "源代码：<link>github.com/maximedogawa/mempool-xch</link>，采用 GNU Affero 通用公共许可证（AGPL-3.0）。",
         chain: "链上数据：<link>Coinset</link>，或您配置的全节点。",
         cats: "CAT 名称和图标：<link>Dexie</link>。",
         nfts: "NFT 元数据和图片：<link>MintGarden</link> 以及 NFT 自身的链接。",
