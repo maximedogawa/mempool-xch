@@ -2,7 +2,7 @@
 
 import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Eye, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { describePending } from "@/shared/lib/wallet/pendingTracker";
@@ -17,6 +17,30 @@ import { useWatchedAddressHistory, useWatchedAddressPending } from "./useWatched
 import { useT } from "@/shared/i18n/useT";
 import { ReceivedAssets, RemoveWatch, WatchQueue, WatchStatus } from "./WatchlistParts";
 import watchlistNs from "@/shared/i18n/messages/en/watchlist";
+
+interface Announced {
+  /** Transactions seen while pending (their incoming alert, if any, has gone out). */
+  seen: Set<string>;
+  /** Transactions whose confirmation alert has gone out. */
+  notified: Set<string>;
+}
+
+/**
+ * What was already announced, per network and address, for the whole tab rather than per
+ * mounted row: the dashboard and the portfolio page both list the watched addresses, and moving
+ * between pages must not chime again for a transaction that was already announced.
+ */
+const announcedByAddress = new Map<string, Announced>();
+
+function announcedFor(network: string, puzzleHash: string): Announced {
+  const key = `${network}:${puzzleHash}`;
+  let entry = announcedByAddress.get(key);
+  if (!entry) {
+    entry = { seen: new Set(), notified: new Set() };
+    announcedByAddress.set(key, entry);
+  }
+  return entry;
+}
 
 export function WatchedAddressRow({
   item,
@@ -37,36 +61,45 @@ export function WatchedAddressRow({
   const { client, endpoints } = useSettings();
   const pending = useWatchedAddressPending(item.id);
   const history = useWatchedAddressHistory(item.id);
-  const seen = useRef(new Set<string>());
-  const notified = useRef(new Set<string>());
-  useEffect(() => {
-    seen.current.clear();
-    notified.current.clear();
-  }, [endpoints.network, client]);
+  const network = endpoints.network;
   useEffect(() => {
     if (pending.isError) return;
+    const announced = announcedFor(network, item.id);
     for (const tx of pending.data?.transactions ?? []) {
       if (tx.status !== "pending") continue;
-      if (!seen.current.has(tx.id) && receivesForP2(tx, item.id)) onReceived(item, tx.id);
-      seen.current.add(tx.id);
+      if (!announced.seen.has(tx.id) && receivesForP2(tx, item.id)) onReceived(item, tx.id);
+      announced.seen.add(tx.id);
     }
     const settled = [
       ...(pending.data?.transactions ?? []),
       ...(history.isError ? [] : (history.data?.transactions ?? [])),
     ];
     for (const tx of settled) {
-      if (tx.status === "confirmed" && seen.current.has(tx.id) && !notified.current.has(tx.id)) {
-        notified.current.add(tx.id);
+      if (
+        tx.status === "confirmed" &&
+        announced.seen.has(tx.id) &&
+        !announced.notified.has(tx.id)
+      ) {
+        announced.notified.add(tx.id);
         onConfirmed(item, tx.id);
       }
     }
     // Bound session tracking even for addresses with continuous activity.
-    if (seen.current.size > 500) {
-      const recent = [...seen.current].slice(-250);
-      seen.current = new Set(recent);
-      notified.current = new Set([...notified.current].filter((id) => seen.current.has(id)));
+    if (announced.seen.size > 500) {
+      const recent = [...announced.seen].slice(-250);
+      announced.seen = new Set(recent);
+      announced.notified = new Set([...announced.notified].filter((id) => announced.seen.has(id)));
     }
-  }, [pending.data, pending.isError, history.data, history.isError, item, onConfirmed, onReceived]);
+  }, [
+    pending.data,
+    pending.isError,
+    history.data,
+    history.isError,
+    network,
+    item,
+    onConfirmed,
+    onReceived,
+  ]);
 
   const rows = (pending.data?.transactions ?? []).filter((tx) => tx.status === "pending");
   const latest = history.data?.transactions.find((tx) => tx.status === "confirmed");

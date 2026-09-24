@@ -12,6 +12,7 @@ import { useT } from "@/shared/i18n/useT";
 import { EmptyState } from "@/shared/ui";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { useWatchlist } from "@/widgets/watchlist/useWatchlist";
+import { WatchedAddresses } from "@/widgets/watchlist/WatchedAddresses";
 import { PortfolioView } from "./PortfolioView";
 import {
   SAGE_READ_LIMIT,
@@ -128,6 +129,7 @@ export function PortfolioPage() {
         </div>
       ) : null}
       <PortfolioView holdings={holdings} notice={notice} />
+      <WatchedAddresses addresses={addresses} />
     </div>
   );
 }

@@ -101,6 +101,18 @@ test.describe("portfolio", () => {
     ).toBe(true);
   });
 
+  test("lists the watched addresses under the holdings, as on the dashboard", async ({ page }) => {
+    await watchAddress(page);
+    await page.goto("/portfolio");
+    const watched = page.getByRole("region", { name: "Watched addresses · 1" });
+    await expect(watched).toBeVisible();
+    const cards = watched.locator("ul").first().locator("> li");
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toContainText("xch1demo");
+    await watched.getByRole("button", { name: /Stop watching/ }).click();
+    await expect(page.getByText("Nothing to show yet")).toBeVisible();
+  });
+
   test("says so instead of loading forever when a source cannot be read", async ({ page }) => {
     await watchAddress(page);
     await page.route(/api\.coinset\.org\/get_(xch|cat)_balances?_by_p2/, (route) =>
