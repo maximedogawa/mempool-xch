@@ -12,7 +12,6 @@ const messages: Translation<(typeof en)["messages"]> = {
   emptyDescription:
     "Abra mempoolxch.space dentro de la billetera Sage o añada una dirección a la lista de seguimiento en el panel, y sus tenencias aparecerán aquí.",
   toDashboard: "Ir al panel",
-  watched: "Direcciones seguidas · {count}",
   needsIndexed:
     "Los saldos de direcciones necesitan la API indexada de Coinset, que el nodo seleccionado no ofrece.",
   loadError: "No se pudieron cargar algunos saldos. Las cifras pueden estar incompletas.",

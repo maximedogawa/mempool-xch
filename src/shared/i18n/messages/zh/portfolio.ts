@@ -12,7 +12,6 @@ const messages: Translation<(typeof en)["messages"]> = {
   emptyDescription:
     "在 Sage 钱包中打开 mempoolxch.space，或在仪表盘上将地址加入关注列表，其持仓就会显示在这里。",
   toDashboard: "前往仪表盘",
-  watched: "关注的地址 · {count}",
   needsIndexed: "地址余额需要 Coinset 的索引 API，所选节点不提供该接口。",
   loadError: "部分余额无法加载，数据可能不完整。",
   partial: "只读取了最近 {count} 笔 Sage 交易，因此更早变动过的代币可能缺失。",

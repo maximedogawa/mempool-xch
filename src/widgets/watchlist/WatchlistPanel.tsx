@@ -25,9 +25,10 @@ import watchlistNs from "@/shared/i18n/messages/en/watchlist";
  * Follow addresses, transactions, DIDs and XCHandles handles without a Sage wallet: pending
  * status with queue position, a confirmation chime and opt-in browser notifications, plus what a
  * watched DID holds and where a watched handle points. Everything lives in localStorage
- * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
+ * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere. Shown on the dashboard and under
+ * the portfolio, which leaves out the link to itself (`portfolioLink={false}`).
  */
-export function WatchlistPanel() {
+export function WatchlistPanel({ portfolioLink = true }: { portfolioLink?: boolean }) {
   const t = useT(watchlistNs);
   const { settings, update } = useSettings();
   const { items, add, remove } = useWatchlist();
@@ -92,7 +93,7 @@ export function WatchlistPanel() {
         }
         action={
           <span className="inline-flex items-center gap-2">
-            {items.some((i) => i.kind === "address") ? (
+            {portfolioLink && items.some((i) => i.kind === "address") ? (
               <Link
                 href={routes.portfolio()}
                 className="inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-border px-2.5 text-xs font-semibold text-fg-muted hover:text-fg"

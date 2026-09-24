@@ -12,7 +12,6 @@ const messages: Translation<(typeof en)["messages"]> = {
   emptyDescription:
     "Öffnen Sie mempoolxch.space im Sage-Wallet oder fügen Sie auf dem Dashboard eine Adresse zur Beobachtungsliste hinzu, dann erscheinen ihre Bestände hier.",
   toDashboard: "Zum Dashboard",
-  watched: "Beobachtete Adressen · {count}",
   needsIndexed:
     "Adresssalden benötigen die indexierte API von Coinset, die der gewählte Node nicht anbietet.",
   loadError:

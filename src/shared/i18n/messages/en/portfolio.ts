@@ -12,7 +12,6 @@ const messages = {
   emptyDescription:
     "Open mempoolxch.space inside the Sage wallet, or add an address to the watchlist on the dashboard, and its holdings appear here.",
   toDashboard: "Go to the dashboard",
-  watched: "Watched addresses · {count}",
   needsIndexed:
     "Address balances need Coinset's indexed API, which the selected node does not offer.",
   loadError: "Some balances could not be loaded. Figures may be incomplete.",
