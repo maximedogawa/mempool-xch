@@ -2,16 +2,12 @@
 
 import { Bell, BellOff, Eye, PieChart, Plus, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { parseSearchInput } from "@/features/search/parse";
 import { formatHandle, parseHandle } from "@/shared/lib/handles/xchandles";
 import { useProjectedBlocks } from "@/shared/api/hooks";
 import { shortId } from "@/shared/lib/chia/hex";
-import {
-  notificationsSupported,
-  requestNotificationPermission,
-  sendNotification,
-} from "@/shared/lib/notify/browser";
+import { notificationsSupported, requestNotificationPermission } from "@/shared/lib/notify/browser";
 import { playCoinChime, primeAudio } from "@/shared/lib/sound/chime";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -22,15 +18,17 @@ import { WatchedDidRow } from "./WatchedDidRow";
 import { WatchedHandleRow } from "./WatchedHandleRow";
 import { WatchedTxRow } from "./WatchedTxRow";
 import { useWatchlist } from "./useWatchlist";
+import { useWatchNotify } from "./useWatchNotify";
 import watchlistNs from "@/shared/i18n/messages/en/watchlist";
 
 /**
  * Follow addresses, transactions, DIDs and XCHandles handles without a Sage wallet: pending
  * status with queue position, a confirmation chime and opt-in browser notifications, plus what a
  * watched DID holds and where a watched handle points. Everything lives in localStorage
- * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere.
+ * (src/shared/lib/watchlist/store.ts); nothing is sent anywhere. Shown on the dashboard and under
+ * the portfolio, which leaves out the link to itself (`portfolioLink={false}`).
  */
-export function WatchlistPanel() {
+export function WatchlistPanel({ portfolioLink = true }: { portfolioLink?: boolean }) {
   const t = useT(watchlistNs);
   const { settings, update } = useSettings();
   const { items, add, remove } = useWatchlist();
@@ -44,13 +42,7 @@ export function WatchlistPanel() {
   const [canNotify, setCanNotify] = useState(false);
   useEffect(() => setCanNotify(notificationsSupported()), []);
 
-  const notify = useCallback(
-    (title: string, body?: string) => {
-      if (settings.sounds) void playCoinChime(0.5);
-      if (settings.notifications) sendNotification(title, body);
-    },
-    [settings.sounds, settings.notifications]
-  );
+  const notify = useWatchNotify();
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -101,7 +93,7 @@ export function WatchlistPanel() {
         }
         action={
           <span className="inline-flex items-center gap-2">
-            {items.some((i) => i.kind === "address") ? (
+            {portfolioLink && items.some((i) => i.kind === "address") ? (
               <Link
                 href={routes.portfolio()}
                 className="inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-border px-2.5 text-xs font-semibold text-fg-muted hover:text-fg"
