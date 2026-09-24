@@ -9,16 +9,32 @@ import {
   HelpCircle,
   Pickaxe,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
 import { useAsset } from "@/shared/api/useTokenList";
 import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { cn } from "@/shared/lib/cn";
+import {
+  isDexiePlaceholder,
+  isIconMissing,
+  markIconMissing,
+  missingIconsVersion,
+  subscribeMissingIcons,
+} from "@/shared/lib/tokens/missingIcons";
 import type { TxKindHint } from "@/shared/lib/mempool/types";
 import { fetchNftImageUrls, mintGardenThumbnailUrl } from "@/shared/lib/nft/mintgarden";
 import { isVeiled, type Sensitivity } from "@/shared/lib/nft/sensitivity";
 import { catIconCandidates, nftIconCandidates } from "./assetIconCandidates";
 import { KindBadge } from "./Badge";
+
+/**
+ * Whether an icon URL is known to be missing. The stored list lives in localStorage, so the
+ * server render and hydration see an empty one (-1) and the client catches up right after.
+ */
+function useIconMissing(): (url: string) => boolean {
+  const version = useSyncExternalStore(subscribeMissingIcons, missingIconsVersion, () => -1);
+  return version < 0 ? () => false : isIconMissing;
+}
 
 /**
  * Icon for an asset kind. No icon for XCH: the native asset does not need a badge to be
@@ -44,6 +60,7 @@ export function AssetIcon({
 }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
+  const iconMissing = useIconMissing();
   // NFT thumbnails: assetId is the 32-byte launcher id (same field CAT asset ids use,
   // src/shared/lib/sage/wallet.ts and src/widgets/goggles/NextBlockGoggles.tsx both pass it this
   // way). The direct thumbnail redirect is the primary candidate (no fetch); the full record's
@@ -62,13 +79,15 @@ export function AssetIcon({
   });
   if (kind === "xch") return null;
   if (kind === "cat") {
-    // A blocked or missing image (Sage CSP, 404) moves on to the next candidate before the letter badge.
+    // A blocked or missing image (Sage CSP, 404) moves on to the next candidate before the letter
+    // badge. Failures are shared app-wide for a day (missingIcons.ts): Dexie's 404s are not
+    // cacheable, so without this every render of a CAT without an icon would ask again.
     const candidates = catIconCandidates({
       walletIconUrl: iconUrl,
       registryIconUrl: token?.iconUrl,
       dexieIconUrl: assetId ? dexieIconUrl(assetId) : null,
     });
-    const src = candidates.find((u) => !failed.has(u)) ?? null;
+    const src = candidates.find((u) => !failed.has(u) && !iconMissing(u)) ?? null;
     if (src) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
@@ -77,7 +96,11 @@ export function AssetIcon({
           alt={token?.name ?? "CAT"}
           loading="lazy"
           decoding="async"
-          onError={() => setFailed((prev) => new Set(prev).add(src))}
+          onError={() => markIconMissing(src)}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (isDexiePlaceholder(src, img.naturalWidth, img.naturalHeight)) markIconMissing(src);
+          }}
           className={cn("shrink-0 rounded-full bg-surface-2 object-cover", className)}
           style={{ width: size, height: size }}
         />
