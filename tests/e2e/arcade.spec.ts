@@ -1,7 +1,15 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import arcade from "../../src/shared/config/arcade.json";
+import games from "../../src/test-utils/fixtures/nokitlan_games.json";
+import rooms from "../../src/test-utils/fixtures/nokitlan_rooms.json";
+import { parseFlag } from "../../src/shared/config/features";
 import { mockArcadeRooms } from "./mockArcade";
 import { mockCoinset } from "./mockCoinset";
+import { mockNokitlan, NOKITLAN_TRACKER, selectTestnet } from "./mockNokitlan";
+
+/** The e2e server is a production build, so arcade21 is off unless the build set the flag. */
+const ARCADE_MAINNET = parseFlag(process.env.NEXT_PUBLIC_FEATURE_ARCADE_MAINNET, false);
 
 test.describe("arcade", () => {
   test.beforeEach(async ({ page }) => {
@@ -34,6 +42,7 @@ test.describe("arcade", () => {
   test("rooms come live through the rewrite: searchable, one accordion section per phase", async ({
     page,
   }) => {
+    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
     await page.goto("/gaming");
     await expect(page.getByTestId("rooms-waiting-count")).toHaveText("1");
     await expect(page.getByTestId("rooms-playing-count")).toHaveText("1");
@@ -59,6 +68,7 @@ test.describe("arcade", () => {
   });
 
   test("games: no source links, no intro sentence, genre filter", async ({ page }) => {
+    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
     await page.goto("/gaming");
     const games = page.getByRole("list", { name: "Games" });
     await expect(games.getByRole("listitem")).toHaveCount(arcade.games.length);
@@ -78,6 +88,7 @@ test.describe("arcade", () => {
   test("when the tracker is unreachable the rooms card falls back to the snapshot", async ({
     page,
   }) => {
+    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
     await page.unroute("**/api/arcade/announce**");
     await page.route("**/api/arcade/announce**", (route) =>
       route.fulfill({ status: 502, body: "bad gateway" })
@@ -94,5 +105,74 @@ test.describe("arcade", () => {
     await page.getByRole("button", { name: "More", exact: true }).click();
     await page.getByRole("menuitem", { name: "Arcade" }).click();
     await expect(page).toHaveURL(/\/gaming$/);
+  });
+  test("mainnet with the flag off: no arcade21 catalogue, a switch to testnet gaming", async ({
+    page,
+  }) => {
+    test.skip(ARCADE_MAINNET, "this build shows arcade21 on mainnet");
+    await mockNokitlan(page);
+    await page.goto("/gaming");
+    await expect(page.getByTestId("potato-clock")).toBeVisible();
+    const paused = page.getByTestId("arcade-paused");
+    await expect(paused).toContainText("Mainnet games are paused");
+    await expect(page.getByRole("list", { name: "Games" })).toHaveCount(0);
+    await paused.getByRole("button", { name: "Switch to Testnet11 gaming" }).click();
+    await expect(page.getByTestId("duels")).toBeVisible();
+    await expect(page.getByTestId("potato-clock")).toHaveCount(0);
+  });
+});
+
+test.describe("testnet gaming", () => {
+  test.beforeEach(async ({ page }) => {
+    await mockCoinset(page);
+    await mockNokitlan(page);
+    await selectTestnet(page);
+  });
+
+  test("games, open rooms and the leaderboard come live from the nokitlan tracker", async ({
+    page,
+  }) => {
+    await page.goto("/gaming");
+    await expect(page.getByText("Testnet11 · live from nokitlan")).toBeVisible();
+    const shelf = page.getByRole("list", { name: "Games" });
+    await expect(shelf.getByRole("listitem")).toHaveCount(games.games.length);
+    await expect(
+      page.getByTestId("duel-game-dominoes").getByRole("link", { name: "Play" })
+    ).toHaveAttribute("href", `https://testnet.nokitlan.com/#/games/${games.games[0]!.id}`);
+
+    const waiting = rooms.rooms.filter((r) => r.status === "waiting");
+    const open = page.getByRole("list", { name: "Open to join" });
+    await expect(open.getByRole("listitem")).toHaveCount(waiting.length);
+    await expect(open.getByRole("link", { name: "Join" }).first()).toHaveAttribute(
+      "href",
+      /^https:\/\/testnet\.nokitlan\.com\/#\/rooms\/[0-9a-f-]+\/join$/
+    );
+    await expect(open).toContainText("1 TXCH stake");
+    await expect(page.getByRole("list", { name: "Recent duels" })).toContainText("finished");
+    await expect(page.getByTestId("duels-leaderboard")).toContainText("Noki");
+    await expect(page.getByText(/live · 20 s/)).toBeVisible();
+  });
+
+  test("an unreachable tracker says so instead of breaking the page", async ({ page }) => {
+    await page.unroute(`${NOKITLAN_TRACKER}/**`);
+    await page.route(`${NOKITLAN_TRACKER}/**`, (route) =>
+      route.fulfill({ status: 502, body: "bad gateway" })
+    );
+    await page.goto("/gaming");
+    await expect(page.getByText(/nokitlan tracker is not answering/).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("link", { name: "Open a room" }).first()).toBeVisible();
+  });
+
+  test("axe passes on the testnet view", async ({ page, isMobile }) => {
+    test.skip(isMobile, "markup is the same on both projects");
+    await page.goto("/gaming");
+    await expect(page.getByTestId("duels-leaderboard")).toBeVisible();
+    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    const serious = results.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical"
+    );
+    expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
   });
 });

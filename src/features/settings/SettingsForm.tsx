@@ -363,7 +363,10 @@ export function SettingsForm() {
               strong: (c) => <strong className="text-warning">{c}</strong>,
               code: (c) => <span className="mono">{c}</span>,
               guide: (c) => (
-                <Link href={`${routes.docs()}#custom-node`} className="text-accent hover:underline">
+                <Link
+                  href={`${routes.docs()}#custom-node`}
+                  className="text-accent underline underline-offset-2"
+                >
                   {c}
                 </Link>
               ),

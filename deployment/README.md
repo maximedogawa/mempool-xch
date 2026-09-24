@@ -37,11 +37,13 @@ pushes to `:latest` is picked up automatically. `once list` shows what is deploy
 CI (`.github/workflows/build-app.yml`) builds and pushes the image on every published GitHub
 release and on `workflow_dispatch`. Build args:
 
-| Arg                       | Purpose                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_VERSION` | Shown in the footer                                                              |
-| `NEXT_PUBLIC_COMMIT_SHA`  | Shown in the footer                                                              |
-| `NEXT_PUBLIC_APP_URL`     | Public origin, used for the Sage install URL and the summary API in the snapshot |
+| Arg                                  | Purpose                                                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_VERSION`            | Shown in the footer                                                                                             |
+| `NEXT_PUBLIC_COMMIT_SHA`             | Shown in the footer                                                                                             |
+| `NEXT_PUBLIC_APP_URL`                | Public origin, used for the Sage install URL and the summary API in the snapshot                                |
+| `NEXT_PUBLIC_FEATURE_ARCADE_MAINNET` | `1` shows the arcade21 games and rooms on mainnet `/gaming`; unset = off in production builds, on in `next dev` |
+| `NEXT_PUBLIC_FEATURE_GAMING_TESTNET` | `0` hides the nokitlan testnet gaming on `/gaming`; unset = on everywhere                                       |
 
 Locally:
 

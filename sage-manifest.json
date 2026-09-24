@@ -40,7 +40,7 @@
           "optional": []
         },
         "testnet11": {
-          "required": [],
+          "required": ["https://tracker.nokitlan.com"],
           "optional": []
         }
       }
