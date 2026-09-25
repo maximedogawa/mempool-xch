@@ -25,6 +25,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   names: {
     coinsetRpc: "Coinset 全节点 RPC",
     ownNode: "您的节点（全节点 RPC）",
+    nodexch: "nodexch 网关（全节点 RPC 与索引 API）",
     indexed: "Coinset 索引 API",
     live: "实时数据流",
     dns: "Chia DNS 引导节点",

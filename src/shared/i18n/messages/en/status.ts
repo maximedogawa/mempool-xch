@@ -25,6 +25,7 @@ const messages = {
   names: {
     coinsetRpc: "Coinset full-node RPC",
     ownNode: "Your node (full-node RPC)",
+    nodexch: "nodexch gateway (full-node RPC and indexed API)",
     indexed: "Coinset indexed API",
     live: "Live stream",
     dns: "Chia DNS introducers",

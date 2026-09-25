@@ -45,6 +45,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
     rpcUrl: endpoints.rpcUrl,
     wsUrl: endpoints.wsUrl,
     isCoinset: endpoints.isCoinset,
+    provider: endpoints.provider,
   });
   // A node that answers but is still catching up is not live: what it serves is behind.
   const syncing = state.data !== undefined && !state.data.synced;

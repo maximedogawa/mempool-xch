@@ -34,3 +34,21 @@ describe("describeChannel", () => {
     );
   });
 });
+
+describe("describeChannel for nodexch", () => {
+  const nodexch = {
+    rpcUrl: "https://nodexch.space",
+    wsUrl: "wss://nodexch.space/ws?key=nxp_abc",
+    isCoinset: false,
+    provider: "nodexch",
+  } as const;
+  test("a nodexch socket, not polling a custom node", () => {
+    const live = describeChannel({ ...nodexch, status: "live", transport: "websocket" });
+    expect(live.name).toBe("nodexch socket");
+    expect(live.detail).toContain("nodexch.space");
+    expect(live.detail).not.toContain("nxp_abc");
+    expect(describeChannel({ ...nodexch, status: "connecting", transport: "websocket" }).name).toBe(
+      "nodexch socket (reconnecting)"
+    );
+  });
+});
