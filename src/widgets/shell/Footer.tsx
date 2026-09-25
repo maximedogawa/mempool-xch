@@ -25,6 +25,7 @@ export function Footer() {
     rpcUrl: endpoints.rpcUrl,
     wsUrl: endpoints.wsUrl,
     isCoinset: endpoints.isCoinset,
+    provider: endpoints.provider,
   });
   const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
   const sha = process.env.NEXT_PUBLIC_COMMIT_SHA ?? "";
@@ -43,10 +44,10 @@ export function Footer() {
           <span>
             {t.rich(
               inSage
-                ? endpoints.isCoinset
+                ? endpoints.provider !== "custom"
                   ? "footer.sourceSage"
                   : "footer.sourceSageCustom"
-                : endpoints.isCoinset
+                : endpoints.provider !== "custom"
                   ? "footer.source"
                   : "footer.sourceCustom",
               {

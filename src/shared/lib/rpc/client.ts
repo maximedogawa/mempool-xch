@@ -63,8 +63,10 @@ export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promis
 export interface RpcClientOptions {
   /** Full-node RPC base URL, e.g. https://api.coinset.org */
   rpcUrl: string;
-  /** Coinset indexed API base URL; null when the endpoint is not Coinset. */
+  /** Indexed API base URL (Coinset's, or a nodexch gateway's own); null for a custom node. */
   indexedUrl: string | null;
+  /** A nodexch gateway: its publishable key goes in `Authorization`, peers come from its node channel. */
+  nodexch?: { apiKey: string | null };
   fetchImpl?: FetchLike;
   /** Per-request timeout in ms. */
   timeoutMs?: number;
@@ -84,7 +86,8 @@ async function post(
   method: string,
   params: Raw,
   timeoutMs: number,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  headers: Record<string, string> = {}
 ): Promise<Raw> {
   if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
   const controller = new AbortController();
@@ -96,7 +99,7 @@ async function post(
   try {
     response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/${method}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...headers },
       body: stringifyJsonSafe(params),
       signal: controller.signal,
     });
@@ -137,21 +140,24 @@ export function createRpcClient(options: RpcClientOptions) {
     options.fetchImpl ?? ((input, init) => globalThis.fetch(input, init));
   const timeoutMs = options.timeoutMs ?? 20_000;
   const hasIndexed = options.indexedUrl !== null;
+  const headers: Record<string, string> = options.nodexch?.apiKey
+    ? { authorization: `Bearer ${options.nodexch.apiKey}` }
+    : {};
+  // Coinset's read budget applies to Coinset only: a nodexch gateway limits per key itself.
+  const gated = hasIndexed && !options.nodexch;
   const rpcDirect = (method: string, params: Raw = {}, signal?: AbortSignal) =>
-    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal);
-  // indexedUrl is only set for Coinset endpoints, where the RPC shares the gateway's budget.
+    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal, headers);
   const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
-    hasIndexed
+    gated
       ? coinsetRead(() => rpcDirect(method, params, signal), signal)
       : rpcDirect(method, params, signal);
   const indexed = (method: string, params: Raw = {}, signal?: AbortSignal) => {
     if (!options.indexedUrl) {
-      throw new RpcError("rpc", method, "Indexed API is only available with Coinset endpoints");
+      throw new RpcError("rpc", method, "Indexed API is only available with Coinset or nodexch");
     }
-    return coinsetRead(
-      () => post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal),
-      signal
-    );
+    const call = () =>
+      post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal, headers);
+    return gated ? coinsetRead(call, signal) : call();
   };
 
   const notFoundIfMissing = <T>(value: T | null | undefined, method: string, what: string): T => {
@@ -371,8 +377,29 @@ export function createRpcClient(options: RpcClientOptions) {
       return String(r.status ?? "UNKNOWN");
     },
 
-    /** Connected peers; Coinset's public gateway disables this, custom nodes answer it. */
+    /**
+     * Connected peers; Coinset's public gateway disables this, custom nodes answer it, and a
+     * nodexch gateway publishes its node's full-node peers (addresses cut to their network) on
+     * `GET /x/node/v1/peers` instead of the node's admin method.
+     */
     async getConnections(signal?: AbortSignal): Promise<PeerConnection[]> {
+      if (options.nodexch) {
+        const url = `${options.rpcUrl}/x/node/v1/peers`;
+        let response: Response;
+        try {
+          response = await fetchImpl(url, { headers, signal });
+        } catch (error) {
+          throw new RpcError("network", "peers", "Network error calling /x/node/v1/peers", {
+            detail: error,
+          });
+        }
+        if (!response.ok)
+          throw new RpcError("http", "peers", `HTTP ${response.status} from /x/node/v1/peers`, {
+            status: response.status,
+          });
+        const r = parseJsonSafe(await response.text()) as Raw;
+        return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
+      }
       const r = await rpc("get_connections", {}, signal);
       return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
     },

@@ -17,6 +17,8 @@ const messages: Translation<(typeof en)["messages"]> = {
       "默认情况下，mempoolxch.space 直接在您的浏览器中通过 <coinset>Coinset</coinset> 的公共全节点 RPC 读取链上数据，无需自己运行节点。您也可以将每个网络指向任何兼容 Chia 全节点 RPC 的 HTTPS 端点。使用自定义端点时，仅 Coinset 提供的功能（语义化交易摘要、地址历史和 WebSocket 数据流）会自动关闭，应用将改为轮询，并在浏览器中获取原始内存池。",
     ownNode:
       "<strong>使用自己的节点？</strong>标准的 Chia 全节点在 <code>https://localhost:8555</code> 上以双向 TLS 监听：它要求提供节点的客户端证书（浏览器无法提供），并且不发送 CORS 头。请在其前面放置一个小型反向代理，用客户端证书终止 TLS 并添加 <code>Access-Control-Allow-Origin</code>，然后在此处输入代理 URL。<guide>分步指南</guide>。",
+    nodexch:
+      "<strong>nodexch？</strong>nodexch 网关在其自有全节点之前使用 Coinset 的接口方式：全节点 RPC、索引 API 和 WebSocket 位于同一主机。选择预设，或将您自己的网关标记为 nodexch；每次调用都会附带一个绑定到本站来源的可公开密钥（<code>nxp_…</code>）。切勿在此输入秘密密钥。",
   },
   endpoint: {
     addresses: "（{prefix} 地址）",
@@ -31,6 +33,13 @@ const messages: Translation<(typeof en)["messages"]> = {
     sageHttpsOnly: "在 Sage 中只能将 https 端点加入白名单。",
     sageRefused: "Sage 未允许此主机；端点未保存。",
     sageAllowed: "Sage 已允许此主机。",
+    nodexch: "nodexch",
+    nodexchPreset: "使用 nodexch.space",
+    nodexchToggle: "此端点是 nodexch 网关",
+    apiKey: "可公开密钥",
+    apiKeyHint: "nxp_…（使用 nodexch.space 预设时可选）",
+    apiKeyInvalid: "浏览器中只能使用可公开密钥（nxp_…）。",
+    okNodexch: "峰值 {height}，耗时 {ms} ms · nodexch：索引 API 和 WebSocket 已开启",
   },
   appearance: {
     title: "外观",

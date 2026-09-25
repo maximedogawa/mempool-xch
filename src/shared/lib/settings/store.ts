@@ -3,15 +3,33 @@
  * localStorage; a tiny external store so React reads it with useSyncExternalStore and the
  * non-React data layer can read it too.
  */
-import { isCoinsetUrl, NETWORKS, NETWORK_IDS, type NetworkId } from "@/shared/config/networks";
+import {
+  NETWORKS,
+  NETWORK_IDS,
+  providerOf,
+  type NetworkId,
+  type Provider,
+} from "@/shared/config/networks";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { isLocale, type LocalePreference } from "@/shared/i18n/config";
 
 export type ThemePreference = "dark" | "light" | "system";
 
+/** One network's endpoint: its URL, whether it is a nodexch gateway, and its publishable key. */
+export interface Endpoint {
+  rpcUrl: string;
+  /** Set for a nodexch gateway on a host the app does not know (self-hosted). */
+  provider?: "nodexch";
+  /** A nodexch publishable key (`nxp_…`), bound to this site's origin. Never a secret key. */
+  apiKey?: string;
+}
+
+/** A nodexch publishable key: safe in a browser because the gateway binds it to origins. */
+export const PUBLISHABLE_KEY = /^nxp_[A-Za-z0-9_-]{16,128}$/;
+
 export interface Settings {
   network: NetworkId;
-  endpoints: Record<NetworkId, { rpcUrl: string }>;
+  endpoints: Record<NetworkId, Endpoint>;
   theme: ThemePreference;
   /** Number of recent blocks on the dashboard strip. */
   recentBlocks: number;
@@ -41,25 +59,54 @@ export const DEFAULT_SETTINGS: Settings = {
 export interface ResolvedEndpoints {
   network: NetworkId;
   rpcUrl: string;
-  /** Null when the endpoint is not Coinset (indexed API unavailable). */
+  /** Null when the endpoint has no indexed API (a custom node). */
   indexedUrl: string | null;
-  /** Null when the endpoint is not Coinset (WebSocket unavailable → polling). */
+  /** Null without a WebSocket (a custom node: polling). A nodexch key rides in its query. */
   wsUrl: string | null;
+  provider: Provider;
+  /** Coinset itself: its read budget, its summary API and its wording. */
   isCoinset: boolean;
+  /** The publishable key sent to a nodexch gateway; null otherwise. */
+  apiKey: string | null;
+}
+
+/** A nodexch gateway's WebSocket: its own host, `/ws`, the key in the query (publishable keys only). */
+export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
+  const url = new URL(`${rpcUrl.replace(/\/$/, "")}/ws`);
+  url.protocol = url.protocol === "http:" ? "ws:" : "wss:";
+  if (apiKey) url.searchParams.set("key", apiKey);
+  return url.toString();
 }
 
 export function resolveEndpoints(
   settings: Settings,
   network: NetworkId = settings.network
 ): ResolvedEndpoints {
-  const rpcUrl = settings.endpoints[network]?.rpcUrl?.trim() || NETWORKS[network].rpcUrl;
-  const isCoinset = isCoinsetUrl(network, rpcUrl);
+  const endpoint = settings.endpoints[network];
+  const rpcUrl = (endpoint?.rpcUrl?.trim() || NETWORKS[network].rpcUrl).replace(/\/$/, "");
+  const provider = providerOf(network, rpcUrl, endpoint?.provider);
+  if (provider === "nodexch") {
+    // The site's own key for the hosted gateway, the user's for theirs.
+    const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
+    return {
+      network,
+      rpcUrl,
+      indexedUrl: rpcUrl,
+      wsUrl: nodexchWsUrl(rpcUrl, apiKey),
+      provider,
+      isCoinset: false,
+      apiKey,
+    };
+  }
+  const isCoinset = provider === "coinset";
   return {
     network,
-    rpcUrl: rpcUrl.replace(/\/$/, ""),
+    rpcUrl,
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
+    provider,
     isCoinset,
+    apiKey: null,
   };
 }
 
@@ -70,11 +117,17 @@ function sanitise(raw: unknown): Settings {
     : DEFAULT_SETTINGS.network;
   const endpoints = Object.fromEntries(
     NETWORK_IDS.map((id) => {
-      const url = r.endpoints?.[id]?.rpcUrl;
-      return [
-        id,
-        { rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl },
-      ];
+      const raw = r.endpoints?.[id];
+      const url = raw?.rpcUrl;
+      const endpoint: Endpoint = {
+        rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl,
+      };
+      if (raw?.provider === "nodexch") endpoint.provider = "nodexch";
+      // Only a publishable key is kept: a secret key must never sit in a browser.
+      if (typeof raw?.apiKey === "string" && PUBLISHABLE_KEY.test(raw.apiKey.trim())) {
+        endpoint.apiKey = raw.apiKey.trim();
+      }
+      return [id, endpoint];
     })
   ) as Settings["endpoints"];
   const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";

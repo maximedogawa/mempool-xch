@@ -70,6 +70,24 @@ interface CoinsetEnvelope {
 }
 
 /** Parse one Coinset WebSocket frame into zero or one live events. */
+/** The events the app listens to. */
+export const STREAM_EVENTS = "peak,transaction,reorg,dashboard,vault";
+
+/**
+ * The socket URL with the events asked for. Built with URL, not by appending: a nodexch
+ * gateway's WebSocket URL already carries its publishable key in the query (`?key=`).
+ */
+export function streamUrl(wsUrl: string): string {
+  try {
+    const url = new URL(wsUrl);
+    url.searchParams.delete("events");
+    // Commas stay literal (as Coinset has always been sent them), not `%2C`.
+    return `${url.toString()}${url.search ? "&" : "?"}events=${STREAM_EVENTS}`;
+  } catch {
+    return `${wsUrl}?events=${STREAM_EVENTS}`;
+  }
+}
+
 export function parseCoinsetMessage(raw: string): LiveEvent | null {
   let envelope: CoinsetEnvelope;
   try {
@@ -223,7 +241,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     setStatus("connecting");
     let ws: WebSocket;
     try {
-      ws = new WS(`${options.wsUrl}?events=peak,transaction,reorg,dashboard,vault`);
+      ws = new WS(streamUrl(options.wsUrl));
     } catch {
       onSocketFailure();
       return;

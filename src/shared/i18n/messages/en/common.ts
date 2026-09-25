@@ -12,6 +12,8 @@ const messages = {
     socketDetail: "Streaming peak and transaction events from {host} directly.",
     reconnectingName: "Coinset socket (reconnecting)",
     reconnectingDetail: "Reconnecting to {host}.",
+    nodexchSocketName: "nodexch socket",
+    nodexchReconnectingName: "nodexch socket (reconnecting)",
     pollingName: "Polling",
     pollingDetail: "Polling {host} every few seconds.",
   },

@@ -45,6 +45,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
     rpcUrl: endpoints.rpcUrl,
     wsUrl: endpoints.wsUrl,
     isCoinset: endpoints.isCoinset,
+    provider: endpoints.provider,
   });
   const tone: PillTone = status === "polling" ? "live" : status;
   const hint =

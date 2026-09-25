@@ -67,3 +67,57 @@ describe("resolveEndpoints", () => {
     );
   });
 });
+
+describe("nodexch endpoints", () => {
+  const PUBLISHABLE = "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt";
+  const withMainnet = (mainnet: Record<string, unknown>) =>
+    createSettingsStore(
+      memoryStorage({
+        [STORAGE_KEY]: JSON.stringify({
+          ...DEFAULT_SETTINGS,
+          endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet },
+        }),
+      })
+    ).get();
+
+  test("the hosted gateway is nodexch by its host: indexed API and WebSocket on its own host", () => {
+    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://nodexch.space/" }));
+    expect(e.provider).toBe("nodexch");
+    expect(e.isCoinset).toBe(false);
+    expect(e.rpcUrl).toBe("https://nodexch.space");
+    expect(e.indexedUrl).toBe("https://nodexch.space");
+    expect(e.wsUrl).toBe("wss://nodexch.space/ws");
+  });
+
+  test("a self-hosted gateway is nodexch when marked, and its key rides in the socket URL", () => {
+    const e = resolveEndpoints(
+      withMainnet({ rpcUrl: "http://localhost:8600", provider: "nodexch", apiKey: PUBLISHABLE })
+    );
+    expect(e.provider).toBe("nodexch");
+    expect(e.apiKey).toBe(PUBLISHABLE);
+    expect(e.wsUrl).toBe(`ws://localhost:8600/ws?key=${PUBLISHABLE}`);
+    const unmarked = resolveEndpoints(withMainnet({ rpcUrl: "http://localhost:8600" }));
+    expect(unmarked.provider).toBe("custom");
+    expect(unmarked.indexedUrl).toBeNull();
+    expect(unmarked.wsUrl).toBeNull();
+  });
+
+  test("only a publishable key is kept; a secret key never is", () => {
+    const secret = withMainnet({
+      rpcUrl: "https://nodexch.space",
+      apiKey: "nxs_Zk3vQ0aBq1v0m3J2o0r8c5Tt",
+    });
+    expect(secret.endpoints.mainnet.apiKey).toBeUndefined();
+    const kept = withMainnet({ rpcUrl: "https://nodexch.space", apiKey: ` ${PUBLISHABLE} ` });
+    expect(kept.endpoints.mainnet.apiKey).toBe(PUBLISHABLE);
+  });
+
+  test("Coinset stays Coinset whatever is declared", () => {
+    const e = resolveEndpoints(
+      withMainnet({ rpcUrl: "https://api.coinset.org", provider: "nodexch" })
+    );
+    expect(e.provider).toBe("coinset");
+    expect(e.isCoinset).toBe(true);
+    expect(e.apiKey).toBeNull();
+  });
+});

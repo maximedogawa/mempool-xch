@@ -1,3 +1,4 @@
+import { streamUrl } from "./stream";
 import { describe, expect, test } from "bun:test";
 import {
   backoffDelay,
@@ -316,4 +317,17 @@ test("stopping aborts the poll and ignores its late result, including after rest
   pending[1]!.resolve({ peakHeight: 100, peakIsTx: true, mempoolSize: 10 });
   await Promise.resolve();
   expect(stream.status).toBe("offline");
+});
+
+describe("streamUrl", () => {
+  test("Coinset's URL as it always was", () => {
+    expect(streamUrl("wss://api.coinset.org/ws")).toBe(
+      "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault"
+    );
+  });
+  test("a nodexch key in the query survives", () => {
+    expect(streamUrl("wss://nodexch.space/ws?key=nxp_abc")).toBe(
+      "wss://nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
+    );
+  });
 });

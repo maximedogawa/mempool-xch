@@ -12,6 +12,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     socketDetail: "Empfängt Peak- und Transaktionsereignisse direkt von {host}.",
     reconnectingName: "Coinset-Socket (verbindet neu)",
     reconnectingDetail: "Verbindet erneut mit {host}.",
+    nodexchSocketName: "nodexch-Socket",
+    nodexchReconnectingName: "nodexch-Socket (verbindet neu)",
     pollingName: "Polling",
     pollingDetail: "Fragt {host} alle paar Sekunden ab.",
   },

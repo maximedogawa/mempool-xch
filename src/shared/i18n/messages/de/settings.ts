@@ -18,6 +18,8 @@ const messages: Translation<(typeof en)["messages"]> = {
       "Standardmäßig liest mempoolxch.space die Chain über den öffentlichen Full-Node-RPC von <coinset>Coinset</coinset> – direkt aus Ihrem Browser, ganz ohne eigenen Node. Sie können jedes Netzwerk stattdessen auf einen beliebigen HTTPS-Endpunkt richten, der mit dem Chia-Full-Node-RPC kompatibel ist. Funktionen, die nur Coinset bietet (semantische Transaktionszusammenfassungen, Adresshistorie und der WebSocket-Stream), werden bei eigenen Endpunkten automatisch abgeschaltet; die App fragt dann regelmäßig ab und lädt den rohen Mempool im Browser.",
     ownNode:
       "<strong>Eigenen Node verwenden?</strong> Ein normaler Chia Full Node lauscht auf <code>https://localhost:8555</code> mit gegenseitigem TLS: Er verlangt das Client-Zertifikat des Nodes, das ein Browser nicht vorweisen kann, und sendet keine CORS-Header. Setzen Sie einen kleinen Reverse Proxy davor, der TLS mit dem Client-Zertifikat terminiert und <code>Access-Control-Allow-Origin</code> ergänzt, und tragen Sie dann hier die Proxy-URL ein. <guide>Schritt-für-Schritt-Anleitung</guide>.",
+    nodexch:
+      "<strong>nodexch?</strong> Ein nodexch-Gateway spricht Coinsets Dialekt vor seinem eigenen Full Node: Full-Node-RPC, die indexierte API und der WebSocket auf einem Host. Wählen Sie die Vorgabe oder markieren Sie Ihr eigenes Gateway als nodexch; ein öffentlicher Schlüssel (<code>nxp_…</code>), gebunden an die Herkunft dieser Seite, wird bei jedem Aufruf mitgeschickt. Tragen Sie hier nie einen geheimen Schlüssel ein.",
   },
   endpoint: {
     addresses: "({prefix}-Adressen)",
@@ -32,6 +34,13 @@ const messages: Translation<(typeof en)["messages"]> = {
     sageHttpsOnly: "In Sage können nur https-Endpunkte freigegeben werden.",
     sageRefused: "Sage hat diesen Host nicht zugelassen; der Endpunkt wurde nicht gespeichert.",
     sageAllowed: "Sage hat diesen Host zugelassen.",
+    nodexch: "nodexch",
+    nodexchPreset: "nodexch.space verwenden",
+    nodexchToggle: "Dieser Endpunkt ist ein nodexch-Gateway",
+    apiKey: "Öffentlicher Schlüssel",
+    apiKeyHint: "nxp_… (für die nodexch.space-Vorgabe optional)",
+    apiKeyInvalid: "In einen Browser gehört nur ein öffentlicher Schlüssel (nxp_…).",
+    okNodexch: "Peak {height} in {ms} ms · nodexch: indexierte API und WebSocket an",
   },
   appearance: {
     title: "Darstellung",

@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -17,6 +18,7 @@ import {
   type Settings,
 } from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { probeIndexed } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
 
@@ -43,7 +45,30 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     () => true,
     () => false
   );
-  const endpoints = useMemo(() => resolveEndpoints(settings), [settings]);
+  const resolved = useMemo(() => resolveEndpoints(settings), [settings]);
+  // A nodexch gateway without an index: its indexed features switch off (probeIndexed).
+  const [indexOffFor, setIndexOffFor] = useState<string | null>(null);
+  const endpoints = useMemo(
+    () =>
+      resolved.provider === "nodexch" && indexOffFor === resolved.rpcUrl
+        ? { ...resolved, indexedUrl: null }
+        : resolved,
+    [resolved, indexOffFor]
+  );
+  useEffect(() => {
+    if (!hydrated || resolved.provider !== "nodexch") return;
+    const controller = new AbortController();
+    const probe = createRpcClient({
+      rpcUrl: resolved.rpcUrl,
+      indexedUrl: resolved.rpcUrl,
+      nodexch: { apiKey: resolved.apiKey },
+      timeoutMs: 10_000,
+    });
+    void probeIndexed(probe, controller.signal).then((on) => {
+      if (!controller.signal.aborted) setIndexOffFor(on ? null : resolved.rpcUrl);
+    });
+    return () => controller.abort();
+  }, [hydrated, resolved.provider, resolved.rpcUrl, resolved.apiKey]);
   // Scroll to the top and drop transient per-network UI state when the network changes.
   const previousNetwork = useRef(settings.network);
   useEffect(() => {
@@ -63,6 +88,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       createRpcClient({
         rpcUrl: endpoints.rpcUrl,
         indexedUrl: endpoints.indexedUrl,
+        nodexch: endpoints.provider === "nodexch" ? { apiKey: endpoints.apiKey } : undefined,
         fetchImpl: (input, init) =>
           hydratedRef.current &&
           activeEndpoints.current.rpcUrl === endpoints.rpcUrl &&
@@ -70,7 +96,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             ? fetch(input, init)
             : Promise.reject(new RpcError("aborted", "hydration", "Settings not hydrated yet")),
       }),
-    [endpoints.rpcUrl, endpoints.indexedUrl]
+    [endpoints.rpcUrl, endpoints.indexedUrl, endpoints.provider, endpoints.apiKey]
   );
   const value = useMemo<SettingsContextValue>(
     () => ({

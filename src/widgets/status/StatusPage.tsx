@@ -176,8 +176,16 @@ export function StatusPage() {
     hidden?: boolean;
   }[] = [
     {
-      id: endpoints.isCoinset ? "coinset-full-node-rpc" : "your-node-full-node-rpc-",
-      name: endpoints.isCoinset ? t("names.coinsetRpc") : t("names.ownNode"),
+      id: endpoints.isCoinset
+        ? "coinset-full-node-rpc"
+        : endpoints.provider === "nodexch"
+          ? "nodexch-gateway"
+          : "your-node-full-node-rpc-",
+      name: endpoints.isCoinset
+        ? t("names.coinsetRpc")
+        : endpoints.provider === "nodexch"
+          ? t("names.nodexch")
+          : t("names.ownNode"),
       what: endpoints.rpcUrl.replace(/^https?:\/\//, ""),
       index: 0,
     },

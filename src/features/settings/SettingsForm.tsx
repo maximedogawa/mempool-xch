@@ -3,7 +3,15 @@
 import { CheckCircle2, Loader2, Monitor, Moon, RotateCcw, Sun, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { NETWORK_IDS, NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
+import {
+  NETWORK_IDS,
+  NETWORKS,
+  isCoinsetUrl,
+  isNodexchUrl,
+  providerOf,
+  type NetworkId,
+  type Provider,
+} from "@/shared/config/networks";
 import { LOCALE_NAMES, LOCALES, type LocalePreference } from "@/shared/i18n/config";
 import { formatInteger } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
@@ -11,7 +19,7 @@ import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
-import type { ThemePreference } from "@/shared/lib/settings/store";
+import { PUBLISHABLE_KEY, type Endpoint, type ThemePreference } from "@/shared/lib/settings/store";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -23,7 +31,7 @@ import settingsNs from "@/shared/i18n/messages/en/settings";
 type TestState =
   | { status: "idle" }
   | { status: "testing" }
-  | { status: "ok"; height: number; ms: number; coinset: boolean }
+  | { status: "ok"; height: number; ms: number; provider: Provider }
   | { status: "error"; message: string }
   | { status: "whitelist"; message: string; ok: boolean };
 
@@ -39,6 +47,7 @@ function ChannelLine() {
     rpcUrl: endpoints.rpcUrl,
     wsUrl: endpoints.wsUrl,
     isCoinset: endpoints.isCoinset,
+    provider: endpoints.provider,
   });
   return (
     <p className="rounded-sm border border-border bg-bg px-3 py-2 text-xs text-fg-muted">
@@ -142,23 +151,52 @@ function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
-  const value = settings.endpoints[network].rpcUrl;
+  const saved = settings.endpoints[network];
+  const value = saved.rpcUrl;
   const [draft, setDraft] = useState(value);
+  // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key.
+  const [draftNodexch, setDraftNodexch] = useState(saved.provider === "nodexch");
+  const [draftKey, setDraftKey] = useState(saved.apiKey ?? "");
   const [test, setTest] = useState<TestState>({ status: "idle" });
-  const dirty = draft.trim() !== value;
-  const isDefault = value === config.rpcUrl;
+  const provider = providerOf(network, draft.trim(), draftNodexch ? "nodexch" : undefined);
+  const savedProvider = providerOf(network, value, saved.provider);
+  const keyInvalid = draftKey.trim() !== "" && !PUBLISHABLE_KEY.test(draftKey.trim());
+  const dirty =
+    draft.trim() !== value ||
+    draftNodexch !== (saved.provider === "nodexch") ||
+    draftKey.trim() !== (saved.apiKey ?? "");
+  const isDefault = value === config.rpcUrl && savedProvider === "coinset";
+
+  /** What Save stores: the flag only where the host alone does not say nodexch. */
+  const endpointOf = (rpcUrl: string): Endpoint => {
+    const endpoint: Endpoint = { rpcUrl };
+    if (draftNodexch && !isCoinsetUrl(network, rpcUrl) && !isNodexchUrl(network, rpcUrl))
+      endpoint.provider = "nodexch";
+    if (providerOf(network, rpcUrl, endpoint.provider) === "nodexch" && draftKey.trim())
+      endpoint.apiKey = draftKey.trim();
+    return endpoint;
+  };
 
   const runTest = async () => {
     setTest({ status: "testing" });
     const started = performance.now();
     try {
-      const client = createRpcClient({ rpcUrl: draft.trim(), indexedUrl: null, timeoutMs: 10_000 });
+      const rpcUrl = draft.trim();
+      const client = createRpcClient({
+        rpcUrl,
+        indexedUrl: null,
+        timeoutMs: 10_000,
+        nodexch:
+          provider === "nodexch"
+            ? { apiKey: draftKey.trim() || config.nodexchKey || null }
+            : undefined,
+      });
       const state = await client.getBlockchainState();
       setTest({
         status: "ok",
         height: state.peak.height,
         ms: Math.round(performance.now() - started),
-        coinset: isCoinsetUrl(network, draft),
+        provider,
       });
     } catch (error) {
       setTest({ status: "error", message: errorMessage(error) });
@@ -184,9 +222,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
         >
           {isDefault
             ? t("endpoint.coinsetDefault")
-            : isCoinsetUrl(network, value)
+            : savedProvider === "coinset"
               ? "Coinset"
-              : t("endpoint.customNode")}
+              : savedProvider === "nodexch"
+                ? t("endpoint.nodexch")
+                : t("endpoint.customNode")}
         </span>
       </div>
       <input
@@ -201,7 +241,56 @@ function EndpointRow({ network }: { network: NetworkId }) {
         spellCheck={false}
         className="mono h-10 w-full rounded-sm border border-border bg-bg-elevated px-3 text-sm focus:border-primary focus:outline-none"
       />
+      {provider !== "coinset" && !isNodexchUrl(network, draft.trim()) ? (
+        <label className="flex items-center gap-2 text-xs text-fg-muted">
+          <input
+            type="checkbox"
+            checked={draftNodexch}
+            onChange={(e) => {
+              setDraftNodexch(e.target.checked);
+              setTest({ status: "idle" });
+            }}
+          />
+          {t("endpoint.nodexchToggle")}
+        </label>
+      ) : null}
+      {provider === "nodexch" ? (
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`key-${network}`} className="text-xs font-medium">
+            {t("endpoint.apiKey")}
+          </label>
+          <input
+            id={`key-${network}`}
+            type="text"
+            value={draftKey}
+            onChange={(e) => setDraftKey(e.target.value)}
+            placeholder={t("endpoint.apiKeyHint")}
+            spellCheck={false}
+            autoComplete="off"
+            aria-invalid={keyInvalid}
+            className="mono h-9 w-full rounded-sm border border-border bg-bg-elevated px-3 text-xs focus:border-primary focus:outline-none"
+          />
+          {keyInvalid ? (
+            <span role="alert" className="text-xs text-danger">
+              {t("endpoint.apiKeyInvalid")}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
+        {config.nodexchUrl && draft.trim() !== config.nodexchUrl ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setDraft(config.nodexchUrl!);
+              setDraftNodexch(false);
+              setTest({ status: "idle" });
+            }}
+          >
+            {t("endpoint.nodexchPreset")}
+          </Button>
+        ) : null}
         <Button size="sm" onClick={runTest} disabled={test.status === "testing" || !draft.trim()}>
           {test.status === "testing" ? (
             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
@@ -211,7 +300,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
         <Button
           size="sm"
           variant="primary"
-          disabled={!dirty}
+          disabled={!dirty || keyInvalid}
           onClick={async () => {
             const rpcUrl = draft.trim();
             if (inSage && !isCoinsetUrl(network, rpcUrl)) {
@@ -237,7 +326,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
             }
             update((prev) => ({
               ...prev,
-              endpoints: { ...prev.endpoints, [network]: { rpcUrl } },
+              endpoints: { ...prev.endpoints, [network]: endpointOf(rpcUrl) },
             }));
           }}
         >
@@ -249,6 +338,8 @@ function EndpointRow({ network }: { network: NetworkId }) {
           disabled={isDefault && !dirty}
           onClick={() => {
             setDraft(config.rpcUrl);
+            setDraftNodexch(false);
+            setDraftKey("");
             setTest({ status: "idle" });
             update((prev) => ({
               ...prev,
@@ -261,10 +352,17 @@ function EndpointRow({ network }: { network: NetworkId }) {
         {test.status === "ok" ? (
           <span role="status" className="inline-flex items-center gap-1 text-xs text-primary">
             <CheckCircle2 size={14} aria-hidden="true" />{" "}
-            {t(test.coinset ? "endpoint.ok" : "endpoint.okCustom", {
-              height: formatInteger(test.height),
-              ms: test.ms,
-            })}
+            {t(
+              test.provider === "coinset"
+                ? "endpoint.ok"
+                : test.provider === "nodexch"
+                  ? "endpoint.okNodexch"
+                  : "endpoint.okCustom",
+              {
+                height: formatInteger(test.height),
+                ms: test.ms,
+              }
+            )}
           </span>
         ) : null}
         {test.status === "whitelist" ? (
@@ -358,6 +456,12 @@ export function SettingsForm() {
           {NETWORK_IDS.map((id) => (
             <EndpointRow key={id} network={id} />
           ))}
+          <p className="rounded-sm border border-border bg-bg p-3 text-xs text-fg-muted">
+            {t.rich("endpoints.nodexch", {
+              strong: (c) => <strong className="text-fg">{c}</strong>,
+              code: (c) => <span className="mono">{c}</span>,
+            })}
+          </p>
           <div className="rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] p-3 text-xs text-fg-muted">
             {t.rich("endpoints.ownNode", {
               strong: (c) => <strong className="text-warning">{c}</strong>,

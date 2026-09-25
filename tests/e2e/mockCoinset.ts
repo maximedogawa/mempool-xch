@@ -745,3 +745,78 @@ export async function mockCustomNode(page: Page) {
     route.fulfill({ status: 599, body: "must not be called with a custom node" })
   );
 }
+
+export const NODEXCH_URL = "https://nodexch.space";
+export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
+
+/**
+ * The hosted nodexch gateway (Coinset's dialect in front of an own node): RPC and the indexed
+ * API on one host, the WebSocket on /ws with the publishable key in its query, peers on
+ * /x/node/v1/peers. Every request and socket is recorded, so a spec can check the key and that
+ * nothing went to Coinset.
+ */
+export async function mockNodexch(page: Page) {
+  await seedConsent(page);
+  await page.addInitScript(
+    ({ rpcUrl, apiKey }) => {
+      window.localStorage.setItem(
+        "mempool-xch:settings:v1",
+        JSON.stringify({
+          network: "mainnet",
+          endpoints: {
+            mainnet: { rpcUrl, apiKey },
+            testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+          },
+          theme: "dark",
+          recentBlocks: 8,
+        })
+      );
+    },
+    { rpcUrl: NODEXCH_URL, apiKey: NODEXCH_KEY }
+  );
+  const seen = {
+    requests: [] as { url: string; authorization: string | null }[],
+    sockets: [] as string[],
+  };
+  await page.route(/https:\/\/nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return json(route, {
+      connections: [
+        {
+          type: 1,
+          peer_host: "203.0.113.0",
+          peer_server_port: 8444,
+          peak_height: 9295535,
+          creation_time: 1700000000,
+        },
+      ],
+      success: true,
+    });
+  });
+  await page.route(/https:\/\/nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return answerNodeMethod(route);
+  });
+  // The gateway's frames, in Coinset's shape: a peak right after the upgrade.
+  await page.routeWebSocket(/wss:\/\/nodexch\.space\/ws.*/, (ws) => {
+    seen.sockets.push(ws.url());
+    ws.send(
+      JSON.stringify({
+        network: "mainnet",
+        seq: 1,
+        message: { type: "peak", data: { height: 9295535, tx: true } },
+      })
+    );
+  });
+  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) =>
+    route.fulfill({ status: 599, body: "must not be called with nodexch" })
+  );
+  await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+  return seen;
+}

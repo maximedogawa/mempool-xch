@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
+import { badgeSource, type BadgeSource } from "./source";
 
 /**
  * SVG status badge for a transaction, for READMEs and pages that can only embed an <img>:
- * one Coinset lookup per request, no state, cached by the browser or CDN for a minute. The
- * only server-side read in the app; excluded from the Sage export like every route handler.
+ * one lookup per request (Coinset, or a nodexch gateway set in the server's environment: see
+ * ./source.ts), no state, cached by the browser or CDN for a minute. The only server-side read
+ * in the app; excluded from the Sage export like every route handler.
  */
 export const dynamic = "force-dynamic";
 
-const COINSET: Record<string, string> = {
-  mainnet: "https://api.coinset.org",
-  testnet11: "https://testnet11.api.coinset.org",
-};
 const COLOUR: Record<string, string> = {
   confirmed: "#3aac59",
   pending: "#d9a400",
@@ -32,11 +30,14 @@ function badge(label: string, status: string): string {
 <text x="${left / 2}" y="14">${label}</text><text x="${left + right / 2}" y="14" font-weight="bold">${status}</text></g></svg>`;
 }
 
-async function status(base: string, id: string): Promise<string> {
+async function status(source: BadgeSource, id: string): Promise<string> {
   const post = (method: string, body: unknown) =>
-    fetch(`${base}/${method}`, {
+    fetch(`${source.url}/${method}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(source.key ? { authorization: `Bearer ${source.key}` } : {}),
+      },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(8_000),
     })
@@ -63,7 +64,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const network =
     new URL(request.url).searchParams.get("network") === "testnet11" ? "testnet11" : "mainnet";
   const valid = /^[0-9a-f]{64}$/.test(id);
-  const state = valid ? await status(COINSET[network]!, id) : "invalid";
+  const state = valid ? await status(badgeSource(network, process.env), id) : "invalid";
   return new NextResponse(badge("chia tx", state), {
     status: 200,
     headers: {

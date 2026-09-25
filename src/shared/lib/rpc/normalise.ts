@@ -344,7 +344,8 @@ export function normalisePeerConnection(raw: unknown): PeerConnection {
   return {
     nodeId: hex(r.node_id),
     peerHost: str(r.peer_host),
-    peerPort: num(r.peer_port),
+    // A nodexch gateway publishes the peer's listening port only (`peer_server_port`).
+    peerPort: num(r.peer_port ?? r.peer_server_port),
     type: num(r.type),
     bytesRead: num(r.bytes_read),
     bytesWritten: num(r.bytes_written),

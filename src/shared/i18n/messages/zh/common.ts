@@ -11,6 +11,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     socketDetail: "直接从 {host} 接收最新高度和交易事件。",
     reconnectingName: "Coinset WebSocket（重新连接中）",
     reconnectingDetail: "正在重新连接到 {host}。",
+    nodexchSocketName: "nodexch WebSocket",
+    nodexchReconnectingName: "nodexch WebSocket（重新连接中）",
     pollingName: "轮询",
     pollingDetail: "每隔几秒轮询 {host}。",
   },
