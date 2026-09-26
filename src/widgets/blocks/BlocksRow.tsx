@@ -6,6 +6,7 @@ import { useWatchedActivity } from "@/widgets/watchlist/useWatchedActivity";
 import { CHIA } from "@/shared/config/networks";
 import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { FlowTrace } from "@/shared/ui";
 import { ProjectedBlockDetails } from "./ProjectedBlockDetails";
 import { ProjectedBlocks } from "./ProjectedBlocks";
 import { RecentBlocks } from "./RecentBlocks";
@@ -73,11 +74,13 @@ export function BlocksRow() {
   return (
     <section
       aria-label={t("row.label")}
-      className="rounded-card border border-border/60 bg-(image:--strip-bg)"
+      className="relative overflow-hidden rounded-card border border-border bg-(image:--strip-bg)"
     >
+      {/* The dashboard's one atmospheric anchor: the queue drifting towards the next block. */}
+      <FlowTrace className="absolute inset-x-0 bottom-0 h-24 opacity-70" />
       <div
         ref={scroller}
-        className="scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
+        className="relative scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onWheel={() => {
           userScrolled.current = true;
@@ -94,9 +97,7 @@ export function BlocksRow() {
       >
         <div className="flex min-w-max items-end gap-4">
           <div className="flex flex-col items-end gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t("row.projected")}
-            </span>
+            <span className="eyebrow text-[11px] text-fg-faint">{t("row.projected")}</span>
             <ProjectedBlocks
               watchedIds={watched.pendingIds}
               blocks={projected.blocks}
@@ -108,15 +109,13 @@ export function BlocksRow() {
           <div
             ref={divider}
             aria-hidden="true"
-            className="relative mb-7 h-[196px] w-0 self-end border-l-2 border-dashed border-fg-faint/70"
+            className="relative mb-7 h-[196px] w-0 self-end border-l border-dashed border-fg-faint/60"
           >
             <span className="absolute -left-[7px] -top-4 text-[11px] text-fg-faint">⇅</span>
             <span className="absolute -bottom-4 -left-[7px] text-[11px] text-fg-faint">⇄</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t("row.confirmed")}
-            </span>
+            <span className="eyebrow text-[11px] text-fg-faint">{t("row.confirmed")}</span>
             <RecentBlocks
               watchedConfirmed={watched.confirmed}
               data={recent.data}

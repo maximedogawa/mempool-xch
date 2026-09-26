@@ -106,7 +106,7 @@ export function PrefarmTracker() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <Tooltip text={t("tooltip")} placement="bottom" />
         </div>
       </header>

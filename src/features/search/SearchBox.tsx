@@ -226,7 +226,7 @@ export function SearchBox({
             disabled={busy}
             aria-label={t("submit")}
             className={cn(
-              "flex items-center justify-center rounded-full bg-primary font-semibold text-primary-fg hover:bg-primary-strong disabled:opacity-60",
+              "flex items-center justify-center rounded-full bg-cta font-semibold text-cta-fg hover:bg-cta-hover disabled:opacity-60",
               size === "lg" ? "h-8 w-8" : "px-2 py-1 text-xs"
             )}
           >
@@ -251,7 +251,7 @@ export function SearchBox({
       ) : null}
       {candidates ? (
         <div className="absolute left-0 right-0 top-full z-30 mt-1 rounded-sm border border-border bg-bg-elevated p-1 shadow-card">
-          <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-fg-faint">
+          <p className="px-2 py-1 text-[11px] eyebrow text-fg-faint">
             {candidates.length > 1 ? t("severalMatches") : t("bestGuess")}
           </p>
           {candidates.map((c) =>

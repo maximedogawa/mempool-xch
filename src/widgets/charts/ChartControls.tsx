@@ -27,7 +27,7 @@ function RadioRow<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
+      <span className="text-xs font-medium eyebrow text-fg-muted">{label}</span>
       <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1">
         {options.map((opt) => (
           <button

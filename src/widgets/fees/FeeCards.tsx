@@ -47,7 +47,7 @@ export function FeeCards() {
                 className="flex flex-col gap-0.5 rounded-sm border border-border bg-bg px-3 py-2.5"
                 style={band ? { borderBottom: `3px solid var(${band.cssVar})` } : undefined}
               >
-                <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <span className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t(`cards.targets.${TARGET_LABELS[target]}`)}
                 </span>
                 {fee.isLoading ? (

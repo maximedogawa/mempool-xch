@@ -42,7 +42,7 @@ export function CapacityBar({
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       {!compact ? (
-        <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+        <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium eyebrow text-fg-muted">
           <span>{label}</span>
           <span
             className={cn("tabular text-xs normal-case tracking-normal", text)}

@@ -24,7 +24,8 @@ const CUBE = 138;
 /** Stable colour per farmer puzzle hash so repeat farmers are recognisable at a glance. */
 function farmerColor(ph: string): string {
   const hue = parseInt(ph.slice(0, 6), 16) % 360;
-  return `hsl(${hue} 70% 60%)`;
+  // Pastel and low-chroma, so a row of dots stays quiet next to the pastel fee fills.
+  return `hsl(${hue} 34% 68%)`;
 }
 
 function useNow(intervalMs = 10_000) {

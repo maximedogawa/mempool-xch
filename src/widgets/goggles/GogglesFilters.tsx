@@ -76,9 +76,7 @@ function Count({ n }: { n: number }) {
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div role="group" aria-label={label} className="flex min-w-0 flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-        {label}
-      </span>
+      <span className="text-[10px] font-semibold eyebrow text-fg-faint">{label}</span>
       <div className="flex flex-wrap items-center gap-1">{children}</div>
     </div>
   );
@@ -335,7 +333,7 @@ export function GogglesFilterBar({
             ) : null}
           </Group>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+            <label className="flex flex-col gap-1 text-[10px] font-semibold eyebrow text-fg-faint">
               {t("nonMatching")}
               <select
                 value={prefs.nonMatching}
@@ -351,7 +349,7 @@ export function GogglesFilterBar({
                 <option value="hide">{t("nonMatchingHide")}</option>
               </select>
             </label>
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+            <label className="flex flex-col gap-1 text-[10px] font-semibold eyebrow text-fg-faint">
               {t("groupBy")}
               <select
                 value={prefs.groupBy}

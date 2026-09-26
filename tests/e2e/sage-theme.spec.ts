@@ -38,8 +38,8 @@ test.describe("theme inside Sage", () => {
 
 test.describe("Sage's theme variables", () => {
   for (const sage of [
-    { name: "xch-dark", mostLike: "dark", primary: "#5ece7b" },
-    { name: "xch-light", mostLike: "light", primary: "#176c33" },
+    { name: "xch-dark", mostLike: "dark", primary: "#9eb1d3" },
+    { name: "xch-light", mostLike: "light", primary: "#4f6489" },
   ]) {
     test(`do not replace the app's own colours (${sage.mostLike})`, async ({ page }) => {
       await mockCoinset(page);
@@ -56,7 +56,7 @@ test.describe("Sage's theme variables", () => {
           name
         );
       expect(await token("--primary")).toBe(sage.primary);
-      expect(await token("--radius")).toBe("10px");
+      expect(await token("--radius")).toBe("14px");
     });
   }
 });

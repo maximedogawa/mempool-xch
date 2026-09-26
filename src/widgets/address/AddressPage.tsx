@@ -145,12 +145,12 @@ export function AddressPage() {
               size={132}
               level="M"
               bgColor="#ffffff"
-              fgColor="#0f1220"
+              fgColor="#20262e"
             />
           </div>
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+              <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                 {isDid ? t("header.didId") : t("header.address")}
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-base">
@@ -159,7 +159,7 @@ export function AddressPage() {
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+              <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                 {isDid ? t("header.launcherId") : t("header.puzzleHash")}
               </dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-xs text-fg-muted">
@@ -169,7 +169,7 @@ export function AddressPage() {
             </div>
             {handle.data ? (
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("header.handles")}
                 </dt>
                 <dd className="flex flex-wrap items-center gap-2 text-sm">
@@ -189,7 +189,7 @@ export function AddressPage() {
             ) : null}
             {!isDid ? (
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("header.otherPrefix")}
                 </dt>
                 <dd className="mono flex min-w-0 items-center gap-1 break-all text-xs text-fg-faint">

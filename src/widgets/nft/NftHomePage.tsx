@@ -32,12 +32,12 @@ export function NftHomePage() {
         className="flex flex-col gap-2 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6"
         style={{
           backgroundImage:
-            "radial-gradient(900px 260px at 20% -10%, rgba(214,140,245,0.14), transparent 70%), radial-gradient(700px 240px at 90% 10%, rgba(94,206,123,0.12), transparent 70%)",
+            "radial-gradient(900px 260px at 20% -10%, color-mix(in srgb, var(--fog-violet) 22%, transparent), transparent 70%), radial-gradient(700px 240px at 90% 10%, color-mix(in srgb, var(--primary-pastel) 18%, transparent), transparent 70%)",
         }}
       >
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold tracking-tight">
-            NFT<span className="text-kind-nft">s</span>
+          <h1 className="page-title">
+            NFT<span className="text-accent">s</span>
           </h1>
           <Tooltip text={t("home.intro")} placement="bottom" />
         </div>

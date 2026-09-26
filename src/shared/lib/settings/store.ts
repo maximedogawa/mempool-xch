@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
     mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
     testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
   },
-  theme: "dark",
+  theme: "light",
   recentBlocks: 8,
   sounds: true,
   notifications: false,
@@ -77,7 +77,7 @@ function sanitise(raw: unknown): Settings {
       ];
     })
   ) as Settings["endpoints"];
-  const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
+  const theme: ThemePreference = r.theme === "dark" || r.theme === "system" ? r.theme : "light";
   const recentBlocks =
     typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20
       ? r.recentBlocks

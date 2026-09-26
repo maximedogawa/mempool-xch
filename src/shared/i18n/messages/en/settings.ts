@@ -36,9 +36,9 @@ const messages = {
     title: "Appearance",
     theme: "Theme",
     dark: "Dark",
-    darkHint: "mempool.space style",
+    darkHint: "ink and night blue",
     light: "Light",
-    lightHint: "bright and crisp",
+    lightHint: "warm paper, the default",
     system: "System",
     systemHint: "follows your device",
     sageLocked:

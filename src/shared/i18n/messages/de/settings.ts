@@ -37,9 +37,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Darstellung",
     theme: "Design",
     dark: "Dunkel",
-    darkHint: "mempool.space-Stil",
+    darkHint: "Tinte und Nachtblau",
     light: "Hell",
-    lightHint: "hell und klar",
+    lightHint: "warmes Papier, Standard",
     system: "System",
     systemHint: "folgt Ihrem Gerät",
     sageLocked:

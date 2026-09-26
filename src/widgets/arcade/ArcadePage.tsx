@@ -409,7 +409,7 @@ export function ArcadePage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
+        <h1 className="page-title">{t("title")}</h1>
         <Tooltip text={t("titleHint")} placement="bottom" />
         <Badge tone={settings.network === "mainnet" ? "neutral" : "warning"}>
           {networkConfig.label}

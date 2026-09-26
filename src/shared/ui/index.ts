@@ -9,6 +9,7 @@ export { Button } from "./Button";
 export { Card, CardBody, CardHeader } from "./Card";
 export { CopyButton } from "./CopyButton";
 export { EmptyState } from "./EmptyState";
+export { FlowTrace } from "./FlowTrace";
 export { Hash } from "./Hash";
 export { Popover } from "./Popover";
 export { Skeleton } from "./Skeleton";

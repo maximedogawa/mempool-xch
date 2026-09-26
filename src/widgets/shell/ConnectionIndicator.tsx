@@ -85,9 +85,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
             <span
               className={cn(
                 "relative h-2 w-2 shrink-0 rounded-full",
-                isTestnet
-                  ? "bg-warning shadow-[0_0_8px_var(--warning)]"
-                  : "bg-primary shadow-[0_0_8px_var(--primary)]"
+                isTestnet ? "bg-warning" : "bg-primary"
               )}
             />
           )}

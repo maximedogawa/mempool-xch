@@ -59,7 +59,7 @@ export function PoolsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
+      <h1 className="page-title">{t("title")}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
