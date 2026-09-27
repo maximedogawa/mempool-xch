@@ -1,8 +1,15 @@
 /* Shared helpers of the embeds: theme, endpoint, tiny RPC client and formatters. No framework. */
 (function () {
   var params = new URLSearchParams(location.search);
-  var theme = params.get("theme") === "light" ? "light" : "dark";
+  // Any theme in themes.css (generated from src/shared/theme); dark by default, and an unknown
+  // id falls back to it so an old or mistyped link still renders.
+  var requested = params.get("theme");
+  var theme = requested && /^[a-z0-9-]+$/.test(requested) ? requested : "dark";
   document.documentElement.setAttribute("data-theme", theme);
+  if (!getComputedStyle(document.documentElement).getPropertyValue("--bg").trim()) {
+    theme = "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+  }
   var network = params.get("network") === "testnet11" ? "testnet11" : "mainnet";
   var base =
     network === "testnet11" ? "https://testnet11.api.coinset.org" : "https://api.coinset.org";

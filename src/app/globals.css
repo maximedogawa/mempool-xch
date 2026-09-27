@@ -1,182 +1,11 @@
 @import "tailwindcss";
+@import "../shared/theme/themes.generated.css";
 
 /*
- * mempoolxch.space design tokens: mempool.space's dark navy base with the accent
- * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
- * Every colour used by components is a token here so Sage's theme can remap them later.
- *
- * `html:root`, not `:root`: inside Sage, sage-app-sdk's getSageClient() mounts the wallet's
- * shadcn variables in a late `:root { --primary: …; --accent: …; --border: …; --radius: … }`
- * style, whose names collide with ours. Same specificity would let it win and turn the dark
- * theme's green white; one extra type selector keeps ours, and `:root[data-theme="light"]`
- * below still outranks this block (TASK-095).
+ * Theme tokens come from src/shared/theme (one file per theme, generated into
+ * themes.generated.css by `bun run themes`). This file only maps them onto Tailwind and holds
+ * the component styles, which read tokens and never a colour of their own.
  */
-html:root {
-  color-scheme: dark;
-
-  --bg: #0f1220;
-  --bg-elevated: #171a2b;
-  --surface: #1c2033;
-  --surface-2: #232842;
-  --surface-hover: #2a3050;
-  --border: #2c3350;
-  --map-land: #2f3757;
-  --map-bg: #070d1c;
-  --map-grid: rgb(94 206 123 / 0.06);
-  --map-marker-edge: rgb(7 13 28 / 0.75);
-
-  /* Region hues for the network map: size shows population, hue shows region. */
-  --region-europe: #5ece7b;
-  --region-asia: #7dd3fc;
-  --region-north-america: #8aa4ff;
-  --region-south-america: #f5c542;
-  --region-africa: #d68cf5;
-  --region-oceania: #f2903b;
-  --region-unmapped: #67708f;
-  --border-strong: #3b4468;
-
-  --fg: #e8ebf5;
-  --fg-muted: #9aa3c2;
-  --fg-faint: #8d96b5;
-
-  --primary: #5ece7b;
-  --primary-strong: #3aac59;
-  --primary-soft: rgba(94, 206, 123, 0.14);
-  --primary-fg: #06210f;
-  /* Fresh-row flash behind text: the most green a row can carry while --fg-faint and every other
-     row colour keep 4.5:1 (TASK-095). --primary-soft (14%) left the faint fee text at 4.2:1. */
-  --row-flash: rgba(94, 206, 123, 0.06);
-
-  --accent: #7dd3fc;
-  --warning: #f5c542;
-  --danger: #f0616d;
-  --danger-soft: rgba(240, 97, 109, 0.14);
-  --info: #8aa4ff;
-
-  /* Fee-band gradient: 0 fee (grey-green) → low → medium → high → extreme */
-  --fee-0: #4c5b7b;
-  --fee-1: #3aac59;
-  --fee-2: #8fd35c;
-  --fee-3: #f5c542;
-  --fee-4: #f2903b;
-  --fee-5: #f0616d;
-
-  /* Block cube faces */
-  --block-face: #1f2540;
-  --block-side: #131730;
-  --block-top: #2a3157;
-  --block-empty: #1a1e33;
-  --projected-face: #17283a;
-  /* Cube lighting, per theme (BlockCube reads these; light mode can't shade with black). */
-  --cube-top-hi: color-mix(in srgb, var(--block-top) 78%, white 14%);
-  --cube-side-from: color-mix(in srgb, var(--block-side) 85%, black);
-  --cube-side-to: color-mix(in srgb, var(--block-side) 55%, black);
-  --cube-glass: color-mix(in srgb, var(--block-face) 88%, transparent);
-  --cube-grid: rgba(255, 255, 255, 0.035);
-  --cube-fill-shade: rgba(0, 0, 0, 0.18);
-  --cube-edge:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 -18px 30px -18px rgba(0, 0, 0, 0.45);
-  --cube-drop: 0 14px 26px -14px rgba(0, 0, 0, 0.7);
-  --cube-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  /* A single-band fee fill fades toward this. */
-  --cube-shade: #000;
-  --confirmed-fill: linear-gradient(165deg, #35a8c9 0%, var(--primary-strong) 100%);
-  --strip-bg: linear-gradient(180deg, var(--bg-elevated), color-mix(in srgb, var(--bg) 85%, black));
-
-  --kind-xch: #5ece7b;
-  --kind-cat: #8aa4ff;
-  --kind-nft: #d68cf5;
-  --kind-did: #f5c542;
-  --kind-offer: #7dd3fc;
-  --kind-unknown: #67708f;
-  /* Portfolio allocation donut: XCH, four tokens by value, grey "Other". Checked with the dataviz
-     palette validator on --surface (lightness band, chroma, colour-blind separation, contrast). */
-  --alloc-0: #008300;
-  --alloc-1: #3987e5;
-  --alloc-2: #d95926;
-  --alloc-3: #9085e9;
-  --alloc-4: #c98500;
-  --alloc-other: #67708f;
-
-  --radius: 10px;
-  --radius-sm: 6px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --header-h: 72px;
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-  /* Layered light: a cool grey page, white cards lifted by a soft shadow, a paler grey for
-     chips and inputs, and borders a step darker (TASK-095). */
-  --bg: #eef1f7;
-  --bg-elevated: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f2f4f9;
-  --surface-hover: #e8ecf5;
-  --border: #dce1ec;
-  --map-land: #c9d0e3;
-  --map-bg: #eaf0fb;
-  --map-grid: rgb(47 154 77 / 0.07);
-  --map-marker-edge: rgb(255 255 255 / 0.9);
-  --region-europe: #2f9a4d;
-  --region-asia: #0a7ea4;
-  --region-north-america: #4a63d8;
-  --region-south-america: #b78a00;
-  --region-africa: #a855c7;
-  --region-oceania: #d1701f;
-  --region-unmapped: #7b849f;
-  --border-strong: #c2c9db;
-  --fg: #10142a;
-  --fg-muted: #4d5674;
-  --fg-faint: #586180;
-  /* Text colours below keep 4.5:1 on every light surface and on their own soft tint. */
-  --primary: #176c33;
-  --primary-strong: #11552a;
-  --primary-soft: rgba(23, 108, 51, 0.1);
-  --primary-fg: #ffffff;
-  /* Accent links sit at 4.6:1 on white, so any tint behind them fails AA: the edge bar alone. */
-  --row-flash: transparent;
-  --accent: #066890;
-  --warning: #7a5700;
-  --danger: #a82c39;
-  --danger-soft: rgba(168, 44, 57, 0.1);
-  --info: #3f56c4;
-  --fee-0: #c3cce2;
-  --block-face: #e9eef8;
-  --block-side: #c9d2e8;
-  --block-top: #eef2fa;
-  --block-empty: #e9edf6;
-  --projected-face: #dcecf7;
-  /* Frosted-glass cubes: a white top, cool blue-grey sides, and navy-tinted shadows. */
-  --cube-top-hi: #ffffff;
-  --cube-side-from: #d3daea;
-  --cube-side-to: #b4bfd8;
-  --cube-glass: rgba(255, 255, 255, 0.8);
-  --cube-grid: rgba(40, 60, 120, 0.05);
-  --cube-fill-shade: rgba(20, 40, 90, 0.06);
-  --cube-edge:
-    inset 0 0 0 1px rgba(30, 50, 110, 0.12), inset 0 -18px 30px -18px rgba(30, 50, 110, 0.16);
-  --cube-drop: 0 16px 24px -14px rgba(30, 50, 110, 0.35);
-  --cube-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
-  --cube-shade: #ffffff;
-  --confirmed-fill: linear-gradient(165deg, #9adcec 0%, #62c483 100%);
-  --strip-bg: linear-gradient(180deg, #ffffff, #e6ebf5);
-  /* Asset-kind hues darkened for light surfaces: each keeps 4.5:1 as badge text on its own
-     15-20% tint over white or --surface-2 (the dark hues fell to 1.8:1 here; TASK-095). */
-  --kind-xch: #1b5a2d;
-  --kind-cat: #3d51b1;
-  --kind-nft: #7b3e91;
-  --kind-did: #705400;
-  --kind-offer: #08607d;
-  --kind-unknown: #52586b;
-  --alloc-0: #008300;
-  --alloc-1: #2a78d6;
-  --alloc-2: #eb6834;
-  --alloc-3: #4a3aa7;
-  --alloc-4: #eda100;
-  --alloc-other: #7b849f;
-  --shadow: 0 1px 2px rgba(16, 24, 56, 0.06), 0 10px 28px -12px rgba(16, 24, 56, 0.16);
-}
 
 @theme inline {
   --color-bg: var(--bg);
@@ -186,13 +15,18 @@ html:root {
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-rule: var(--rule);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
   --color-fg-faint: var(--fg-faint);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
+  --color-primary-tint: var(--primary-tint);
   --color-primary-soft: var(--primary-soft);
   --color-primary-fg: var(--primary-fg);
+  --color-cta: var(--cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-cta-fg: var(--cta-fg);
   --color-accent: var(--accent);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -212,9 +46,14 @@ html:root {
   --color-kind-unknown: var(--kind-unknown);
   --radius-card: var(--radius);
   --radius-sm: var(--radius-sm);
+  --radius-control: var(--radius-control);
   --shadow-card: var(--shadow);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-sans:
+    var(--font-inter), Inter, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Motion (doc-001): 180-240ms ease-out for every standard transition. */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html,
@@ -246,7 +85,7 @@ body {
 }
 
 ::selection {
-  background: var(--primary-soft);
+  background: color-mix(in srgb, var(--cta) 22%, transparent);
 }
 
 .mono {
@@ -258,8 +97,31 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Typography (doc-001): product copy stays in Inter; IBM Plex Mono is for machine-readable
+ * metadata only. `.eyebrow` labels a section, `.page-title` is the one display line per page.
+ * Layered as components, so a size or colour utility on the element still wins.
+ */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .page-title {
+    font-size: clamp(1.75rem, 3vw, 3.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 780;
+    text-wrap: balance;
+  }
+}
+
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -311,46 +173,48 @@ body {
   animation: market-hit-ring 1.4s ease-out forwards;
 }
 
+/* A confirmed block slides into the queue and settles well inside 450ms. */
 @keyframes block-in {
   from {
     opacity: 0;
-    transform: translateX(-24px) scale(0.96);
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
 }
 
 .animate-block-in {
-  animation: block-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: block-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* A fresh row flashes a green edge bar (rows using it pad their left edge to keep it clear of
-   the text) plus a tint light enough that the text stays AA. The bar is inset because the lists
-   sit in scroll containers, which clip anything drawn outside the row. */
+/* A fresh row leaves a thin cyan trace on its edge (rows using it pad their left edge to
+   keep it clear of the text) plus a tint light enough that the text stays AA, then settles. The
+   bar is inset because the lists sit in scroll containers, which clip anything outside the row. */
 @keyframes row-in {
   from {
     background: var(--row-flash);
-    box-shadow: inset 3px 0 0 var(--primary);
+    box-shadow: inset 2px 0 0 var(--primary);
   }
   to {
     background: transparent;
-    box-shadow: inset 3px 0 0 transparent;
+    box-shadow: inset 2px 0 0 transparent;
   }
 }
 
 .animate-row-in {
-  animation: row-in 1.6s ease-out;
+  animation: row-in 1.4s ease-out;
 }
 
-/* Capacity bar: eased fill, travelling sheen */
+/* Capacity bar: an eased fill. */
 .capacity-fill {
   transition:
-    width 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 600ms ease;
+    width 600ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background 400ms ease-out;
 }
 
+/* A travelling highlight, for themes that set --sheen (quiet themes set it to none). */
 @keyframes sheen {
   0% {
     transform: translateX(-100%);
@@ -362,65 +226,53 @@ body {
 
 .capacity-sheen {
   width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  background: var(--sheen);
   animation: sheen 2.8s ease-in-out infinite;
 }
 
-/* Live indicator ring */
-@keyframes ping-ring {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(2.6);
-    opacity: 0;
-  }
-}
-
+/* Live indicator: a quiet halo ring, no ping. */
 .live-ring::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -3px;
   border-radius: 9999px;
-  background: var(--primary);
-  animation: ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
-/* Page flair: soft green glow at the top, gradient hairline under the header */
+/* Depth: a soft identity-colour light falling on the top of the page, behind every card. */
 body {
-  background-image: radial-gradient(
-    1200px 420px at 50% -120px,
-    rgba(94, 206, 123, 0.12),
-    transparent 70%
-  );
+  background-image: radial-gradient(1200px 420px at 50% -120px, var(--page-glow), transparent 70%);
   background-repeat: no-repeat;
 }
 
+/* Header: the theme decides between a plain hairline and a gradient. */
 .header-hairline {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--primary) 30%,
-    var(--accent) 70%,
-    transparent
-  );
-  opacity: 0.55;
+  background: var(--header-line);
 }
 
-/* Glow that follows the cube silhouette (drop-shadow respects the transformed faces) */
+/* The next block breathes a soft glow in the theme's --glow along the cube silhouette (drop-shadow
+   follows the transformed faces). Stops under reduced motion like every animation. */
 @keyframes cube-glow {
   0%,
   100% {
-    filter: drop-shadow(0 0 0 rgba(94, 206, 123, 0));
+    filter: drop-shadow(0 0 0 transparent);
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(94, 206, 123, 0.55));
+    filter: drop-shadow(0 0 14px var(--glow));
   }
 }
 
 .animate-cube-glow {
   animation: cube-glow 3s ease-in-out infinite;
+}
+
+/* Flow trace (src/shared/ui/FlowTrace.tsx): a patch of 1-bit print dither beside the linework. */
+.flow-dither {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--fg) 16%, transparent) 0.6px,
+    transparent 0.8px
+  );
+  background-size: 4px 4px;
 }
 
 /*
@@ -458,11 +310,11 @@ body {
   transform-origin: 0 0;
   background-image: linear-gradient(
     160deg,
-    rgb(255 255 255 / 0.2),
-    rgb(255 255 255 / 0) 55%,
-    rgb(0 0 0 / 0.12)
+    rgb(255 253 248 / 0.16),
+    rgb(255 253 248 / 0) 55%,
+    rgb(32 38 46 / 0.08)
   );
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(32 38 46 / 0.12);
   transition:
     opacity 220ms ease,
     filter 220ms ease,
@@ -521,7 +373,7 @@ body {
   height: 6px;
   pointer-events: none;
   border-radius: 9999px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
   animation: goggles-new-pulse 1.6s ease-out 3;
 }
@@ -546,8 +398,8 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
   border-radius: 3px;
-  background: rgb(10 13 24 / 0.72);
-  color: #fff;
+  background: rgb(32 38 46 / 0.78);
+  color: #fffaf2;
   font-weight: 600;
   line-height: 1;
 }
@@ -572,7 +424,7 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: 0 0 0 1px var(--border-strong);
 }
 
@@ -837,14 +689,8 @@ body {
 
 .card-lift {
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
-}
-
-.card-lift:hover {
-  transform: translateY(-1px);
-  border-color: var(--border-strong);
+    box-shadow 200ms ease-out,
+    border-color 200ms ease-out;
 }
 
 /* Hidden but functional scrollbars (block queue) */

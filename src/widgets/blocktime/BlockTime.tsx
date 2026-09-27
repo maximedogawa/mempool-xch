@@ -81,7 +81,7 @@ export function BlockTime() {
           <>
             <div className="flex items-end justify-between gap-3">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <div className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("sinceLast")}
                 </div>
                 <div
@@ -94,7 +94,7 @@ export function BlockTime() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <div className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("expectedGap")}
                 </div>
                 <div className="tabular text-lg font-semibold leading-tight">
@@ -124,17 +124,13 @@ export function BlockTime() {
             </div>
             <dl className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("avgBlock")}
-                </dt>
+                <dt className="text-[10px] font-medium eyebrow text-fg-muted">{t("avgBlock")}</dt>
                 <dd className="tabular text-sm font-semibold">
                   {t("seconds", { seconds: formatFixed(avgBlock, 1) })}
                 </dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("txBlocks")}
-                </dt>
+                <dt className="text-[10px] font-medium eyebrow text-fg-muted">{t("txBlocks")}</dt>
                 <dd className="tabular text-sm font-semibold">
                   {numberFormat(undefined, { style: "percent", maximumFractionDigits: 0 }).format(
                     txShare
@@ -142,7 +138,7 @@ export function BlockTime() {
                 </dd>
               </div>
               <div className="rounded-sm border border-border bg-bg px-2 py-2">
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[10px] font-medium eyebrow text-fg-muted">
                   {t("observedGap")}
                 </dt>
                 <dd className="tabular text-sm font-semibold">
@@ -160,9 +156,7 @@ export function BlockTime() {
                     : t("fromState")
                 }
               >
-                <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("netspace")}
-                </dt>
+                <dt className="text-[10px] font-medium eyebrow text-fg-muted">{t("netspace")}</dt>
                 <dd className="tabular text-sm font-semibold" data-testid="netspace">
                   {netspace !== null ? formatBytes(Number(netspace)) : "…"}
                 </dd>

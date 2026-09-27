@@ -66,7 +66,7 @@ export function DocsContent() {
   const t = useT(docsNs);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
+      <h1 className="page-title">{t("title")}</h1>
 
       <Card id="why">
         <CardHeader title={t("why.title")} />

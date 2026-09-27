@@ -103,9 +103,7 @@ export function PortfolioPage() {
       <Heading />
       {sources.length > 1 ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">
-            {t("sources")}
-          </span>
+          <span className="text-xs font-medium eyebrow text-fg-muted">{t("sources")}</span>
           <div role="radiogroup" aria-label={t("sources")} className="flex flex-wrap gap-1">
             {[{ id: "all", label: t("sourceAll"), title: undefined }, ...sources].map((s) => (
               <button
@@ -140,7 +138,7 @@ function Heading() {
   return (
     <header className="flex items-center gap-2">
       <PieChart size={20} className="text-primary" aria-hidden="true" />
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
+      <h1 className="page-title">{t("title")}</h1>
       <Tooltip text={t("intro")} placement="bottom" />
     </header>
   );

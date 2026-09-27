@@ -379,7 +379,7 @@ export function MapPage() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <Tooltip text={t("titleHint")} placement="bottom" />
         </div>
         <p className="max-w-3xl text-sm text-fg-muted">{t("intro")} </p>
@@ -1091,9 +1091,7 @@ function PeerTables({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {[...byType.entries()].map(([type, count]) => (
           <div key={type} className="rounded-sm border border-border bg-bg-elevated px-3 py-2">
-            <div className="text-[11px] uppercase tracking-wider text-fg-muted">
-              {typeName(type)}
-            </div>
+            <div className="text-[11px] eyebrow text-fg-muted">{typeName(type)}</div>
             <div className="tabular text-lg font-semibold">{formatNumber(count)}</div>
           </div>
         ))}

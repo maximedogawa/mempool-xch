@@ -73,7 +73,7 @@ export function BlocksRow() {
   return (
     <section
       aria-label={t("row.label")}
-      className="rounded-card border border-border/60 bg-(image:--strip-bg)"
+      className="rounded-card border border-border bg-(image:--strip-bg)"
     >
       <div
         ref={scroller}
@@ -94,9 +94,7 @@ export function BlocksRow() {
       >
         <div className="flex min-w-max items-end gap-4">
           <div className="flex flex-col items-end gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t("row.projected")}
-            </span>
+            <span className="eyebrow text-[11px] text-fg-faint">{t("row.projected")}</span>
             <ProjectedBlocks
               watchedIds={watched.pendingIds}
               blocks={projected.blocks}
@@ -108,19 +106,19 @@ export function BlocksRow() {
           <div
             ref={divider}
             aria-hidden="true"
-            className="relative mb-7 h-[196px] w-0 self-end border-l-2 border-dashed border-fg-faint/70"
+            className="relative mb-7 h-[196px] w-0 self-end border-l border-dashed border-fg-faint/60"
           >
             <span className="absolute -left-[7px] -top-4 text-[11px] text-fg-faint">⇅</span>
             <span className="absolute -bottom-4 -left-[7px] text-[11px] text-fg-faint">⇄</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t("row.confirmed")}
-            </span>
+            <span className="eyebrow text-[11px] text-fg-faint">{t("row.confirmed")}</span>
             <RecentBlocks
               watchedConfirmed={watched.confirmed}
               data={recent.data}
-              loading={recent.isLoading}
+              // isPending, not isLoading: the query waits for the peak, and a query that has not
+              // started yet is not "loading", which showed the empty message instead of blocks.
+              loading={recent.isPending}
               blockMaxCost={blockMaxCost}
             />
           </div>

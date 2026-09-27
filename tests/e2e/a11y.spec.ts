@@ -91,22 +91,22 @@ test.describe("accessibility", () => {
     });
   }
 
-  // The same sweep in the light theme, which the dark default above never reached: light-only
-  // hues had drifted below AA unnoticed (TASK-095). The setting is stored before the app boots.
+  // The same sweep in the dark theme, which the light default above never reaches: one theme's
+  // hues can drift below AA unnoticed (TASK-095). The setting is stored before the app boots.
   for (const route of ROUTES) {
-    test(`axe passes on ${route} (light)`, async ({ page, isMobile }) => {
+    test(`axe passes on ${route} (dark)`, async ({ page, isMobile }) => {
       test.skip(isMobile, "the route sweep runs once, on desktop");
       await page.addInitScript(() => {
         try {
           const key = "mempool-xch:settings:v1";
           const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
-          localStorage.setItem(key, JSON.stringify({ ...stored, theme: "light" }));
+          localStorage.setItem(key, JSON.stringify({ ...stored, theme: "dark" }));
         } catch {
           // Storage unavailable: the check below fails loudly on the theme instead.
         }
       });
       await page.goto(route);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await settled(page);
       const violations = await serious(page);
       expect(violations, report(violations)).toEqual([]);

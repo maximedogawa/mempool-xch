@@ -30,6 +30,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changelog": "bun run scripts/changelog/generate.ts",
+    "themes": "bun run scripts/themes/build.ts",
     "map:land": "bun run scripts/map/generate-land-dots.ts",
     "map:dashboard": "bun run scripts/map/import-dashboard.ts",
     "arcade": "bun run scripts/arcade/fetch-games.ts",

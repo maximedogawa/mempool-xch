@@ -33,7 +33,7 @@ export function StatTile({
         className
       )}
     >
-      <div className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+      <div className="flex items-center gap-1 text-[11px] font-medium eyebrow text-fg-muted">
         <span className="truncate">{label}</span>
         {hint ? <Tooltip text={hint} /> : null}
       </div>

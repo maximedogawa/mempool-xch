@@ -48,7 +48,7 @@ export function FeesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("page.title")}</h1>
+          <h1 className="page-title">{t("page.title")}</h1>
           <Tooltip
             text={t("page.intro", { cost: formatCost(FEES_PAGE_REFERENCE_COST) })}
             placement="bottom"
@@ -103,7 +103,7 @@ export function FeesPage() {
             >
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
-                  <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
+                  <tr className="text-[11px] eyebrow text-fg-muted">
                     <th className="py-1.5 pr-3 font-semibold">{t("page.colRate")}</th>
                     <th className="py-1.5 pr-3 font-semibold">{t("page.colBundles")}</th>
                     <th className="py-1.5 font-semibold">{t("page.colCost")}</th>
@@ -146,7 +146,7 @@ export function FeesPage() {
           >
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead>
-                <tr className="text-[11px] uppercase tracking-wider text-fg-muted">
+                <tr className="text-[11px] eyebrow text-fg-muted">
                   <th className="py-1.5 pr-3 font-semibold">{t("page.colSpend")}</th>
                   <th className="py-1.5 pr-3 font-semibold">{t("page.colCost")}</th>
                   <th className="py-1.5 font-semibold">{t("page.colFee")}</th>

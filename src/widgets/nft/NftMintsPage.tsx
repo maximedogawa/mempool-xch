@@ -16,7 +16,7 @@ export function NftMintsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("mints.title")}</h1>
+          <h1 className="page-title">{t("mints.title")}</h1>
           <Tooltip text={t("mints.intro")} placement="bottom" />
         </div>
       </header>

@@ -53,7 +53,7 @@ function Choice<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
+      <span className="text-xs font-medium eyebrow text-fg-muted">{label}</span>
       <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1">
         {options.map((opt) => (
           <button
@@ -212,7 +212,7 @@ export function TokensPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <Tooltip text={t("intro", { total: formatNumber(rows.length) })} placement="bottom" />
         </div>
       </header>

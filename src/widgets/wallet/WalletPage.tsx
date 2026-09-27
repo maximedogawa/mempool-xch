@@ -418,7 +418,7 @@ export function WalletPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <Wallet size={20} className="text-primary" aria-hidden="true" />
-        <h1 className="text-xl font-semibold">{t("page.title")}</h1>
+        <h1 className="page-title">{t("page.title")}</h1>
         <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold uppercase text-primary">
           {t("page.fromSage")}
         </span>

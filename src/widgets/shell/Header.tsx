@@ -237,7 +237,7 @@ export function Header() {
                 <div key={t(`groups.${group.title}`)} className="flex flex-col">
                   <span
                     aria-hidden="true"
-                    className="px-3 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-faint"
+                    className="px-3 pb-1 pt-1.5 text-[10px] font-semibold eyebrow text-fg-faint"
                   >
                     {t(`groups.${group.title}`)}
                   </span>

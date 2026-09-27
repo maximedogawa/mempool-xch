@@ -46,9 +46,7 @@ function Row({
         className
       )}
     >
-      <dt className="text-xs font-medium uppercase tracking-wider text-fg-muted sm:pt-0.5">
-        {label}
-      </dt>
+      <dt className="text-xs font-medium eyebrow text-fg-muted sm:pt-0.5">{label}</dt>
       <dd className="min-w-0 break-all">{children}</dd>
     </div>
   );
@@ -117,7 +115,7 @@ export function BlockDetails({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex flex-wrap items-center gap-3 text-2xl font-semibold">
+        <h1 className="page-title flex flex-wrap items-center gap-3">
           <span>
             {t.rich("details.heading", {
               height: () => <span className="tabular">{formatNumber(record.height)}</span>,

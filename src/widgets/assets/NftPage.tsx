@@ -130,7 +130,7 @@ export function NftPage() {
           />
           <div className="flex min-w-0 flex-col gap-3">
             <div>
-              <h1 className="text-2xl font-semibold">
+              <h1 className="page-title break-words">
                 {name ?? <Skeleton className="h-7 w-48" />}
               </h1>
               {metadata.data?.collectionName ? (
@@ -152,16 +152,14 @@ export function NftPage() {
             </div>
             <dl className="grid grid-cols-1 gap-3 text-sm">
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("nft.nftId")}
-                </dt>
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("nft.nftId")}</dt>
                 <dd className="mono flex items-center gap-1 break-all">
                   {ids.nftId}
                   <CopyButton value={ids.nftId} />
                 </dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.launcherId")}
                 </dt>
                 <dd className="mono flex items-center gap-1 break-all text-xs text-fg-muted">
@@ -170,7 +168,7 @@ export function NftPage() {
                 </dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.currentOwner")}
                 </dt>
                 <dd className="mono break-all">
@@ -193,7 +191,7 @@ export function NftPage() {
             </dl>
             <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.currentCoin")}
                 </dt>
                 <dd>
@@ -206,7 +204,7 @@ export function NftPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.lastMoved")}
                 </dt>
                 <dd className="tabular">
@@ -214,7 +212,7 @@ export function NftPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.royalty")}
                 </dt>
                 <dd className="tabular">
@@ -224,7 +222,7 @@ export function NftPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("nft.standard")}
                 </dt>
                 <dd>
