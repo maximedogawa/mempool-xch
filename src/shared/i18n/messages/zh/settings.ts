@@ -26,6 +26,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "保存",
     reset: "重置为 Coinset",
     ok: "最新高度 {height}，耗时 {ms} 毫秒",
+    syncing:
+      "节点仍在同步：已到 {height} / {tip}（{percent}%）。同步完成前，区块和内存池数据会滞后。",
+    syncingNoTip: "节点仍在同步：同步完成前，区块和内存池数据会滞后。",
     okCustom:
       "最新高度 {height}，耗时 {ms} 毫秒 · 自定义节点：索引 API、WebSocket 和摘要 API 已关闭",
     sageHttpsOnly: "在 Sage 中只能将 https 端点加入白名单。",

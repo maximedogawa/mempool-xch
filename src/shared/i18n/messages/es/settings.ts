@@ -27,6 +27,10 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "Guardar",
     reset: "Restablecer a Coinset",
     ok: "Pico {height} en {ms} ms",
+    syncing:
+      "El nodo aún se está sincronizando: en {height} de {tip} ({percent} %). Los bloques y el mempool van con retraso hasta que termine.",
+    syncingNoTip:
+      "El nodo aún se está sincronizando: los bloques y el mempool van con retraso hasta que termine.",
     okCustom:
       "Pico {height} en {ms} ms · nodo propio: API indexada, WebSocket y API de resumen desactivados",
     sageHttpsOnly: "Dentro de Sage solo se pueden autorizar endpoints https.",

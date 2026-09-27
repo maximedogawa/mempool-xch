@@ -1,6 +1,15 @@
 "use client";
 
-import { CheckCircle2, Loader2, Monitor, Moon, RotateCcw, Sun, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Monitor,
+  Moon,
+  RotateCcw,
+  Sun,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { NETWORK_IDS, NETWORKS, isCoinsetUrl, type NetworkId } from "@/shared/config/networks";
@@ -23,7 +32,14 @@ import settingsNs from "@/shared/i18n/messages/en/settings";
 type TestState =
   | { status: "idle" }
   | { status: "testing" }
-  | { status: "ok"; height: number; ms: number; coinset: boolean }
+  | {
+      status: "ok";
+      height: number;
+      ms: number;
+      coinset: boolean;
+      synced: boolean;
+      syncTipHeight: number | null;
+    }
   | { status: "error"; message: string }
   | { status: "whitelist"; message: string; ok: boolean };
 
@@ -145,7 +161,12 @@ function EndpointRow({ network }: { network: NetworkId }) {
   const { inSage } = useSage();
   const config = NETWORKS[network];
   const value = settings.endpoints[network].rpcUrl;
-  const [draft, setDraft] = useState(value);
+  // The field follows the saved endpoint until the visitor types: the first render still sees
+  // the defaults (Coinset) before the stored settings are read, so a draft fixed at mount would
+  // show, and test, Coinset instead of the saved custom node (TASK-109).
+  const [edited, setEdited] = useState<string | null>(null);
+  const draft = edited ?? value;
+  const setDraft = setEdited;
   const [test, setTest] = useState<TestState>({ status: "idle" });
   const dirty = draft.trim() !== value;
   const isDefault = value === config.rpcUrl;
@@ -161,6 +182,8 @@ function EndpointRow({ network }: { network: NetworkId }) {
         height: state.peak.height,
         ms: Math.round(performance.now() - started),
         coinset: isCoinsetUrl(network, draft),
+        synced: state.synced,
+        syncTipHeight: state.syncTipHeight,
       });
     } catch (error) {
       setTest({ status: "error", message: errorMessage(error) });
@@ -241,6 +264,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
               ...prev,
               endpoints: { ...prev.endpoints, [network]: { rpcUrl } },
             }));
+            setEdited(null);
           }}
         >
           {t("endpoint.save")}
@@ -250,7 +274,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
           variant="ghost"
           disabled={isDefault && !dirty}
           onClick={() => {
-            setDraft(config.rpcUrl);
+            setEdited(null);
             setTest({ status: "idle" });
             update((prev) => ({
               ...prev,
@@ -267,6 +291,19 @@ function EndpointRow({ network }: { network: NetworkId }) {
               height: formatInteger(test.height),
               ms: test.ms,
             })}
+          </span>
+        ) : null}
+        {test.status === "ok" && !test.synced ? (
+          // Answers, but behind the chain: everything the app shows from it is old until it is in.
+          <span role="status" className="inline-flex items-center gap-1 text-xs text-warning">
+            <AlertTriangle size={14} aria-hidden="true" />{" "}
+            {test.syncTipHeight
+              ? t("endpoint.syncing", {
+                  height: formatInteger(test.height),
+                  tip: formatInteger(test.syncTipHeight),
+                  percent: Math.floor((test.height / test.syncTipHeight) * 1000) / 10,
+                })
+              : t("endpoint.syncingNoTip")}
           </span>
         ) : null}
         {test.status === "whitelist" ? (

@@ -27,6 +27,10 @@ const messages = {
     save: "Save",
     reset: "Reset to Coinset",
     ok: "Peak {height} in {ms} ms",
+    syncing:
+      "Node is still syncing: at {height} of {tip} ({percent}%). Blocks and the mempool from it are behind until it is in sync.",
+    syncingNoTip:
+      "Node is still syncing: blocks and the mempool from it are behind until it is in sync.",
     okCustom: "Peak {height} in {ms} ms · custom node: indexed API, WebSocket and summary API off",
     sageHttpsOnly: "Inside Sage only https endpoints can be whitelisted.",
     sageRefused: "Sage did not allow this host; the endpoint was not saved.",

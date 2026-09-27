@@ -27,6 +27,10 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "Speichern",
     reset: "Auf Coinset zurücksetzen",
     ok: "Spitze {height} in {ms} ms",
+    syncing:
+      "Der Knoten synchronisiert noch: bei {height} von {tip} ({percent} %). Blöcke und Mempool hinken hinterher, bis er synchron ist.",
+    syncingNoTip:
+      "Der Knoten synchronisiert noch: Blöcke und Mempool hinken hinterher, bis er synchron ist.",
     okCustom:
       "Spitze {height} in {ms} ms · eigener Node: indexierte API, WebSocket und Summary-API aus",
     sageHttpsOnly: "In Sage können nur https-Endpunkte freigegeben werden.",
