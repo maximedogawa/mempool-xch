@@ -77,7 +77,7 @@ export function ProjectedBlocks({
           eta: formatEta(block.etaSeconds),
         });
         return (
-          <li key={block.index} className="flex flex-col items-center gap-1">
+          <li key={block.index} className="blocks-snap flex flex-col items-center gap-1">
             <span className="tabular h-4 text-xs font-semibold text-fg-muted">
               {block.index === 0 ? t("projected.nextBlock") : `+${block.index}`}
             </span>
@@ -118,7 +118,8 @@ export function ProjectedBlocks({
                 </span>
               ) : null}
             </BlockCube>
-            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">
+            {/* Opaque, so the queue's flow line passes behind the chip like a rail behind a stop. */}
+            <span className="relative inline-flex h-5 items-center rounded-full border border-primary/40 bg-[color-mix(in_srgb,var(--primary)_14%,var(--surface))] px-2 text-[10px] font-semibold text-primary">
               {t("projected.inEta", { eta: formatEta(block.etaSeconds) })}
             </span>
           </li>

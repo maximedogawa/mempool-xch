@@ -105,7 +105,7 @@ export function RecentBlocks({
             : t("recent.farmerHash", { hash: shortId(block.farmerPuzzleHash) }),
         });
         return (
-          <li key={block.height} className="flex items-end gap-3">
+          <li key={block.height} className="blocks-snap flex items-end gap-3">
             <div className="flex flex-col items-center gap-1">
               <span className="tabular h-4 text-xs font-semibold text-fg-muted">
                 {formatNumber(block.height)}

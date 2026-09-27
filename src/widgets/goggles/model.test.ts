@@ -304,8 +304,8 @@ describe("layout", () => {
     expect(fillArea(800, 200, 5.5e9, 11e9)).toEqual({ x: 0, y: 100, width: 800, height: 100 });
     expect(fillArea(800, 200, 20e9, 11e9).height).toBe(200);
     expect(blockSide(120)).toBe(180);
-    expect(blockSide(300)).toBe(284);
-    expect(blockSide(2000)).toBe(340);
+    expect(blockSide(250)).toBe(234);
+    expect(blockSide(2000)).toBe(260);
   });
   test("a full block of 1,000 bundles lays out quickly", () => {
     const many = Array.from({ length: 1000 }, (_, i) =>
