@@ -115,6 +115,7 @@ export const midnight = defineTheme({
     sheen: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent)",
     "header-line":
       "linear-gradient(90deg, transparent, rgb(94 206 123 / 0.55) 30%, rgb(125 211 252 / 0.55) 70%, transparent)",
+    ambient: "running",
     radius: "10px",
     "radius-sm": "6px",
   },

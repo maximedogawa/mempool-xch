@@ -38,12 +38,7 @@ export function NftActivityPage() {
                 role="radio"
                 aria-checked={kind === opt}
                 onClick={() => setKind(opt)}
-                className={cn(
-                  "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                  kind === opt
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border bg-bg text-fg-muted hover:text-fg"
-                )}
+                className={cn("seg", kind === opt && "seg-on")}
               >
                 {t(`activity.kinds.${opt}`)}
               </button>

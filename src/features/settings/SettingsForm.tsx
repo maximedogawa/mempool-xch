@@ -201,7 +201,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
         }}
         placeholder={config.rpcUrl}
         spellCheck={false}
-        className="mono h-10 w-full rounded-sm border border-border bg-bg-elevated px-3 text-sm focus:border-primary focus:outline-none"
+        className="field mono w-full"
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={runTest} disabled={test.status === "testing" || !draft.trim()}>
@@ -312,12 +312,7 @@ export function SettingsForm() {
                 role="radio"
                 aria-checked={settings.network === id}
                 onClick={() => update({ network: id })}
-                className={cn(
-                  "min-h-11 rounded-sm border px-4 text-sm font-semibold transition-colors",
-                  settings.network === id
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border bg-bg text-fg-muted hover:text-fg"
-                )}
+                className={cn("seg text-sm", settings.network === id && "seg-on")}
               >
                 {NETWORKS[id].label}
               </button>
@@ -387,7 +382,7 @@ export function SettingsForm() {
               value={settings.locale}
               onChange={(e) => update({ locale: e.target.value as LocalePreference })}
               data-testid="settings-language"
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
+              className="field w-full max-w-xs"
             >
               <option value="auto">{t("appearance.languageAuto")}</option>
               {LOCALES.map((id) => (
@@ -417,7 +412,7 @@ export function SettingsForm() {
               max={20}
               value={settings.recentBlocks}
               onChange={(e) => update({ recentBlocks: Number(e.target.value) })}
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
+              className="field w-full max-w-xs"
             />
           </label>
         </CardBody>

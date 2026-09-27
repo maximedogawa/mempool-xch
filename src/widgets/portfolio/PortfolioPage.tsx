@@ -114,11 +114,9 @@ export function PortfolioPage() {
                 title={"title" in s ? s.title : undefined}
                 onClick={() => setPicked(s.id)}
                 className={cn(
-                  "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
+                  "seg",
                   s.id !== "all" && s.id !== "sage" && "mono",
-                  source === s.id
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border bg-bg text-fg-muted hover:text-fg"
+                  source === s.id && "seg-on"
                 )}
               >
                 {s.label}

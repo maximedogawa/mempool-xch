@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { light } from "@/shared/theme/themes/light";
 
 /**
  * SVG status badge for a transaction, for READMEs and pages that can only embed an <img>:
@@ -11,12 +12,14 @@ const COINSET: Record<string, string> = {
   mainnet: "https://api.coinset.org",
   testnet11: "https://testnet11.api.coinset.org",
 };
+// A badge is an image on someone else's page, so it always uses the light theme's palette.
+const P = light.palette;
 const COLOUR: Record<string, string> = {
-  confirmed: "#167b86",
-  pending: "#344d8c",
-  removed: "#9f4038",
-  "not found": "#4c555c",
-  invalid: "#4c555c",
+  confirmed: P["deep-cyan"],
+  pending: P.indigo,
+  removed: P.brick,
+  "not found": P.graphite,
+  invalid: P.graphite,
 };
 
 function badge(label: string, status: string): string {
@@ -27,8 +30,8 @@ function badge(label: string, status: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20" role="img" aria-label="${label}: ${status}">
 <title>${label}: ${status}</title>
 <clipPath id="r"><rect width="${width}" height="20" rx="4"/></clipPath>
-<g clip-path="url(#r)"><rect width="${left}" height="20" fill="#15191d"/><rect x="${left}" width="${right}" height="20" fill="${colour}"/></g>
-<g fill="#fffaf2" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">
+<g clip-path="url(#r)"><rect width="${left}" height="20" fill="${P.ink}"/><rect x="${left}" width="${right}" height="20" fill="${colour}"/></g>
+<g fill="${P.paper}" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">
 <text x="${left / 2}" y="14">${label}</text><text x="${left + right / 2}" y="14" font-weight="bold">${status}</text></g></svg>`;
 }
 

@@ -107,6 +107,7 @@ html[data-theme="light"],
   --glow: color-mix(in srgb, var(--deep-cyan) 60%, transparent);
   --sheen: none;
   --header-line: var(--hairline);
+  --ambient: paused;
 }
 
 html[data-theme="dark"],
@@ -209,6 +210,7 @@ html[data-theme="dark"],
   --glow: color-mix(in srgb, #2c9099 60%, transparent);
   --sheen: none;
   --header-line: color-mix(in srgb, #ecefea 20%, #0e1419);
+  --ambient: paused;
 }
 
 html[data-theme="midnight"],
@@ -309,6 +311,7 @@ html[data-theme="midnight"],
   --glow: rgb(94 206 123 / 0.55);
   --sheen: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
   --header-line: linear-gradient(90deg, transparent, rgb(94 206 123 / 0.55) 30%, rgb(125 211 252 / 0.55) 70%, transparent);
+  --ambient: running;
   --radius: 10px;
   --radius-sm: 6px;
 }

@@ -89,6 +89,8 @@ export const THEME_TOKENS = [
   "glow",
   "sheen",
   "header-line",
+  /** "running" or "paused": whether decorative loops (map arcs, peer rings, sheen) move. */
+  "ambient",
 ] as const;
 
 export type ThemeToken = (typeof THEME_TOKENS)[number];

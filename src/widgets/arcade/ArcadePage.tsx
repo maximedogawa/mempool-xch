@@ -232,7 +232,7 @@ function RoomsCard() {
               onChange={(e) => setNeedle(e.target.value)}
               placeholder={t("rooms.searchPlaceholder")}
               aria-label={t("rooms.searchLabel")}
-              className="w-full rounded-sm border border-border bg-bg px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
+              className="field w-full"
             />
             {PHASES.map((phase) => {
               const list = filtered.filter((r) => r.phase === phase);
@@ -331,12 +331,7 @@ function Arcade21Section() {
                   type="button"
                   aria-pressed={genre === g}
                   onClick={() => setGenre(g)}
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize transition-colors",
-                    genre === g
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border text-fg-muted hover:text-fg"
-                  )}
+                  className={cn("seg rounded-full text-[11px] capitalize", genre === g && "seg-on")}
                 >
                   {g === "all" ? t("allGenres") : g}
                 </button>

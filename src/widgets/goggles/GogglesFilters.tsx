@@ -50,12 +50,7 @@ export function Chip({
       aria-pressed={active}
       onClick={onClick}
       title={title}
-      className={cn(
-        "inline-flex min-h-7 max-w-full items-center gap-1 rounded-full border px-2.5 text-[11px] font-semibold transition-colors",
-        active
-          ? "border-primary bg-primary-soft text-primary"
-          : "border-border text-fg-muted hover:border-border-strong hover:text-fg"
-      )}
+      className={cn("seg max-w-full rounded-full text-[11px]", active && "seg-on")}
     >
       {swatch ? (
         <span
@@ -112,7 +107,7 @@ function RateInput({
         setText(e.target.value);
         onChange(parseRateInput(e.target.value));
       }}
-      className="h-7 w-20 rounded-full border border-border bg-bg px-2.5 text-[11px] text-fg placeholder:text-fg-faint focus:border-primary"
+      className="field w-20"
     />
   );
 }
@@ -216,7 +211,7 @@ export function GogglesFilterBar({
             aria-label={t("searchLabel")}
             placeholder={t("searchPlaceholder")}
             maxLength={100}
-            className="h-8 w-full min-w-0 rounded-full border border-border bg-bg pl-8 pr-3 text-xs text-fg placeholder:text-fg-faint focus:border-primary"
+            className="field w-full min-w-0 pl-8 pr-3"
           />
         </label>
         <button
@@ -343,7 +338,7 @@ export function GogglesFilterBar({
                     nonMatching: e.target.value === "hide" ? "hide" : "dim",
                   }))
                 }
-                className="h-7 rounded-full border border-border bg-bg px-2 text-[11px] font-semibold normal-case tracking-normal text-fg"
+                className="field"
               >
                 <option value="dim">{t("nonMatchingDim")}</option>
                 <option value="hide">{t("nonMatchingHide")}</option>
@@ -354,7 +349,7 @@ export function GogglesFilterBar({
               <select
                 value={prefs.groupBy}
                 onChange={(e) => onChange((p) => ({ ...p, groupBy: e.target.value as GroupBy }))}
-                className="h-7 rounded-full border border-border bg-bg px-2 text-[11px] font-semibold normal-case tracking-normal text-fg"
+                className="field"
               >
                 <option value="none">{t("groupNone")}</option>
                 <option value="fee">{t("groupFee")}</option>
