@@ -187,16 +187,7 @@ export function NextBlockGoggles() {
   return (
     <Card>
       <CardHeader
-        title={
-          <span className="inline-flex items-center gap-2">
-            {t("title")}
-            {next ? (
-              <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] normal-case tracking-normal text-primary">
-                {formatEta(next.etaSeconds)}
-              </span>
-            ) : null}
-          </span>
-        }
+        title={t("title")}
         action={
           <div
             role="group"
@@ -210,8 +201,8 @@ export function NextBlockGoggles() {
                 aria-pressed={prefs.colour === m}
                 onClick={() => setColour(m)}
                 className={cn(
-                  "min-h-7 px-2.5 text-[11px] font-semibold transition-colors",
-                  prefs.colour === m ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg"
+                  "seg rounded-none border-0 text-[11px]",
+                  prefs.colour === m && "seg-on"
                 )}
               >
                 {m === "fee" ? t("modeFee") : t("modeKind")}
@@ -220,31 +211,21 @@ export function NextBlockGoggles() {
           </div>
         }
       />
-      <CardBody className="flex min-w-0 flex-col gap-3">
+      <CardBody className="min-w-0">
         {isLoading && !next ? (
-          <Skeleton className="h-[190px] w-full" />
+          <div className="grid gap-6 md:grid-cols-[minmax(0,356px)_minmax(0,1fr)]">
+            <Skeleton className="mx-auto aspect-square w-full max-w-[356px]" />
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-12 w-32" />
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
         ) : !next ? (
           <p className="py-10 text-center text-sm text-fg-faint">{t("empty")}</p>
         ) : (
-          <>
-            <BlockSummary
-              block={next}
-              blockMaxCost={blockMax}
-              mix={mix}
-              freshCount={freshCount}
-              freshSeconds={Math.round(FRESH_MS / 1000)}
-            />
-            <GogglesFilterBar
-              prefs={prefs}
-              onChange={setPrefs}
-              kindCounts={counts}
-              assets={options}
-              assetName={assetName}
-              freshCount={freshCount}
-              yoursCount={yoursCount}
-              total={items.length}
-              summary={matchSummary}
-            />
+          // The block beside its figures on a wide screen, above them on a phone.
+          <div className="grid items-start gap-6 md:grid-cols-[minmax(0,356px)_minmax(0,1fr)]">
             <GogglesTreemap
               items={items}
               matched={matchedIds}
@@ -262,15 +243,35 @@ export function NextBlockGoggles() {
                   <button
                     type="button"
                     onClick={() => setPrefs((p) => ({ ...p, filters: EMPTY_FILTERS }))}
-                    className="min-h-8 rounded-full border border-border px-3 text-xs font-semibold text-primary hover:border-primary"
+                    className="seg rounded-full text-primary"
                   >
                     {t("clearAll")}
                   </button>
                 </div>
               }
             />
-            <GogglesLegend colour={prefs.colour} kinds={mix.map((m) => m.kind)} />
-          </>
+            <div className="flex min-w-0 flex-col gap-4">
+              <BlockSummary
+                block={next}
+                blockMaxCost={blockMax}
+                mix={mix}
+                freshCount={freshCount}
+                freshSeconds={Math.round(FRESH_MS / 1000)}
+              />
+              <GogglesFilterBar
+                prefs={prefs}
+                onChange={setPrefs}
+                kindCounts={counts}
+                assets={options}
+                assetName={assetName}
+                freshCount={freshCount}
+                yoursCount={yoursCount}
+                total={items.length}
+                summary={matchSummary}
+              />
+              <GogglesLegend colour={prefs.colour} kinds={mix.map((m) => m.kind)} />
+            </div>
+          </div>
         )}
       </CardBody>
     </Card>

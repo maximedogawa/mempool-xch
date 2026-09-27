@@ -201,6 +201,64 @@ test.describe("next-block goggles with a full block", () => {
     await expect.poll(() => tiles.count()).toBeLessThan(before);
   });
 
+  // The motion contract (TASK-106): state animations settle within 450 ms, bundles returning to
+  // view drop in from above their cell, and reduced motion keeps nothing but fades.
+  for (const reduced of [false, true]) {
+    test(`re-layout motion is short${reduced ? " and fade-only under reduced motion" : ", arrivals drop in from above"}`, async ({
+      page,
+      isMobile,
+    }) => {
+      test.skip(isMobile, "desktop only");
+      await mockMempool(page);
+      if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+      const section = await open(page);
+      await section.getByRole("button", { name: "Filters" }).click();
+      await section.getByLabel("Non-matching").selectOption("hide");
+      const cat = section
+        .getByRole("group", { name: "Filter by asset kind" })
+        .getByRole("button", { name: /^CAT/ });
+      await cat.click();
+      await expect.poll(() => section.locator("[data-tile]").count()).toBeLessThan(5);
+      await page.waitForTimeout(600);
+      // Clearing the filter brings four bundles back: they are arrivals.
+      await cat.click();
+      const motion = await page.evaluate(() =>
+        document
+          .getAnimations()
+          .filter((a) => {
+            const target = (a.effect as KeyframeEffect | null)?.target as Element | null;
+            return !!target?.closest("[data-tile]");
+          })
+          .map((a) => {
+            const effect = a.effect as KeyframeEffect;
+            const timing = effect.getComputedTiming();
+            const frames = effect.getKeyframes();
+            return {
+              end: Number(timing.endTime),
+              props: [...new Set(frames.flatMap((f) => Object.keys(f)))].filter(
+                (k) => !["offset", "easing", "composite", "computedOffset"].includes(k)
+              ),
+              from: String(frames[0]?.transform ?? ""),
+              to: String(frames[frames.length - 1]?.transform ?? ""),
+            };
+          })
+      );
+      expect(motion.length).toBeGreaterThan(0);
+      for (const m of motion) expect(m.end).toBeLessThanOrEqual(450);
+      if (reduced) {
+        for (const m of motion) expect(m.props).toEqual(["opacity"]);
+        return;
+      }
+      const y = (transform: string) =>
+        Number(/translate\([^,]+,\s*(-?[\d.]+)px/.exec(transform)?.[1]);
+      const drops = motion.filter(
+        (m) => m.props.includes("opacity") && m.from.includes("translate")
+      );
+      expect(drops.length).toBeGreaterThan(0);
+      for (const m of drops) expect(y(m.from)).toBeLessThan(y(m.to));
+    });
+  }
+
   // A frame budget measured on a developer machine. GitHub's shared runners draw without a GPU
   // and run the same re-layout about six times slower (30 fps, a ~190 ms task, measured with
   // CPU throttling), so there the numbers describe the runner, not the app: the functional
