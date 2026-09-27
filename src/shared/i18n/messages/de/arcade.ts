@@ -18,7 +18,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     plays: "Partien",
     howToPlay: "Spielanleitung",
     hideHowToPlay: "Spielanleitung ausblenden",
-    play: "Spielen",
+    play: "Auf {site} spielen",
+    playHint:
+      "Zum Spielen braucht es ein arcade21-Konto und eine per WalletConnect verbundene Wallet: zuerst auf der arcade21-Website anmelden.",
     homepage: "Website",
   },
   rooms: {

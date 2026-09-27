@@ -18,7 +18,9 @@ const messages = {
     plays: "Plays",
     howToPlay: "How to play",
     hideHowToPlay: "Hide how to play",
-    play: "Play",
+    play: "Play on {site}",
+    playHint:
+      "Playing needs an arcade21 account and a wallet connected with WalletConnect: sign in on the arcade21 website first.",
     homepage: "Homepage",
   },
   rooms: {
