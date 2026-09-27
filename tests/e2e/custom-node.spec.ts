@@ -33,18 +33,6 @@ test.describe("custom node", () => {
     expect(coinset, "Coinset must not be called with a custom node").toEqual([]);
   });
 
-  test("settings name the endpoint and the polling channel", async ({ page }) => {
-    await mockCustomNode(page);
-    await page.goto("/settings");
-    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(page.getByText(CUSTOM_NODE_URL).first()).toBeVisible();
-  });
-
-  // Found against a real node (TASK-109): a detail page opened directly (not reached by a click)
-  // mounts while the stored settings are still being read, its first call is refused, and it
-  // must still load once the custom endpoint is in.
   test("a block page opened directly loads from the custom node", async ({ page }) => {
     await mockCustomNode(page);
     const node: string[] = [];
@@ -60,7 +48,9 @@ test.describe("custom node", () => {
     expect(node.some((path) => path.includes("get_block_record_by_height"))).toBe(true);
   });
 
-  test("settings and Test connection never call Coinset with a custom node", async ({ page }) => {
+  test("settings name the endpoint and the polling channel, and never call Coinset", async ({
+    page,
+  }) => {
     await mockCustomNode(page);
     const coinset: string[] = [];
     page.on("request", (r) => {
@@ -70,6 +60,7 @@ test.describe("custom node", () => {
     await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({
       timeout: 20_000,
     });
+    await expect(page.getByText(CUSTOM_NODE_URL).first()).toBeVisible();
     await page.getByRole("button", { name: "Test connection" }).first().click();
     await page.waitForTimeout(1_500);
     expect(coinset, "Coinset must not be called from Settings with a custom node").toEqual([]);

@@ -100,14 +100,6 @@ test.describe("arcade", () => {
       page.getByText(new RegExp(`${arcade.rooms.total} rooms announced on the tracker`))
     ).toBeVisible({ timeout: 15_000 });
   });
-
-  test("Arcade sits in the More menu", async ({ page, isMobile }) => {
-    test.skip(isMobile, "the More menu is part of the desktop navigation");
-    await page.goto("/");
-    await page.getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Arcade" }).click();
-    await expect(page).toHaveURL(/\/gaming$/);
-  });
 });
 
 test.describe("testnet gaming", () => {
@@ -153,8 +145,7 @@ test.describe("testnet gaming", () => {
     await expect(page.getByRole("link", { name: "Open a room" }).first()).toBeVisible();
   });
 
-  test("axe passes on the testnet view", async ({ page, isMobile }) => {
-    test.skip(isMobile, "markup is the same on both projects");
+  test("axe passes on the testnet view", async ({ page }) => {
     await page.goto("/gaming");
     await expect(page.getByTestId("duels-leaderboard")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

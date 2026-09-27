@@ -50,6 +50,10 @@ with TanStack Query and localStorage only).
 - Amounts are `bigint` mojos end to end; format only at the edge with `src/shared/lib/chia`.
 - Unit tests live next to the code as `*.test.ts` and must not touch the network (the bun test
   preload throws on `fetch`). Recorded Coinset fixtures live in `src/test-utils/fixtures`.
+- E2E tests run once, where they matter (`playwright.projects.ts`): desktop by default; tag a
+  title `@phone` for phone-only checks (layout, touch targets, the mobile menu) or `@touch` when a
+  tap changes the behaviour (runs on both). `@live` needs `LIVE=1`, `@local` never runs on CI.
+  Never `test.skip(isMobile)`: a test that skips itself on a project belongs to the other one.
 - No code, SVG or CSS from the mempool.space repository (AGPL): visual reference only.
 
 ## Tasks and milestones — `../mempool-xch-backlog`

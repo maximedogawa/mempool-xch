@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { THEMES } from "../../src/shared/theme";
 import { fakeCatHistoryTx, installFakeSage } from "./fakeSage";
 import { mockCoinset, mockDexie, P2, TOKEN_ACTIVE, TOKEN_QUIET } from "./mockCoinset";
 
@@ -159,13 +160,13 @@ test.describe("portfolio", () => {
     await expect(page.getByText("$59.00").first()).toBeVisible();
   });
 
-  test("passes axe in both themes", async ({ page }) => {
+  test("passes axe in every theme", async ({ page }) => {
     await watchAddress(page);
     await page.goto("/portfolio");
     await expect(page.getByText("$59.00").first()).toBeVisible();
     // Colours transition on a theme switch; axe must see the settled colours, not a midpoint.
     await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; }" });
-    for (const theme of ["dark", "light"]) {
+    for (const { id: theme } of THEMES) {
       await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
       expect(

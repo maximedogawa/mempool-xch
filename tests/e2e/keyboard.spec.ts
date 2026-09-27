@@ -8,9 +8,7 @@ test.describe("keyboard and touch access", () => {
 
   test("every control on the dashboard is reachable by keyboard with a visible focus ring", async ({
     page,
-    isMobile,
   }) => {
-    test.skip(isMobile, "desktop only");
     await page.goto("/");
     await page.waitForTimeout(2000);
     const interactive = await page
@@ -46,8 +44,7 @@ test.describe("keyboard and touch access", () => {
     expect([...seen].some((s) => s.includes("Projected block"))).toBe(true);
   });
 
-  test("search shortcut, enter and escape work from the keyboard", async ({ page, isMobile }) => {
-    test.skip(isMobile, "desktop only");
+  test("search shortcut, enter and escape work from the keyboard", async ({ page }) => {
     await page.goto("/");
     // The shortcut is attached after hydration; the connection pill only renders client-side.
     await expect(page.getByRole("status").first()).toBeVisible();
@@ -58,11 +55,9 @@ test.describe("keyboard and touch access", () => {
     await expect(page).toHaveURL(/\/block\/9295514/);
   });
 
-  test("mobile navigation and primary controls have at least 44px touch targets", async ({
+  test("mobile navigation and primary controls have at least 44px touch targets @phone", async ({
     page,
-    isMobile,
   }) => {
-    test.skip(!isMobile, "mobile only");
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
     const boxes = await page

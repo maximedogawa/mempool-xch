@@ -30,7 +30,7 @@ function scanRequests(page: Page): string[] {
 }
 
 test.describe("network map", () => {
-  test("renders the dashboard snapshot without crawling seeders", async ({ page, isMobile }) => {
+  test("renders the dashboard snapshot without crawling seeders", async ({ page }) => {
     await at(page, OBSERVED + DAY);
     await mockCoinset(page);
     const scans = scanRequests(page);
@@ -64,8 +64,7 @@ test.describe("network map", () => {
     const countries = page.getByRole("region", { name: "Countries" });
     await expect(countries.getByText("Germany")).toBeVisible();
     await expect(countries.getByText("United States")).toBeVisible();
-    // The region column is a wide-screen extra; the map's own colours carry it on a phone.
-    if (!isMobile) await expect(countries.getByText("North America").first()).toBeVisible();
+    await expect(countries.getByText("North America").first()).toBeVisible();
     await expect(page.getByText(/pulses model propagation|a model of\s+propagation/)).toBeVisible();
     await expect(page.getByText(/are a model: they land on countries/)).toBeVisible();
 
@@ -254,10 +253,7 @@ test.describe("network map", () => {
     }
   });
 
-  test("with a custom node also lists and places its connected peers", async ({
-    page,
-    isMobile,
-  }) => {
+  test("with a custom node also lists and places its connected peers", async ({ page }) => {
     await at(page, OBSERVED + DAY);
     await mockCustomNode(page);
     await mockNodeScan(page);
@@ -266,11 +262,8 @@ test.describe("network map", () => {
     const table = page.getByRole("region", { name: "Connections" });
     await expect(table.getByText("203.0.113.10:8444")).toBeVisible();
     await expect(table.getByText("Wallet")).toBeVisible();
-    if (!isMobile) {
-      // The location and operator columns only appear from the lg breakpoint up.
-      await expect(table.getByText("Berlin, Germany")).toBeVisible();
-      await expect(table.getByText("Example Telekom")).toBeVisible();
-    }
+    await expect(table.getByText("Berlin, Germany")).toBeVisible();
+    await expect(table.getByText("Example Telekom")).toBeVisible();
     await expect(page.getByText("Full node", { exact: true }).first()).toBeVisible();
     await expect(
       page.getByRole("img", { name: /Connected peer 203\.0\.113\.10 near Berlin, Germany/ })

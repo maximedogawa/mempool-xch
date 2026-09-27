@@ -6,15 +6,6 @@ test.describe("docs", () => {
     await mockCoinset(page);
   });
 
-  test("has a Why mempoolxch.space section linking the competitor matrix", async ({ page }) => {
-    await page.goto("/docs");
-    await expect(
-      page.getByRole("heading", { level: 2, name: "Why mempoolxch.space" })
-    ).toBeVisible();
-    const link = page.getByRole("link", { name: "competitor matrix" });
-    await expect(link).toHaveAttribute("href", /architecture\/competitors\.md/);
-  });
-
   test("the live-updates answer describes the current client-direct channels only", async ({
     page,
   }) => {
@@ -26,6 +17,13 @@ test.describe("docs", () => {
 
   test("every documentation link opens the public wiki in the app repository", async ({ page }) => {
     await page.goto("/docs");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Why mempoolxch.space" })
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "competitor matrix" })).toHaveAttribute(
+      "href",
+      /\/wiki\/architecture\/competitors\.md$/
+    );
     const hrefs = await page
       .locator('a[href*="github.com/maximedogawa/"]')
       .evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).href));
