@@ -11,6 +11,7 @@ const messages: Translation<(typeof en)["messages"]> = {
       tenMinutes: "~10 minutos",
     },
     mojoPerCost: "mojo/coste",
+    copyXch: "Copiar la comisión de {target} en XCH",
     notAvailable: "n/d",
     capacityAvailable: "Hay capacidad disponible.",
     zeroFeeAccepted: "Se aceptan gastos sin comisión.",

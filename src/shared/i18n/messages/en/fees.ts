@@ -11,6 +11,7 @@ const messages = {
       tenMinutes: "~10 minutes",
     },
     mojoPerCost: "mojo/cost",
+    copyXch: "Copy the {target} fee in XCH",
     notAvailable: "n/a",
     capacityAvailable: "Capacity available.",
     zeroFeeAccepted: "0-fee spends are accepted.",
