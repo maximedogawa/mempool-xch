@@ -6,13 +6,23 @@ Guidance for Claude Code when working in this repository.
 
 mempoolxch.space is split across sibling repositories checked out next to each other:
 
-| Path                     | Repo                  | Contents                                                       |
-| ------------------------ | --------------------- | -------------------------------------------------------------- |
-| `.`                      | `mempool-xch`         | Application code                                               |
-| `../mempool-xch-backlog` | `mempool-xch-backlog` | Memo, concept, tasks, milestones and decisions (Backlog.md)    |
-| `../mempool-xch-wiki`    | `mempool-xch-wiki`    | Documentation (architecture, data sources, deployment, guides) |
+| Path                     | Repo                  | Contents                                                                    |
+| ------------------------ | --------------------- | --------------------------------------------------------------------------- |
+| `.`                      | `mempool-xch`         | Application code                                                            |
+| `../mempool-xch-backlog` | `mempool-xch-backlog` | Memo, concept, tasks, milestones and decisions (Backlog.md)                 |
+| `../mempool-xch-wiki`    | `mempool-xch-wiki`    | Documentation (architecture, data sources, deployment, guides); **private** |
+| `./wiki`                 | `mempool-xch`         | Public wiki: the pages the app links to, and what they link to              |
 
-This repo holds code only. Work items belong in the backlog; explanatory docs belong in the wiki.
+This repo holds code and the public wiki. Work items belong in the backlog; explanatory docs
+belong in the wiki repo. `mempool-xch-wiki` is private, so visitors cannot open it: every
+documentation link in the app points at `./wiki` through `src/shared/config/wiki.ts`
+(`wikiUrl`), never at the wiki repo. A page in `./wiki` is a public copy of the page with the
+same path in `mempool-xch-wiki`; change both together, and keep the public copy free of private
+information (no links to the wiki repo, the backlogs or other private repositories, no private
+project roadmaps, credentials, personal data or third-party screenshots).
+`src/shared/config/wiki.test.ts` fails on a missing page, a broken relative link or a link to
+a private repository. To link a new page from the app, add it to `WIKI_PAGES` and copy it,
+together with every page it links to, into `./wiki`.
 
 ## What the project is
 

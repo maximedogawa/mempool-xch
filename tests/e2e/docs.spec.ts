@@ -23,4 +23,20 @@ test.describe("docs", () => {
     await expect(section.getByText("Coinset socket", { exact: true })).toBeVisible();
     await expect(section.getByText("Server events")).toHaveCount(0);
   });
+
+  test("every documentation link opens the public wiki in the app repository", async ({ page }) => {
+    await page.goto("/docs");
+    const hrefs = await page
+      .locator('a[href*="github.com/maximedogawa/"]')
+      .evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).href));
+    const wiki = hrefs.filter((h) => h.includes("/wiki/") || h.includes("-wiki"));
+    expect(wiki.length).toBeGreaterThanOrEqual(5);
+    for (const href of wiki) {
+      expect(href).toMatch(
+        /^https:\/\/github\.com\/maximedogawa\/mempool-xch\/blob\/main\/wiki\/.+\.md/
+      );
+    }
+    // The wiki repository is private: nothing may send a visitor there.
+    expect(hrefs.filter((h) => h.includes("mempool-xch-wiki"))).toEqual([]);
+  });
 });

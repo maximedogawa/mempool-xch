@@ -4,11 +4,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { RichTag } from "@/shared/i18n/translate";
 import { useT } from "@/shared/i18n/useT";
+import { wikiUrl } from "@/shared/config/wiki";
 import { routes } from "@/shared/lib/routes";
 import { Card, CardBody, CardHeader } from "@/shared/ui";
 import docsNs from "@/shared/i18n/messages/en/docs";
 
-const WIKI = "https://github.com/maximedogawa/mempool-xch-wiki/blob/main";
 const SITE = process.env.NEXT_PUBLIC_APP_URL || "https://mempoolxch.space";
 
 /** Inline markup used by the Help page's rich messages. */
@@ -81,9 +81,7 @@ export function DocsContent() {
           </ul>
           <p>
             {t.rich("why.comparison", {
-              link: (c) => (
-                <ExternalLink href={`${WIKI}/architecture/competitors.md`}>{c}</ExternalLink>
-              ),
+              link: (c) => <ExternalLink href={wikiUrl("competitors")}>{c}</ExternalLink>,
             })}
           </p>
         </CardBody>
@@ -146,22 +144,16 @@ export function DocsContent() {
               </Link>
             </li>
             <li>
-              <ExternalLink href={`${WIKI}/guides/install.md`}>{t("more.install")}</ExternalLink>
+              <ExternalLink href={wikiUrl("install")}>{t("more.install")}</ExternalLink>
             </li>
             <li>
-              <ExternalLink href={`${WIKI}/guides/custom-node.md`}>
-                {t("more.customNode")}
-              </ExternalLink>
+              <ExternalLink href={wikiUrl("customNode")}>{t("more.customNode")}</ExternalLink>
             </li>
             <li>
-              <ExternalLink href={`${WIKI}/architecture/overview.md`}>
-                {t("more.overview")}
-              </ExternalLink>
+              <ExternalLink href={wikiUrl("overview")}>{t("more.overview")}</ExternalLink>
             </li>
             <li>
-              <ExternalLink href={`${WIKI}/architecture/coinset-load.md`}>
-                {t("more.load")}
-              </ExternalLink>
+              <ExternalLink href={wikiUrl("coinsetLoad")}>{t("more.load")}</ExternalLink>
             </li>
             <li>
               <ExternalLink href="https://github.com/maximedogawa/mempool-xch">
