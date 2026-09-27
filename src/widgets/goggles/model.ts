@@ -441,7 +441,7 @@ export const MIN_FILL = 0.16;
 /** Depth of the block's top and side faces, in px. */
 export const BLOCK_DEPTH = 16;
 const BLOCK_MIN = 180;
-const BLOCK_MAX = 340;
+const BLOCK_MAX = 260;
 
 /**
  * Side of the square front face for the width available to the block (faces included): the

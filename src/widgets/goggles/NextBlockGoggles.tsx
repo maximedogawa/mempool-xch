@@ -213,8 +213,8 @@ export function NextBlockGoggles() {
       />
       <CardBody className="min-w-0">
         {isLoading && !next ? (
-          <div className="grid gap-6 md:grid-cols-[minmax(0,356px)_minmax(0,1fr)]">
-            <Skeleton className="mx-auto aspect-square w-full max-w-[356px]" />
+          <div className="grid gap-6 md:grid-cols-[minmax(0,276px)_minmax(0,1fr)]">
+            <Skeleton className="mx-auto aspect-square w-full max-w-[276px]" />
             <div className="flex flex-col gap-3">
               <Skeleton className="h-12 w-32" />
               <Skeleton className="h-4 w-48" />
@@ -225,7 +225,7 @@ export function NextBlockGoggles() {
           <p className="py-10 text-center text-sm text-fg-faint">{t("empty")}</p>
         ) : (
           // The block beside its figures on a wide screen, above them on a phone.
-          <div className="grid items-start gap-6 md:grid-cols-[minmax(0,356px)_minmax(0,1fr)]">
+          <div className="grid items-start gap-5 md:grid-cols-[minmax(0,276px)_minmax(0,1fr)]">
             <GogglesTreemap
               items={items}
               matched={matchedIds}
@@ -250,7 +250,7 @@ export function NextBlockGoggles() {
                 </div>
               }
             />
-            <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-3">
               <BlockSummary
                 block={next}
                 blockMaxCost={blockMax}

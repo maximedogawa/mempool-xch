@@ -195,7 +195,7 @@ export function GogglesFilterBar({
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <label className="relative flex min-w-0 flex-[1_1_12rem] items-center">
           <Search
             aria-hidden="true"
@@ -219,12 +219,7 @@ export function GogglesFilterBar({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((o) => !o)}
-          className={cn(
-            "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors",
-            open || panelCount > 0
-              ? "border-primary text-primary"
-              : "border-border text-fg-muted hover:text-fg"
-          )}
+          className={cn("seg rounded-full", (open || panelCount > 0) && "seg-on")}
         >
           <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
           {t("moreFilters")}
@@ -234,19 +229,24 @@ export function GogglesFilterBar({
             </span>
           ) : null}
         </button>
-      </div>
-
-      <div role="group" aria-label={t("filterKind")} className="flex flex-wrap items-center gap-1">
-        {TX_KINDS.filter((k) => (kindCounts[k] ?? 0) > 0 || filters.kinds.includes(k)).map((k) => (
-          <Chip
-            key={k}
-            active={filters.kinds.includes(k)}
-            onClick={() => setFilters((f) => ({ ...f, kinds: toggle(f.kinds, k) }))}
-            swatch={KIND_COLOR[k]}
-          >
-            {t(`kinds.${k}`)} <Count n={kindCounts[k] ?? 0} />
-          </Chip>
-        ))}
+        <div
+          role="group"
+          aria-label={t("filterKind")}
+          className="flex flex-wrap items-center gap-1"
+        >
+          {TX_KINDS.filter((k) => (kindCounts[k] ?? 0) > 0 || filters.kinds.includes(k)).map(
+            (k) => (
+              <Chip
+                key={k}
+                active={filters.kinds.includes(k)}
+                onClick={() => setFilters((f) => ({ ...f, kinds: toggle(f.kinds, k) }))}
+                swatch={KIND_COLOR[k]}
+              >
+                {t(`kinds.${k}`)} <Count n={kindCounts[k] ?? 0} />
+              </Chip>
+            )
+          )}
+        </div>
       </div>
 
       {open ? (
