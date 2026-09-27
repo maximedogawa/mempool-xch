@@ -78,6 +78,14 @@ export function isNodexchUrl(network: NetworkId, url: string): boolean {
 }
 
 /**
+ * The endpoint a network starts on: the hosted nodexch gateway where one runs (mainnet), Coinset
+ * elsewhere (testnet11). Coinset stays the automatic fallback of the hosted gateway (TASK-113).
+ */
+export function defaultEndpointUrl(network: NetworkId): string {
+  return NETWORKS[network].nodexchUrl ?? NETWORKS[network].rpcUrl;
+}
+
+/**
  * Who answers `url`: Coinset by host, nodexch by host or because the user said so for their own
  * gateway (`declared`), anything else a custom node.
  */

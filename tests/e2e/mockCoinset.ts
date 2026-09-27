@@ -651,9 +651,35 @@ export async function seedConsent(page: Page) {
   });
 }
 
-/** Intercepts every Coinset call; anything unknown answers not found. */
+/**
+ * Intercepts every Coinset call; anything unknown answers not found. The app's default provider
+ * is nodexch.space (TASK-113): these specs run on Coinset chosen outright, unless a spec seeds its
+ * own endpoints, and nodexch.space is unreachable so a leak falls back instead of going out.
+ */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
+  await page.addInitScript(() => {
+    const key = "mempool-xch:settings:v1";
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+      if (stored.endpoints) return;
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          ...stored,
+          providersVersion: 2,
+          endpoints: {
+            mainnet: { rpcUrl: "https://api.coinset.org" },
+            testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+          },
+        })
+      );
+    } catch {
+      // Storage unavailable: the app runs on its defaults and falls back to Coinset.
+    }
+  });
+  await page.route(/https:\/\/nodexch\.space\/.*/, (route) => route.abort("connectionrefused"));
+  await page.routeWebSocket(/wss:\/\/nodexch\.space\/.*/, (ws) => ws.close());
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
@@ -755,7 +781,7 @@ export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
  * /x/node/v1/peers. Every request and socket is recorded, so a spec can check the key and that
  * nothing went to Coinset.
  */
-export async function mockNodexch(page: Page) {
+export async function mockNodexch(page: Page, { down = false }: { down?: boolean } = {}) {
   await seedConsent(page);
   await page.addInitScript(
     ({ rpcUrl, apiKey }) => {
@@ -777,7 +803,28 @@ export async function mockNodexch(page: Page) {
   const seen = {
     requests: [] as { url: string; authorization: string | null }[],
     sockets: [] as string[],
+    coinset: [] as { url: string; authorization: string | null }[],
   };
+  // Down: the gateway answers 503, so the app falls back to Coinset (TASK-113).
+  if (down) {
+    await page.route(/https:\/\/nodexch\.space\/.*/, (route) => {
+      seen.requests.push({
+        url: route.request().url(),
+        authorization: route.request().headers().authorization ?? null,
+      });
+      return route.fulfill({ status: 503, body: "gateway down" });
+    });
+    await page.routeWebSocket(/wss:\/\/nodexch\.space\/ws.*/, (ws) => ws.close());
+    await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => {
+      seen.coinset.push({
+        url: route.request().url(),
+        authorization: route.request().headers().authorization ?? null,
+      });
+      return answerNodeMethod(route);
+    });
+    await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+    return seen;
+  }
   await page.route(/https:\/\/nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
     seen.requests.push({
       url: route.request().url(),

@@ -56,4 +56,51 @@ test.describe("nodexch provider", () => {
       })
       .toBe(true);
   });
+
+  test("when nodexch.space fails, reads fall back to Coinset without the key, and it shows", async ({
+    page,
+  }) => {
+    const seen = await mockNodexch(page, { down: true });
+    await page.goto("/");
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 20_000 });
+    expect(seen.requests.length, "nodexch was asked first").toBeGreaterThan(0);
+    expect(seen.coinset.length, "Coinset answered instead").toBeGreaterThan(0);
+    for (const r of seen.coinset) expect(r.authorization, r.url).toBeNull();
+    await expect(page.getByTestId("connection-fallback")).toHaveText(
+      /nodexch\.space is not answering \(HTTP 503\)/
+    );
+    await page.goto("/settings");
+    await expect(
+      page
+        .locator("#main")
+        .getByRole("status")
+        .filter({ hasText: "nodexch.space is not answering" })
+    ).toBeVisible({ timeout: 20_000 });
+  });
+});
+
+test.describe("provider choice", () => {
+  test("nodexch.space is the default, and Coinset or an own node can be picked", async ({
+    page,
+  }) => {
+    await mockNodexch(page);
+    // A visitor with nothing stored: the hosted gateway, not Coinset.
+    await page.addInitScript(() => localStorage.removeItem("mempool-xch:settings:v1"));
+    await page.goto("/settings");
+    const mainnet = page.locator("fieldset").first();
+    await expect(mainnet.getByRole("radio", { name: /^nodexch\.space/ })).toBeChecked();
+    await expect(page.getByText("nodexch.space default")).toBeVisible();
+    await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
+
+    await mainnet.getByRole("radio", { name: /^Coinset/ }).check({ force: true });
+    await expect(page.locator("#rpc-mainnet")).toHaveValue("https://api.coinset.org");
+    await mainnet.getByRole("radio", { name: /^Own node/ }).check({ force: true });
+    await expect(page.locator("#rpc-mainnet")).toHaveValue("");
+    await expect(page.locator("#rpc-mainnet")).toHaveAttribute(
+      "placeholder",
+      "http://127.0.0.1:8556"
+    );
+  });
 });

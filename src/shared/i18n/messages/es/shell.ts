@@ -50,6 +50,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "{channel}: {detail} Última actualización {age}.",
     srStatus: "{label} vía {channel}, pico {peak}, última actualización {age}",
     unknownPeak: "desconocido",
+    fallback: "{host} no responde ({reason}): las lecturas van a Coinset hasta que vuelva.",
   },
   sync: {
     title: "Tu nodo aún se está sincronizando: en {height} de {tip} ({percent} %)",

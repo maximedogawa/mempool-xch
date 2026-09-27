@@ -15,6 +15,7 @@ import { useState } from "react";
 import {
   NETWORK_IDS,
   NETWORKS,
+  defaultEndpointUrl,
   isCoinsetUrl,
   isNodexchUrl,
   providerOf,
@@ -167,9 +168,10 @@ function ThemePicker() {
 
 function EndpointRow({ network }: { network: NetworkId }) {
   const t = useT(settingsNs);
-  const { settings, update } = useSettings();
+  const { settings, update, fallback } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
+  const defaultUrl = defaultEndpointUrl(network);
   const saved = settings.endpoints[network];
   const value = saved.rpcUrl;
   // The fields follow the saved endpoint until the visitor edits them: the first render still
@@ -191,7 +193,30 @@ function EndpointRow({ network }: { network: NetworkId }) {
     draft.trim() !== value ||
     draftNodexch !== (saved.provider === "nodexch") ||
     draftKey.trim() !== (saved.apiKey ?? "");
-  const isDefault = value === config.rpcUrl && savedProvider === "coinset";
+  const isDefault = value === defaultUrl && saved.provider === undefined;
+  // The provider picked above the URL: the hosted gateway, Coinset, or an own node or gateway.
+  const choice: "nodexch" | "coinset" | "own" = isNodexchUrl(network, draft.trim())
+    ? "nodexch"
+    : isCoinsetUrl(network, draft.trim())
+      ? "coinset"
+      : "own";
+  const choices = (
+    [
+      {
+        id: "nodexch",
+        url: config.nodexchUrl ?? "",
+        label: t("endpoint.pickNodexch"),
+        hint: t("endpoint.pickNodexchHint"),
+      },
+      {
+        id: "coinset",
+        url: config.rpcUrl,
+        label: t("endpoint.pickCoinset"),
+        hint: t("endpoint.pickCoinsetHint"),
+      },
+      { id: "own", url: "", label: t("endpoint.pickOwn"), hint: t("endpoint.pickOwnHint") },
+    ] as const
+  ).filter((c) => c.id !== "nodexch" || config.nodexchUrl);
 
   /** What Save stores: the flag only where the host alone does not say nodexch. */
   const endpointOf = (rpcUrl: string): Endpoint => {
@@ -243,13 +268,14 @@ function EndpointRow({ network }: { network: NetworkId }) {
         <span
           className={cn(
             "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase",
-            isDefault
+            // Only an endpoint off the hosted providers is flagged: Coinset picked outright is fine.
+            isDefault || savedProvider === "coinset"
               ? "bg-primary-soft text-primary"
               : "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning"
           )}
         >
           {isDefault
-            ? t("endpoint.coinsetDefault")
+            ? t(config.nodexchUrl ? "endpoint.nodexchDefault" : "endpoint.coinsetDefault")
             : savedProvider === "coinset"
               ? "Coinset"
               : savedProvider === "nodexch"
@@ -257,6 +283,47 @@ function EndpointRow({ network }: { network: NetworkId }) {
                 : t("endpoint.customNode")}
         </span>
       </div>
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="sr-only">{t("endpoint.providers")}</legend>
+        <div className="grid gap-1.5 sm:grid-cols-3">
+          {choices.map((c) => (
+            <label
+              key={c.id}
+              className={cn(
+                "flex cursor-pointer flex-col rounded-sm border px-2.5 py-1.5 text-xs focus-within:ring-2 focus-within:ring-primary",
+                choice === c.id
+                  ? "border-primary bg-primary-soft text-fg"
+                  : "border-border bg-bg-elevated text-fg-muted hover:border-border-strong"
+              )}
+            >
+              <input
+                type="radio"
+                name={`provider-${network}`}
+                value={c.id}
+                checked={choice === c.id}
+                onChange={() => {
+                  // An own node starts blank: its URL is the visitor's to enter.
+                  setDraft(c.id === "own" ? (choice === "own" ? draft : "") : c.url);
+                  setDraftNodexch(false);
+                  setTest({ status: "idle" });
+                }}
+                className="sr-only"
+              />
+              <span className="font-semibold">{c.label}</span>
+              <span className="text-fg-muted">{c.hint}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {fallback && settings.network === network ? (
+        <p
+          role="status"
+          className="inline-flex items-start gap-1.5 rounded-sm border border-warning/40 bg-[color-mix(in_srgb,var(--warning)_8%,transparent)] px-2.5 py-1.5 text-xs text-warning"
+        >
+          <AlertTriangle size={14} className="mt-px shrink-0" aria-hidden="true" />
+          {t("endpoint.fallback", { reason: fallback.reason ?? "?" })}
+        </p>
+      ) : null}
       <input
         id={`rpc-${network}`}
         type="url"
@@ -265,7 +332,8 @@ function EndpointRow({ network }: { network: NetworkId }) {
           setDraft(e.target.value);
           setTest({ status: "idle" });
         }}
-        placeholder={config.rpcUrl}
+        placeholder={choice === "own" ? "http://127.0.0.1:8556" : defaultUrl}
+        readOnly={choice !== "own"}
         spellCheck={false}
         className="field mono w-full"
       />
@@ -306,19 +374,6 @@ function EndpointRow({ network }: { network: NetworkId }) {
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
-        {config.nodexchUrl && draft.trim() !== config.nodexchUrl ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setDraft(config.nodexchUrl!);
-              setDraftNodexch(false);
-              setTest({ status: "idle" });
-            }}
-          >
-            {t("endpoint.nodexchPreset")}
-          </Button>
-        ) : null}
         <Button size="sm" onClick={runTest} disabled={test.status === "testing" || !draft.trim()}>
           {test.status === "testing" ? (
             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
@@ -331,7 +386,8 @@ function EndpointRow({ network }: { network: NetworkId }) {
           disabled={!dirty || keyInvalid}
           onClick={async () => {
             const rpcUrl = draft.trim();
-            if (inSage && !isCoinsetUrl(network, rpcUrl)) {
+            if (inSage && !isCoinsetUrl(network, rpcUrl) && !isNodexchUrl(network, rpcUrl)) {
+              // The hosted providers are in the manifest already; any other host needs a grant.
               // Sage blocks calls to hosts outside the granted whitelist: ask for this one first.
               const result = await requestEndpointWhitelist(rpcUrl, network);
               if (result === "unsupported") {
@@ -370,7 +426,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
             setTest({ status: "idle" });
             update((prev) => ({
               ...prev,
-              endpoints: { ...prev.endpoints, [network]: { rpcUrl: config.rpcUrl } },
+              endpoints: { ...prev.endpoints, [network]: { rpcUrl: defaultUrl } },
             }));
           }}
         >
@@ -476,6 +532,7 @@ export function SettingsForm() {
           ) : null}
           <p className="text-sm text-fg-muted">
             {t.rich("endpoints.intro", {
+              strong: (c) => <strong className="text-fg">{c}</strong>,
               coinset: (c) => (
                 <a
                   href="https://coinset.org"

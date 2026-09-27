@@ -15,7 +15,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Full-Node-RPC-Endpunkte",
     sage: "<strong>In Sage:</strong> Ihr Guthaben, Ihre Coins und Transaktionen stammen aus der Wallet selbst. Die App-Bridge von Sage bietet keinen Node-RPC (keine Abfragen zu Peak, Mempool oder Blöcken), daher kommen netzwerkweite Daten vom unten stehenden Endpunkt; ein eigener Endpunkt wird beim Speichern in Sage freigegeben.",
     intro:
-      "Standardmäßig liest mempoolxch.space die Chain über den öffentlichen Full-Node-RPC von <coinset>Coinset</coinset> – direkt aus Ihrem Browser, ganz ohne eigenen Node. Sie können jedes Netzwerk stattdessen auf einen beliebigen HTTPS-Endpunkt richten, der mit dem Chia-Full-Node-RPC kompatibel ist. Funktionen, die nur Coinset bietet (semantische Transaktionszusammenfassungen, Adresshistorie und der WebSocket-Stream), werden bei eigenen Endpunkten automatisch abgeschaltet; die App fragt dann regelmäßig ab und lädt den rohen Mempool im Browser.",
+      "Standardmäßig liest mempoolxch.space die Chain über <strong>nodexch.space</strong>, ein öffentliches nodexch-Gateway, direkt aus Ihrem Browser, ein eigener Node ist nicht nötig. Antwortet es nicht, wechseln die Abfragen von selbst zum öffentlichen Full-Node-RPC von <coinset>Coinset</coinset> und zurück, sobald es wieder da ist. Sie können auch direkt Coinset wählen oder jedes Netzwerk auf Ihren eigenen Node oder Ihr eigenes Gateway richten. Funktionen, die eine indexierte API brauchen (semantische Transaktionszusammenfassungen, Adressverlauf und der WebSocket-Stream), sind bei einem reinen Node aus, und die App fragt stattdessen regelmäßig ab und lädt den rohen Mempool im Browser.",
     ownNode:
       "<strong>Eigenen Node verwenden?</strong> Ein normaler Chia Full Node lauscht auf <code>https://localhost:8555</code> mit gegenseitigem TLS: Er verlangt das Client-Zertifikat des Nodes, das ein Browser nicht vorweisen kann, und sendet keine CORS-Header. Setzen Sie einen kleinen Reverse Proxy davor, der TLS mit dem Client-Zertifikat terminiert und <code>Access-Control-Allow-Origin</code> ergänzt, und tragen Sie dann hier die Proxy-URL mit IP-Adresse ein, z. B. <code>http://127.0.0.1:8556</code>: <code>localhost</code> kann auf IPv6 auflösen und einen Proxy auf 127.0.0.1 verfehlen. <guide>Schritt-für-Schritt-Anleitung</guide>.",
     nodexch:
@@ -27,7 +27,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     customNode: "Eigener Node",
     test: "Verbindung testen",
     save: "Speichern",
-    reset: "Auf Coinset zurücksetzen",
+    reset: "Auf Standard zurücksetzen",
     ok: "Spitze {height} in {ms} ms",
     syncing:
       "Der Knoten synchronisiert noch: bei {height} von {tip} ({percent} %). Blöcke und Mempool hinken hinterher, bis er synchron ist.",
@@ -39,12 +39,21 @@ const messages: Translation<(typeof en)["messages"]> = {
     sageRefused: "Sage hat diesen Host nicht zugelassen; der Endpunkt wurde nicht gespeichert.",
     sageAllowed: "Sage hat diesen Host zugelassen.",
     nodexch: "nodexch",
-    nodexchPreset: "nodexch.space verwenden",
     nodexchToggle: "Dieser Endpunkt ist ein nodexch-Gateway",
     apiKey: "Öffentlicher Schlüssel",
     apiKeyHint: "nxp_… (für die nodexch.space-Vorgabe optional)",
     apiKeyInvalid: "In einen Browser gehört nur ein öffentlicher Schlüssel (nxp_…).",
     okNodexch: "Peak {height} in {ms} ms · nodexch: indexierte API und WebSocket an",
+    providers: "Anbieter",
+    pickNodexch: "nodexch.space",
+    pickNodexchHint: "Standard · Coinset als automatischer Ersatz",
+    pickCoinset: "Coinset",
+    pickCoinsetHint: "öffentliches Full-Node-RPC",
+    pickOwn: "Eigener Node",
+    pickOwnHint: "lokaler Node oder eigenes Gateway",
+    nodexchDefault: "Standard: nodexch.space",
+    fallback:
+      "nodexch.space antwortet nicht ({reason}): gelesen wird bei Coinset, bis es wieder da ist.",
   },
   appearance: {
     title: "Darstellung",
