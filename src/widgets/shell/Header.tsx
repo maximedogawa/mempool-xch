@@ -195,7 +195,7 @@ export function Header() {
         <nav
           aria-label={t("primaryNav")}
           className={cn(
-            "hidden shrink-0 items-center gap-0.5 transition-[opacity,width] duration-150 lg:flex",
+            "hidden shrink-0 items-center gap-0.5 transition-[opacity,width] duration-200 lg:flex",
             searchFocused && "lg:hidden"
           )}
         >

@@ -19,14 +19,18 @@ import mapNs from "@/shared/i18n/messages/en/map";
 const SERIES = ["total", "capacity", "ipv4", "ipv6"] as const;
 type SeriesId = (typeof SERIES)[number];
 
-/** One colour per version band; "other" takes the neutral one. */
+/**
+ * One colour per version band, in the theme's series order: identity colour, second series,
+ * then the material hues, with the warm one last so the newest versions never read as a warning.
+ * "Other" takes the neutral one.
+ */
 const VERSION_COLORS = [
   "var(--region-europe)",
-  "var(--region-north-america)",
   "var(--region-asia)",
-  "var(--region-south-america)",
-  "var(--region-africa)",
   "var(--region-oceania)",
+  "var(--region-africa)",
+  "var(--region-south-america)",
+  "var(--region-north-america)",
 ];
 const OTHER_COLOR = "var(--region-unmapped)";
 

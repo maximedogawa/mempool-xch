@@ -4,6 +4,7 @@ import { mockCoinset, mockDexie, P2, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinse
 import { mockDexieOffers, mockMintGarden, NFT_ID } from "./mockMintGarden";
 import { HANDLE, mockXchandles } from "./mockXchandles";
 import { mockNodeScan } from "./mockNodeScan";
+import { DEFAULT_THEME, THEMES } from "../../src/shared/theme";
 
 const ROUTES = [
   "/",
@@ -91,25 +92,59 @@ test.describe("accessibility", () => {
     });
   }
 
-  // The same sweep in the dark theme, which the light default above never reaches: one theme's
-  // hues can drift below AA unnoticed (TASK-095). The setting is stored before the app boots.
-  for (const route of ROUTES) {
-    test(`axe passes on ${route} (dark)`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "the route sweep runs once, on desktop");
-      await page.addInitScript(() => {
-        try {
-          const key = "mempool-xch:settings:v1";
-          const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
-          localStorage.setItem(key, JSON.stringify({ ...stored, theme: "dark" }));
-        } catch {
-          // Storage unavailable: the check below fails loudly on the theme instead.
-        }
+  // The same sweep in every other registered theme, which the default above never reaches: one
+  // theme's hues can drift below AA unnoticed (TASK-095). The setting is stored before the app
+  // boots, so a theme added to src/shared/theme is swept without touching this file.
+  for (const { id: theme } of THEMES.filter((t) => t.id !== DEFAULT_THEME)) {
+    for (const route of ROUTES) {
+      test(`axe passes on ${route} (${theme})`, async ({ page, isMobile }) => {
+        test.skip(isMobile, "the route sweep runs once, on desktop");
+        await page.addInitScript((id) => {
+          try {
+            const key = "mempool-xch:settings:v1";
+            const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+            localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
+          } catch {
+            // Storage unavailable: the check below fails loudly on the theme instead.
+          }
+        }, theme);
+        await page.goto(route);
+        await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+        await settled(page);
+        const violations = await serious(page);
+        expect(violations, report(violations)).toEqual([]);
       });
-      await page.goto(route);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    }
+  }
+
+  // Every stop of the first keyboard pass through the dashboard shows a visible focus mark (an
+  // outline of 2px or more, or a ring) in every theme.
+  for (const { id: theme } of THEMES) {
+    test(`keyboard focus is visible (${theme})`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "keyboard check, runs once on desktop");
+      await page.addInitScript((id) => {
+        const key = "mempool-xch:settings:v1";
+        const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+        localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
+      }, theme);
+      await page.goto("/");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await settled(page);
-      const violations = await serious(page);
-      expect(violations, report(violations)).toEqual([]);
+      const missing: string[] = [];
+      for (let i = 0; i < 20; i++) {
+        await page.keyboard.press("Tab");
+        const mark = await page.evaluate(() => {
+          const el = document.activeElement as HTMLElement | null;
+          if (!el || el === document.body) return null;
+          const style = getComputedStyle(el);
+          const outline = style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2;
+          const ring = style.boxShadow !== "none";
+          const label = `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 40)}"`;
+          return { visible: outline || ring, label };
+        });
+        if (mark && !mark.visible) missing.push(mark.label);
+      }
+      expect(missing).toEqual([]);
     });
   }
 
@@ -128,7 +163,7 @@ test.describe("accessibility", () => {
       content:
         'ul[aria-relevant="additions"] > li { animation: row-in 1s linear 0s paused both !important; }',
     });
-    for (const theme of ["dark", "light"]) {
+    for (const theme of THEMES.map((t) => t.id)) {
       await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
       const results = await new AxeBuilder({ page })
         .include('ul[aria-relevant="additions"]')

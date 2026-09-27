@@ -128,5 +128,7 @@ export const light = defineTheme({
     glow: "color-mix(in srgb, var(--deep-cyan) 60%, transparent)",
     sheen: "none",
     "header-line": "var(--hairline)",
+    /** Work areas stay still (doc-001 v2): no decorative loops. */
+    ambient: "paused",
   },
 });

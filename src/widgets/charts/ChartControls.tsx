@@ -36,12 +36,7 @@ function RadioRow<T extends string>({
             role="radio"
             aria-checked={selected === opt.id}
             onClick={() => onSelect(opt.id)}
-            className={cn(
-              "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-              selected === opt.id
-                ? "border-primary bg-primary-soft text-primary"
-                : "border-border bg-bg text-fg-muted hover:text-fg"
-            )}
+            className={cn("seg", selected === opt.id && "seg-on")}
           >
             {opt.label}
           </button>

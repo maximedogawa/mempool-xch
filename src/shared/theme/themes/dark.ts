@@ -114,5 +114,7 @@ export const dark = defineTheme({
     glow: "color-mix(in srgb, #2c9099 60%, transparent)",
     sheen: "none",
     "header-line": "color-mix(in srgb, #ecefea 20%, #0e1419)",
+    /** Work areas stay still (doc-001 v2): no decorative loops. */
+    ambient: "paused",
   },
 });

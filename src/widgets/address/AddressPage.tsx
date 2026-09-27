@@ -43,6 +43,7 @@ import { ClawbacksCard } from "./ClawbacksCard";
 import { useAddressData, type CoinFallback } from "./useAddressData";
 import { holdingsFromBalances } from "@/shared/lib/portfolio/valuation";
 import addressNs from "@/shared/i18n/messages/en/address";
+import { light } from "@/shared/theme/themes/light";
 
 /**
  * The portfolio (chart, prices, Dexie's ticker list) only shows for an address that holds
@@ -144,8 +145,9 @@ export function AddressPage() {
               value={addressText}
               size={132}
               level="M"
-              bgColor="#ffffff"
-              fgColor="#15191d"
+              // Scanners need dark on light whatever the page theme: the light palette's ink and paper.
+              bgColor={light.palette.paper}
+              fgColor={light.palette.ink}
             />
           </div>
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">

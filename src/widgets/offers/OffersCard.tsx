@@ -84,12 +84,7 @@ export function OffersCard({ scope, title }: { scope: OfferScope; title?: string
                 type="button"
                 aria-pressed={status === s}
                 onClick={() => setStatus(s)}
-                className={cn(
-                  "rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
-                  status === s
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border text-fg-muted hover:text-fg"
-                )}
+                className={cn("seg rounded-full text-[11px]", status === s && "seg-on")}
               >
                 {t(`status.${OFFER_STATUS[s].key}`)}
               </button>

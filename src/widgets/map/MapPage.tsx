@@ -510,7 +510,7 @@ export function MapPage() {
                   if (event.key === "Escape") setSuggest(false);
                 }}
                 placeholder={t("mapCard.searchPlaceholder")}
-                className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-faint focus:border-primary"
+                className="field w-full"
               />
               {suggest && trimmed && matchedRows.length > 0 ? (
                 <div className="absolute z-20 mt-1 flex w-full flex-col rounded-sm border border-border bg-bg-elevated p-1 shadow-card">

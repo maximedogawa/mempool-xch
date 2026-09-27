@@ -183,7 +183,23 @@ test.describe("network map", () => {
     // A hydration mismatch makes React re-render the page and detach the map mid-test.
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
+    // The quiet default themes hold decorative loops still (--ambient: paused).
     await page.goto("/map");
+    await expect(page.locator(".map-arc").first()).toBeAttached();
+    expect(
+      await page
+        .locator(".map-arc")
+        .first()
+        .evaluate((el) => getComputedStyle(el).animationPlayState)
+    ).toBe("paused");
+    // Midnight lets them run, which is where pausing off screen and in a hidden tab matters.
+    await page.evaluate(() => {
+      const key = "mempool-xch:settings:v1";
+      const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+      localStorage.setItem(key, JSON.stringify({ ...stored, theme: "midnight" }));
+    });
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "midnight");
     const viewport = page.locator(".map-viewport");
     const arc = page.locator(".map-arc").first();
     await expect(arc).toBeAttached();

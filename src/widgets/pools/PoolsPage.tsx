@@ -114,7 +114,7 @@ export function PoolsPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("share.search")}
                 aria-label={t("share.search")}
-                className="h-8 w-44 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
+                className="field w-44 sm:w-64"
               />
             ) : null
           }

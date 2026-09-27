@@ -51,7 +51,7 @@
   --font-sans:
     var(--font-inter), Inter, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-  /* Motion (doc-001): 180-240ms ease-out for every standard transition. */
+  /* Motion (doc-001 v2): 160-240ms for common UI transitions; 200ms ease-out by default. */
   --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -109,6 +109,78 @@ body {
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  /* Text inputs and selects (doc-001 v2): 44px minimum, neutral default, identity-colour focus
+     ring. Width, padding for an icon or a mono face stay utilities on the element. */
+  .field {
+    min-height: 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--fg);
+    padding-inline: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    transition:
+      border-color 200ms ease-out,
+      outline-color 200ms ease-out;
+  }
+
+  .field::placeholder {
+    color: var(--fg-faint);
+  }
+
+  .field:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  .field:focus,
+  .field:focus-visible {
+    border-color: var(--focus);
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+  }
+
+  /* Segmented options and filter chips: instrument tabs with a thin border, the selected one
+     tinted. 32px with a mouse, 44px on touch screens. Size or shape utilities still apply. */
+  .seg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition:
+      color 200ms ease-out,
+      border-color 200ms ease-out,
+      background-color 200ms ease-out;
+  }
+
+  .seg:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .seg.seg-on {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  @media (pointer: coarse) {
+    .seg {
+      min-height: 2.75rem;
+    }
   }
 
   .page-title {
@@ -228,6 +300,7 @@ body {
   width: 40%;
   background: var(--sheen);
   animation: sheen 2.8s ease-in-out infinite;
+  animation-play-state: var(--ambient);
 }
 
 /* Live indicator: a quiet halo ring, no ping. */
@@ -316,9 +389,9 @@ body {
   );
   box-shadow: inset 0 0 0 1px rgb(32 38 46 / 0.12);
   transition:
-    opacity 220ms ease,
-    filter 220ms ease,
-    background-color 300ms ease;
+    opacity 200ms ease-out,
+    filter 200ms ease-out,
+    background-color 200ms ease-out;
 }
 
 .goggles-tile[data-dim] {
@@ -467,6 +540,8 @@ body {
   stroke-opacity: 0.18;
   stroke-dasharray: 2 6;
   animation: map-arc-drift 2.4s linear infinite;
+  /* Decorative loop: only themes whose --ambient is "running" keep it moving. */
+  animation-play-state: var(--ambient);
 }
 
 .map-canvas {
@@ -481,13 +556,13 @@ body {
 .map-node {
   cursor: pointer;
   outline: none;
-  transition: opacity 140ms ease;
+  transition: opacity 200ms ease-out;
 }
 
 .map-node circle {
   transition:
-    r 140ms ease,
-    fill-opacity 140ms ease;
+    r 200ms ease-out,
+    fill-opacity 200ms ease-out;
 }
 
 .map-node-dim {
@@ -524,6 +599,7 @@ body {
 
 .map-peer-ring {
   animation: map-peer-ring 2.6s ease-out infinite;
+  animation-play-state: var(--ambient);
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -625,9 +701,9 @@ body {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   transition:
-    color 120ms ease,
-    border-color 120ms ease,
-    background-color 120ms ease;
+    color 200ms ease-out,
+    border-color 200ms ease-out,
+    background-color 200ms ease-out;
 }
 
 .map-toggle:hover,
@@ -648,9 +724,9 @@ body {
   color: var(--fg-muted);
   font-size: 0.7rem;
   transition:
-    color 120ms ease,
-    border-color 120ms ease,
-    background-color 120ms ease;
+    color 200ms ease-out,
+    border-color 200ms ease-out,
+    background-color 200ms ease-out;
 }
 
 .map-legend-chip:hover {
