@@ -33,7 +33,7 @@ test.describe("block row", () => {
     await mockCoinset(page);
   });
 
-  test("opens with now centred: the inflection point on desktop, the next block on a phone", async ({
+  test("opens with now centred: the inflection point on desktop, the next block on a phone @touch", async ({
     page,
     isMobile,
   }) => {
@@ -43,8 +43,7 @@ test.describe("block row", () => {
     await expect.poll(async () => Math.abs(await offCentre(page, focus))).toBeLessThan(24);
   });
 
-  test("snapping is proximity, and off only while the mouse drags", async ({ page, isMobile }) => {
-    test.skip(isMobile, "mouse drag");
+  test("snapping is proximity, and off only while the mouse drags", async ({ page }) => {
     const row = await ready(page);
     expect(await row.evaluate((el) => getComputedStyle(el).scrollSnapType)).toMatch(
       /^x( proximity)?$/

@@ -1,4 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
+import { e2eProjects } from "./playwright.projects";
 
 /**
  * E2E against a production build with Coinset mocked by route interception (tests/e2e).
@@ -22,10 +23,7 @@ export default defineConfig({
     // The UI follows the browser language when none is chosen; pin it so text assertions hold.
     locale: "en-US",
   },
-  projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
-  ],
+  projects: e2eProjects(),
   webServer: {
     command: `PORT=${PORT} bun run start`,
     url: `http://localhost:${PORT}/up`,

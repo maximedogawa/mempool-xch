@@ -17,7 +17,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     intro:
       "Por defecto, mempoolxch.space lee la cadena a través del RPC público de nodo completo de <coinset>Coinset</coinset>, directamente desde tu navegador y sin necesidad de nodo propio. Puedes apuntar cada red a cualquier endpoint HTTPS compatible con el RPC de nodo completo de Chia. Las funciones exclusivas de Coinset (resúmenes semánticos de transacciones, historial de direcciones y el stream WebSocket) se desactivan automáticamente con endpoints propios, y la app pasa a sondear y a descargar la mempool en bruto en el navegador.",
     ownNode:
-      "<strong>¿Usas tu propio nodo?</strong> Un nodo completo de Chia estándar escucha en <code>https://localhost:8555</code> con TLS mutuo: exige el certificado de cliente del nodo, que un navegador no puede presentar, y no envía cabeceras CORS. Pon delante un pequeño proxy inverso que termine el TLS con el certificado de cliente y añada <code>Access-Control-Allow-Origin</code>, y luego introduce aquí la URL del proxy. <guide>Guía paso a paso</guide>.",
+      "<strong>¿Usas tu propio nodo?</strong> Un nodo completo de Chia estándar escucha en <code>https://localhost:8555</code> con TLS mutuo: exige el certificado de cliente del nodo, que un navegador no puede presentar, y no envía cabeceras CORS. Pon delante un pequeño proxy inverso que termine el TLS con el certificado de cliente y añada <code>Access-Control-Allow-Origin</code>, y luego introduce aquí la URL del proxy con la dirección IP, p. ej. <code>http://127.0.0.1:8556</code>: <code>localhost</code> puede resolverse a IPv6 y no llegar a un proxy en 127.0.0.1. <guide>Guía paso a paso</guide>.",
   },
   endpoint: {
     addresses: "(direcciones {prefix})",
@@ -27,6 +27,10 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "Guardar",
     reset: "Restablecer a Coinset",
     ok: "Pico {height} en {ms} ms",
+    syncing:
+      "El nodo aún se está sincronizando: en {height} de {tip} ({percent} %). Los bloques y el mempool van con retraso hasta que termine.",
+    syncingNoTip:
+      "El nodo aún se está sincronizando: los bloques y el mempool van con retraso hasta que termine.",
     okCustom:
       "Pico {height} en {ms} ms · nodo propio: API indexada, WebSocket y API de resumen desactivados",
     sageHttpsOnly: "Dentro de Sage solo se pueden autorizar endpoints https.",

@@ -39,13 +39,23 @@ const messages: Translation<(typeof en)["messages"]> = {
   skipToContent: "Saltar al contenido",
   connection: {
     live: "En vivo",
+    syncing: "Sincronizando",
     connecting: "Conectando",
     offline: "Sin conexión",
     noData: "aún sin datos",
     connectingHint: "Conectando: {channel}…",
+    syncingHint:
+      "El nodo aún se sincroniza: en {height} de {tip}. Los datos van por detrás de la red.",
+    syncingHintNoTip: "El nodo aún se sincroniza. Los datos van por detrás de la red.",
     hint: "{channel}: {detail} Última actualización {age}.",
     srStatus: "{label} vía {channel}, pico {peak}, última actualización {age}",
     unknownPeak: "desconocido",
+  },
+  sync: {
+    title: "Tu nodo aún se está sincronizando: en {height} de {tip} ({percent} %)",
+    titleNoTip: "Tu nodo aún se está sincronizando",
+    body: "Los bloques, las comisiones y el mempool van por detrás de la red hasta que se ponga al día; un nodo en sincronización no mantiene mempool.",
+    settings: "Ajustes del nodo",
   },
   network: {
     label: "Red",

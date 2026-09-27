@@ -48,6 +48,25 @@ describe("normalisers with recorded Coinset fixtures", () => {
     expect(s.mempoolFees).toBe(511752094n);
     expect(s.mempoolMinFees.cost_5000000).toBe(0);
     expect(s.synced).toBe(true);
+    expect(s.syncMode).toBe(false);
+  });
+  test("blockchain state of a syncing node keeps how far it is", () => {
+    // The sync block a real node reports while catching up (owner's node, 2026-09-27).
+    const s = normaliseBlockchainState({
+      ...blockchainState.blockchain_state,
+      sync: {
+        sync_mode: true,
+        sync_progress_height: 9329726,
+        sync_tip_height: 9350823,
+        synced: false,
+      },
+    });
+    expect(s.synced).toBe(false);
+    expect(s.syncMode).toBe(true);
+    expect(s.syncTipHeight).toBe(9350823);
+    const missing = normaliseBlockchainState({ ...blockchainState.blockchain_state, sync: {} });
+    expect(missing.syncTipHeight).toBeNull();
+    expect(missing.synced).toBe(true);
   });
   test("block records distinguish transaction blocks", () => {
     const records = blockRecords.block_records.map(normaliseBlockRecord);

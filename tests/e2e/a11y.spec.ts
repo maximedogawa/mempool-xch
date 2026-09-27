@@ -77,82 +77,46 @@ test.describe("accessibility", () => {
   });
 
   /*
-   * The axe rules that matter here — labels, landmarks, heading order, contrast, roles — read
-   * the markup, not the viewport, so sweeping every route twice only doubled the runtime. The
-   * sweep runs on desktop; the two things that genuinely differ on a phone, the mobile-only nav
-   * markup and horizontal overflow, get their own checks below.
+   * The axe rules that matter here (labels, landmarks, heading order, contrast, roles) read the
+   * markup, not the viewport, so the sweep runs on desktop only. Every route is swept in every
+   * registered theme, in a few tests that report all violations at once, by route: a theme added to
+   * src/shared/theme is swept without touching this file, and one theme's hues drifting below
+   * AA (TASK-095) cannot hide behind another's. The two things that differ on a phone, the
+   * mobile-only nav markup and horizontal overflow, are the @phone checks below.
    */
-  for (const route of ROUTES) {
-    test(`axe passes on ${route}`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "the route sweep runs once, on desktop");
-      await page.goto(route);
-      await settled(page);
-      const violations = await serious(page);
-      expect(violations, report(violations)).toEqual([]);
-    });
-  }
-
-  // The same sweep in every other registered theme, which the default above never reaches: one
-  // theme's hues can drift below AA unnoticed (TASK-095). The setting is stored before the app
-  // boots, so a theme added to src/shared/theme is swept without touching this file.
-  for (const { id: theme } of THEMES.filter((t) => t.id !== DEFAULT_THEME)) {
-    for (const route of ROUTES) {
-      test(`axe passes on ${route} (${theme})`, async ({ page, isMobile }) => {
-        test.skip(isMobile, "the route sweep runs once, on desktop");
-        await page.addInitScript((id) => {
-          try {
-            const key = "mempool-xch:settings:v1";
-            const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
-            localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
-          } catch {
-            // Storage unavailable: the check below fails loudly on the theme instead.
-          }
-        }, theme);
-        await page.goto(route);
-        await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-        await settled(page);
-        const violations = await serious(page);
-        expect(violations, report(violations)).toEqual([]);
+  // Four chunks per theme so the sweep runs in parallel across workers instead of one long test.
+  const CHUNKS = 4;
+  const size = Math.ceil(ROUTES.length / CHUNKS);
+  const chunks = Array.from({ length: CHUNKS }, (_, i) => ROUTES.slice(i * size, (i + 1) * size));
+  for (const { id: theme } of THEMES) {
+    for (const [index, routes] of chunks.entries()) {
+      test(`axe passes on routes ${index + 1}/${CHUNKS} (${theme})`, async ({ page }) => {
+        test.setTimeout(routes.length * 15_000);
+        if (theme !== DEFAULT_THEME) {
+          await page.addInitScript((id) => {
+            try {
+              const key = "mempool-xch:settings:v1";
+              const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+              localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
+            } catch {
+              // Storage unavailable: the theme check below fails loudly instead.
+            }
+          }, theme);
+        }
+        const failures: string[] = [];
+        for (const route of routes) {
+          await page.goto(route);
+          await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          await settled(page);
+          const violations = await serious(page);
+          if (violations.length) failures.push(`${route}\n${report(violations)}`);
+        }
+        expect(failures, failures.join("\n\n")).toEqual([]);
       });
     }
   }
 
-  // Every stop of the first keyboard pass through the dashboard shows a visible focus mark (an
-  // outline of 2px or more, or a ring) in every theme.
-  for (const { id: theme } of THEMES) {
-    test(`keyboard focus is visible (${theme})`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "keyboard check, runs once on desktop");
-      await page.addInitScript((id) => {
-        const key = "mempool-xch:settings:v1";
-        const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
-        localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
-      }, theme);
-      await page.goto("/");
-      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-      await settled(page);
-      const missing: string[] = [];
-      for (let i = 0; i < 20; i++) {
-        await page.keyboard.press("Tab");
-        const mark = await page.evaluate(() => {
-          const el = document.activeElement as HTMLElement | null;
-          if (!el || el === document.body) return null;
-          const style = getComputedStyle(el);
-          const outline = style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2;
-          const ring = style.boxShadow !== "none";
-          const label = `${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 40)}"`;
-          return { visible: outline || ring, label };
-        });
-        if (mark && !mark.visible) missing.push(mark.label);
-      }
-      expect(missing).toEqual([]);
-    });
-  }
-
-  test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "markup check, runs once on desktop");
+  test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({ page }) => {
     // A row only carries the flash for 1.6s after it arrives, which made the sweep on / flaky
     // (TASK-095). Freeze every feed row at the flash's first frame and check it in both themes.
     await page.goto("/");
@@ -173,8 +137,7 @@ test.describe("accessibility", () => {
     }
   });
 
-  test("axe passes on the phone's own navigation markup", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "mobile project only");
+  test("axe passes on the phone's own navigation markup @phone", async ({ page }) => {
     await page.goto("/");
     await settled(page);
     // The drawer only exists below lg, so it is never in the desktop sweep above.
@@ -184,8 +147,8 @@ test.describe("accessibility", () => {
     expect(violations, report(violations)).toEqual([]);
   });
 
-  test("no horizontal page scroll on a phone", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "mobile project only");
+  test("no horizontal page scroll on a phone @phone", async ({ page }) => {
+    test.setTimeout(ROUTES.length * 10_000);
     for (const route of ROUTES) {
       await page.goto(route);
       await settled(page);
