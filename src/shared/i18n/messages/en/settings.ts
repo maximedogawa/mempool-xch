@@ -17,7 +17,7 @@ const messages = {
     intro:
       "By default mempoolxch.space reads the chain through <coinset>Coinset</coinset>'s public full-node RPC, so no own node is needed, straight from your browser. You can point each network at any Chia full-node-RPC-compatible HTTPS endpoint instead. Coinset-only features (semantic transaction summaries, address history and the WebSocket stream) switch off automatically for custom endpoints and the app falls back to polling and to fetching the raw mempool in the browser.",
     ownNode:
-      "<strong>Using your own node?</strong> A stock Chia full node listens on <code>https://localhost:8555</code> with mutual TLS: it requires the node's client certificate, which a browser cannot present, and it sends no CORS headers. Put a small reverse proxy in front of it that terminates TLS with the client certificate and adds <code>Access-Control-Allow-Origin</code>, then enter the proxy URL here. <guide>Step-by-step guide</guide>.",
+      "<strong>Using your own node?</strong> A stock Chia full node listens on <code>https://localhost:8555</code> with mutual TLS: it requires the node's client certificate, which a browser cannot present, and it sends no CORS headers. Put a small reverse proxy in front of it that terminates TLS with the client certificate and adds <code>Access-Control-Allow-Origin</code>, then enter the proxy URL here as an IP address, e.g. <code>http://127.0.0.1:8556</code>: <code>localhost</code> can resolve to IPv6 and miss a proxy on 127.0.0.1. <guide>Step-by-step guide</guide>.",
   },
   endpoint: {
     addresses: "({prefix} addresses)",
