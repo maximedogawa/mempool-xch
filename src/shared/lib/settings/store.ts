@@ -6,8 +6,9 @@
 import { isCoinsetUrl, NETWORKS, NETWORK_IDS, type NetworkId } from "@/shared/config/networks";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { isLocale, type LocalePreference } from "@/shared/i18n/config";
+import { DEFAULT_THEME, isThemeId, type ThemePreference } from "@/shared/theme";
 
-export type ThemePreference = "dark" | "light" | "system";
+export type { ThemePreference } from "@/shared/theme";
 
 export interface Settings {
   network: NetworkId;
@@ -31,7 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
     mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
     testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
   },
-  theme: "light",
+  theme: DEFAULT_THEME,
   recentBlocks: 8,
   sounds: true,
   notifications: false,
@@ -77,7 +78,8 @@ function sanitise(raw: unknown): Settings {
       ];
     })
   ) as Settings["endpoints"];
-  const theme: ThemePreference = r.theme === "dark" || r.theme === "system" ? r.theme : "light";
+  const theme: ThemePreference =
+    r.theme === "system" || isThemeId(r.theme) ? r.theme : DEFAULT_THEME;
   const recentBlocks =
     typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20
       ? r.recentBlocks

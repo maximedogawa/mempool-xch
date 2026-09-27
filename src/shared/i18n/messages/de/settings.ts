@@ -37,9 +37,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Darstellung",
     theme: "Design",
     dark: "Dunkel",
-    darkHint: "Tinte und Nachtblau",
+    darkHint: "Tinte und Nachtstahl",
     light: "Hell",
-    lightHint: "warmes Papier, Standard",
+    lightHint: "mineralisch hell, Standard",
     system: "System",
     systemHint: "folgt Ihrem Gerät",
     sageLocked:

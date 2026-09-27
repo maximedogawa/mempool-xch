@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import { DEFAULT_THEME, SCHEME_THEMES, themeById } from "@/shared/theme";
 import { AppProviders } from "@/shared/providers/AppProviders";
 import { AppShell } from "@/widgets/shell/AppShell";
 import "./globals.css";
@@ -26,10 +27,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f2efe8" },
-    { media: "(prefers-color-scheme: dark)", color: "#171c25" },
-  ],
+  themeColor: (["light", "dark"] as const).map((scheme) => ({
+    media: `(prefers-color-scheme: ${scheme})`,
+    color: themeById(SCHEME_THEMES[scheme]).tokens.bg,
+  })),
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -37,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       data-app="mempoolxch"
-      data-theme="light"
+      data-theme={DEFAULT_THEME}
       className={`${inter.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >

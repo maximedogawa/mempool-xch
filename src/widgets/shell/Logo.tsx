@@ -1,6 +1,6 @@
 import { cn } from "@/shared/lib/cn";
 
-/** Isometric block mark: a periwinkle top face and deep periwinkle flank, drawn in thin ink. */
+/** Isometric block mark: a cyan-tinted top face and deep cyan flank, drawn in thin ink. */
 export function LogoMark({ size = 28, className }: { size?: number; className?: string }) {
   return (
     <svg
@@ -10,7 +10,7 @@ export function LogoMark({ size = 28, className }: { size?: number; className?: 
       aria-hidden="true"
       className={cn("shrink-0", className)}
     >
-      <path d="M16 3 29 10 16 17 3 10z" fill="var(--primary-pastel)" />
+      <path d="M16 3 29 10 16 17 3 10z" fill="var(--primary-tint)" />
       <path d="M16 17v12L3 22V10z" fill="var(--cta)" />
       <path d="M16 17v12l13-7V10z" fill="var(--block-side)" />
       <path

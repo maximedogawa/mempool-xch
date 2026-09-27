@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
+import { Skeleton } from "@/shared/ui/Skeleton";
 
 /**
  * The block "cube": a front face whose lower part is filled proportionally to the block's
@@ -142,6 +143,26 @@ export function BlockCube({
   return (
     <div aria-label={ariaLabel} role="img" className={cn(common, className)}>
       {body}
+    </div>
+  );
+}
+
+/**
+ * A loading block with the exact geometry of a loaded one: the height label above, the cube
+ * (faces included) with placeholder lines where its figures go, and the chip below, so the
+ * row keeps its height when the data arrives.
+ */
+export function BlockCubeSkeleton({ size = 124 }: { size?: number }) {
+  return (
+    <div aria-hidden="true" className="flex flex-col items-center gap-1">
+      <Skeleton className="h-4 w-14" />
+      <BlockCube fill={0} gradient="" variant="empty" ariaLabel="" size={size}>
+        <Skeleton className="h-[15px] w-3/5" />
+        <Skeleton className="mt-1 h-2.5 w-2/5" />
+        <Skeleton className="mt-2.5 h-[13px] w-1/2" />
+        <Skeleton className="mt-1 h-[11px] w-2/5" />
+      </BlockCube>
+      <Skeleton className="h-5 w-20 rounded-full" />
     </div>
   );
 }

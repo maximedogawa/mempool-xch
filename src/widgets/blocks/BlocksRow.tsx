@@ -6,7 +6,6 @@ import { useWatchedActivity } from "@/widgets/watchlist/useWatchedActivity";
 import { CHIA } from "@/shared/config/networks";
 import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { FlowTrace } from "@/shared/ui";
 import { ProjectedBlockDetails } from "./ProjectedBlockDetails";
 import { ProjectedBlocks } from "./ProjectedBlocks";
 import { RecentBlocks } from "./RecentBlocks";
@@ -74,13 +73,11 @@ export function BlocksRow() {
   return (
     <section
       aria-label={t("row.label")}
-      className="relative overflow-hidden rounded-card border border-border bg-(image:--strip-bg)"
+      className="rounded-card border border-border bg-(image:--strip-bg)"
     >
-      {/* The dashboard's one atmospheric anchor: the queue drifting towards the next block. */}
-      <FlowTrace className="absolute inset-x-0 bottom-0 h-24 opacity-70" />
       <div
         ref={scroller}
-        className="relative scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
+        className="scrollbar-none cursor-grab overflow-x-auto overscroll-x-contain px-4 pb-4 pt-4 active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onWheel={() => {
           userScrolled.current = true;
@@ -119,7 +116,9 @@ export function BlocksRow() {
             <RecentBlocks
               watchedConfirmed={watched.confirmed}
               data={recent.data}
-              loading={recent.isLoading}
+              // isPending, not isLoading: the query waits for the peak, and a query that has not
+              // started yet is not "loading", which showed the empty message instead of blocks.
+              loading={recent.isPending}
               blockMaxCost={blockMaxCost}
             />
           </div>

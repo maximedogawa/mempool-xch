@@ -145,7 +145,7 @@ export function AddressPage() {
               size={132}
               level="M"
               bgColor="#ffffff"
-              fgColor="#20262e"
+              fgColor="#15191d"
             />
           </div>
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">

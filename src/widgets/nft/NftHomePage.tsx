@@ -32,7 +32,7 @@ export function NftHomePage() {
         className="flex flex-col gap-2 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6"
         style={{
           backgroundImage:
-            "radial-gradient(900px 260px at 20% -10%, color-mix(in srgb, var(--fog-violet) 22%, transparent), transparent 70%), radial-gradient(700px 240px at 90% 10%, color-mix(in srgb, var(--primary-pastel) 18%, transparent), transparent 70%)",
+            "radial-gradient(900px 260px at 20% -10%, color-mix(in srgb, var(--info) 20%, transparent), transparent 70%), radial-gradient(700px 240px at 90% 10%, color-mix(in srgb, var(--cta) 20%, transparent), transparent 70%)",
         }}
       >
         <div className="flex items-center gap-2">

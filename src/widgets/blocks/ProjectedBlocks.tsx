@@ -5,10 +5,9 @@ import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { useT } from "@/shared/i18n/useT";
-import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
-import { BlockCube } from "./BlockCube";
+import { BlockCube, BlockCubeSkeleton } from "./BlockCube";
 import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 const CUBE = 138;
@@ -31,19 +30,30 @@ export function ProjectedBlocks({
   const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-4">
         {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-[156px] w-[156px]" />
+          <BlockCubeSkeleton key={i} size={CUBE} />
         ))}
       </div>
     );
   }
   if (blocks.length === 0) {
     return (
-      <BlockCube fill={0} gradient="" variant="empty" ariaLabel={t("projected.emptyLabel")}>
-        <span className="text-xs text-fg-faint">{t("projected.empty")}</span>
-        <span className="text-[11px] text-fg-faint">{t("projected.mempool")}</span>
-      </BlockCube>
+      // Label and chip rows kept empty, so the column is as tall as a loaded block.
+      <div className="flex flex-col items-center gap-1">
+        <span aria-hidden="true" className="h-4" />
+        <BlockCube
+          fill={0}
+          gradient=""
+          variant="empty"
+          ariaLabel={t("projected.emptyLabel")}
+          size={CUBE}
+        >
+          <span className="text-xs text-fg-faint">{t("projected.empty")}</span>
+          <span className="text-[11px] text-fg-faint">{t("projected.mempool")}</span>
+        </BlockCube>
+        <span aria-hidden="true" className="h-5" />
+      </div>
     );
   }
   // Row-reversed so the next block sits against the divider and the scroll starts there.

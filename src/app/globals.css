@@ -1,228 +1,11 @@
 @import "tailwindcss";
+@import "../shared/theme/themes.generated.css";
 
 /*
- * mempoolxch.space design tokens: the Beidwerk "flow laboratory" (backlog doc-001). Warm paper
- * and ink neutrals, a periwinkle pastel for surfaces and fills and a deep periwinkle for
- * interactive states, with aqua stone (throughput), fog violet (pending) and soft peach (fee
- * pressure) as the only other hues. Light paper is the base; `[data-theme="dark"]` is tuned
- * separately, never inverted. Every colour used by components is a token here.
- *
- * `html:root`, not `:root`: inside Sage, sage-app-sdk's getSageClient() mounts the wallet's
- * shadcn variables in a late `:root { --primary: …; --accent: …; --border: …; --radius: … }`
- * style, whose names collide with ours. Same specificity would let it win; one extra type
- * selector keeps ours, and `:root[data-theme="dark"]` below still outranks this block (TASK-095).
- *
- * Text tokens keep 4.5:1 on --bg, --surface, --surface-2 and their own soft tint. Slate (#68727D)
- * is 4.3:1 on the canvas, so muted text uses a deeper slate.
+ * Theme tokens come from src/shared/theme (one file per theme, generated into
+ * themes.generated.css by `bun run themes`). This file only maps them onto Tailwind and holds
+ * the component styles, which read tokens and never a colour of their own.
  */
-html:root {
-  color-scheme: light;
-
-  /* Palette (doc-001) */
-  --canvas: #f2efe8;
-  --paper: #faf8f2;
-  --ink: #20262e;
-  --slate: #68727d;
-  --periwinkle: #a9b5d2;
-  --deep-periwinkle: #53688e;
-  --aqua-stone: #9ec9c4;
-  --fog-violet: #c7bcd5;
-  --soft-peach: #d9b29d;
-  --hairline: #c9c3ba;
-
-  --bg: var(--canvas);
-  --bg-elevated: var(--paper);
-  --surface: var(--paper);
-  --surface-2: #edeae2;
-  --surface-hover: #e6e2d8;
-  --border: var(--hairline);
-  --border-strong: #aaa398;
-  /* Separators inside a card: a half-strength hairline. */
-  --rule: color-mix(in srgb, var(--hairline) 60%, var(--paper));
-  --map-land: #d5cfc4;
-  --map-bg: #ece8df;
-  --map-grid: rgb(83 104 142 / 0.07);
-  --map-marker-edge: rgb(250 248 242 / 0.9);
-
-  /* Region hues for the network map: size shows population, hue shows region. */
-  --region-europe: #53688e;
-  --region-asia: #5e9c95;
-  --region-north-america: #8c7bae;
-  --region-south-america: #c4876c;
-  --region-africa: #a8966a;
-  --region-oceania: #7f9cc4;
-  --region-unmapped: #aaa398;
-
-  --fg: var(--ink);
-  --fg-muted: #535c67;
-  --fg-faint: #545d68;
-
-  /* Interactive: text, links, active marks and small fills. */
-  --primary: #4f6489;
-  --primary-strong: #3f5173;
-  --primary-pastel: var(--periwinkle);
-  --primary-soft: color-mix(in srgb, var(--periwinkle) 20%, transparent);
-  --primary-fg: #fffaf2;
-  /* Call to action: the one filled button colour. */
-  --cta: var(--deep-periwinkle);
-  --cta-hover: #475a7c;
-  --cta-fg: #fffaf2;
-  --cta-edge: color-mix(in srgb, var(--deep-periwinkle) 86%, black);
-  --focus: var(--deep-periwinkle);
-  /* A fresh row leaves a short periwinkle trace, then settles. */
-  --row-flash: color-mix(in srgb, var(--periwinkle) 16%, transparent);
-
-  --accent: #465b80;
-  --warning: #8a5234;
-  --danger: #9a3e36;
-  --danger-soft: color-mix(in srgb, #9a3e36 10%, transparent);
-  --info: #5e5480;
-
-  /* Fee bands, calm to pressure: none, aqua, periwinkle, fog violet, peach, deep peach. */
-  --fee-0: #dcd6cb;
-  --fee-1: var(--aqua-stone);
-  --fee-2: var(--periwinkle);
-  --fee-3: var(--fog-violet);
-  --fee-4: var(--soft-peach);
-  --fee-5: #c98f76;
-
-  /* Block cube faces: paper blocks with ink edges. */
-  --block-face: #eeeae2;
-  --block-side: #d6d0c5;
-  --block-top: #f7f4ee;
-  --block-empty: #eae6dd;
-  --projected-face: #e8e9ee;
-  --cube-top-hi: #fffdf8;
-  --cube-side-from: #dcd6cb;
-  --cube-side-to: #c8c1b5;
-  --cube-glass: rgb(250 248 242 / 0.84);
-  --cube-grid: rgb(32 38 46 / 0.045);
-  --cube-fill-shade: rgb(32 38 46 / 0.05);
-  --cube-sheen: rgb(255 253 248 / 0.1);
-  --cube-waterline: rgb(32 38 46 / 0.28);
-  --cube-top-line: rgb(255 253 248 / 0.6);
-  --cube-empty-edge: inset 0 0 0 1px rgb(32 38 46 / 0.06);
-  --cube-edge: inset 0 0 0 1px rgb(32 38 46 / 0.14);
-  --cube-drop: 0 12px 22px -16px rgb(32 38 46 / 0.3);
-  --cube-text-shadow: none;
-  --cube-dash: rgb(32 38 46 / 0.22);
-  /* A single-band fee fill fades toward this. */
-  --cube-shade: var(--paper);
-  --confirmed-fill: linear-gradient(165deg, #bcd9d5 0%, var(--aqua-stone) 100%);
-  --strip-bg: var(--surface);
-
-  /* Asset kinds are pastel fills; text on them is always ink (badges, tiles). */
-  --kind-xch: var(--aqua-stone);
-  --kind-cat: var(--periwinkle);
-  --kind-nft: var(--fog-violet);
-  --kind-did: var(--soft-peach);
-  --kind-offer: #b5c4a1;
-  --kind-unknown: #d6d0c5;
-  --badge-mix: 55%;
-  /* Portfolio allocation donut: XCH, four tokens by value, grey "Other". */
-  --alloc-0: var(--deep-periwinkle);
-  --alloc-1: #6fa7a0;
-  --alloc-2: #c98f76;
-  --alloc-3: #9a8bbc;
-  --alloc-4: #a9b5d2;
-  --alloc-other: #c2bbb0;
-
-  --radius: 14px;
-  --radius-sm: 10px;
-  --radius-control: 11px;
-  --shadow: 0 1px 0 rgb(31 36 40 / 0.03), 0 10px 28px rgb(31 36 40 / 0.06);
-  --header-h: 72px;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #171c25;
-  --bg-elevated: #1d2330;
-  --surface: #232b38;
-  --surface-2: #2a3342;
-  --surface-hover: #313b4c;
-  --border: color-mix(in srgb, #eee9df 20%, #171c25);
-  --border-strong: color-mix(in srgb, #eee9df 32%, #171c25);
-  --rule: color-mix(in srgb, #eee9df 12%, #232b38);
-  --map-land: #2e3644;
-  --map-bg: #141922;
-  --map-grid: rgb(158 177 211 / 0.05);
-  --map-marker-edge: rgb(23 28 37 / 0.8);
-  --region-europe: #9eb1d3;
-  --region-asia: #9ec9c4;
-  --region-north-america: #c7bcd5;
-  --region-south-america: #d9b29d;
-  --region-africa: #cbbb8f;
-  --region-oceania: #7f93b8;
-  --region-unmapped: #6d6e70;
-  --fg: #eee9df;
-  --fg-muted: color-mix(in srgb, #eee9df 76%, #171c25);
-  --fg-faint: color-mix(in srgb, #eee9df 72%, #171c25);
-  --primary: #9eb1d3;
-  --primary-strong: #b7c6e0;
-  --primary-pastel: #9eb1d3;
-  --primary-soft: color-mix(in srgb, #9eb1d3 16%, transparent);
-  --primary-fg: #171c25;
-  /* #60769E (doc-001) carries paper text at 4.4:1; a step deeper reaches AA. */
-  --cta: #586d95;
-  --cta-hover: #60769e;
-  --cta-fg: #fffaf2;
-  --cta-edge: color-mix(in srgb, #586d95 80%, black);
-  --focus: #9eb1d3;
-  --row-flash: color-mix(in srgb, #9eb1d3 7%, transparent);
-  --accent: #b4c2dd;
-  --warning: #d9b29d;
-  --danger: #e3998e;
-  --danger-soft: color-mix(in srgb, #e3998e 14%, transparent);
-  --info: #c7bcd5;
-  /* Fills sit behind light text here, so the pastels are mixed into the night. */
-  --fee-0: #3a404b;
-  --fee-1: color-mix(in srgb, var(--aqua-stone) 50%, #171c25);
-  --fee-2: color-mix(in srgb, #9eb1d3 50%, #171c25);
-  --fee-3: color-mix(in srgb, var(--fog-violet) 50%, #171c25);
-  --fee-4: color-mix(in srgb, var(--soft-peach) 50%, #171c25);
-  --fee-5: color-mix(in srgb, #c98f76 56%, #171c25);
-  --block-face: #262e3c;
-  --block-side: #1a202b;
-  --block-top: #2e3747;
-  --block-empty: #20262f;
-  --projected-face: #252d3d;
-  --cube-top-hi: #37414f;
-  --cube-side-from: #1f2632;
-  --cube-side-to: #181d26;
-  --cube-glass: color-mix(in srgb, var(--block-face) 90%, transparent);
-  --cube-grid: rgb(238 233 223 / 0.03);
-  --cube-fill-shade: rgb(32 38 46 / 0.08);
-  --cube-sheen: rgb(238 233 223 / 0.04);
-  --cube-waterline: rgb(238 233 223 / 0.32);
-  --cube-top-line: rgb(238 233 223 / 0.08);
-  --cube-empty-edge: inset 0 0 0 1px rgb(238 233 223 / 0.04);
-  --cube-edge: inset 0 0 0 1px rgb(238 233 223 / 0.07);
-  --cube-drop: 0 14px 26px -16px rgb(0 0 0 / 0.6);
-  --cube-text-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
-  --cube-dash: rgb(238 233 223 / 0.18);
-  --cube-shade: #171c25;
-  --confirmed-fill: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--aqua-stone) 52%, #171c25) 0%,
-    color-mix(in srgb, var(--aqua-stone) 42%, #171c25) 100%
-  );
-  --strip-bg: var(--surface);
-  --kind-xch: color-mix(in srgb, var(--aqua-stone) 52%, #171c25);
-  --kind-cat: color-mix(in srgb, #9eb1d3 52%, #171c25);
-  --kind-nft: color-mix(in srgb, var(--fog-violet) 52%, #171c25);
-  --kind-did: color-mix(in srgb, var(--soft-peach) 52%, #171c25);
-  --kind-offer: color-mix(in srgb, #b5c4a1 52%, #171c25);
-  --kind-unknown: #3f444c;
-  --badge-mix: 70%;
-  --alloc-0: #9eb1d3;
-  --alloc-1: #9ec9c4;
-  --alloc-2: #d9b29d;
-  --alloc-3: #c7bcd5;
-  --alloc-4: #6f84ab;
-  --alloc-other: #6d6e70;
-  --shadow: 0 1px 0 rgb(32 38 46 / 0.08), 0 10px 28px rgb(0 0 0 / 0.22);
-}
 
 @theme inline {
   --color-bg: var(--bg);
@@ -238,7 +21,7 @@ html:root {
   --color-fg-faint: var(--fg-faint);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
-  --color-primary-pastel: var(--primary-pastel);
+  --color-primary-tint: var(--primary-tint);
   --color-primary-soft: var(--primary-soft);
   --color-primary-fg: var(--primary-fg);
   --color-cta: var(--cta);
@@ -302,7 +85,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--primary-pastel) 45%, transparent);
+  background: color-mix(in srgb, var(--cta) 22%, transparent);
 }
 
 .mono {
@@ -406,7 +189,7 @@ body {
   animation: block-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* A fresh row leaves a thin periwinkle trace on its edge (rows using it pad their left edge to
+/* A fresh row leaves a thin cyan trace on its edge (rows using it pad their left edge to
    keep it clear of the text) plus a tint light enough that the text stays AA, then settles. The
    bar is inset because the lists sit in scroll containers, which clip anything outside the row. */
 @keyframes row-in {
@@ -444,55 +227,44 @@ body {
   border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
+/* Depth: a soft identity-colour light falling on the top of the page, behind every card. */
+body {
+  background-image: radial-gradient(
+    1200px 420px at 50% -120px,
+    color-mix(in srgb, var(--cta) 16%, transparent),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+}
+
 /* Header: one plain hairline, no gradient. */
 .header-hairline {
   background: var(--border);
 }
 
-/* The next block: a still, soft periwinkle halo, never a pulse. */
+/* The next block breathes a soft identity-colour glow along the cube silhouette (drop-shadow
+   follows the transformed faces). Stops under reduced motion like every animation. */
+@keyframes cube-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--cta) 0%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--cta) 60%, transparent));
+  }
+}
+
 .animate-cube-glow {
-  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--primary-pastel) 38%, transparent));
+  animation: cube-glow 3s ease-in-out infinite;
 }
 
-/*
- * Flow trace: the page's one atmospheric anchor (src/shared/ui/FlowTrace.tsx). Thin layered
- * ribbons drift very slowly and stop entirely under reduced motion or in a background tab.
- */
-@keyframes flow-drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.flow-trace-band {
-  /* Each band is drawn twice side by side, so its box is two widths and -50% loops. */
-  transform-box: fill-box;
-  animation: flow-drift 90s linear infinite;
-}
-
-.flow-trace-band:nth-child(2) {
-  animation-duration: 140s;
-}
-
-.flow-trace-band:nth-child(3) {
-  animation-duration: 210s;
-}
-
+/* Flow trace (src/shared/ui/FlowTrace.tsx): a patch of 1-bit print dither beside the linework. */
 .flow-dither {
   background-image: radial-gradient(
     color-mix(in srgb, var(--fg) 16%, transparent) 0.6px,
     transparent 0.8px
   );
   background-size: 4px 4px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .flow-trace-band {
-    animation: none;
-  }
 }
 
 /*
@@ -593,7 +365,7 @@ body {
   height: 6px;
   pointer-events: none;
   border-radius: 9999px;
-  background: var(--paper);
+  background: var(--surface);
   box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
   animation: goggles-new-pulse 1.6s ease-out 3;
 }
@@ -644,7 +416,7 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 9999px;
-  background: var(--paper);
+  background: var(--surface);
   box-shadow: 0 0 0 1px var(--border-strong);
 }
 

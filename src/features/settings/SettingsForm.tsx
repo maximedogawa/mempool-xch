@@ -11,7 +11,7 @@ import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
-import type { ThemePreference } from "@/shared/lib/settings/store";
+import { SCHEME_THEMES, THEMES, type ThemeId, type ThemePreference } from "@/shared/theme";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -51,36 +51,43 @@ function ChannelLine() {
   );
 }
 
-const THEME_OPTIONS: {
-  value: ThemePreference;
-  icon: typeof Moon;
-  /** Preview swatch: page, card and accent, hard-coded so each shows its own theme. */
-  swatch: [string, string, string];
-}[] = [
-  { value: "dark", icon: Moon, swatch: ["#171c25", "#232b38", "#9eb1d3"] },
-  { value: "light", icon: Sun, swatch: ["#f2efe8", "#faf8f2", "#53688e"] },
-  { value: "system", icon: Monitor, swatch: ["#171c25", "#faf8f2", "#a9b5d2"] },
+/** Every registered theme, then "system". Adding a theme to src/shared/theme adds a card here. */
+const THEME_OPTIONS: { value: ThemePreference; icon: typeof Moon }[] = [
+  ...THEMES.map((theme) => ({ value: theme.id, icon: theme.scheme === "dark" ? Moon : Sun })),
+  { value: "system", icon: Monitor },
 ];
 
+/** A page, a card and the CTA, drawn in the theme's own tokens by carrying its data-theme. */
+function ThemeSwatch({ theme }: { theme: ThemeId }) {
+  return (
+    <span data-theme={theme} className="absolute inset-0 bg-bg">
+      <span className="absolute inset-x-2 bottom-1.5 top-2 rounded-[3px] border border-border bg-surface">
+        <span className="absolute left-1.5 top-1.5 h-1.5 w-6 rounded-full bg-cta" />
+      </span>
+    </span>
+  );
+}
+
 /**
- * Theme as three cards with a preview, instead of a native select whose menu the OS draws.
+ * Theme as cards with a preview, instead of a native select whose menu the OS draws.
  * Inside Sage the wallet's theme wins (ThemeProvider), so the choice is shown but locked.
  */
 function ThemePicker() {
   const { settings, update } = useSettings();
   const { inSage, sageTheme } = useSage();
-  const locked = inSage && sageTheme !== null;
-  const active: ThemePreference = locked ? sageTheme : settings.theme;
+  const sageThemeId = inSage && sageTheme ? SCHEME_THEMES[sageTheme] : null;
+  const locked = sageThemeId !== null;
+  const active: ThemePreference = sageThemeId ?? settings.theme;
   const t = useT(settingsNs);
   return (
-    <fieldset className="flex flex-col gap-2 text-sm" disabled={locked}>
+    <fieldset className="flex min-w-0 flex-col gap-2 text-sm" disabled={locked}>
       <legend className="mb-2 font-medium">{t("appearance.theme")}</legend>
       <div
         role="radiogroup"
         aria-label={t("appearance.theme")}
-        className="grid max-w-md grid-cols-3 gap-2"
+        className="grid max-w-md grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2"
       >
-        {THEME_OPTIONS.map(({ value, icon: Icon, swatch }) => {
+        {THEME_OPTIONS.map(({ value, icon: Icon }) => {
           const checked = active === value;
           return (
             <button
@@ -100,24 +107,19 @@ function ThemePicker() {
               <span
                 aria-hidden="true"
                 className="relative flex h-10 overflow-hidden rounded-[4px] border border-border"
-                style={{
-                  background:
-                    value === "system"
-                      ? `linear-gradient(135deg, ${swatch[0]} 50%, ${swatch[1]} 50%)`
-                      : swatch[0],
-                }}
               >
-                {value !== "system" ? (
-                  <span
-                    className="absolute inset-x-2 bottom-1.5 top-2 rounded-[3px]"
-                    style={{ background: swatch[1] }}
-                  >
-                    <span
-                      className="absolute left-1.5 top-1.5 h-1.5 w-6 rounded-full"
-                      style={{ background: swatch[2] }}
-                    />
-                  </span>
-                ) : null}
+                {value === "system" ? (
+                  <>
+                    <ThemeSwatch theme={SCHEME_THEMES.light} />
+                    <span className="absolute inset-y-0 right-0 w-1/2 overflow-hidden">
+                      <span className="absolute inset-y-0 right-0 w-[200%]">
+                        <ThemeSwatch theme={SCHEME_THEMES.dark} />
+                      </span>
+                    </span>
+                  </>
+                ) : (
+                  <ThemeSwatch theme={value} />
+                )}
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Icon size={14} aria-hidden="true" className={checked ? "text-primary" : ""} />
@@ -130,7 +132,7 @@ function ThemePicker() {
       </div>
       {locked ? (
         <p className="text-xs text-fg-muted">
-          {t("appearance.sageLocked", { theme: t(`appearance.${sageTheme}`) })}
+          {t("appearance.sageLocked", { theme: t(`appearance.${sageThemeId ?? active}`) })}
         </p>
       ) : null}
     </fieldset>

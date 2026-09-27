@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { mockCoinset } from "./mockCoinset";
 import { installFakeSage } from "./fakeSage";
+import { SCHEME_THEMES, themeById } from "../../src/shared/theme";
+import { BASE_TOKENS } from "../../src/shared/theme/tokens";
 
 const theme = (page: import("@playwright/test").Page) =>
   page.evaluate(() => document.documentElement.dataset.theme);
@@ -38,8 +40,12 @@ test.describe("theme inside Sage", () => {
 
 test.describe("Sage's theme variables", () => {
   for (const sage of [
-    { name: "xch-dark", mostLike: "dark", primary: "#9eb1d3" },
-    { name: "xch-light", mostLike: "light", primary: "#4f6489" },
+    { name: "xch-dark", mostLike: "dark", primary: themeById(SCHEME_THEMES.dark).tokens.primary },
+    {
+      name: "xch-light",
+      mostLike: "light",
+      primary: themeById(SCHEME_THEMES.light).tokens.primary,
+    },
   ]) {
     test(`do not replace the app's own colours (${sage.mostLike})`, async ({ page }) => {
       await mockCoinset(page);
@@ -56,7 +62,7 @@ test.describe("Sage's theme variables", () => {
           name
         );
       expect(await token("--primary")).toBe(sage.primary);
-      expect(await token("--radius")).toBe("14px");
+      expect(await token("--radius")).toBe(BASE_TOKENS.radius);
     });
   }
 });

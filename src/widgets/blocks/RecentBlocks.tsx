@@ -10,10 +10,9 @@ import { routes } from "@/shared/lib/routes";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
 import type { RecentBlocksResult } from "@/shared/api/hooks";
 import { useT } from "@/shared/i18n/useT";
-import { Skeleton } from "@/shared/ui/Skeleton";
 import { Tooltip } from "@/shared/ui/Tooltip";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
-import { BlockCube } from "./BlockCube";
+import { BlockCube, BlockCubeSkeleton } from "./BlockCube";
 import { useBlocksAssetTotals } from "@/widgets/block/useBlock";
 import blocksNs from "@/shared/i18n/messages/en/blocks";
 
@@ -73,9 +72,9 @@ export function RecentBlocks({
 
   if (loading && !data) {
     return (
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-[156px] w-[156px]" />
+          <BlockCubeSkeleton key={i} size={CUBE} />
         ))}
       </div>
     );
@@ -171,7 +170,8 @@ export function RecentBlocks({
         );
       })}
       {blocks.length === 0 ? (
-        <li className="text-sm text-fg-faint">
+        // As tall as a block column (label, cube, chip), so the row does not jump.
+        <li className="flex h-[210px] max-w-xs items-center text-sm text-fg-faint">
           {t("recent.empty", { cost: formatNumber(blockMaxCost) })}
         </li>
       ) : null}
