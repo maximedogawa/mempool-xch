@@ -63,11 +63,11 @@ export function BlockSummary({
   }, [open]);
 
   const strong = (c: ReactNode) => <span className="tabular font-semibold text-fg">{c}</span>;
-  const fillTone =
-    block.fill > 0.9 ? "var(--fee-5)" : block.fill > 0.6 ? "var(--fee-3)" : "var(--primary)";
+  // Colour only when the block is congested; the numeral is ink otherwise.
+  const fillTone = block.fill > 0.9 ? "var(--warning)" : "var(--fg)";
 
   return (
-    <>
+    <div className="flex min-w-0 flex-col gap-3">
       <button
         ref={button}
         type="button"
@@ -93,22 +93,25 @@ export function BlockSummary({
           if (lastPointer.current === "touch") setOpen((o) => !o);
           else setOpen(true);
         }}
-        className="-mx-1 flex w-[calc(100%+0.5rem)] flex-wrap items-end justify-between gap-x-4 gap-y-1 rounded-sm px-1 py-0.5 text-left hover:bg-surface-2/60"
+        className="-mx-2 flex flex-col items-start gap-1.5 rounded-sm px-2 py-1 text-left transition-colors hover:bg-surface-2/60"
       >
         <span className="sr-only">{t("blockDetails")}</span>
-        <span className="flex items-baseline gap-2">
-          <span
-            className="tabular text-2xl font-semibold leading-none transition-colors"
-            style={{ color: fillTone }}
-            data-testid="goggles-fill"
-          >
-            {formatPercent(block.fill)}
-          </span>
-          <span className="text-xs text-fg-muted">
-            {t("fullOf", { cost: formatCost(block.totalCost), max: formatCost(blockMaxCost) })}
-          </span>
+        <span
+          className="tabular text-5xl font-extrabold leading-none tracking-[-0.04em]"
+          style={{ color: fillTone }}
+          data-testid="goggles-fill"
+        >
+          {formatPercent(block.fill)}
         </span>
-        <span className="flex flex-wrap items-baseline gap-x-3 text-xs text-fg-muted">
+        <span className="text-xs text-fg-muted">
+          {t("fullOf", { cost: formatCost(block.totalCost), max: formatCost(blockMaxCost) })}
+        </span>
+      </button>
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] border-t border-rule text-xs">
+        <dt className="eyebrow border-b border-rule py-2 pr-4 text-[10px] text-fg-faint">
+          {t("card.bundles")}
+        </dt>
+        <dd className="flex flex-wrap items-baseline gap-x-3 border-b border-rule py-2 text-fg-muted">
           <span>{t.rich("bundles", { count: block.items.length, b: strong })}</span>
           <span>{t.rich("fees", { amount: formatXchUnits(block.totalFee), b: strong })}</span>
           {freshCount > 0 ? (
@@ -120,8 +123,33 @@ export function BlockSummary({
               })}
             </span>
           ) : null}
-        </span>
-      </button>
+        </dd>
+        <dt className="eyebrow border-b border-rule py-2 pr-4 text-[10px] text-fg-faint">
+          {t("card.feeRate")}
+        </dt>
+        <dd className="tabular border-b border-rule py-2 text-fg">
+          {t("card.feeRateValue", {
+            min: formatFeeRate(block.minFeeRate),
+            max: formatFeeRate(block.maxFeeRate),
+            median: formatFeeRate(block.medianFeeRate),
+          })}
+        </dd>
+        <dt className="eyebrow border-b border-rule py-2 pr-4 text-[10px] text-fg-faint">
+          {t("card.eta")}
+        </dt>
+        <dd className="tabular border-b border-rule py-2 text-fg">{formatEta(block.etaSeconds)}</dd>
+      </dl>
+      {mix.length > 0 ? (
+        <div aria-hidden="true" className="flex h-2 overflow-hidden rounded-sm bg-surface-2">
+          {mix.map((m) => (
+            <span
+              key={m.kind}
+              className="h-full transition-[width] duration-200 ease-out"
+              style={{ width: `${m.share * 100}%`, background: KIND_COLOR[m.kind] }}
+            />
+          ))}
+        </div>
+      ) : null}
       {open && button.current ? (
         <Floating
           anchor={button.current}
@@ -187,6 +215,6 @@ export function BlockSummary({
           </div>
         </Floating>
       ) : null}
-    </>
+    </div>
   );
 }

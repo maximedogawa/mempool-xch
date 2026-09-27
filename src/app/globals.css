@@ -349,45 +349,111 @@ body {
 }
 
 /*
- * Next-block goggles (src/widgets/goggles). Tiles are absolutely positioned and placed with
- * transforms; GogglesTiles animates them with the Web Animations API (transform and opacity
- * only). No will-change: a full block has ~1,000 tiles and layers are promoted per animation.
+ * Next-block goggles (src/widgets/goggles). The block is drawn like the cubes in the block row:
+ * a lit top face, a shaded side face and a square front face holding the treemap. Tiles are
+ * absolutely positioned and placed with transforms; GogglesTiles animates them with the Web
+ * Animations API (transform and opacity only). No will-change: a full block has ~1,000 tiles
+ * and layers are promoted per animation.
  */
+.goggles-face-top {
+  background: linear-gradient(to right, var(--cube-top-hi), var(--block-top));
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+  border-top-right-radius: 3px;
+  /* A hairline edge, so a light top face does not dissolve into a light card. */
+  box-shadow:
+    inset 0 1px 0 var(--cube-top-line),
+    inset 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+.goggles-face-side {
+  background: linear-gradient(to bottom, var(--cube-side-from), var(--cube-side-to));
+  transform: skewY(-45deg);
+  transform-origin: top left;
+  border-bottom-right-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+/* The front face: tiles sit on it one pixel apart, so the face shows as hairline gaps. */
 .goggles-canvas {
   contain: layout paint;
+  overflow: hidden;
+  border-radius: 3px;
+  border-top-right-radius: 0;
+  background: var(--block-face);
+  box-shadow: var(--cube-edge), var(--cube-drop);
 }
 
+/* The empty capacity: glass with fine ruled lines, shrinking as the block fills. */
 .goggles-capacity {
-  background-image: repeating-linear-gradient(135deg, var(--border) 0 1px, transparent 1px 8px);
-  transition: height 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.goggles-fill-line {
-  height: 14px;
-  pointer-events: none;
-  border-top: 1.5px solid color-mix(in srgb, var(--primary) 90%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--primary) 26%, transparent),
-    transparent
+  background-color: var(--cube-glass);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 11px,
+    var(--cube-grid) 11px 12px
   );
-  transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: height 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* Capacity marks at 25/50/75% of the block cost limit. */
+.goggles-rule {
+  height: 0;
+  pointer-events: none;
+  border-top: 1px dashed color-mix(in srgb, var(--fg) 22%, transparent);
+}
+
+.goggles-rule-label {
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The waterline: the fill level in the theme's action colour, easing to each new level. */
+.goggles-fill-line {
+  height: 0;
+  pointer-events: none;
+  border-top: 1.5px solid var(--cta);
+  transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.goggles-fill-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 10px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cta) 22%, transparent), transparent);
+}
+
+.goggles-fill-label {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 3;
+  border-radius: 4px;
+  padding: 2px 5px;
+  background: var(--cta);
+  color: var(--cta-fg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tiles: flat fills in the theme's fee or kind colours, no gloss. */
 .goggles-tile {
   position: absolute;
   left: 0;
   top: 0;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: 2px;
   transform-origin: 0 0;
-  background-image: linear-gradient(
-    160deg,
-    rgb(255 253 248 / 0.16),
-    rgb(255 253 248 / 0) 55%,
-    rgb(32 38 46 / 0.08)
-  );
-  box-shadow: inset 0 0 0 1px rgb(32 38 46 / 0.12);
   transition:
     opacity 200ms ease-out,
     filter 200ms ease-out,
@@ -395,46 +461,60 @@ body {
 }
 
 .goggles-tile[data-dim] {
-  opacity: 0.14;
-  filter: saturate(0.3);
+  opacity: 0.18;
+  filter: saturate(0.4);
 }
 
 .goggles-tile:hover {
   z-index: 1;
-  filter: brightness(1.15);
+  filter: brightness(1.08) saturate(1.1);
 }
 
 .goggles-tile:focus-visible {
   z-index: 2;
-  outline: 2px solid var(--fg);
+  outline: 2px solid var(--focus);
   outline-offset: -2px;
 }
 
 .goggles-tile-image {
-  opacity: 0.88;
+  opacity: 0.9;
 }
 
-/* Yours: an inset ring in the brand colour. New: a small white dot that pulses three times. */
+/* A round badge of fixed size: the icon sits centred in it and is clipped to the circle. */
+.goggles-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 12%, transparent);
+  line-height: 0;
+}
+
+/* Yours: a double ring (a shape, not only a colour). New: a small dot that rings three times. */
 .goggles-mark-yours {
   position: absolute;
   inset: 0;
   pointer-events: none;
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 2px var(--primary),
-    inset 0 0 0 3px rgb(0 0 0 / 0.35);
+    inset 0 0 0 2px var(--cta),
+    inset 0 0 0 3px var(--surface);
 }
 
 @keyframes goggles-new-pulse {
   0% {
     box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.35),
-      0 0 0 0 rgb(255 255 255 / 0.75);
+      0 0 0 1px var(--fg),
+      0 0 0 0 color-mix(in srgb, var(--cta) 60%, transparent);
   }
   100% {
     box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.35),
-      0 0 0 6px rgb(255 255 255 / 0);
+      0 0 0 1px var(--fg),
+      0 0 0 6px color-mix(in srgb, var(--cta) 0%, transparent);
   }
 }
 
@@ -447,7 +527,7 @@ body {
   pointer-events: none;
   border-radius: 9999px;
   background: var(--surface);
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+  box-shadow: 0 0 0 1px var(--fg);
   animation: goggles-new-pulse 1.6s ease-out 3;
 }
 
@@ -461,7 +541,7 @@ body {
   left: 0;
   top: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .goggles-frame-label,
@@ -471,8 +551,8 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
   border-radius: 3px;
-  background: rgb(32 38 46 / 0.78);
-  color: #fffaf2;
+  background: color-mix(in srgb, var(--fg) 86%, transparent);
+  color: var(--bg);
   font-weight: 600;
   line-height: 1;
 }
@@ -498,7 +578,7 @@ body {
   height: 7px;
   border-radius: 9999px;
   background: var(--surface);
-  box-shadow: 0 0 0 1px var(--border-strong);
+  box-shadow: 0 0 0 1px var(--fg);
 }
 
 .goggles-legend-yours {
@@ -506,7 +586,9 @@ body {
   width: 11px;
   height: 11px;
   border-radius: 2px;
-  box-shadow: inset 0 0 0 2px var(--primary);
+  box-shadow:
+    inset 0 0 0 2px var(--cta),
+    inset 0 0 0 3px var(--surface);
 }
 
 /* Network map ------------------------------------------------------------- */

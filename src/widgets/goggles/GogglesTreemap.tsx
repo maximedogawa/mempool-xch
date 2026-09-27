@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { formatCost, formatFeeRate } from "@/shared/lib/chia/amounts";
+import { formatCost, formatFeeRate, formatPercent } from "@/shared/lib/chia/amounts";
 import { formatInteger } from "@/shared/i18n/number";
 import { shortId } from "@/shared/lib/chia/hex";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
@@ -13,7 +13,8 @@ import { GogglesTiles, type FrameView, type TileView } from "./GogglesTiles";
 import { TileTooltip } from "./GogglesTooltip";
 import { usePageVisible, useWidth } from "./hooks";
 import {
-  canvasHeight,
+  BLOCK_DEPTH,
+  blockSide,
   detectDeparture,
   fillArea,
   groupItems,
@@ -60,10 +61,16 @@ interface Tip {
   pinned: boolean;
 }
 
+/** Capacity marks on the block's front face (share of the block cost limit). */
+const SCALE = [0.25, 0.5, 0.75];
+
 /**
- * The block as a treemap: size = cost, colour = fee band or asset kind, no text on the tiles.
- * Owns measuring, layout, the anchored tooltip, keyboard movement and the empty-result state;
- * drawing and animation are GogglesTiles'.
+ * The next block as an object: the same isometric top and side faces as the block cubes, and a
+ * square front face whose capacity is the block cost limit. The treemap fills it from the bottom
+ * (size = cost, colour = fee band or asset kind, no text on the tiles) up to a waterline labelled
+ * with the fill; ruled marks at 25/50/75% measure the empty capacity above. Owns measuring,
+ * layout, the anchored tooltip, keyboard movement and the empty-result state; drawing and
+ * animation are GogglesTiles'.
  */
 export function GogglesTreemap({
   items,
@@ -92,9 +99,12 @@ export function GogglesTreemap({
   emptyState: ReactNode;
 }) {
   const t = useT(gogglesNs);
+  const column = useRef<HTMLDivElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
-  const width = useWidth(wrapper);
-  const height = canvasHeight(width || 800);
+  const available = useWidth(column);
+  // A square front face: width and height are the same side.
+  const width = available > 0 ? blockSide(available) : 0;
+  const height = width;
   const visible = usePageVisible();
 
   const shown = useMemo(
@@ -302,57 +312,97 @@ export function GogglesTreemap({
 
   const fillTop = area.y;
   const noMatch = matched !== null && matched.size === 0;
+  const fillShare = blockMaxCost > 0 ? Math.min(1, shownCost / blockMaxCost) : 0;
+  const side = width;
 
   return (
-    <div
-      ref={wrapper}
-      className={cn(
-        "goggles-canvas relative w-full overflow-hidden rounded-card bg-bg",
-        !visible && "goggles-paused"
-      )}
-      style={{ height }}
-    >
-      {width > 0 ? (
-        <>
-          <div
-            aria-hidden="true"
-            className="goggles-capacity absolute inset-x-0 top-0"
-            style={{ height: Math.max(0, fillTop) }}
-          />
-          <div
-            aria-hidden="true"
-            className="goggles-fill-line absolute inset-x-0 top-0"
-            style={{ transform: `translateY(${fillTop}px)` }}
-          />
-          <div
-            role="group"
-            aria-label={label}
-            aria-describedby="goggles-keys"
-            className="absolute inset-0"
-            {...handlers}
-          >
-            <GogglesTiles
-              tiles={tiles}
-              frames={frames}
-              activeId={activeId}
-              departure={departure}
-              canvasWidth={width}
-              canvasHeight={height}
-            />
-          </div>
-          <p id="goggles-keys" className="sr-only">
-            {t("keysHint")}
-          </p>
-          {noMatch ? (
+    <div ref={column} className="w-full min-w-0">
+      <div
+        className="goggles-block relative mx-auto"
+        style={{ width: side + BLOCK_DEPTH, height: side + BLOCK_DEPTH }}
+      >
+        {side > 0 ? (
+          <>
             <div
-              data-testid="goggles-empty"
-              className="absolute inset-0 flex items-center justify-center bg-bg/70 p-4 text-center backdrop-blur-[1px]"
-            >
-              {emptyState}
-            </div>
+              aria-hidden="true"
+              className="goggles-face-top absolute left-0 top-0"
+              style={{ width: side, height: BLOCK_DEPTH }}
+            />
+            <div
+              aria-hidden="true"
+              className="goggles-face-side absolute"
+              style={{ left: side, top: BLOCK_DEPTH, width: BLOCK_DEPTH, height: side }}
+            />
+          </>
+        ) : null}
+        <div
+          ref={wrapper}
+          className={cn(
+            "goggles-canvas goggles-face absolute left-0",
+            !visible && "goggles-paused"
+          )}
+          style={{ top: BLOCK_DEPTH, width: side, height: side }}
+        >
+          {side > 0 ? (
+            <>
+              <div
+                aria-hidden="true"
+                className="goggles-capacity absolute inset-x-0 top-0"
+                style={{ height: Math.max(0, fillTop) }}
+              />
+              {SCALE.map((q) => {
+                const y = Math.round(side * (1 - q));
+                return (
+                  <div
+                    key={q}
+                    aria-hidden="true"
+                    className="goggles-rule absolute inset-x-0"
+                    style={{ top: y }}
+                  >
+                    {y < fillTop - 14 ? (
+                      <span className="goggles-rule-label">{formatPercent(q)}</span>
+                    ) : null}
+                  </div>
+                );
+              })}
+              <div
+                role="group"
+                aria-label={label}
+                aria-describedby="goggles-keys"
+                className="absolute inset-0"
+                {...handlers}
+              >
+                <GogglesTiles
+                  tiles={tiles}
+                  frames={frames}
+                  activeId={activeId}
+                  departure={departure}
+                  canvasWidth={side}
+                  canvasHeight={side}
+                />
+              </div>
+              <div
+                aria-hidden="true"
+                className="goggles-fill-line absolute inset-x-0 top-0"
+                style={{ transform: `translateY(${fillTop}px)` }}
+              >
+                <span className="goggles-fill-label">{formatPercent(fillShare)}</span>
+              </div>
+              <p id="goggles-keys" className="sr-only">
+                {t("keysHint")}
+              </p>
+              {noMatch ? (
+                <div
+                  data-testid="goggles-empty"
+                  className="absolute inset-0 flex items-center justify-center bg-surface/85 p-4 text-center"
+                >
+                  {emptyState}
+                </div>
+              ) : null}
+            </>
           ) : null}
-        </>
-      ) : null}
+        </div>
+      </div>
       {tip && anchor && tipItem ? (
         <TileTooltip
           id="goggles-tip"
