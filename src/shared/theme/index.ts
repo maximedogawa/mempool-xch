@@ -8,10 +8,11 @@
 import type { ColorScheme, ThemeDefinition } from "./define";
 import { dark } from "./themes/dark";
 import { light } from "./themes/light";
+import { midnight } from "./themes/midnight";
 
 export type { ColorScheme, ThemeDefinition } from "./define";
 
-export const THEMES = [light, dark] as const;
+export const THEMES = [light, dark, midnight] as const;
 
 export type ThemeId = (typeof THEMES)[number]["id"];
 export type ThemePreference = ThemeId | "system";

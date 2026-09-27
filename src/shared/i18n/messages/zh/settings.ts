@@ -39,6 +39,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     darkHint: "墨色与夜钢",
     light: "浅色",
     lightHint: "矿物浅色（默认）",
+    midnight: "午夜",
+    midnightHint: "原版海军蓝与绿色，带光泽",
     system: "系统",
     systemHint: "跟随设备",
     sageLocked: "在 Sage 中，应用跟随钱包的主题（当前为{theme}）。请在 Sage 的设置中更改。",

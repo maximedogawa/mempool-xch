@@ -109,5 +109,10 @@ export const dark = defineTheme({
     "alloc-4": "#4f9a77",
     "alloc-other": "#4b555c",
     shadow: "0 1px 0 rgb(0 0 0 / 0.14), 0 8px 24px rgb(0 0 0 / 0.24)",
+    /** Effects: a soft cyan light on the top of the page and around the next block; no sheen. */
+    "page-glow": "color-mix(in srgb, #1e7a83 16%, transparent)",
+    glow: "color-mix(in srgb, #2c9099 60%, transparent)",
+    sheen: "none",
+    "header-line": "color-mix(in srgb, #ecefea 20%, #0e1419)",
   },
 });

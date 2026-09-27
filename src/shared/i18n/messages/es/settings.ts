@@ -40,6 +40,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     darkHint: "tinta y acero nocturno",
     light: "Claro",
     lightHint: "mineral claro, por defecto",
+    midnight: "Medianoche",
+    midnightHint: "el azul marino y verde originales, brillante",
     system: "Sistema",
     systemHint: "sigue tu dispositivo",
     sageLocked:

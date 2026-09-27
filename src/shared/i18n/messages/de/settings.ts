@@ -40,6 +40,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     darkHint: "Tinte und Nachtstahl",
     light: "Hell",
     lightHint: "mineralisch hell, Standard",
+    midnight: "Mitternacht",
+    midnightHint: "das ursprüngliche Navy und Grün, glänzend",
     system: "System",
     systemHint: "folgt Ihrem Gerät",
     sageLocked:

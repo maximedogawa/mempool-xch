@@ -84,6 +84,11 @@ export const THEME_TOKENS = [
   "alloc-4",
   "alloc-other",
   "shadow",
+  // Effects: how much light and shine a theme carries ("none" or a plain colour for a quiet one).
+  "page-glow",
+  "glow",
+  "sheen",
+  "header-line",
 ] as const;
 
 export type ThemeToken = (typeof THEME_TOKENS)[number];

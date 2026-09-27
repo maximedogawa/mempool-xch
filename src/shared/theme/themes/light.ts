@@ -123,5 +123,10 @@ export const light = defineTheme({
     "alloc-4": "var(--patina)",
     "alloc-other": "#b5bcbf",
     shadow: "0 1px 0 rgb(20 24 27 / 0.03), 0 8px 24px rgb(20 24 27 / 0.06)",
+    /** Effects: a soft cyan light on the top of the page and around the next block; no sheen. */
+    "page-glow": "color-mix(in srgb, var(--deep-cyan) 16%, transparent)",
+    glow: "color-mix(in srgb, var(--deep-cyan) 60%, transparent)",
+    sheen: "none",
+    "header-line": "var(--hairline)",
   },
 });

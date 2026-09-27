@@ -39,6 +39,8 @@ const messages = {
     darkHint: "ink and night steel",
     light: "Light",
     lightHint: "mineral light, the default",
+    midnight: "Midnight",
+    midnightHint: "the original navy and green, glossy",
     system: "System",
     systemHint: "follows your device",
     sageLocked:
