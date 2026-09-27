@@ -201,6 +201,32 @@ test.describe("next-block goggles with a full block", () => {
     await expect.poll(() => tiles.count()).toBeLessThan(before);
   });
 
+  test("asset icons on tiles are round badges", async ({ page, isMobile }) => {
+    test.skip(isMobile, "desktop only");
+    await mockMempool(page);
+    const section = await open(page);
+    const icon = section.locator(".goggles-tile-icon").first();
+    await expect(icon).toBeVisible();
+    const shape = await icon.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return {
+        width: box.width,
+        height: box.height,
+        radius: parseFloat(style.borderTopLeftRadius),
+        overflow: style.overflow,
+      };
+    });
+    expect(shape.width).toBe(shape.height);
+    expect(shape.radius).toBeGreaterThanOrEqual(shape.width / 2);
+    expect(shape.overflow).toBe("hidden");
+    const box = (await icon.boundingBox())!;
+    await page.screenshot({
+      path: test.info().outputPath("tile-icon.png"),
+      clip: { x: box.x - 24, y: box.y - 16, width: 96, height: 56 },
+    });
+  });
+
   // The motion contract (TASK-106): state animations settle within 450 ms, bundles returning to
   // view drop in from above their cell, and reduced motion keeps nothing but fades.
   for (const reduced of [false, true]) {

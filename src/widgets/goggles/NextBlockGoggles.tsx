@@ -185,7 +185,7 @@ export function NextBlockGoggles() {
   const setColour = (colour: ColourMode) => setPrefs((p) => ({ ...p, colour }));
 
   return (
-    <Card>
+    <Card data-testid="goggles">
       <CardHeader
         title={t("title")}
         action={

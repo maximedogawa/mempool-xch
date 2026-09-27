@@ -86,12 +86,13 @@ function TileBody({ tile }: { tile: TileView }) {
           className="goggles-tile-image pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
       ) : tile.icon ? (
-        <span className="goggles-tile-icon pointer-events-none absolute left-1 top-1 rounded-full p-px">
+        <span className="goggles-tile-icon pointer-events-none absolute left-1 top-1">
           <AssetIcon
             kind={tile.kind}
             assetId={tile.assetId}
             size={14}
             sensitivity={tile.sensitivity}
+            className="rounded-full"
           />
         </span>
       ) : null}
