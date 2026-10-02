@@ -188,14 +188,14 @@ export function OfferPage() {
         <CardBody>
           <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
             <div className="rounded-sm border border-border bg-bg p-3">
-              <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+              <div className="mb-1 text-[11px] font-medium eyebrow text-fg-muted">
                 {t("page.makerOffers")}
               </div>
               <OfferSideView side={offer.offered} className="text-base font-medium" />
             </div>
             <ArrowRight aria-hidden="true" className="mx-auto hidden text-fg-faint md:block" />
             <div className="rounded-sm border border-border bg-bg p-3">
-              <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+              <div className="mb-1 text-[11px] font-medium eyebrow text-fg-muted">
                 {t("page.makerRequests")}
               </div>
               <OfferSideView side={offer.requested} className="text-base font-medium" />
@@ -285,7 +285,7 @@ function Heading({
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">{t("page.heading")}</h1>
+        <h1 className="page-title">{t("page.heading")}</h1>
         {status ? <OfferStatusBadge status={status} /> : null}
       </div>
       <Hash value={id} full copy className="text-sm text-fg-muted" />

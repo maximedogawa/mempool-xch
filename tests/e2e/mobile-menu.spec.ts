@@ -5,7 +5,7 @@ import { mockCoinset } from "./mockCoinset";
 // scrolling the menu itself (it hangs off the sticky header, which never scrolls with the page).
 test.use({ viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true });
 
-test("the open mobile menu scrolls to its last entries", async ({ page }) => {
+test("the open mobile menu scrolls to its last entries @phone", async ({ page }) => {
   await mockCoinset(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();

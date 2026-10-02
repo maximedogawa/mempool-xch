@@ -162,7 +162,7 @@ export function WatchlistPanel({ portfolioLink = true }: { portfolioLink?: boole
           />
           <button
             type="submit"
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-control border border-[var(--cta-edge)] bg-cta px-4 text-sm font-bold text-cta-fg transition hover:-translate-y-px hover:bg-cta-hover"
           >
             <Plus size={15} aria-hidden="true" />
             {t("panel.watch")}

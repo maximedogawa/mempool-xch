@@ -42,7 +42,7 @@ export function NftCollectionsPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("collections.title")}</h1>
+          <h1 className="page-title">{t("collections.title")}</h1>
           <Tooltip text={t("collections.intro")} placement="bottom" />
         </div>
       </header>
@@ -57,13 +57,13 @@ export function NftCollectionsPage() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("collections.search")}
               aria-label={t("collections.search")}
-              className="h-8 w-48 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
+              className="field w-48 sm:w-64"
             />
           }
         />
         <CardBody className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">
+            <span className="text-xs font-medium eyebrow text-fg-muted">
               {t("collections.window")}
             </span>
             <div
@@ -78,12 +78,7 @@ export function NftCollectionsPage() {
                   role="radio"
                   aria-checked={interval === opt.id}
                   onClick={() => setInterval(opt.id)}
-                  className={cn(
-                    "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-                    interval === opt.id
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border bg-bg text-fg-muted hover:text-fg"
-                  )}
+                  className={cn("seg", interval === opt.id && "seg-on")}
                 >
                   {t(`collections.intervals.${opt.label}`)}
                 </button>

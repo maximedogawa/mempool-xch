@@ -69,7 +69,7 @@ export function PotPotatoCard() {
       <CardBody className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex flex-col justify-between gap-4">
           <div>
-            <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+            <div className="text-[11px] font-medium eyebrow text-fg-muted">
               {state.ripe ? t("potato.heldLongEnough") : t("potato.untilKeeps")}
             </div>
             <div
@@ -134,15 +134,13 @@ export function PotPotatoCard() {
 
         <dl className="grid grid-cols-2 gap-2 self-start">
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              {t("potato.inPot")}
-            </dt>
+            <dt className="text-[10px] font-medium eyebrow text-fg-muted">{t("potato.inPot")}</dt>
             <dd className="tabular text-xl font-semibold text-primary" data-testid="potato-pot">
               {formatAmount(state.pot)}
             </dd>
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+            <dt className="text-[10px] font-medium eyebrow text-fg-muted">
               {t("potato.snatches")}
             </dt>
             <dd className="tabular text-xl font-semibold" data-testid="potato-snatches">
@@ -150,7 +148,7 @@ export function PotPotatoCard() {
             </dd>
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
+            <dt className="text-[10px] font-medium eyebrow text-fg-muted">
               {t("potato.nextCost")}
             </dt>
             <dd className="tabular text-sm font-semibold">{formatAmount(state.nextSnatchCost)}</dd>
@@ -159,9 +157,7 @@ export function PotPotatoCard() {
             </dd>
           </div>
           <div className="rounded-sm border border-border bg-bg px-3 py-2">
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">
-              {t("potato.taken")}
-            </dt>
+            <dt className="text-[10px] font-medium eyebrow text-fg-muted">{t("potato.taken")}</dt>
             <dd className="text-sm font-semibold">{formatAge(tip.timestamp * 1000)}</dd>
             <dd className="text-[11px] text-fg-faint">
               {t.rich("potato.inBlock", {

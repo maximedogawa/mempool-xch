@@ -4,6 +4,7 @@ import { mockCoinset, mockDexie, P2, TX_BLOCK_HEIGHT, TX_ID } from "./mockCoinse
 import { mockDexieOffers, mockMintGarden, NFT_ID } from "./mockMintGarden";
 import { HANDLE, mockXchandles } from "./mockXchandles";
 import { mockNodeScan } from "./mockNodeScan";
+import { DEFAULT_THEME, THEMES } from "../../src/shared/theme";
 
 const ROUTES = [
   "/",
@@ -76,48 +77,46 @@ test.describe("accessibility", () => {
   });
 
   /*
-   * The axe rules that matter here — labels, landmarks, heading order, contrast, roles — read
-   * the markup, not the viewport, so sweeping every route twice only doubled the runtime. The
-   * sweep runs on desktop; the two things that genuinely differ on a phone, the mobile-only nav
-   * markup and horizontal overflow, get their own checks below.
+   * The axe rules that matter here (labels, landmarks, heading order, contrast, roles) read the
+   * markup, not the viewport, so the sweep runs on desktop only. Every route is swept in every
+   * registered theme, in a few tests that report all violations at once, by route: a theme added to
+   * src/shared/theme is swept without touching this file, and one theme's hues drifting below
+   * AA (TASK-095) cannot hide behind another's. The two things that differ on a phone, the
+   * mobile-only nav markup and horizontal overflow, are the @phone checks below.
    */
-  for (const route of ROUTES) {
-    test(`axe passes on ${route}`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "the route sweep runs once, on desktop");
-      await page.goto(route);
-      await settled(page);
-      const violations = await serious(page);
-      expect(violations, report(violations)).toEqual([]);
-    });
-  }
-
-  // The same sweep in the light theme, which the dark default above never reached: light-only
-  // hues had drifted below AA unnoticed (TASK-095). The setting is stored before the app boots.
-  for (const route of ROUTES) {
-    test(`axe passes on ${route} (light)`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "the route sweep runs once, on desktop");
-      await page.addInitScript(() => {
-        try {
-          const key = "mempool-xch:settings:v1";
-          const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
-          localStorage.setItem(key, JSON.stringify({ ...stored, theme: "light" }));
-        } catch {
-          // Storage unavailable: the check below fails loudly on the theme instead.
+  // Four chunks per theme so the sweep runs in parallel across workers instead of one long test.
+  const CHUNKS = 4;
+  const size = Math.ceil(ROUTES.length / CHUNKS);
+  const chunks = Array.from({ length: CHUNKS }, (_, i) => ROUTES.slice(i * size, (i + 1) * size));
+  for (const { id: theme } of THEMES) {
+    for (const [index, routes] of chunks.entries()) {
+      test(`axe passes on routes ${index + 1}/${CHUNKS} (${theme})`, async ({ page }) => {
+        test.setTimeout(routes.length * 15_000);
+        if (theme !== DEFAULT_THEME) {
+          await page.addInitScript((id) => {
+            try {
+              const key = "mempool-xch:settings:v1";
+              const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+              localStorage.setItem(key, JSON.stringify({ ...stored, theme: id }));
+            } catch {
+              // Storage unavailable: the theme check below fails loudly instead.
+            }
+          }, theme);
         }
+        const failures: string[] = [];
+        for (const route of routes) {
+          await page.goto(route);
+          await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          await settled(page);
+          const violations = await serious(page);
+          if (violations.length) failures.push(`${route}\n${report(violations)}`);
+        }
+        expect(failures, failures.join("\n\n")).toEqual([]);
       });
-      await page.goto(route);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-      await settled(page);
-      const violations = await serious(page);
-      expect(violations, report(violations)).toEqual([]);
-    });
+    }
   }
 
-  test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "markup check, runs once on desktop");
+  test("live-feed rows keep AA contrast at the peak of their fresh-row flash", async ({ page }) => {
     // A row only carries the flash for 1.6s after it arrives, which made the sweep on / flaky
     // (TASK-095). Freeze every feed row at the flash's first frame and check it in both themes.
     await page.goto("/");
@@ -128,7 +127,7 @@ test.describe("accessibility", () => {
       content:
         'ul[aria-relevant="additions"] > li { animation: row-in 1s linear 0s paused both !important; }',
     });
-    for (const theme of ["dark", "light"]) {
+    for (const theme of THEMES.map((t) => t.id)) {
       await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
       const results = await new AxeBuilder({ page })
         .include('ul[aria-relevant="additions"]')
@@ -138,8 +137,7 @@ test.describe("accessibility", () => {
     }
   });
 
-  test("axe passes on the phone's own navigation markup", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "mobile project only");
+  test("axe passes on the phone's own navigation markup @phone", async ({ page }) => {
     await page.goto("/");
     await settled(page);
     // The drawer only exists below lg, so it is never in the desktop sweep above.
@@ -149,8 +147,8 @@ test.describe("accessibility", () => {
     expect(violations, report(violations)).toEqual([]);
   });
 
-  test("no horizontal page scroll on a phone", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "mobile project only");
+  test("no horizontal page scroll on a phone @phone", async ({ page }) => {
+    test.setTimeout(ROUTES.length * 10_000);
     for (const route of ROUTES) {
       await page.goto(route);
       await settled(page);

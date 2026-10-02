@@ -5,15 +5,21 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Skeleton } from "@/shared/ui/Skeleton";
 
 /**
- * The goggles treemap and the two live feeds sit below the first screen. Their code is split
- * out of the dashboard's initial JavaScript and they mount once the browser is idle after the
- * first paint, or as soon as the visitor scrolls near them, whichever comes first. The
- * placeholders reserve the space so nothing shifts when they arrive.
+ * The mempool goggles sit right under the block row, so they mount at once, but their code is
+ * still split out of the dashboard's initial JavaScript. The two live feeds sit below the first
+ * screen: they mount once the browser is idle after the first paint, or as soon as the visitor
+ * scrolls near them, whichever comes first. The placeholders reserve the space so nothing
+ * shifts when they arrive.
  */
 const NextBlockGoggles = dynamic(
   () => import("@/widgets/goggles/NextBlockGoggles").then((m) => m.NextBlockGoggles),
-  { ssr: false, loading: () => <Skeleton className="h-[420px] w-full" /> }
+  { ssr: false, loading: () => <Skeleton className="h-[443px] w-full" /> }
 );
+
+/** The mempool goggles, directly under the block row. */
+export function MempoolGoggles() {
+  return <NextBlockGoggles />;
+}
 const LiveTransactions = dynamic(
   () => import("@/widgets/feed/LiveFeed").then((m) => m.LiveTransactions),
   { ssr: false, loading: () => <Skeleton className="h-[360px] w-full" /> }
@@ -61,21 +67,15 @@ export function BelowTheFold() {
   return (
     <Deferred
       placeholder={
-        <div className="flex flex-col gap-5">
-          <Skeleton className="h-[420px] w-full" />
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <Skeleton className="h-[360px] w-full" />
-            <Skeleton className="h-[360px] w-full" />
-          </div>
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <Skeleton className="h-[360px] w-full" />
+          <Skeleton className="h-[360px] w-full" />
         </div>
       }
     >
-      <div className="flex flex-col gap-5">
-        <NextBlockGoggles />
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <LiveTransactions />
-          <LatestBlocks />
-        </div>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <LiveTransactions />
+        <LatestBlocks />
       </div>
     </Deferred>
   );

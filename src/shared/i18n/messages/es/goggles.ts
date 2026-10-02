@@ -2,7 +2,7 @@ import type { Translation } from "../../translate";
 import type en from "../en/goggles";
 
 const messages: Translation<(typeof en)["messages"]> = {
-  title: "Próximo bloque",
+  title: "Mempool",
   colourBy: "Colorear bloques por",
   modeFee: "Comisión",
   modeKind: "Tipo",

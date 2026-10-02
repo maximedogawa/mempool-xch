@@ -104,7 +104,5 @@ export async function mockGogglesMempool(page: Page, filler = 0) {
 
 /** The goggles card on the dashboard. */
 export function goggles(page: Page) {
-  return page
-    .getByRole("heading", { name: /^Next block/ })
-    .locator("xpath=ancestor::*[contains(@class,'card-lift')][1]");
+  return page.getByTestId("goggles");
 }

@@ -11,6 +11,7 @@ const messages: Translation<(typeof en)["messages"]> = {
       tenMinutes: "约 10 分钟",
     },
     mojoPerCost: "mojo/成本",
+    copyXch: "复制{target}的手续费（XCH）",
     notAvailable: "暂无",
     capacityAvailable: "容量充足。",
     zeroFeeAccepted: "接受 0 手续费的花费。",

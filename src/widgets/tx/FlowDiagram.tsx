@@ -80,7 +80,7 @@ function Column({ title, coins, total }: { title: string; coins: FlowCoin[]; tot
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+        <h3 className="text-[11px] font-semibold eyebrow text-fg-muted">
           {title} <span className="text-fg-faint">({coins.length})</span>
         </h3>
         <span className="tabular text-xs text-fg-faint">{formatAmount(total)}</span>

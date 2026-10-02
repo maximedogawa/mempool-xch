@@ -438,9 +438,18 @@ export function layoutGroups(groups: ItemGroup[], area: Rect, groupBy: GroupBy):
 /** Lowest share of the canvas the fill takes, so a nearly empty block stays visible. */
 export const MIN_FILL = 0.16;
 
-/** Canvas height for a measured width: roomy on desktop, still tappable on a phone. */
-export function canvasHeight(width: number): number {
-  return Math.round(Math.min(300, Math.max(190, width * 0.3)));
+/** Depth of the block's top and side faces, in px. */
+export const BLOCK_DEPTH = 16;
+const BLOCK_MIN = 180;
+const BLOCK_MAX = 260;
+
+/**
+ * Side of the square front face for the width available to the block (faces included): the
+ * whole column on a phone, capped on desktop so the block stays an object beside its figures,
+ * and never so small that tiles stop being tappable.
+ */
+export function blockSide(available: number): number {
+  return Math.round(Math.min(BLOCK_MAX, Math.max(BLOCK_MIN, available - BLOCK_DEPTH)));
 }
 
 /**

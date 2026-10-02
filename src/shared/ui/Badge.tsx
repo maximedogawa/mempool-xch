@@ -26,12 +26,12 @@ const TONES: Record<Tone, string> = {
   info: "bg-[color-mix(in_srgb,var(--info)_15%,transparent)] text-info border-transparent",
   warning: "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning border-transparent",
   danger: "bg-danger-soft text-danger border-transparent",
-  xch: "bg-[color-mix(in_srgb,var(--kind-xch)_15%,transparent)] text-kind-xch border-transparent",
-  cat: "bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-kind-cat border-transparent",
-  nft: "bg-[color-mix(in_srgb,var(--kind-nft)_15%,transparent)] text-kind-nft border-transparent",
-  did: "bg-[color-mix(in_srgb,var(--kind-did)_15%,transparent)] text-kind-did border-transparent",
+  xch: "bg-[color-mix(in_srgb,var(--kind-xch)_var(--badge-mix),transparent)] text-fg border-transparent",
+  cat: "bg-[color-mix(in_srgb,var(--kind-cat)_var(--badge-mix),transparent)] text-fg border-transparent",
+  nft: "bg-[color-mix(in_srgb,var(--kind-nft)_var(--badge-mix),transparent)] text-fg border-transparent",
+  did: "bg-[color-mix(in_srgb,var(--kind-did)_var(--badge-mix),transparent)] text-fg border-transparent",
   offer:
-    "bg-[color-mix(in_srgb,var(--kind-offer)_15%,transparent)] text-kind-offer border-transparent",
+    "bg-[color-mix(in_srgb,var(--kind-offer)_var(--badge-mix),transparent)] text-fg border-transparent",
   unknown: "bg-surface-2 text-fg-faint border-border",
 };
 

@@ -9,7 +9,7 @@ export function SettingsPage() {
   const t = useT(settingsNs);
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <h1 className="text-xl font-semibold">{t("title")}</h1>
+      <h1 className="page-title">{t("title")}</h1>
       <SettingsForm />
     </div>
   );

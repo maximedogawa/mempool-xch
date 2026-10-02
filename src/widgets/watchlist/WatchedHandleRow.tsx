@@ -51,7 +51,7 @@ export function WatchedHandleRow({ item, onRemove }: { item: WatchItem; onRemove
         )}
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+            <span className="text-[10px] font-semibold eyebrow text-fg-faint">
               {t("handle.kind")}
             </span>
             <WatchStatus pending={!!flagged}>

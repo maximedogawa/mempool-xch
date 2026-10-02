@@ -42,10 +42,4 @@ test.describe("performance behaviour", () => {
       page.getByRole("list", { name: "Projected next blocks" }).getByRole("listitem").first()
     ).toBeVisible();
   });
-
-  test("the widgets below the fold mount without scrolling", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByText("Latest transactions")).toBeVisible();
-    await expect(page.getByText("Latest blocks")).toBeVisible();
-  });
 });

@@ -53,7 +53,7 @@ function Choice<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
+      <span className="text-xs font-medium eyebrow text-fg-muted">{label}</span>
       <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1">
         {options.map((opt) => (
           <button
@@ -62,12 +62,7 @@ function Choice<T extends string>({
             role="radio"
             aria-checked={value === opt.id}
             onClick={() => onChange(opt.id)}
-            className={cn(
-              "min-h-8 rounded-sm border px-2.5 text-xs font-semibold transition-colors",
-              value === opt.id
-                ? "border-primary bg-primary-soft text-primary"
-                : "border-border bg-bg text-fg-muted hover:text-fg"
-            )}
+            className={cn("seg", value === opt.id && "seg-on")}
           >
             {opt.label}
             {opt.count !== undefined ? (
@@ -212,7 +207,7 @@ export function TokensPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <Tooltip text={t("intro", { total: formatNumber(rows.length) })} placement="bottom" />
         </div>
       </header>
@@ -230,7 +225,7 @@ export function TokensPage() {
               }}
               placeholder={t("searchPlaceholder")}
               aria-label={t("searchLabel")}
-              className="h-8 w-48 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
+              className="field w-48 sm:w-64"
             />
           }
         />

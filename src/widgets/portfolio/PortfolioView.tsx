@@ -156,7 +156,7 @@ export function PortfolioView({
       {notice}
       <Card>
         <CardBody className="flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-fg-muted">
+          <div className="flex items-center gap-1 text-xs font-medium eyebrow text-fg-muted">
             {t("total")}
             <Tooltip text={t("changeHint")} />
           </div>

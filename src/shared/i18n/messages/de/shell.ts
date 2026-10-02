@@ -39,13 +39,23 @@ const messages: Translation<(typeof en)["messages"]> = {
   skipToContent: "Zum Inhalt springen",
   connection: {
     live: "Live",
+    syncing: "Synchronisiert",
     connecting: "Verbindet",
     offline: "Offline",
     noData: "noch keine Daten",
     connectingHint: "Verbindet: {channel}…",
+    syncingHint:
+      "Knoten synchronisiert noch: bei {height} von {tip}. Die Daten hinken dem Netzwerk hinterher.",
+    syncingHintNoTip: "Knoten synchronisiert noch. Die Daten hinken dem Netzwerk hinterher.",
     hint: "{channel}: {detail} Letzte Aktualisierung {age}.",
     srStatus: "{label} über {channel}, Spitze {peak}, letzte Aktualisierung {age}",
     unknownPeak: "unbekannt",
+  },
+  sync: {
+    title: "Dein Knoten synchronisiert noch: bei {height} von {tip} ({percent} %)",
+    titleNoTip: "Dein Knoten synchronisiert noch",
+    body: "Blöcke, Gebühren und Mempool hinken dem Netzwerk hinterher, bis er aufgeholt hat; ein synchronisierender Knoten führt keinen Mempool.",
+    settings: "Knoten-Einstellungen",
   },
   network: {
     label: "Netzwerk",

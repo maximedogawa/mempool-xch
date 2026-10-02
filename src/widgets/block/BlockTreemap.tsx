@@ -88,7 +88,7 @@ export function BlockTreemap({
                     x={cell.x + 6}
                     y={cell.y + 16}
                     fontSize="11"
-                    fill="#fff"
+                    fill="var(--fg)"
                     fillOpacity={0.95}
                     className="mono pointer-events-none"
                   >
@@ -100,7 +100,7 @@ export function BlockTreemap({
                     x={cell.x + 6}
                     y={cell.y + 32}
                     fontSize="10"
-                    fill="#fff"
+                    fill="var(--fg)"
                     fillOpacity={0.8}
                     className="pointer-events-none"
                   >

@@ -40,9 +40,7 @@ export function WatchedDidRow({ item, onRemove }: { item: WatchItem; onRemove: (
         )}
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-              DID
-            </span>
+            <span className="text-[10px] font-semibold eyebrow text-fg-faint">DID</span>
             <WatchStatus>
               <Eye size={11} aria-hidden="true" />
               {!available

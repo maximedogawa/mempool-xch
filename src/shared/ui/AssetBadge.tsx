@@ -110,7 +110,7 @@ export function AssetIcon({
       <span
         aria-hidden="true"
         className={cn(
-          "inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] text-[9px] font-bold text-kind-cat",
+          "inline-flex shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--kind-cat)_var(--badge-mix),transparent)] text-[9px] font-bold text-fg",
           className
         )}
         style={{ width: size, height: size }}
@@ -157,11 +157,11 @@ export function AssetIcon({
               : HelpCircle;
   const tone =
     kind === "nft"
-      ? "text-kind-nft bg-[color-mix(in_srgb,var(--kind-nft)_20%,transparent)]"
+      ? "text-fg bg-[color-mix(in_srgb,var(--kind-nft)_var(--badge-mix),transparent)]"
       : kind === "did" || kind === "singleton"
-        ? "text-kind-did bg-[color-mix(in_srgb,var(--kind-did)_20%,transparent)]"
+        ? "text-fg bg-[color-mix(in_srgb,var(--kind-did)_var(--badge-mix),transparent)]"
         : kind === "offer"
-          ? "text-kind-offer bg-[color-mix(in_srgb,var(--kind-offer)_20%,transparent)]"
+          ? "text-fg bg-[color-mix(in_srgb,var(--kind-offer)_var(--badge-mix),transparent)]"
           : kind === "pool"
             ? "text-info bg-[color-mix(in_srgb,var(--info)_20%,transparent)]"
             : "text-fg-faint bg-surface-2";
@@ -198,7 +198,7 @@ export function AssetBadge({
     >
       <AssetIcon kind={kind} assetId={assetId} />
       {token ? (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-transparent bg-[color-mix(in_srgb,var(--kind-cat)_15%,transparent)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-kind-cat">
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-transparent bg-[color-mix(in_srgb,var(--kind-cat)_var(--badge-mix),transparent)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg">
           {token.symbol}
         </span>
       ) : (

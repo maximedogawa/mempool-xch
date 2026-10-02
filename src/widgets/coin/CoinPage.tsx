@@ -40,9 +40,7 @@ import coinNs from "@/shared/i18n/messages/en/coin";
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-center sm:gap-4">
-      <dt className="w-44 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
-        {label}
-      </dt>
+      <dt className="w-44 shrink-0 text-[11px] font-semibold eyebrow text-fg-muted">{label}</dt>
       <dd className="min-w-0 text-sm">{children}</dd>
     </div>
   );
@@ -445,7 +443,7 @@ function Heading({ id, badge, spent }: { id: string; badge?: React.ReactNode; sp
   return (
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">{t("heading")}</h1>
+        <h1 className="page-title">{t("heading")}</h1>
         {spent === undefined ? null : spent ? (
           <Badge tone="neutral">{t("spent")}</Badge>
         ) : (

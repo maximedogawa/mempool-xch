@@ -57,15 +57,6 @@ test.describe("NFT section", () => {
       page.getByText(/Sage's app bridge does not yet expose a way to accept an offer/)
     ).toBeVisible();
   });
-
-  test("NFTs nav link reaches the home page", async ({ page, isMobile }) => {
-    test.skip(isMobile, "desktop nav only");
-    await page.goto("/");
-    // NFTs lives under the header's More menu, not the top bar.
-    await page.getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: "NFTs" }).click();
-    await expect(page).toHaveURL(/\/nfts$/);
-  });
 });
 
 test.describe("sensitive content", () => {

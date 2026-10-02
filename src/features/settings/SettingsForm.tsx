@@ -1,6 +1,15 @@
 "use client";
 
-import { CheckCircle2, Loader2, Monitor, Moon, RotateCcw, Sun, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Monitor,
+  Moon,
+  RotateCcw,
+  Sun,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -19,7 +28,7 @@ import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
-import { PUBLISHABLE_KEY, type Endpoint, type ThemePreference } from "@/shared/lib/settings/store";
+import { SCHEME_THEMES, THEMES, type ThemeId, type ThemePreference } from "@/shared/theme";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -31,7 +40,14 @@ import settingsNs from "@/shared/i18n/messages/en/settings";
 type TestState =
   | { status: "idle" }
   | { status: "testing" }
-  | { status: "ok"; height: number; ms: number; provider: Provider }
+  | {
+      status: "ok";
+      height: number;
+      ms: number;
+      coinset: boolean;
+      synced: boolean;
+      syncTipHeight: number | null;
+    }
   | { status: "error"; message: string }
   | { status: "whitelist"; message: string; ok: boolean };
 
@@ -60,36 +76,43 @@ function ChannelLine() {
   );
 }
 
-const THEME_OPTIONS: {
-  value: ThemePreference;
-  icon: typeof Moon;
-  /** Preview swatch: page, card and accent, hard-coded so each shows its own theme. */
-  swatch: [string, string, string];
-}[] = [
-  { value: "dark", icon: Moon, swatch: ["#0f1220", "#232842", "#5ece7b"] },
-  { value: "light", icon: Sun, swatch: ["#eef1f7", "#ffffff", "#176c33"] },
-  { value: "system", icon: Monitor, swatch: ["#0f1220", "#ffffff", "#5ece7b"] },
+/** Every registered theme, then "system". Adding a theme to src/shared/theme adds a card here. */
+const THEME_OPTIONS: { value: ThemePreference; icon: typeof Moon }[] = [
+  ...THEMES.map((theme) => ({ value: theme.id, icon: theme.scheme === "dark" ? Moon : Sun })),
+  { value: "system", icon: Monitor },
 ];
 
+/** A page, a card and the CTA, drawn in the theme's own tokens by carrying its data-theme. */
+function ThemeSwatch({ theme }: { theme: ThemeId }) {
+  return (
+    <span data-theme={theme} className="absolute inset-0 bg-bg">
+      <span className="absolute inset-x-2 bottom-1.5 top-2 rounded-[3px] border border-border bg-surface">
+        <span className="absolute left-1.5 top-1.5 h-1.5 w-6 rounded-full bg-cta" />
+      </span>
+    </span>
+  );
+}
+
 /**
- * Theme as three cards with a preview, instead of a native select whose menu the OS draws.
+ * Theme as cards with a preview, instead of a native select whose menu the OS draws.
  * Inside Sage the wallet's theme wins (ThemeProvider), so the choice is shown but locked.
  */
 function ThemePicker() {
   const { settings, update } = useSettings();
   const { inSage, sageTheme } = useSage();
-  const locked = inSage && sageTheme !== null;
-  const active: ThemePreference = locked ? sageTheme : settings.theme;
+  const sageThemeId = inSage && sageTheme ? SCHEME_THEMES[sageTheme] : null;
+  const locked = sageThemeId !== null;
+  const active: ThemePreference = sageThemeId ?? settings.theme;
   const t = useT(settingsNs);
   return (
-    <fieldset className="flex flex-col gap-2 text-sm" disabled={locked}>
+    <fieldset className="flex min-w-0 flex-col gap-2 text-sm" disabled={locked}>
       <legend className="mb-2 font-medium">{t("appearance.theme")}</legend>
       <div
         role="radiogroup"
         aria-label={t("appearance.theme")}
-        className="grid max-w-md grid-cols-3 gap-2"
+        className="grid max-w-md grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2"
       >
-        {THEME_OPTIONS.map(({ value, icon: Icon, swatch }) => {
+        {THEME_OPTIONS.map(({ value, icon: Icon }) => {
           const checked = active === value;
           return (
             <button
@@ -109,24 +132,19 @@ function ThemePicker() {
               <span
                 aria-hidden="true"
                 className="relative flex h-10 overflow-hidden rounded-[4px] border border-border"
-                style={{
-                  background:
-                    value === "system"
-                      ? `linear-gradient(135deg, ${swatch[0]} 50%, ${swatch[1]} 50%)`
-                      : swatch[0],
-                }}
               >
-                {value !== "system" ? (
-                  <span
-                    className="absolute inset-x-2 bottom-1.5 top-2 rounded-[3px]"
-                    style={{ background: swatch[1] }}
-                  >
-                    <span
-                      className="absolute left-1.5 top-1.5 h-1.5 w-6 rounded-full"
-                      style={{ background: swatch[2] }}
-                    />
-                  </span>
-                ) : null}
+                {value === "system" ? (
+                  <>
+                    <ThemeSwatch theme={SCHEME_THEMES.light} />
+                    <span className="absolute inset-y-0 right-0 w-1/2 overflow-hidden">
+                      <span className="absolute inset-y-0 right-0 w-[200%]">
+                        <ThemeSwatch theme={SCHEME_THEMES.dark} />
+                      </span>
+                    </span>
+                  </>
+                ) : (
+                  <ThemeSwatch theme={value} />
+                )}
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Icon size={14} aria-hidden="true" className={checked ? "text-primary" : ""} />
@@ -139,7 +157,7 @@ function ThemePicker() {
       </div>
       {locked ? (
         <p className="text-xs text-fg-muted">
-          {t("appearance.sageLocked", { theme: t(`appearance.${sageTheme}`) })}
+          {t("appearance.sageLocked", { theme: t(`appearance.${sageThemeId ?? active}`) })}
         </p>
       ) : null}
     </fieldset>
@@ -151,12 +169,22 @@ function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
+<<<<<<< HEAD
   const saved = settings.endpoints[network];
   const value = saved.rpcUrl;
   const [draft, setDraft] = useState(value);
   // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key.
   const [draftNodexch, setDraftNodexch] = useState(saved.provider === "nodexch");
   const [draftKey, setDraftKey] = useState(saved.apiKey ?? "");
+=======
+  const value = settings.endpoints[network].rpcUrl;
+  // The field follows the saved endpoint until the visitor types: the first render still sees
+  // the defaults (Coinset) before the stored settings are read, so a draft fixed at mount would
+  // show, and test, Coinset instead of the saved custom node (TASK-109).
+  const [edited, setEdited] = useState<string | null>(null);
+  const draft = edited ?? value;
+  const setDraft = setEdited;
+>>>>>>> origin/main
   const [test, setTest] = useState<TestState>({ status: "idle" });
   const provider = providerOf(network, draft.trim(), draftNodexch ? "nodexch" : undefined);
   const savedProvider = providerOf(network, value, saved.provider);
@@ -196,7 +224,13 @@ function EndpointRow({ network }: { network: NetworkId }) {
         status: "ok",
         height: state.peak.height,
         ms: Math.round(performance.now() - started),
+<<<<<<< HEAD
         provider,
+=======
+        coinset: isCoinsetUrl(network, draft),
+        synced: state.synced,
+        syncTipHeight: state.syncTipHeight,
+>>>>>>> origin/main
       });
     } catch (error) {
       setTest({ status: "error", message: errorMessage(error) });
@@ -239,7 +273,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
         }}
         placeholder={config.rpcUrl}
         spellCheck={false}
-        className="mono h-10 w-full rounded-sm border border-border bg-bg-elevated px-3 text-sm focus:border-primary focus:outline-none"
+        className="field mono w-full"
       />
       {provider !== "coinset" && !isNodexchUrl(network, draft.trim()) ? (
         <label className="flex items-center gap-2 text-xs text-fg-muted">
@@ -328,6 +362,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
               ...prev,
               endpoints: { ...prev.endpoints, [network]: endpointOf(rpcUrl) },
             }));
+            setEdited(null);
           }}
         >
           {t("endpoint.save")}
@@ -337,9 +372,13 @@ function EndpointRow({ network }: { network: NetworkId }) {
           variant="ghost"
           disabled={isDefault && !dirty}
           onClick={() => {
+<<<<<<< HEAD
             setDraft(config.rpcUrl);
             setDraftNodexch(false);
             setDraftKey("");
+=======
+            setEdited(null);
+>>>>>>> origin/main
             setTest({ status: "idle" });
             update((prev) => ({
               ...prev,
@@ -363,6 +402,19 @@ function EndpointRow({ network }: { network: NetworkId }) {
                 ms: test.ms,
               }
             )}
+          </span>
+        ) : null}
+        {test.status === "ok" && !test.synced ? (
+          // Answers, but behind the chain: everything the app shows from it is old until it is in.
+          <span role="status" className="inline-flex items-center gap-1 text-xs text-warning">
+            <AlertTriangle size={14} aria-hidden="true" />{" "}
+            {test.syncTipHeight
+              ? t("endpoint.syncing", {
+                  height: formatInteger(test.height),
+                  tip: formatInteger(test.syncTipHeight),
+                  percent: Math.floor((test.height / test.syncTipHeight) * 1000) / 10,
+                })
+              : t("endpoint.syncingNoTip")}
           </span>
         ) : null}
         {test.status === "whitelist" ? (
@@ -408,12 +460,7 @@ export function SettingsForm() {
                 role="radio"
                 aria-checked={settings.network === id}
                 onClick={() => update({ network: id })}
-                className={cn(
-                  "min-h-11 rounded-sm border px-4 text-sm font-semibold transition-colors",
-                  settings.network === id
-                    ? "border-primary bg-primary-soft text-primary"
-                    : "border-border bg-bg text-fg-muted hover:text-fg"
-                )}
+                className={cn("seg text-sm", settings.network === id && "seg-on")}
               >
                 {NETWORKS[id].label}
               </button>
@@ -489,7 +536,7 @@ export function SettingsForm() {
               value={settings.locale}
               onChange={(e) => update({ locale: e.target.value as LocalePreference })}
               data-testid="settings-language"
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
+              className="field w-full max-w-xs"
             >
               <option value="auto">{t("appearance.languageAuto")}</option>
               {LOCALES.map((id) => (
@@ -519,7 +566,7 @@ export function SettingsForm() {
               max={20}
               value={settings.recentBlocks}
               onChange={(e) => update({ recentBlocks: Number(e.target.value) })}
-              className="h-10 w-full max-w-xs rounded-sm border border-border bg-bg px-3 text-sm focus:border-primary focus:outline-none"
+              className="field w-full max-w-xs"
             />
           </label>
         </CardBody>

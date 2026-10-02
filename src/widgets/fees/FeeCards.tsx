@@ -2,12 +2,20 @@
 
 import { FEE_TARGETS_S, useFeeEstimate, useMempoolSummary } from "@/shared/api/hooks";
 import { CHIA } from "@/shared/config/networks";
-import { formatAmount, formatFeeRate } from "@/shared/lib/chia/amounts";
+import { formatAmount, formatFeeRate, xchPlain } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { feeBandFor } from "@/shared/lib/mempool/feeBands";
 import { formatInteger } from "@/shared/i18n/number";
 import { useT } from "@/shared/i18n/useT";
-import { CapacityBar, Card, CardBody, CardHeader, Skeleton, Tooltip } from "@/shared/ui";
+import {
+  CapacityBar,
+  Card,
+  CardBody,
+  CardHeader,
+  CopyButton,
+  Skeleton,
+  Tooltip,
+} from "@/shared/ui";
 import feesNs from "@/shared/i18n/messages/en/fees";
 
 const TARGET_LABELS = {
@@ -47,8 +55,20 @@ export function FeeCards() {
                 className="flex flex-col gap-0.5 rounded-sm border border-border bg-bg px-3 py-2.5"
                 style={band ? { borderBottom: `3px solid var(${band.cssVar})` } : undefined}
               >
-                <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t(`cards.targets.${TARGET_LABELS[target]}`)}
+                <span className="flex items-start justify-between gap-1">
+                  <span className="text-[11px] font-medium eyebrow text-fg-muted">
+                    {t(`cards.targets.${TARGET_LABELS[target]}`)}
+                  </span>
+                  {/* A plain XCH decimal, ready for a wallet's fee field. */}
+                  {estimate !== undefined ? (
+                    <CopyButton
+                      value={xchPlain(estimate)}
+                      label={t("cards.copyXch", {
+                        target: t(`cards.targets.${TARGET_LABELS[target]}`),
+                      })}
+                      className="-mr-1.5 -mt-1 h-6 w-6"
+                    />
+                  ) : null}
                 </span>
                 {fee.isLoading ? (
                   <Skeleton className="h-6 w-16" />

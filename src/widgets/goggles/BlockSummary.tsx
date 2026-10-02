@@ -63,11 +63,11 @@ export function BlockSummary({
   }, [open]);
 
   const strong = (c: ReactNode) => <span className="tabular font-semibold text-fg">{c}</span>;
-  const fillTone =
-    block.fill > 0.9 ? "var(--fee-5)" : block.fill > 0.6 ? "var(--fee-3)" : "var(--primary)";
+  // Colour only when the block is congested; the numeral is ink otherwise.
+  const fillTone = block.fill > 0.9 ? "var(--warning)" : "var(--fg)";
 
   return (
-    <>
+    <div className="flex min-w-0 flex-col gap-2.5">
       <button
         ref={button}
         type="button"
@@ -93,35 +93,64 @@ export function BlockSummary({
           if (lastPointer.current === "touch") setOpen((o) => !o);
           else setOpen(true);
         }}
-        className="-mx-1 flex w-[calc(100%+0.5rem)] flex-wrap items-end justify-between gap-x-4 gap-y-1 rounded-sm px-1 py-0.5 text-left hover:bg-surface-2/60"
+        className="-mx-2 flex flex-col items-start gap-1 rounded-sm px-2 py-0.5 text-left transition-colors hover:bg-surface-2/60"
       >
         <span className="sr-only">{t("blockDetails")}</span>
-        <span className="flex items-baseline gap-2">
-          <span
-            className="tabular text-2xl font-semibold leading-none transition-colors"
-            style={{ color: fillTone }}
-            data-testid="goggles-fill"
-          >
-            {formatPercent(block.fill)}
-          </span>
-          <span className="text-xs text-fg-muted">
-            {t("fullOf", { cost: formatCost(block.totalCost), max: formatCost(blockMaxCost) })}
-          </span>
+        <span
+          className="tabular text-4xl font-extrabold leading-none tracking-[-0.04em]"
+          style={{ color: fillTone }}
+          data-testid="goggles-fill"
+        >
+          {formatPercent(block.fill)}
         </span>
-        <span className="flex flex-wrap items-baseline gap-x-3 text-xs text-fg-muted">
-          <span>{t.rich("bundles", { count: block.items.length, b: strong })}</span>
-          <span>{t.rich("fees", { amount: formatXchUnits(block.totalFee), b: strong })}</span>
-          {freshCount > 0 ? (
-            <span className="text-primary">
-              {t.rich("fresh", {
-                count: freshCount,
-                seconds: freshSeconds,
-                b: (c) => <span className="tabular font-semibold">{c}</span>,
-              })}
-            </span>
-          ) : null}
+        <span className="text-xs text-fg-muted">
+          {t("fullOf", { cost: formatCost(block.totalCost), max: formatCost(blockMaxCost) })}
         </span>
       </button>
+      {/* The facts as one ruled row beside the numeral on a wide screen, stacked on a phone. */}
+      <dl className="grid grid-cols-1 border-y border-rule text-xs sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div className="flex min-w-0 flex-col gap-0.5 py-1.5 sm:pr-4">
+          <dt className="eyebrow text-[10px] text-fg-faint">{t("card.bundles")}</dt>
+          <dd className="flex flex-wrap items-baseline gap-x-3 text-fg-muted">
+            <span>{t.rich("bundles", { count: block.items.length, b: strong })}</span>
+            <span>{t.rich("fees", { amount: formatXchUnits(block.totalFee), b: strong })}</span>
+            {freshCount > 0 ? (
+              <span className="text-primary">
+                {t.rich("fresh", {
+                  count: freshCount,
+                  seconds: freshSeconds,
+                  b: (c) => <span className="tabular font-semibold">{c}</span>,
+                })}
+              </span>
+            ) : null}
+          </dd>
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5 border-t border-rule py-1.5 sm:border-l sm:border-t-0 sm:px-4">
+          <dt className="eyebrow text-[10px] text-fg-faint">{t("card.feeRate")}</dt>
+          <dd className="tabular text-fg">
+            {t("card.feeRateValue", {
+              min: formatFeeRate(block.minFeeRate),
+              max: formatFeeRate(block.maxFeeRate),
+              median: formatFeeRate(block.medianFeeRate),
+            })}
+          </dd>
+        </div>
+        <div className="flex min-w-0 flex-col gap-0.5 border-t border-rule py-1.5 sm:border-l sm:border-t-0 sm:pl-4">
+          <dt className="eyebrow text-[10px] text-fg-faint">{t("card.eta")}</dt>
+          <dd className="tabular text-fg">{formatEta(block.etaSeconds)}</dd>
+        </div>
+      </dl>
+      {mix.length > 0 ? (
+        <div aria-hidden="true" className="flex h-2 overflow-hidden rounded-sm bg-surface-2">
+          {mix.map((m) => (
+            <span
+              key={m.kind}
+              className="h-full transition-[width] duration-200 ease-out"
+              style={{ width: `${m.share * 100}%`, background: KIND_COLOR[m.kind] }}
+            />
+          ))}
+        </div>
+      ) : null}
       {open && button.current ? (
         <Floating
           anchor={button.current}
@@ -187,6 +216,6 @@ export function BlockSummary({
           </div>
         </Floating>
       ) : null}
-    </>
+    </div>
   );
 }

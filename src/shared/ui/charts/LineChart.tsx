@@ -30,6 +30,8 @@ export function LineChart({
   className?: string;
 }) {
   const id = useId();
+  // useId can contain characters a url(#…) reference does not accept.
+  const gid = `lc${id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const t = useT(uiNs);
   const [hover, setHover] = useState<number | null>(null);
   const width = 800;
@@ -168,7 +170,14 @@ export function LineChart({
             {formatTime(tick.t)}
           </text>
         ))}
-        <path d={model.areaPath} fill={color} fillOpacity={0.12} stroke="none" />
+        {/* Area trace: a soft wash that fades towards the baseline, under a thin ink-weight line. */}
+        <defs>
+          <linearGradient id={`${gid}-area`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.22} />
+            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        <path d={model.areaPath} fill={`url(#${gid}-area)`} stroke="none" />
         <path d={model.linePath} fill="none" stroke={color} strokeWidth={1.5} />
         {hoverPoint ? (
           <>
