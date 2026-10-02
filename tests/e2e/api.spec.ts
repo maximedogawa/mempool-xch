@@ -13,7 +13,7 @@ test.describe("api reference", () => {
 
     await page.getByRole("button", { name: "Show example" }).first().click();
     await expect(
-      page.getByText(/curl -s -X POST https:\/\/api\.coinset\.org/).first()
+      page.getByText(/curl -s -X POST https:\/\/api\.nodexch\.space/).first()
     ).toBeVisible();
   });
 

@@ -15,7 +15,7 @@ import { routes } from "@/shared/lib/routes";
 import apiNs from "@/shared/i18n/messages/en/api";
 
 function curl(endpoint: ApiEndpoint): string {
-  return `curl -s -X POST ${RPC_BASE}/${endpoint.method} \\\n  -H "content-type: application/json" \\\n  -d '${endpoint.body}'`;
+  return `curl -s -X POST ${RPC_BASE}/${endpoint.method} \\\n  -H "authorization: Bearer nxp_…" \\\n  -H "content-type: application/json" \\\n  -d '${endpoint.body}'`;
 }
 
 function EndpointRow({ endpoint }: { endpoint: ApiEndpoint }) {

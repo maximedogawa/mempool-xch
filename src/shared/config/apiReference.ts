@@ -121,6 +121,7 @@ export const API_GROUPS: readonly ApiGroup[] = [
   },
 ];
 
-export const RPC_BASE = "https://api.coinset.org";
+export const RPC_BASE = "https://api.nodexch.space";
 export const RPC_BASE_TESTNET = "https://testnet11.api.coinset.org";
-export const WS_URL = "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault";
+export const WS_URL =
+  "wss://api.nodexch.space/ws?key=nxp_…&events=peak,transaction,reorg,dashboard,vault";
