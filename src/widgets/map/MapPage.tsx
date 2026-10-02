@@ -26,6 +26,7 @@ import {
   type SnapshotState,
 } from "@/shared/lib/map/dashboard";
 import dashboardSnapshot from "@/shared/lib/map/dashboardSnapshot.json";
+import { fetchNodexchNetwork, parseNodexchNetwork } from "@/shared/lib/map/nodexchNetwork";
 import { lookupGeo, type NodeGeo } from "@/shared/lib/map/geo";
 import { isPublicIp } from "@/shared/lib/map/seeders";
 import {
@@ -216,7 +217,7 @@ function useActivity(rows: CountryRow[], paused: boolean) {
 export function MapPage() {
   const t = useT(mapNs);
   const names = useMapNames();
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, hydrated } = useSettings();
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -229,15 +230,43 @@ export function MapPage() {
   const map = useRef<MapHandle | null>(null);
 
   const clock = usePageClock();
+  // A nodexch gateway counts the network itself: its figures replace the shipped snapshot while
+  // it is the provider and answers; without them (another provider, no crawler, an error) the
+  // page is what it was.
+  const network = useQuery({
+    queryKey: [...queryKeys.chainRoot(endpoints.network), "nodeNetwork", endpoints.rpcUrl],
+    queryFn: ({ signal }) =>
+      fetchNodexchNetwork(
+        endpoints.rpcUrl,
+        endpoints.apiKey,
+        (url, init) => fetch(url, init),
+        signal
+      ),
+    enabled: hydrated && endpoints.provider === "nodexch",
+    staleTime: 10 * 60_000,
+    refetchInterval: 10 * 60_000,
+    retry: 1,
+  });
+  const counted = useMemo(
+    () =>
+      endpoints.provider === "nodexch"
+        ? parseNodexchNetwork(network.data, {
+            network: endpoints.network,
+            source: endpoints.rpcUrl,
+          })
+        : null,
+    [network.data, endpoints.provider, endpoints.network, endpoints.rpcUrl]
+  );
+  const snapshot = counted?.snapshot ?? SNAPSHOT;
   const source: SnapshotState = useMemo(
     () =>
       snapshotState(
-        SNAPSHOT,
+        snapshot,
         endpoints.network,
         // Before the browser clock is known, judge the snapshot as of its own capture.
-        clock ?? (SNAPSHOT ? Date.parse(SNAPSHOT.observedAt) : 0)
+        clock ?? (snapshot ? Date.parse(snapshot.observedAt) : 0)
       ),
-    [endpoints.network, clock]
+    [snapshot, endpoints.network, clock]
   );
   /** The dashboard snapshot while it is the page's source; null in the seeder-scan fallback. */
   const dash = source.mode === "snapshot" ? source.snapshot : null;
@@ -919,7 +948,7 @@ export function MapPage() {
         </CardBody>
       </Card>
 
-      {dash ? <MapHistory snapshot={dash} /> : null}
+      {dash ? <MapHistory snapshot={dash} series={counted?.series} /> : null}
 
       {!endpoints.isCoinset ? (
         <PeerTables
@@ -944,7 +973,8 @@ export function MapPage() {
 
       <p className="text-xs text-fg-faint">
         {dash
-          ? t.rich(unaccounted !== 0 ? "sourceGap" : "source", {
+          ? t.rich(counted ? "sourceNodexch" : unaccounted !== 0 ? "sourceGap" : "source", {
+              host: dash.source.replace(/^https?:\/\//, "").replace(/\/$/, ""),
               observed: new Date(dash.observedAt).toISOString().slice(0, 16).replace("T", " "),
               placed,
               total: dash.total,
@@ -961,18 +991,20 @@ export function MapPage() {
               ),
             })
           : t("scan.source")}{" "}
-        {t.rich("attribution", {
-          link: (c) => (
-            <a
-              href={SNAPSHOT?.source ?? DASHBOARD_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-accent hover:underline"
-            >
-              {c}
-            </a>
-          ),
-        })}
+        {counted
+          ? counted.attribution
+          : t.rich("attribution", {
+              link: (c) => (
+                <a
+                  href={SNAPSHOT?.source ?? DASHBOARD_URL}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-accent hover:underline"
+                >
+                  {c}
+                </a>
+              ),
+            })}
         {endpoints.isCoinset ? ` ${t("ownNodeHint")}` : null}
       </p>
     </div>

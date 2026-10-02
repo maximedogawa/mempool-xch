@@ -57,6 +57,43 @@ test.describe("nodexch provider", () => {
       .toBe(true);
   });
 
+  test("tokens and prices come from the gateway's Dexie paths with the key, not from Dexie", async ({
+    page,
+  }) => {
+    const seen = await mockNodexch(page);
+    await page.goto("/tokens");
+    await expect(page.getByText("Most Active Token").first()).toBeVisible({ timeout: 20_000 });
+    const dexie = seen.requests.filter((r) => r.url.startsWith(`${NODEXCH_URL}/dexie/`));
+    expect(dexie.some((r) => r.url.includes("/dexie/v1/assets?type=cat"))).toBe(true);
+    expect(dexie.some((r) => r.url.endsWith("/dexie/v3/prices/tickers"))).toBe(true);
+    for (const r of dexie) expect(r.authorization, r.url).toBe(`Bearer ${NODEXCH_KEY}`);
+    expect(seen.dexie, "Dexie must not be called with nodexch").toEqual([]);
+  });
+
+  test("the status page checks Dexie where it is asked: on the gateway", async ({ page }) => {
+    await mockNodexch(page);
+    await page.goto("/status");
+    await expect(page.getByText("nodexch.space/dexie")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("status-dexie")).toHaveText("Operational", { timeout: 20_000 });
+  });
+
+  test("the map draws the gateway's own count of the network", async ({ page }) => {
+    await mockNodexch(page);
+    await page.goto("/map");
+    await expect(page.getByText(/Source: the crawler of nodexch\.space/)).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByText("IP geolocation by DB-IP (db-ip.com), CC BY 4.0")).toBeVisible();
+    await expect(page.getByText("1,234").first()).toBeVisible();
+  });
+
+  test("when the gateway fails, Dexie itself answers, without the key", async ({ page }) => {
+    const seen = await mockNodexch(page, { down: true });
+    await page.goto("/tokens");
+    await expect(page.getByText("Most Active Token").first()).toBeVisible({ timeout: 20_000 });
+    expect(seen.dexie.some((url) => url.includes("/v1/assets"))).toBe(true);
+  });
+
   test("when nodexch.space fails, reads fall back to Coinset without the key, and it shows", async ({
     page,
   }) => {

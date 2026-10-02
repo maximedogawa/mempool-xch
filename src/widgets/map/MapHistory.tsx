@@ -9,6 +9,7 @@ import {
   OTHER_VERSIONS,
   parseTimeSeries,
   type DashboardSnapshot,
+  type DashboardTimeSeries,
 } from "@/shared/lib/map/dashboard";
 import { historyPoints, versionHistoryPoints } from "@/shared/lib/map/stats";
 import { Card, CardBody, CardHeader, Skeleton, Table, Td, Th, Tr } from "@/shared/ui";
@@ -43,17 +44,34 @@ const formatDay = (t: number) =>
  * fallback has no history. The series are their own file, loaded after the map has drawn, so
  * the page's first script stays the size of the current panels.
  */
-export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
+export function MapHistory({
+  snapshot,
+  series: counted,
+}: {
+  snapshot: DashboardSnapshot;
+  /**
+   * The history that came with the snapshot (a nodexch gateway's node count per day); without
+   * it the shipped dashboard file is loaded.
+   */
+  series?: DashboardTimeSeries | null;
+}) {
   const t = useT(mapNs);
   const [series, setSeries] = useState<SeriesId>("total");
+  const shipped = counted === undefined;
   const loaded = useQuery({
     queryKey: ["map", "dashboardHistory", snapshot.observedAt],
     queryFn: async () =>
       parseTimeSeries((await import("@/shared/lib/map/dashboardHistory.json")).default),
+    enabled: shipped,
     staleTime: Infinity,
     gcTime: 0,
   });
-  const timeSeries = loaded.data ?? null;
+  const timeSeries = (shipped ? loaded.data : counted) ?? null;
+  /** The series with something to draw: a gateway counts nodes per day, nothing else. */
+  const available = useMemo(
+    () => SERIES.filter((id) => historyPoints(timeSeries?.history ?? null, id).length > 1),
+    [timeSeries]
+  );
   const points = useMemo(
     () => historyPoints(timeSeries?.history ?? null, series),
     [timeSeries, series]
@@ -78,7 +96,7 @@ export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
 
   return (
     <>
-      {loaded.isPending ? (
+      {shipped && loaded.isPending ? (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Skeleton className="h-72 w-full" />
           <Skeleton className="h-72 w-full" />
@@ -88,15 +106,20 @@ export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
           <Card>
             <CardHeader
               title={t("history.title")}
-              action={<span className="text-xs text-fg-faint">{t("history.action")}</span>}
+              action={
+                <span className="text-xs text-fg-faint">
+                  {t(shipped ? "history.action" : "history.actionNodexch")}
+                </span>
+              }
             />
             <CardBody className="flex flex-col gap-3">
               <div
                 className="flex flex-wrap items-center gap-1.5"
                 role="group"
                 aria-label={t("history.seriesLabel")}
+                hidden={available.length < 2}
               >
-                {SERIES.map((id) => (
+                {available.map((id) => (
                   <button
                     key={id}
                     type="button"
@@ -114,40 +137,46 @@ export function MapHistory({ snapshot }: { snapshot: DashboardSnapshot }) {
                 formatTime={formatDay}
                 ariaLabel={t("history.chartLabel", { series: t(`history.${series}`) })}
               />
-              <p className="text-xs text-fg-faint">{t("history.note")}</p>
+              <p className="text-xs text-fg-faint">
+                {t(shipped ? "history.note" : "history.noteNodexch")}
+              </p>
             </CardBody>
           </Card>
 
-          <Card>
-            <CardHeader
-              title={t("history.versionsTitle")}
-              action={<span className="text-xs text-fg-faint">{t("history.versionsAction")}</span>}
-            />
-            <CardBody className="flex flex-col gap-3">
-              <StackedAreaChart
-                series={stacked}
-                points={versions.points}
-                formatValue={(v) => formatNumber(Math.round(v))}
-                formatTime={formatDay}
-                ariaLabel={t("history.versionsLabel")}
+          {versions.points.length > 1 ? (
+            <Card>
+              <CardHeader
+                title={t("history.versionsTitle")}
+                action={
+                  <span className="text-xs text-fg-faint">{t("history.versionsAction")}</span>
+                }
               />
-              <ul
-                className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-fg-faint"
-                aria-label={t("history.versionsLegend")}
-              >
-                {stacked.map((item) => (
-                  <li key={item.id} className="inline-flex items-center gap-1">
-                    <span
-                      className="inline-block h-2 w-2 rounded-sm"
-                      style={{ background: item.color }}
-                      aria-hidden="true"
-                    />
-                    <span className="mono">{item.label}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardBody>
-          </Card>
+              <CardBody className="flex flex-col gap-3">
+                <StackedAreaChart
+                  series={stacked}
+                  points={versions.points}
+                  formatValue={(v) => formatNumber(Math.round(v))}
+                  formatTime={formatDay}
+                  ariaLabel={t("history.versionsLabel")}
+                />
+                <ul
+                  className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-fg-faint"
+                  aria-label={t("history.versionsLegend")}
+                >
+                  {stacked.map((item) => (
+                    <li key={item.id} className="inline-flex items-center gap-1">
+                      <span
+                        className="inline-block h-2 w-2 rounded-sm"
+                        style={{ background: item.color }}
+                        aria-hidden="true"
+                      />
+                      <span className="mono">{item.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardBody>
+            </Card>
+          ) : null}
         </div>
       ) : null}
 

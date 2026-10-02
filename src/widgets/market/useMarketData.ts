@@ -22,6 +22,8 @@ import {
   type MarketQuote,
 } from "@/shared/lib/market/orderbook";
 import { mergeTape, parseTrades, type MarketTrade } from "@/shared/lib/market/trades";
+import type { FetchLike } from "@/shared/lib/rpc/failover";
+import { useSettings } from "@/shared/providers/SettingsProvider";
 
 /** Books and trades per exchange: 2 requests per exchange every 5 s from a visible tab. */
 export const BOOK_REFRESH_MS = 5_000;
@@ -46,8 +48,12 @@ function tradesUrl(exchange: Exchange, quote: MarketQuote): string {
   return `https://api.huobi.pro/market/history/trade?symbol=xch${quote.toLowerCase()}&size=${TRADES_LIMIT}`;
 }
 
-async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
-  const response = await fetch(url, { signal });
+async function getJson(
+  url: string,
+  signal: AbortSignal,
+  fetchImpl: FetchLike = (input, init) => fetch(input, init)
+): Promise<unknown> {
+  const response = await fetchImpl(url, { signal });
   if (!response.ok)
     throw new HttpError(
       response.status,
@@ -285,8 +291,12 @@ function initialDex(asset: DexQuoteAsset): DexBook {
   return { asset, bids: [], asks: [], at: null, error: null };
 }
 
-/** Best Dexie offers between XCH and a stablecoin CAT, both sides. */
+/**
+ * Best Dexie offers between XCH and a stablecoin CAT, both sides; through the nodexch gateway
+ * when it is the provider.
+ */
 export function useDexBook(asset: DexQuoteAsset): DexBook {
+  const { dexieFetch } = useSettings();
   const [state, setState] = useState<DexBook>(() => initialDex(asset));
   const loop = useRef({ asset, health: HEALTHY, book: initialDex(asset) });
 
@@ -298,8 +308,8 @@ export function useDexBook(asset: DexQuoteAsset): DexBook {
       if (!canPoll(s.health, Date.now())) return;
       try {
         const [asks, bids] = await Promise.all([
-          getJson(dexieOffersUrl(asset, "asks"), signal),
-          getJson(dexieOffersUrl(asset, "bids"), signal),
+          getJson(dexieOffersUrl(asset, "asks"), signal, dexieFetch),
+          getJson(dexieOffersUrl(asset, "bids"), signal, dexieFetch),
         ]);
         if (signal.aborted || loop.current !== s) return;
         s.health = recordSuccess();

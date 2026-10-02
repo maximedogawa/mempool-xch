@@ -18,7 +18,8 @@ import {
   type Settings,
 } from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
-import { createFailover, type FailoverState } from "@/shared/lib/rpc/failover";
+import { createFailover, type FailoverState, type FetchLike } from "@/shared/lib/rpc/failover";
+import { createDexieFetch, type DexieRoute } from "@/shared/lib/hosted/dexie";
 import { probeIndexed } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
@@ -37,6 +38,20 @@ export interface SettingsContextValue {
    * endpoint was left, why and since when. Null on the chosen endpoint.
    */
   fallback: { from: string; reason: string | null; since: number | null } | null;
+  /**
+   * The nodexch gateway that answers Dexie's API paths, on a network with a hosted gateway while
+   * nodexch is the provider; null when Dexie is asked directly (Coinset, a custom node, testnet11).
+   */
+  dexieRoute: DexieRoute | null;
+  /** fetch for Dexie API URLs: through `dexieRoute` when there is one, Dexie itself as fallback. */
+  dexieFetch: FetchLike;
+}
+
+/** Dexie's paths on the gateway, only where a hosted gateway runs: elsewhere Dexie stays. */
+function dexieRouteOf(endpoints: ResolvedEndpoints): DexieRoute | null {
+  return endpoints.provider === "nodexch" && NETWORKS[endpoints.network].nodexchUrl
+    ? { gateway: endpoints.rpcUrl, apiKey: endpoints.apiKey }
+    : null;
 }
 
 /** How often the primary is asked again while the app is on its fallback. */
@@ -130,6 +145,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   activeEndpoints.current = endpoints;
   const hydratedRef = useRef(hydrated);
   hydratedRef.current = hydrated;
+  // Read per request, so one fetch serves every provider; before hydration (SSR defaults) Dexie
+  // is asked directly, as it always was, instead of a gateway the visitor may not use.
+  const dexieFetch = useMemo(
+    () =>
+      createDexieFetch({
+        route: () => (hydratedRef.current ? dexieRouteOf(activeEndpoints.current) : null),
+        fetch: (input, init) => fetch(input, init),
+      }),
+    []
+  );
+  const dexieRoute = useMemo(
+    () => (hydrated ? dexieRouteOf(endpoints) : null),
+    [hydrated, endpoints]
+  );
   const client = useMemo(
     () =>
       createRpcClient({
@@ -165,8 +194,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       client,
       hydrated,
       fallback,
+      dexieRoute,
+      dexieFetch,
     }),
-    [settings, store, endpoints, client, hydrated, fallback]
+    [settings, store, endpoints, client, hydrated, fallback, dexieRoute, dexieFetch]
   );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

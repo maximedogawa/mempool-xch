@@ -162,11 +162,14 @@ const messages = {
     "Source: <link>Chia Peer Info dashboard</link>, observed {observed} UTC. The country panel accounts for {placed} of the {total} nodes the population panel reports. Only node addresses are ever sent to a geolocation service, never the visitor's.",
   sourceGap:
     "Source: <link>Chia Peer Info dashboard</link>, observed {observed} UTC. The country panel accounts for {placed} of the {total} nodes the population panel reports; the {gap}-node gap is between two separate dashboard queries, not a rounding error. Only node addresses are ever sent to a geolocation service, never the visitor's.",
+  sourceNodexch:
+    "Source: the crawler of {host}, counted {observed} UTC. Its countries account for {placed} of the {total} nodes it saw in the last five days. Only node addresses are ever sent to a geolocation service, never the visitor's.",
   attribution:
     "Node statistics by Chia Network Inc. from its public <link>Peer Info dashboard</link>, imported by hand as a static snapshot.",
   history: {
     title: "Network over time",
     action: "every 3 days · last two years",
+    actionNodexch: "one count a day · since 2022",
     seriesLabel: "Series",
     total: "Full nodes",
     capacity: "Reliable",
@@ -174,6 +177,8 @@ const messages = {
     ipv6: "IPv6",
     chartLabel: "{series} over time",
     note: "The Peer Info dashboard's crawler series, one sample every three days, up to the snapshot.",
+    noteNodexch:
+      "Chia's daily node count until the gateway's own crawler took over, then its count.",
     versionsTitle: "Versions over time",
     versionsAction: "every 3 days · last year",
     versionsLabel: "Nodes by version over time",

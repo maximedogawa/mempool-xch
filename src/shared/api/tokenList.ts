@@ -151,7 +151,8 @@ let inflight: Promise<TokenMap> | null = null;
 
 /** Fetch the token list once per session (deduplicated), falling back to the cache and then to {}. */
 export function loadTokenList(
-  fetchImpl: typeof fetch = fetch,
+  fetchImpl: (url: string, init?: RequestInit) => Promise<MinimalResponse> = (url, init) =>
+    fetch(url, init),
   storage: Storage | null = typeof window !== "undefined" ? window.localStorage : null
 ): Promise<TokenMap> {
   const cached = readTokenCache(storage);

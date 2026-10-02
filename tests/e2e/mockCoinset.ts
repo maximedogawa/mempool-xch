@@ -804,6 +804,8 @@ export async function mockNodexch(page: Page, { down = false }: { down?: boolean
     requests: [] as { url: string; authorization: string | null }[],
     sockets: [] as string[],
     coinset: [] as { url: string; authorization: string | null }[],
+    /** Requests that went to Dexie itself. */
+    dexie: [] as string[],
   };
   // Down: the gateway answers 503, so the app falls back to Coinset (TASK-113).
   if (down) {
@@ -823,6 +825,10 @@ export async function mockNodexch(page: Page, { down = false }: { down?: boolean
       return answerNodeMethod(route);
     });
     await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+    await mockDexie(page);
+    page.on("request", (r) => {
+      if (r.url().startsWith("https://api.dexie.space/")) seen.dexie.push(r.url());
+    });
     return seen;
   }
   await page.route(/https:\/\/nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
@@ -843,7 +849,56 @@ export async function mockNodexch(page: Page, { down = false }: { down?: boolean
       success: true,
     });
   });
-  await page.route(/https:\/\/nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
+  // Dexie's paths on the gateway, in Dexie's shapes; Dexie itself must stay untouched.
+  await page.route(/https:\/\/nodexch\.space\/dexie\/.*/, (route) => {
+    const url = route.request().url();
+    seen.requests.push({ url, authorization: route.request().headers().authorization ?? null });
+    if (url.includes("/dexie/v3/prices/tickers"))
+      return json(route, { success: true, tickers: DEXIE_TICKERS });
+    if (url.includes("/dexie/v1/assets"))
+      return json(route, {
+        success: true,
+        count: DEXIE_ASSETS.length,
+        page: 1,
+        page_size: 100,
+        assets: DEXIE_ASSETS,
+      });
+    return json(route, { success: true, count: 0, offers: [] });
+  });
+  await page.route(/https:\/\/api\.dexie\.space\/.*/, (route) => {
+    seen.dexie.push(route.request().url());
+    return route.fulfill({ status: 599, body: "must not be called with nodexch" });
+  });
+  // What the gateway's crawler counted: the map's source instead of the shipped snapshot.
+  await page.route(/https:\/\/nodexch\.space\/x\/node\/v1\/network$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return json(route, {
+      attribution: "IP geolocation by DB-IP (db-ip.com), CC BY 4.0",
+      countries: [
+        { country: "US", nodes: 700 },
+        { country: "DE", nodes: 500 },
+        { country: "AT", nodes: 34 },
+      ],
+      history: [
+        { day: "2026-01-01", nodes: 1300, source: "chia" },
+        { day: "2026-01-02", nodes: 1234, source: "nodexch" },
+      ],
+      latest: {
+        day: new Date().toISOString().slice(0, 10),
+        nodes: 1234,
+        ipv4: 1000,
+        ipv6: 234,
+        reliable: 99,
+        source: "nodexch",
+        taken_at: new Date().toISOString(),
+        versions: [{ version: "2.7.4", nodes: 80 }],
+      },
+    });
+  });
+  await page.route(/https:\/\/nodexch\.space\/(?!x\/|dexie\/)[a-z_]+$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
       authorization: route.request().headers().authorization ?? null,
