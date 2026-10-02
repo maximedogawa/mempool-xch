@@ -48,8 +48,14 @@ describe("settings store", () => {
 });
 
 describe("resolveEndpoints", () => {
-  test("the default is the hosted nodexch gateway, with Coinset as its fallback", () => {
+  test("the default is the hosted nodexch gateway, without a fallback: Coinset is a choice", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
+    expect(r.provider).toBe("nodexch");
+    expect(r.rpcUrl).toBe("https://nodexch.space");
+    expect(r.fallback).toBeNull();
+  });
+  test("with the automatic fallback on, the hosted gateway falls back to Coinset", () => {
+    const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { autoFallback: true });
     expect(r.provider).toBe("nodexch");
     expect(r.rpcUrl).toBe("https://nodexch.space");
     expect(r.indexedUrl).toBe("https://nodexch.space");
@@ -62,18 +68,22 @@ describe("resolveEndpoints", () => {
       apiKey: null,
     });
     // Testnet11 has no gateway: Coinset by default, and nothing to fall back to.
-    const testnet = resolveEndpoints(DEFAULT_SETTINGS, "testnet11");
+    const testnet = resolveEndpoints(DEFAULT_SETTINGS, "testnet11", { autoFallback: true });
     expect(testnet.provider).toBe("coinset");
     expect(testnet.fallback).toBeNull();
   });
   test("an endpoint the visitor chose never falls back", () => {
-    const own = resolveEndpoints({
-      ...DEFAULT_SETTINGS,
-      endpoints: {
-        ...DEFAULT_SETTINGS.endpoints,
-        mainnet: { rpcUrl: "https://gw.example.test", provider: "nodexch" },
+    const own = resolveEndpoints(
+      {
+        ...DEFAULT_SETTINGS,
+        endpoints: {
+          ...DEFAULT_SETTINGS.endpoints,
+          mainnet: { rpcUrl: "https://gw.example.test", provider: "nodexch" },
+        },
       },
-    });
+      "mainnet",
+      { autoFallback: true }
+    );
     expect(own.provider).toBe("nodexch");
     expect(own.fallback).toBeNull();
     const coinset = resolveEndpoints({

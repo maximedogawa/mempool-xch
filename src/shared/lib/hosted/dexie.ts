@@ -2,8 +2,10 @@
  * Dexie through a nodexch gateway (nodexch TASK-056 and TASK-057 AC 2): the gateway answers the
  * Dexie API paths this app reads (`/v1/assets`, `/v1/offers`, `/v3/prices/tickers`) under `/dexie`
  * in Dexie's own shapes, so a request moves by swapping the origin and adding the nodexch key.
- * Dexie itself stays the fallback, per request: a gateway that fails, times out or refuses is
- * answered by api.dexie.space instead, without the key, and the next request asks nodexch again.
+ * With the automatic fallback on (NODEXCH_AUTO_FALLBACK) Dexie itself stays the fallback, per
+ * request: a gateway that fails, times out or refuses is answered by api.dexie.space instead,
+ * without the key, and the next request asks nodexch again. Without it the gateway's failure is
+ * the answer.
  *
  * Icons (`icons.dexie.space`) are not routed: an `<img>` cannot send the key a private gateway
  * asks for, so `/dexie/icons` answers 401 there (nodexch-wiki guides/mempoolxch.md, open point 1).
@@ -47,10 +49,13 @@ const DEXIE_ANSWERS = new Set([400, 404, 410]);
 export function createDexieFetch({
   route,
   fetch: base,
+  fallback = true,
   timeoutMs = 8_000,
 }: {
   route: () => DexieRoute | null;
   fetch: FetchLike;
+  /** False: the gateway's answer or failure stands, Dexie is not asked behind it. */
+  fallback?: boolean;
   /** How long the gateway may take before the request goes to Dexie. */
   timeoutMs?: number;
 }): FetchLike {
@@ -68,10 +73,10 @@ export function createDexieFetch({
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await base(routed.url, { ...routed.init, signal: controller.signal });
-      if (response.ok || DEXIE_ANSWERS.has(response.status)) return response;
+      if (!fallback || response.ok || DEXIE_ANSWERS.has(response.status)) return response;
     } catch (error) {
       // The caller gave up: not the gateway's fault.
-      if (outer?.aborted) throw error;
+      if (!fallback || outer?.aborted) throw error;
     } finally {
       clearTimeout(timer);
       outer?.removeEventListener("abort", abort);

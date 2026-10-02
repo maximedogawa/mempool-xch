@@ -87,34 +87,40 @@ test.describe("nodexch provider", () => {
     await expect(page.getByText("1,234").first()).toBeVisible();
   });
 
-  test("when the gateway fails, Dexie itself answers, without the key", async ({ page }) => {
-    const seen = await mockNodexch(page, { down: true });
-    await page.goto("/tokens");
-    await expect(page.getByText("Most Active Token").first()).toBeVisible({ timeout: 20_000 });
-    expect(seen.dexie.some((url) => url.includes("/v1/assets"))).toBe(true);
-  });
-
-  test("when nodexch.space fails, reads fall back to Coinset without the key, and it shows", async ({
+  test("when nodexch.space fails, nothing moves to Coinset or Dexie by itself; Coinset is picked in Settings", async ({
     page,
   }) => {
     const seen = await mockNodexch(page, { down: true });
+    await page.goto("/tokens");
+    await expect
+      .poll(() => seen.requests.some((r) => r.url.includes("/dexie/")), { timeout: 20_000 })
+      .toBe(true);
     await page.goto("/");
+    await expect
+      .poll(() => seen.requests.some((r) => r.url.endsWith("/get_blockchain_state")), {
+        timeout: 20_000,
+      })
+      .toBe(true);
+    await page.waitForTimeout(2_000);
+    expect(seen.coinset, "Coinset is not asked behind a failing nodexch").toEqual([]);
+    expect(seen.dexie, "Dexie is not asked behind a failing nodexch").toEqual([]);
+    await expect(page.getByTestId("connection-fallback")).toHaveCount(0);
+
+    // The way back to Coinset is the provider choice.
+    await page.goto("/settings");
+    await page
+      .locator("fieldset")
+      .first()
+      .getByRole("radio", { name: /^Coinset/ })
+      .check({ force: true });
+    await page.getByRole("button", { name: /^Save/ }).first().click();
+    // In-app navigation: a reload would run the mock's seed again and undo the choice.
+    await page.getByRole("link", { name: "mempoolxch.space home" }).click();
     await expect(
       page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
     ).toBeVisible({ timeout: 20_000 });
-    expect(seen.requests.length, "nodexch was asked first").toBeGreaterThan(0);
-    expect(seen.coinset.length, "Coinset answered instead").toBeGreaterThan(0);
+    expect(seen.coinset.length, "Coinset answers once it is chosen").toBeGreaterThan(0);
     for (const r of seen.coinset) expect(r.authorization, r.url).toBeNull();
-    await expect(page.getByTestId("connection-fallback")).toHaveText(
-      /nodexch\.space is not answering \(HTTP 503\)/
-    );
-    await page.goto("/settings");
-    await expect(
-      page
-        .locator("#main")
-        .getByRole("status")
-        .filter({ hasText: "nodexch.space is not answering" })
-    ).toBeVisible({ timeout: 20_000 });
   });
 });
 

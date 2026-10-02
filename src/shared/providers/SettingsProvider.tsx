@@ -22,7 +22,7 @@ import { createFailover, type FailoverState, type FetchLike } from "@/shared/lib
 import { createDexieFetch, type DexieRoute } from "@/shared/lib/hosted/dexie";
 import { probeIndexed } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
-import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
+import { NETWORKS, NODEXCH_AUTO_FALLBACK, type NetworkConfig } from "@/shared/config/networks";
 
 export interface SettingsContextValue {
   settings: Settings;
@@ -152,6 +152,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       createDexieFetch({
         route: () => (hydratedRef.current ? dexieRouteOf(activeEndpoints.current) : null),
         fetch: (input, init) => fetch(input, init),
+        fallback: NODEXCH_AUTO_FALLBACK,
       }),
     []
   );

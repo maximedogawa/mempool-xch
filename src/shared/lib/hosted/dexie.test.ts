@@ -127,4 +127,16 @@ describe("createDexieFetch", () => {
     await fetch("https://api.mintgarden.io/collections?size=1");
     expect(f.calls).toEqual([{ url: "https://api.mintgarden.io/collections?size=1", auth: null }]);
   });
+
+  test("with the fallback off, the gateway's failure is the answer and Dexie is not asked", async () => {
+    const refused = fakeFetch(() => status(429));
+    const fetch = createDexieFetch({ route: () => ROUTE, fetch: refused.fetch, fallback: false });
+    expect((await fetch(TICKERS)).status).toBe(429);
+    expect(refused.calls.map((c) => c.url)).toEqual([`${GATEWAY}/dexie/v3/prices/tickers`]);
+
+    const down = fakeFetch(() => "throw");
+    const failing = createDexieFetch({ route: () => ROUTE, fetch: down.fetch, fallback: false });
+    await expect(failing(TICKERS)).rejects.toThrow("fetch failed");
+    expect(down.calls).toHaveLength(1);
+  });
 });

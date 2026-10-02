@@ -5,6 +5,7 @@
  */
 import {
   NETWORKS,
+  NODEXCH_AUTO_FALLBACK,
   NETWORK_IDS,
   defaultEndpointUrl,
   isNodexchUrl,
@@ -81,8 +82,9 @@ export interface ResolvedEndpoints {
   /** The publishable key sent to a nodexch gateway; null otherwise. */
   apiKey: string | null;
   /**
-   * Where reads go when this endpoint fails: Coinset for the hosted nodexch gateway, nothing for
-   * an endpoint the visitor chose (a local node, their own gateway, Coinset itself).
+   * Where reads go when this endpoint fails: Coinset for the hosted nodexch gateway when the
+   * build turns the automatic fallback on (NODEXCH_AUTO_FALLBACK), nothing otherwise and nothing
+   * for an endpoint the visitor chose (a local node, their own gateway, Coinset itself).
    */
   fallback: ResolvedEndpoints | null;
 }
@@ -111,7 +113,8 @@ export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
 
 export function resolveEndpoints(
   settings: Settings,
-  network: NetworkId = settings.network
+  network: NetworkId = settings.network,
+  { autoFallback = NODEXCH_AUTO_FALLBACK }: { autoFallback?: boolean } = {}
 ): ResolvedEndpoints {
   const endpoint = settings.endpoints[network];
   const rpcUrl = (endpoint?.rpcUrl?.trim() || defaultEndpointUrl(network)).replace(/\/$/, "");
@@ -127,7 +130,7 @@ export function resolveEndpoints(
       provider,
       isCoinset: false,
       apiKey,
-      fallback: isNodexchUrl(network, rpcUrl) ? coinsetEndpoints(network) : null,
+      fallback: autoFallback && isNodexchUrl(network, rpcUrl) ? coinsetEndpoints(network) : null,
     };
   }
   const isCoinset = provider === "coinset";
