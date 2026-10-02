@@ -13,6 +13,14 @@ import type { MempoolItem } from "@/shared/lib/rpc/types";
 export interface MempoolItemSyncDeps<T> {
   getAllMempoolTxIds: (signal?: AbortSignal) => Promise<string[]>;
   getMempoolItemByTxId: (id: string, signal?: AbortSignal) => Promise<MempoolItem>;
+  /**
+   * The whole mempool in one call, for a gateway that counts requests (nodexch): used instead
+   * of one call per item when more than `bulkAbove` items are new. One large answer then costs
+   * one request, where a cold tab would otherwise send one per pending transaction.
+   */
+  getAllMempoolItems?: (signal?: AbortSignal) => Promise<MempoolItem[]>;
+  /** New items up to this many are fetched one by one even when the bulk call exists. */
+  bulkAbove?: number;
   /** Runs once per item; `firstSeen` is when this tab first observed it (epoch ms). */
   reduce: (item: MempoolItem, firstSeen: number) => T;
   /** Entries known from an earlier visit, by tx id: ids still live are not fetched again. */
@@ -32,6 +40,9 @@ export interface MempoolItemSync<T> {
   sync: (signal?: AbortSignal, onProgress?: (entries: T[]) => void) => Promise<T[]>;
   readonly size: number;
 }
+
+/** With a bulk call available, up to this many new items are still fetched one by one. */
+export const BULK_ABOVE = 2;
 
 /** Fewer new ids than this arrive faster than a progress update is worth. */
 export const PROGRESS_MIN_NEW = 16;
@@ -56,6 +67,24 @@ export function createMempoolItemSync<T>(deps: MempoolItemSyncDeps<T>): MempoolI
       const live = new Set(ids);
       for (const id of known.keys()) if (!live.has(id)) known.delete(id);
       const newIds = [...live].filter((id) => !known.has(id));
+      if (deps.getAllMempoolItems && newIds.length > (deps.bulkAbove ?? BULK_ABOVE)) {
+        const wanted = new Set(newIds);
+        let all: MempoolItem[] | null = null;
+        try {
+          all = await deps.getAllMempoolItems(signal);
+        } catch {
+          check();
+          // The item-by-item path below still works when the listing does not.
+        }
+        check();
+        if (all) {
+          for (const item of all) {
+            if (wanted.has(item.name)) known.set(item.name, deps.reduce(item, now()));
+          }
+          // What the listing did not hold has left again, or comes with the next sync.
+          return [...known.values()];
+        }
+      }
       const reportProgress = onProgress && newIds.length >= PROGRESS_MIN_NEW;
       let lastProgress = now();
       let cursor = 0;

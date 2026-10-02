@@ -18,7 +18,8 @@ import {
   type Settings,
 } from "@/shared/lib/settings/store";
 import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
-import { probeIndexed } from "@/shared/lib/rpc/probe";
+import { browserStorage } from "@/shared/lib/browserStorage";
+import { loadProbe, probeIndexed, saveProbe } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
 import { NETWORKS, type NetworkConfig } from "@/shared/config/networks";
 
@@ -57,6 +58,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
   useEffect(() => {
     if (!hydrated || resolved.provider !== "nodexch") return;
+    const known = loadProbe(browserStorage(), resolved.rpcUrl);
+    if (known !== null) {
+      setIndexOffFor(known ? null : resolved.rpcUrl);
+      return;
+    }
     const controller = new AbortController();
     const probe = createRpcClient({
       rpcUrl: resolved.rpcUrl,
@@ -65,7 +71,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       timeoutMs: 10_000,
     });
     void probeIndexed(probe, controller.signal).then((on) => {
-      if (!controller.signal.aborted) setIndexOffFor(on ? null : resolved.rpcUrl);
+      if (controller.signal.aborted) return;
+      saveProbe(browserStorage(), resolved.rpcUrl, on);
+      setIndexOffFor(on ? null : resolved.rpcUrl);
     });
     return () => controller.abort();
   }, [hydrated, resolved.provider, resolved.rpcUrl, resolved.apiKey]);

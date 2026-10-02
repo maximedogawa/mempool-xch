@@ -28,6 +28,7 @@ import { cn } from "@/shared/lib/cn";
 import { routes } from "@/shared/lib/routes";
 import { createRpcClient } from "@/shared/lib/rpc/client";
 import { errorMessage } from "@/shared/lib/rpc/errors";
+import { PUBLISHABLE_KEY, type Endpoint } from "@/shared/lib/settings/store";
 import { SCHEME_THEMES, THEMES, type ThemeId, type ThemePreference } from "@/shared/theme";
 import { useSage } from "@/shared/providers/SageProvider";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
@@ -44,7 +45,7 @@ type TestState =
       status: "ok";
       height: number;
       ms: number;
-      coinset: boolean;
+      provider: Provider;
       synced: boolean;
       syncTipHeight: number | null;
     }
@@ -169,22 +170,20 @@ function EndpointRow({ network }: { network: NetworkId }) {
   const { settings, update } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
-<<<<<<< HEAD
   const saved = settings.endpoints[network];
   const value = saved.rpcUrl;
-  const [draft, setDraft] = useState(value);
-  // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key.
-  const [draftNodexch, setDraftNodexch] = useState(saved.provider === "nodexch");
-  const [draftKey, setDraftKey] = useState(saved.apiKey ?? "");
-=======
-  const value = settings.endpoints[network].rpcUrl;
   // The field follows the saved endpoint until the visitor types: the first render still sees
   // the defaults (Coinset) before the stored settings are read, so a draft fixed at mount would
   // show, and test, Coinset instead of the saved custom node (TASK-109).
   const [edited, setEdited] = useState<string | null>(null);
   const draft = edited ?? value;
   const setDraft = setEdited;
->>>>>>> origin/main
+  // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key:
+  // they follow the saved endpoint the same way.
+  const [editedNodexch, setDraftNodexch] = useState<boolean | null>(null);
+  const draftNodexch = editedNodexch ?? saved.provider === "nodexch";
+  const [editedKey, setDraftKey] = useState<string | null>(null);
+  const draftKey = editedKey ?? saved.apiKey ?? "";
   const [test, setTest] = useState<TestState>({ status: "idle" });
   const provider = providerOf(network, draft.trim(), draftNodexch ? "nodexch" : undefined);
   const savedProvider = providerOf(network, value, saved.provider);
@@ -224,13 +223,9 @@ function EndpointRow({ network }: { network: NetworkId }) {
         status: "ok",
         height: state.peak.height,
         ms: Math.round(performance.now() - started),
-<<<<<<< HEAD
         provider,
-=======
-        coinset: isCoinsetUrl(network, draft),
         synced: state.synced,
         syncTipHeight: state.syncTipHeight,
->>>>>>> origin/main
       });
     } catch (error) {
       setTest({ status: "error", message: errorMessage(error) });
@@ -363,6 +358,8 @@ function EndpointRow({ network }: { network: NetworkId }) {
               endpoints: { ...prev.endpoints, [network]: endpointOf(rpcUrl) },
             }));
             setEdited(null);
+            setDraftNodexch(null);
+            setDraftKey(null);
           }}
         >
           {t("endpoint.save")}
@@ -372,13 +369,9 @@ function EndpointRow({ network }: { network: NetworkId }) {
           variant="ghost"
           disabled={isDefault && !dirty}
           onClick={() => {
-<<<<<<< HEAD
-            setDraft(config.rpcUrl);
-            setDraftNodexch(false);
-            setDraftKey("");
-=======
             setEdited(null);
->>>>>>> origin/main
+            setDraftNodexch(null);
+            setDraftKey(null);
             setTest({ status: "idle" });
             update((prev) => ({
               ...prev,

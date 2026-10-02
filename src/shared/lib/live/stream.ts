@@ -3,6 +3,10 @@
  * reconnect and a polling fallback on get_blockchain_state for endpoints without a stream.
  * Emits one normalised event type so the UI does not care where updates come from.
  */
+import { compactAllFromGateway } from "@/shared/lib/mempool/gatewayItem";
+import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
+import { parseJsonSafe } from "@/shared/lib/rpc/json";
+
 export type LiveStatus = "connecting" | "live" | "polling" | "offline";
 
 export type LiveEvent =
@@ -23,6 +27,24 @@ export type LiveEvent =
       depth: number;
       detectedAtMs: number;
     }
+  /**
+   * A nodexch gateway's own figures (dashboard event, kind "live"): what a poll of
+   * get_blockchain_state would say about the peak and the mempool, pushed instead of asked.
+   */
+  | {
+      type: "state";
+      peakHeight: number;
+      mempoolSize: number;
+      mempoolCost: number;
+      mempoolFees: bigint;
+      synced: boolean;
+    }
+  /**
+   * What entered and left a nodexch gateway's mempool since its last frame (dashboard event,
+   * kind "mempool_delta"). `added` is null when an entry came without its details (an older
+   * gateway, or an item its budget left unfetched): the mempool then has to be read again.
+   */
+  | { type: "mempoolDelta"; added: CompactMempoolItem[] | null; removed: string[] }
   /** Coinset's periodic netspace estimate (dashboard event, kind "netspace"). */
   | { type: "netspace"; bytes: bigint; difficulty: number }
   /** A Chia Vault recovery step seen by Coinset (events=vault). */
@@ -49,6 +71,12 @@ export interface LiveStreamOptions {
   poll: (signal: AbortSignal) => Promise<PollSample>;
   onEvent: (event: LiveEvent) => void;
   pollIntervalMs?: number;
+  /**
+   * The interval while the socket is open and pushes `state` events: the poll is then only a
+   * check that the socket still tells the truth, and each one is a paid request on a metered
+   * gateway. Defaults to `pollIntervalMs` (no change).
+   */
+  quietPollIntervalMs?: number;
   /** Fall back to polling after this many consecutive WebSocket failures. */
   maxWsFailures?: number;
   WebSocketImpl?: typeof WebSocket;
@@ -91,7 +119,10 @@ export function streamUrl(wsUrl: string): string {
 export function parseCoinsetMessage(raw: string): LiveEvent | null {
   let envelope: CoinsetEnvelope;
   try {
-    envelope = JSON.parse(raw) as CoinsetEnvelope;
+    // Coin amounts in a mempool delta are mojos as bare numbers, which can pass 2^53.
+    envelope = (
+      raw.includes('"mempool_delta"') ? parseJsonSafe(raw) : JSON.parse(raw)
+    ) as CoinsetEnvelope;
   } catch {
     return null;
   }
@@ -145,6 +176,31 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
       at: Date.now(),
     };
   }
+  if (message.type === "dashboard" && data.kind === "live") {
+    // Coinset has a "live" kind of its own with other fields: only nodexch's shape counts.
+    if (typeof data.peak_height !== "number" || typeof data.mempool_size !== "number") return null;
+    const fees =
+      typeof data.mempool_fees === "string" || typeof data.mempool_fees === "number"
+        ? String(data.mempool_fees)
+        : "0";
+    return {
+      type: "state",
+      peakHeight: data.peak_height,
+      mempoolSize: data.mempool_size,
+      mempoolCost: Number(data.mempool_cost) || 0,
+      mempoolFees: /^\d+$/.test(fees) ? BigInt(fees) : 0n,
+      synced: data.synced !== false,
+    };
+  }
+  if (message.type === "dashboard" && data.kind === "mempool_delta") {
+    return {
+      type: "mempoolDelta",
+      added: compactAllFromGateway(data.added),
+      removed: (Array.isArray(data.removed) ? data.removed : []).map((id) =>
+        String(id).replace(/^0x/, "").toLowerCase()
+      ),
+    };
+  }
   if (message.type === "dashboard" && data.kind === "netspace") {
     // bytes arrives as a decimal string well beyond 2^53; keep it exact.
     const raw =
@@ -170,6 +226,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     options.setTimeoutImpl ?? ((fn: () => void, ms: number): TimerId => setTimeout(fn, ms));
   const clearT = options.clearTimeoutImpl ?? ((id: TimerId) => clearTimeout(id));
   const pollInterval = options.pollIntervalMs ?? 5_000;
+  const quietPollInterval = options.quietPollIntervalMs ?? pollInterval;
   const maxWsFailures = options.maxWsFailures ?? 3;
   const WS = options.WebSocketImpl ?? (typeof WebSocket !== "undefined" ? WebSocket : undefined);
 
@@ -183,6 +240,8 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
   let lastSample: PollSample | null = null;
   let pollFailures = 0;
   let pollController: AbortController | null = null;
+  /** The open socket has pushed a `state` event: it carries what the poll would ask for. */
+  let socketPushesState = false;
 
   const setStatus = (next: LiveStatus) => {
     if (status === next) return;
@@ -223,7 +282,8 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       if (lastSample === null || sample.peakHeight !== lastSample.peakHeight) {
         options.onEvent({ type: "peak", height: sample.peakHeight, tx: sample.peakIsTx });
       }
-      if (lastSample === null || sample.mempoolSize !== lastSample.mempoolSize) {
+      // The first sample has nothing to compare with, and every reader has just asked.
+      if (lastSample !== null && sample.mempoolSize !== lastSample.mempoolSize) {
         options.onEvent({ type: "mempool", size: sample.mempoolSize });
       }
       lastSample = sample;
@@ -232,7 +292,8 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       pollFailures += 1;
       if (pollFailures >= 2 && socket === null) setStatus("offline");
     }
-    schedulePoll(pollInterval);
+    const quiet = socketPushesState && socket !== null && socket.readyState === OPEN;
+    schedulePoll(quiet ? quietPollInterval : pollInterval);
   };
 
   const connect = () => {
@@ -253,7 +314,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     };
     ws.onmessage = (event) => {
       const parsed = parseCoinsetMessage(String(event.data));
-      if (parsed) options.onEvent(parsed);
+      if (!parsed) return;
+      if (parsed.type === "state") socketPushesState = true;
+      options.onEvent(parsed);
     };
     ws.onerror = () => {
       // onclose follows; nothing to do here.
@@ -261,6 +324,9 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     ws.onclose = () => {
       if (socket !== ws) return;
       socket = null;
+      // Back to the short interval at once: the next poll may be minutes away.
+      if (socketPushesState) schedulePoll(pollInterval);
+      socketPushesState = false;
       onSocketFailure();
     };
   };
@@ -292,6 +358,7 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
       lastSample = null;
       wsFailures = 0;
       pollFailures = 0;
+      socketPushesState = false;
       // Polling always runs: it is the fallback and it also feeds the peak/mempool sample
       // when the socket is silent. The socket, when available, adds immediate events.
       void runPoll();

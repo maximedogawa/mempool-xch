@@ -29,3 +29,38 @@ export async function probeIndexed(
     return !(error.status === 501 || /index not enabled/i.test(text));
   }
 }
+
+/** The probe is an indexed call, the dearest kind on a metered gateway: its answer is kept. */
+export const PROBE_TTL_MS = 60 * 60_000;
+const PROBE_KEY = "mempool-xch:nodexch-index:v1";
+
+type ProbeStorage = Pick<Storage, "getItem" | "setItem">;
+
+/** The remembered answer for `rpcUrl`, or null when there is none or it is too old. */
+export function loadProbe(storage: ProbeStorage | null, rpcUrl: string, now = Date.now()) {
+  try {
+    const raw = JSON.parse(storage?.getItem(PROBE_KEY) ?? "null") as {
+      url?: unknown;
+      on?: unknown;
+      at?: unknown;
+    } | null;
+    if (!raw || raw.url !== rpcUrl || typeof raw.on !== "boolean" || typeof raw.at !== "number")
+      return null;
+    return now - raw.at < PROBE_TTL_MS && raw.at <= now ? raw.on : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveProbe(
+  storage: ProbeStorage | null,
+  rpcUrl: string,
+  on: boolean,
+  now = Date.now()
+): void {
+  try {
+    storage?.setItem(PROBE_KEY, JSON.stringify({ url: rpcUrl, on, at: now }));
+  } catch {
+    // A full or blocked storage only means the next load asks again.
+  }
+}

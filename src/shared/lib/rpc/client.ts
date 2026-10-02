@@ -5,7 +5,7 @@
  */
 import { withHexPrefix } from "@/shared/lib/chia/hex";
 import { RpcError } from "./errors";
-import { createReadGate } from "./readGate";
+import { createPacedGate, createReadGate } from "./readGate";
 
 /**
  * One budget for everything sent to Coinset from this tab, full-node RPC and indexed API alike:
@@ -13,6 +13,10 @@ import { createReadGate } from "./readGate";
  * headers, so the browser reports each of them as a CORS failure. A custom node is not gated.
  */
 const coinsetRead = createReadGate();
+/** One pace for everything sent to a nodexch gateway from this tab (see createPacedGate). */
+const nodexchRead = createPacedGate();
+import { compactAllFromGateway } from "@/shared/lib/mempool/gatewayItem";
+import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { parseJsonSafe, stringifyJsonSafe } from "./json";
 import {
   normaliseBlockRecord,
@@ -80,6 +84,16 @@ export interface ListOptions {
   order?: "asc" | "desc";
 }
 
+function httpError(response: Response, method: string, text: string): RpcError {
+  // Seconds, as a nodexch gateway sends it with a 429.
+  const retryAfter = Number(response.headers.get("retry-after"));
+  return new RpcError("http", method, `HTTP ${response.status} from ${method}`, {
+    status: response.status,
+    detail: text.slice(0, 200),
+    retryAfterMs: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : undefined,
+  });
+}
+
 async function post(
   fetchImpl: FetchLike,
   baseUrl: string,
@@ -111,12 +125,7 @@ async function post(
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
   }
-  if (!response.ok) {
-    throw new RpcError("http", method, `HTTP ${response.status} from ${method}`, {
-      status: response.status,
-      detail: text.slice(0, 200),
-    });
-  }
+  if (!response.ok) throw httpError(response, method, text);
   let parsed: unknown;
   try {
     parsed = parseJsonSafe(text);
@@ -143,21 +152,46 @@ export function createRpcClient(options: RpcClientOptions) {
   const headers: Record<string, string> = options.nodexch?.apiKey
     ? { authorization: `Bearer ${options.nodexch.apiKey}` }
     : {};
-  // Coinset's read budget applies to Coinset only: a nodexch gateway limits per key itself.
-  const gated = hasIndexed && !options.nodexch;
+  // Coinset's read budget for Coinset, a nodexch gateway's pace for nodexch; a custom node
+  // is the visitor's own and is not held back.
+  const gate = options.nodexch ? nodexchRead : hasIndexed ? coinsetRead : null;
   const rpcDirect = (method: string, params: Raw = {}, signal?: AbortSignal) =>
     post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal, headers);
   const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
-    gated
-      ? coinsetRead(() => rpcDirect(method, params, signal), signal)
+    gate
+      ? gate(() => rpcDirect(method, params, signal), signal)
       : rpcDirect(method, params, signal);
+  /** A `GET` on the gateway's own channels (`/x/...`), paced like every other call to it. */
+  const channel = (path: string, signal?: AbortSignal): Promise<Raw> => {
+    const read = async () => {
+      let response: Response;
+      let text: string;
+      try {
+        response = await fetchImpl(`${options.rpcUrl.replace(/\/$/, "")}${path}`, {
+          headers,
+          signal,
+        });
+        text = await response.text();
+      } catch (error) {
+        if (signal?.aborted) throw new RpcError("aborted", path, "aborted");
+        throw new RpcError("network", path, `Network error calling ${path}`, { detail: error });
+      }
+      if (!response.ok) throw httpError(response, path, text);
+      try {
+        return parseJsonSafe(text) as Raw;
+      } catch (error) {
+        throw new RpcError("malformed", path, `Malformed JSON from ${path}`, { detail: error });
+      }
+    };
+    return gate ? gate(read, signal) : read();
+  };
   const indexed = (method: string, params: Raw = {}, signal?: AbortSignal) => {
     if (!options.indexedUrl) {
       throw new RpcError("rpc", method, "Indexed API is only available with Coinset or nodexch");
     }
     const call = () =>
       post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal, headers);
-    return gated ? coinsetRead(call, signal) : call();
+    return gate ? gate(call, signal) : call();
   };
 
   const notFoundIfMissing = <T>(value: T | null | undefined, method: string, what: string): T => {
@@ -170,6 +204,8 @@ export function createRpcClient(options: RpcClientOptions) {
     rpcUrl: options.rpcUrl,
     indexedUrl: options.indexedUrl,
     hasIndexed,
+    /** A nodexch gateway: every request counts against a rate and a quota. */
+    metered: options.nodexch !== undefined,
 
     /* ---- full node ---- */
 
@@ -384,24 +420,28 @@ export function createRpcClient(options: RpcClientOptions) {
      */
     async getConnections(signal?: AbortSignal): Promise<PeerConnection[]> {
       if (options.nodexch) {
-        const url = `${options.rpcUrl}/x/node/v1/peers`;
-        let response: Response;
-        try {
-          response = await fetchImpl(url, { headers, signal });
-        } catch (error) {
-          throw new RpcError("network", "peers", "Network error calling /x/node/v1/peers", {
-            detail: error,
-          });
-        }
-        if (!response.ok)
-          throw new RpcError("http", "peers", `HTTP ${response.status} from /x/node/v1/peers`, {
-            status: response.status,
-          });
-        const r = parseJsonSafe(await response.text()) as Raw;
+        const r = await channel("/x/node/v1/peers", signal);
         return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
       }
       const r = await rpc("get_connections", {}, signal);
       return (Array.isArray(r.connections) ? r.connections : []).map(normalisePeerConnection);
+    },
+
+    /**
+     * Every pending transaction as a nodexch gateway knows it, in one call (its
+     * `/x/node/v1/mempool/items`, nodexch TASK-147). Null when this is no nodexch gateway, the
+     * gateway is older than the route, or an entry came without its details: the caller then
+     * syncs item by item as with any node.
+     */
+    async getMempoolItems(signal?: AbortSignal): Promise<CompactMempoolItem[] | null> {
+      if (!options.nodexch) return null;
+      try {
+        const r = await channel("/x/node/v1/mempool/items", signal);
+        return Array.isArray(r.items) ? compactAllFromGateway(r.items) : null;
+      } catch (error) {
+        if (error instanceof RpcError && error.kind === "http" && error.status === 404) return null;
+        throw error;
+      }
     },
 
     /* ---- Coinset indexed API (null when not Coinset) ---- */

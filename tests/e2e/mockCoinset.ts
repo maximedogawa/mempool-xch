@@ -806,6 +806,34 @@ export async function mockNodexch(page: Page) {
       success: true,
     });
   });
+  // The whole mempool in one call, each entry as a mempool_delta frame gives it (TASK-147).
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/mempool\/items$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    const items = Object.values(mempoolItems.mempool_items).map((item) => ({
+      id: item.spend_bundle_name,
+      first_seen_ms: NOW - 60_000,
+      fee_mojos: item.fee,
+      cost: item.cost,
+      spends: item.spend_bundle.coin_spends.length,
+      additions: item.additions.slice(0, 6),
+      removals: item.removals.slice(0, 6),
+      addition_count: item.additions.length,
+      removal_count: item.removals.length,
+      kind: "xch",
+      asset_ids: [],
+      assets: {
+        xch: String(item.removals.reduce((sum, coin) => sum + coin.amount, 0)),
+        cats: [],
+        nfts: 0,
+        dids: 0,
+        singletons: 0,
+      },
+    }));
+    return json(route, { size: items.length, items, success: true });
+  });
   await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
@@ -821,6 +849,24 @@ export async function mockNodexch(page: Page) {
         network: "mainnet",
         seq: 1,
         message: { type: "peak", data: { height: 9295535, tx: true } },
+      })
+    );
+    // nodexch's own dashboard frame: what a poll of get_blockchain_state would say.
+    ws.send(
+      JSON.stringify({
+        network: "mainnet",
+        seq: 2,
+        message: {
+          type: "dashboard",
+          data: {
+            kind: "live",
+            peak_height: 9295535,
+            mempool_size: 3,
+            mempool_cost: 60_000_000,
+            mempool_fees: 0,
+            synced: true,
+          },
+        },
       })
     );
   });

@@ -9,6 +9,8 @@ export class RpcError extends Error {
   readonly method: string;
   readonly status?: number;
   readonly detail?: unknown;
+  /** How long the server asked to wait (its `retry-after`), in ms. */
+  readonly retryAfterMs?: number;
   /** Transport already exhausted its bounded retries; avoid multiplying them in Query. */
   retryHandled = false;
 
@@ -16,7 +18,7 @@ export class RpcError extends Error {
     kind: RpcErrorKind,
     method: string,
     message: string,
-    extra?: { status?: number; detail?: unknown }
+    extra?: { status?: number; detail?: unknown; retryAfterMs?: number }
   ) {
     super(message);
     this.name = "RpcError";
@@ -24,6 +26,7 @@ export class RpcError extends Error {
     this.method = method;
     this.status = extra?.status;
     this.detail = extra?.detail;
+    this.retryAfterMs = extra?.retryAfterMs;
   }
 
   /** Short user-facing description. */

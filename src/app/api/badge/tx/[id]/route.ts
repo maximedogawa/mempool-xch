@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { badgeSource, type BadgeSource } from "./source";
 import { light } from "@/shared/theme/themes/light";
 
 /**
@@ -9,10 +10,6 @@ import { light } from "@/shared/theme/themes/light";
  */
 export const dynamic = "force-dynamic";
 
-const COINSET: Record<string, string> = {
-  mainnet: "https://api.coinset.org",
-  testnet11: "https://testnet11.api.coinset.org",
-};
 // A badge is an image on someone else's page, so it always uses the light theme's palette.
 const P = light.palette;
 const COLOUR: Record<string, string> = {

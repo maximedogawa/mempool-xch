@@ -17,6 +17,9 @@ import {
   type LiveTransport,
 } from "@/shared/lib/live/stream";
 import { queryKeys } from "@/shared/api/queryKeys";
+import { applyMempoolDelta } from "@/shared/lib/mempool/delta";
+import type { MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
+import type { BlockchainState } from "@/shared/lib/rpc/types";
 import { useSettings } from "./SettingsProvider";
 
 export interface LiveContextValue {
@@ -26,6 +29,8 @@ export interface LiveContextValue {
   /** Unix ms of the last event (peak, transaction or poll sample). */
   lastEventAt: number | null;
   peakHeight: number | null;
+  /** Height of the newest transaction block seen on this connection; null until one arrives. */
+  txPeakHeight: number | null;
   /** Monotonic counter bumped on every transaction batch, for feeds that want a nudge. */
   txBatch: number;
   lastTxEvent: Extract<LiveEvent, { type: "transaction" }> | null;
@@ -42,6 +47,7 @@ const INITIAL: LiveContextValue = {
   transport: "polling",
   lastEventAt: null,
   peakHeight: null,
+  txPeakHeight: null,
   txBatch: 0,
   lastTxEvent: null,
   netspace: null,
@@ -79,6 +85,14 @@ function createLiveStore(): LiveStore {
 
 const LiveContext = createContext<LiveStore | null>(null);
 
+/**
+ * A nodexch gateway is paid per request (a monthly quota and a rate a minute), and its socket
+ * pushes what the polls would ask for. With it the app asks again only when a transaction
+ * block arrives, looks at the mempool less often, and polls as a rare check (TASK-115).
+ */
+const METERED_MEMPOOL_GAP_MS = 30_000;
+const METERED_QUIET_POLL_MS = 5 * 60_000;
+
 /** Coalesces bursts of invalidations (Coinset sends several mempool deltas per second when busy). */
 function throttled(fn: () => void, ms: number) {
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -111,13 +125,20 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const [store] = useState(createLiveStore);
   const network = endpoints.network;
   const peakRef = useRef<number | null>(null);
+  const startedRef = useRef(false);
+  const metered = endpoints.provider === "nodexch";
 
   useEffect(() => {
     // Until the stored settings are in, do nothing: the endpoint may not be the default one.
     if (!hydrated) return;
     // Queries that started from the hydration render were refused (see SettingsProvider);
-    // refetch them now with the real endpoint.
-    void queryClient.invalidateQueries();
+    // refetch them now with the real endpoint. On the first run the ones in flight were started
+    // by this same commit with the real endpoint: asking them again would double the load.
+    const first = !startedRef.current;
+    startedRef.current = true;
+    void queryClient.invalidateQueries(
+      first ? { predicate: (query) => query.state.fetchStatus !== "fetching" } : undefined
+    );
     // Network or endpoint changed: forget everything learnt from the previous one so widgets
     // that key on the peak (recent blocks, confirmations) wait for the new chain's first poll.
     peakRef.current = null;
@@ -137,15 +158,30 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     }, 1_000);
     const invalidateMempool = throttled(
       () => void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) }),
-      3_000
+      metered ? METERED_MEMPOOL_GAP_MS : 3_000
     );
+    const summaryKey = queryKeys.mempoolSummary(network, "browser");
+    // The gateway's deltas keep the mempool current: transaction events and blocks then need
+    // no read of it. Off again whenever the socket is not live.
+    let deltaFed = false;
+    const patchSummaryState = (patch: Partial<MempoolStateSummary>) =>
+      queryClient.setQueryData<MempoolSummary>(
+        summaryKey,
+        (prev) => prev && { ...prev, state: { ...prev.state, ...patch } }
+      );
     const stream = createLiveStream({
       wsUrl: endpoints.wsUrl,
       pollIntervalMs: endpoints.wsUrl ? 15_000 : 5_000,
+      quietPollIntervalMs: metered ? METERED_QUIET_POLL_MS : undefined,
       poll: async (signal) => {
-        const state = await client.getBlockchainState(signal);
+        // Through the state query, so a poll and a widget asking at once share one request
+        // (on its own signal: stopping the stream must not fail the shared query).
+        const state = await queryClient.fetchQuery({
+          queryKey: queryKeys.state(network),
+          queryFn: ({ signal: stateSignal }) => client.getBlockchainState(stateSignal),
+          staleTime: 0,
+        });
         signal.throwIfAborted();
-        queryClient.setQueryData(queryKeys.state(network), state);
         return {
           peakHeight: state.peak.height,
           peakIsTx: state.peak.isTransactionBlock,
@@ -155,6 +191,11 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       onEvent: (event) => {
         if (event.type === "status") {
           store.set({ status: event.status, transport: stream.transport });
+          if (event.status !== "live" && deltaFed) {
+            // Deltas were missed while the socket was away: read the mempool again.
+            deltaFed = false;
+            invalidateMempool();
+          }
           return;
         }
         const lastEventAt = Date.now();
@@ -163,13 +204,67 @@ export function LiveProvider({ children }: { children: ReactNode }) {
             store.set({ lastEventAt });
             return;
           }
+          const firstPeak = peakRef.current === null;
           peakRef.current = event.height;
-          store.set({ lastEventAt, peakHeight: event.height });
+          store.set({
+            lastEventAt,
+            peakHeight: event.height,
+            ...(event.tx ? { txPeakHeight: event.height } : {}),
+          });
+          // The first peak only says where the chain is: every reader has just asked (and a
+          // reorg, which also clears the peak, has invalidated them itself).
+          if (firstPeak) return;
+          if (deltaFed) {
+            patchSummaryState({
+              peakHeight: event.height,
+              ...(event.tx ? { lastTxBlockHeight: event.height } : {}),
+            });
+          }
+          // Only a transaction block changes fees, the mempool and the row of blocks.
+          if (metered && !event.tx) return;
           invalidateChain();
-          invalidateMempool();
+          if (!deltaFed) invalidateMempool();
+        } else if (event.type === "state") {
+          store.set({ lastEventAt });
+          // The gateway's own figures stand in for the poll: keep the cached state current.
+          queryClient.setQueryData<BlockchainState>(
+            queryKeys.state(network),
+            (prev) =>
+              prev && {
+                ...prev,
+                mempoolSize: event.mempoolSize,
+                mempoolCost: event.mempoolCost,
+                mempoolFees: event.mempoolFees,
+                synced: event.synced,
+              }
+          );
+          patchSummaryState({
+            mempoolSize: event.mempoolSize,
+            mempoolCost: event.mempoolCost,
+            mempoolFees: event.mempoolFees.toString(),
+            synced: event.synced,
+          });
+        } else if (event.type === "mempoolDelta") {
+          store.set({ lastEventAt });
+          const current = queryClient.getQueryData<MempoolSummary>(summaryKey);
+          // Deltas can only keep a full view current (not the last visit's snapshot or a sync
+          // in progress), and only when every entry came with its details.
+          if (!event.added || current?.source !== "browser") {
+            deltaFed = false;
+            invalidateMempool();
+            return;
+          }
+          deltaFed = true;
+          queryClient.setQueryData(
+            summaryKey,
+            applyMempoolDelta(current, event.added, event.removed)
+          );
+          // A read in flight may have left the gateway before this delta: read once more.
+          if (queryClient.getQueryState(summaryKey)?.fetchStatus === "fetching")
+            invalidateMempool();
         } else if (event.type === "transaction") {
           store.set({ lastEventAt, txBatch: store.get().txBatch + 1, lastTxEvent: event });
-          invalidateMempool();
+          if (!deltaFed) invalidateMempool();
           event.ids.forEach(
             (id) => void queryClient.invalidateQueries({ queryKey: queryKeys.tx(network, id) })
           );
@@ -211,7 +306,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       invalidateChain.cancel();
       invalidateMempool.cancel();
     };
-  }, [client, endpoints.wsUrl, hydrated, network, queryClient, store]);
+  }, [client, endpoints.wsUrl, hydrated, metered, network, queryClient, store]);
 
   return <LiveContext.Provider value={store}>{children}</LiveContext.Provider>;
 }
@@ -220,6 +315,16 @@ function useLiveStore(): LiveStore {
   const store = useContext(LiveContext);
   if (!store) throw new Error("useLive must be used inside LiveProvider");
   return store;
+}
+
+/**
+ * True while a metered gateway's socket is live: its events already say when to ask again, so
+ * the safety-net refetch intervals are left off.
+ */
+export function useMeteredLive(): boolean {
+  const { endpoints } = useSettings();
+  const status = useLiveValue("status");
+  return endpoints.provider === "nodexch" && status === "live";
 }
 
 /** One field of the live state; the component re-renders only when that field changes. */
