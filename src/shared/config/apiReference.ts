@@ -89,7 +89,7 @@ export const API_GROUPS: readonly ApiGroup[] = [
         '{ "parent_ids": ["0x…"], "include_spent_coins": true }'
       ),
       rpc("get_puzzle_and_solution", '{ "coin_id": "0x…", "height": 9300000 }'),
-      rpc("get_memos_by_coin_name", '{ "coin_name": "0x…" }'),
+      rpc("get_memos_by_coin_name", '{ "name": "0x…" }'),
       indexed("get_coin_details", '{ "coin_id": "0x…" }'),
       rpc("push_tx", '{ "spend_bundle": { … } }'),
     ],
