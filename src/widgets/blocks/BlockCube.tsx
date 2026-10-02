@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/cn";
  * The block "cube": a front face whose lower part is filled proportionally to the block's
  * cost usage, with a lit top face and a shaded side face for depth, a bright fill line and a
  * soft inner glow. Original implementation styled after the mempool.space silhouette
- * (decision-003).
+ *.
  */
 export function BlockCube({
   fill,
@@ -21,6 +21,7 @@ export function BlockCube({
   animate = false,
   glow = false,
   selected = false,
+  watched = false,
   size = 124,
 }: {
   /** 0..1 */
@@ -38,6 +39,8 @@ export function BlockCube({
   glow?: boolean;
   /** Highlight the front face (drill-down open). */
   selected?: boolean;
+  /** A transaction followed in the watchlist is in this block. */
+  watched?: boolean;
   size?: number;
 }) {
   const depth = Math.round(size * 0.2);
@@ -51,19 +54,22 @@ export function BlockCube({
       ? "var(--block-empty)"
       : [
           // empty part: dark glass with a faint grid so the fill level reads at a glance
-          `linear-gradient(to top, transparent ${pct}%, color-mix(in srgb, var(--block-face) 88%, transparent) ${pct}%)`,
-          `repeating-linear-gradient(to top, transparent 0 11px, rgba(255,255,255,0.035) 11px 12px)`,
+          `linear-gradient(to top, transparent ${pct}%, var(--cube-glass) ${pct}%)`,
+          `repeating-linear-gradient(to top, transparent 0 11px, var(--cube-grid) 11px 12px)`,
           // filled part: the fee gradient with a vertical sheen and a bright waterline
-          `linear-gradient(to top, rgba(0,0,0,0.18), rgba(255,255,255,0.10) ${Math.max(0, pct - 1)}%, rgba(255,255,255,0.55) ${pct}%, transparent ${pct + 1}%)`,
+          `linear-gradient(to top, var(--cube-fill-shade), rgba(255,255,255,0.10) ${Math.max(0, pct - 1)}%, rgba(255,255,255,0.55) ${pct}%, transparent ${pct + 1}%)`,
           gradient,
         ].join(", "),
     boxShadow: empty
       ? "inset 0 0 0 1px rgba(255,255,255,0.04)"
-      : "inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 -18px 30px -18px rgba(0,0,0,0.45), 0 14px 26px -14px rgba(0,0,0,0.7)",
-    textShadow: "0 1px 2px rgba(0,0,0,0.65)",
+      : "var(--cube-edge), var(--cube-drop)",
+    textShadow: "var(--cube-text-shadow)",
   };
   const body = (
-    <div className={cn("relative", animate && "animate-block-in", glow && "animate-cube-glow")} style={{ width: size + depth, height: size + depth }}>
+    <div
+      className={cn("relative", animate && "animate-block-in", glow && "animate-cube-glow")}
+      style={{ width: size + depth, height: size + depth }}
+    >
       {/* top face: lit */}
       <div
         aria-hidden="true"
@@ -71,7 +77,9 @@ export function BlockCube({
         style={{
           width: size,
           height: depth,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to right, color-mix(in srgb, var(--block-top) 78%, white 14%), var(--block-top))",
+          background: empty
+            ? "var(--block-empty)"
+            : "linear-gradient(to right, var(--cube-top-hi), var(--block-top))",
           transform: "skewX(-45deg)",
           transformOrigin: "bottom left",
           borderTopRightRadius: 3,
@@ -87,7 +95,9 @@ export function BlockCube({
           top: depth,
           width: depth,
           height: size,
-          background: empty ? "var(--block-empty)" : "linear-gradient(to bottom, color-mix(in srgb, var(--block-side) 85%, black), color-mix(in srgb, var(--block-side) 55%, black))",
+          background: empty
+            ? "var(--block-empty)"
+            : "linear-gradient(to bottom, var(--cube-side-from), var(--cube-side-to))",
           transform: "skewY(-45deg)",
           transformOrigin: "top left",
           borderBottomRightRadius: 3,
@@ -97,7 +107,11 @@ export function BlockCube({
       <div
         className={cn(
           "absolute left-0 flex flex-col items-center justify-center gap-0.5 rounded-[3px] rounded-tr-none text-center text-fg transition-transform duration-200",
-          variant === "projected" && !selected && "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          variant === "projected" &&
+            !selected &&
+            !watched &&
+            "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+          watched && !selected && "outline-2 outline-solid outline-warning -outline-offset-2",
           selected && "outline-2 outline-solid outline-primary -outline-offset-2",
           (onClick || href) && "group-hover:-translate-y-1"
         )}
@@ -107,7 +121,8 @@ export function BlockCube({
       </div>
     </div>
   );
-  const common = "group relative inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary";
+  const common =
+    "group relative inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary";
   if (href) {
     return (
       <a href={href} aria-label={ariaLabel} className={cn(common, className)}>
@@ -117,7 +132,12 @@ export function BlockCube({
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} aria-label={ariaLabel} className={cn(common, className)}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={cn(common, className)}
+      >
         {body}
       </button>
     );

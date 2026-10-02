@@ -67,15 +67,37 @@ export function classifyCoinSpend(spend: CoinSpend): { kind: TxKindHint; assetId
   const reveal = spend.puzzleReveal.toLowerCase().replace(/^0x/, "");
   if (spend.coin.puzzleHash === MOD_HASHES.SETTLEMENT_PAYMENTS) return { kind: "offer" };
   const launcher = extractLauncherIds(reveal)[0];
-  if (reveal.includes(MOD_HASHES.NFT_STATE_LAYER) || reveal.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER)) return { kind: "nft", assetId: launcher };
+  if (
+    reveal.includes(MOD_HASHES.NFT_STATE_LAYER) ||
+    reveal.includes(MOD_HASHES.NFT_OWNERSHIP_LAYER)
+  )
+    return { kind: "nft", assetId: launcher };
   if (reveal.includes(MOD_HASHES.DID_INNERPUZ)) return { kind: "did", assetId: launcher };
-  if (reveal.includes(MOD_HASHES.CAT2)) return { kind: "cat", assetId: extractCatAssetIds(reveal)[0] };
-  if (reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1) && reveal.includes(MOD_HASHES.POOL_REWARD_PREFIX)) return { kind: "pool", assetId: launcher };
-  if (reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1) || reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1)) return { kind: "singleton", assetId: launcher };
+  if (reveal.includes(MOD_HASHES.CAT2))
+    return { kind: "cat", assetId: extractCatAssetIds(reveal)[0] };
+  if (
+    reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1) &&
+    reveal.includes(MOD_HASHES.POOL_REWARD_PREFIX)
+  )
+    return { kind: "pool", assetId: launcher };
+  if (
+    reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1_1) ||
+    reveal.includes(MOD_HASHES.SINGLETON_TOP_LAYER_V1)
+  )
+    return { kind: "singleton", assetId: launcher };
   return { kind: "xch" };
 }
 
-const KIND_PRIORITY: TxKindHint[] = ["offer", "nft", "did", "cat", "pool", "singleton", "xch", "unknown"];
+const KIND_PRIORITY: TxKindHint[] = [
+  "offer",
+  "nft",
+  "did",
+  "cat",
+  "pool",
+  "singleton",
+  "xch",
+  "unknown",
+];
 
 /** Bundle-level kind (most specific kind of any spend) and every asset id seen. */
 export function classifyCoinSpends(coinSpends: CoinSpend[]): Classification {

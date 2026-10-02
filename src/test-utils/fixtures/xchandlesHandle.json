@@ -1,0 +1,39 @@
+{
+  "registry_launcher_id": "6f314f69a9cf776311e1c7781a3013e4daae3696c71d8a04d049a5af1530f050",
+  "handle": "mempoolxch",
+  "slot": {
+    "counter": 0,
+    "handle_hash": "3ae4e1121e0eaf83bea3116aa7e9799bb2571a974741395ea736047b722f0da1",
+    "neighbors": {
+      "left_value": "3ac41c35ba51d291f65a6b20b366b573df80ca1bf7e62c7f074c8b9f7bf097ed",
+      "right_value": "3aeb44077b178c676e452162d80aac8a6994f0554b38ec914dee376c7bb1d840"
+    },
+    "expiration": 1821462266,
+    "owner_launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2",
+    "resolved_launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2"
+  },
+  "slot_parent_id": "c0dc449d95d0027c83611ab69df359be9a8e4cbbb7628d014adf823a09e80b89",
+  "slot_parent_parent_id": "349569bb0ac0148becc007373dd841f851e168af8a6f30a2d5b05d6585c18b95",
+  "slot_parent_inner_puzzle_hash": "89995d89c4dbdae9e862e3567a59a9a0d0a124a855b024f376dc90ccc037c0dd",
+  "slot_confirmation_height": 9318814,
+  "resolved_singleton": {
+    "launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2",
+    "parent_coin_id": "f0c2a3ccab93af8d4e9619aba88ba089f26fd4cb232286199dfe4935e3bb799f",
+    "amount": 1,
+    "inner_puzzle_hash": "06a314fb0a61944e7bde4782660e6056820d251cf2816e5a3666b034f9aba027",
+    "confirmation_height": 9318814,
+    "melted": false,
+    "melt_height": null,
+    "nft": {
+      "metadata_treehash": "9de5e464bb53f2e432d15af8cb5469156eea12fbdbec30e0f6bb76b1e0b512d5",
+      "metadata_updater_puzzle_hash": "9f28d55242a3bd2b3661c38ba8647392c26bb86594050ea6d33aad1725ca3eea",
+      "current_owner": null,
+      "royalty_puzzle_hash": "36da8c738011bfdd51d457397543c8f710a28598f6cbecc0199529a359cebc81",
+      "royalty_basis_points": 500,
+      "p2_puzzle_hash": "cdf3cbcfee6c99476082fdcfd6b818a579011482c615781028db263f2413d14c"
+    },
+    "indexed_peak_height": 9318927
+  },
+  "indexed_peak_height": 9318927,
+  "pending_transfer": null
+}

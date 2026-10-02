@@ -1,0 +1,30 @@
+{
+  "registry_sync": {
+    "registry_height": 9318825,
+    "synced_height": 9318825,
+    "chain_peak_height": 9318825,
+    "lag": 0,
+    "max_safe_lag": 20,
+    "last_reconciled_at": "2026-09-20T12:02:08.571300+00:00",
+    "reconciliation_epoch": 2,
+    "reconciliation_failed": false,
+    "last_reconciliation_error": null,
+    "reconciliation_stale": false,
+    "max_reconciliation_age_seconds": 7200
+  },
+  "handle": "mempoolxch",
+  "handle_hash": "3ae4e1121e0eaf83bea3116aa7e9799bb2571a974741395ea736047b722f0da1",
+  "registry_launcher_id": "6f314f69a9cf776311e1c7781a3013e4daae3696c71d8a04d049a5af1530f050",
+  "expiration": 1821462266,
+  "owner_launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2",
+  "status": "active",
+  "resolved_launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2",
+  "nft": {
+    "launcher_id": "551fc5bfe0f30ed7ea6f22d89221ac9c1f5fe053f62282bf8257c5bb6ed48db2",
+    "encoded_id": "nft1250ut0lq7v8d06n0ytvfygdvns04lczn7c3g90uz2lzmkmk53keq74gyyl",
+    "address_id": "cdf3cbcfee6c99476082fdcfd6b818a579011482c615781028db263f2413d14c",
+    "encoded_address": "xch1eheuhnlwdjv5wcyzlh8adwqc54usz9yzcc2hsypgmvnr7fqn69xqx5qxrh",
+    "owner_id": null,
+    "thumbnail_uri": "https://assets.mainnet.mintgarden.io/thumbnails/c9cf6dcd6b87b895b8361217d8c473f29b94025f5693900caa0b1d34f14a01e4_512.webp"
+  }
+}

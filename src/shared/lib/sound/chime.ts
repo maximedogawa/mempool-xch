@@ -1,6 +1,6 @@
 /**
  * A short, soft coin chime played when one of the wallet's transactions lands in a block
- * (TASK-042). Synthesised with the Web Audio API so the snapshot ships no audio file. Browsers
+ *. Synthesised with the Web Audio API so the snapshot ships no audio file. Browsers
  * only let audio start after a user gesture; when the context cannot be resumed the chime is
  * skipped silently rather than throwing.
  */
@@ -12,7 +12,9 @@ const MIN_GAP_MS = 400;
 
 function context(): Ctx | null {
   if (typeof window === "undefined") return null;
-  const Impl = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Impl =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Impl) return null;
   if (!ctx) {
     try {

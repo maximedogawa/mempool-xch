@@ -15,13 +15,20 @@ describe("block asset totals", () => {
     // XCH tx: 0x1365… received 114,150,535,534 net; the sender's change does not count.
     // CAT tx: 0x9a27… received 10,384,693,892 net.
     expect(BigInt(t.xch)).toBe(114_150_535_534n + 10_384_693_892n);
-    expect(t.cats).toEqual([{ assetId: "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5", amount: "1234" }]);
+    expect(t.cats).toEqual([
+      {
+        assetId: "00000000024e1fb9fc47c7ec72854c6a987c4cc99f6535a4caca6154220eeda5",
+        amount: "1234",
+      },
+    ]);
     expect(t.nfts).toBeGreaterThanOrEqual(1);
     expect(t.count).toBe(3);
     expect(t.source).toBe("coinset");
   });
   test("RPC fallback: gross spent per kind from the block's coin spends", () => {
-    const spends = [rawXch, rawCat, rawNft].flatMap((r) => normaliseMempoolItem(r.item).spendBundle.coinSpends);
+    const spends = [rawXch, rawCat, rawNft].flatMap(
+      (r) => normaliseMempoolItem(r.item).spendBundle.coinSpends
+    );
     const t = assetTotalsFromSpends(spends);
     expect(t.source).toBe("rpc");
     expect(t.cats[0]!.amount).toBe("1234");

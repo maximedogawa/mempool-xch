@@ -1,10 +1,14 @@
 {
   "name": "mempool-xch",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "private": true,
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
+  "author": "Maxim Edogawa",
   "homepage": "https://mempoolxch.space",
-  "repository": { "type": "git", "url": "https://github.com/maximedogawa/mempool-xch.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maximedogawa/mempool-xch.git"
+  },
   "description": "A mempool.space-style explorer for the Chia (XCH) network",
   "engines": {
     "node": ">=20.19.0 || >=22.12.0"
@@ -21,9 +25,16 @@
     "test": "bun test",
     "test:unit": "bun test",
     "test:e2e": "playwright test --config playwright.config.ts",
+    "test:e2e:sage": "playwright test --config playwright.sage.config.ts",
     "test:live": "LIVE=1 playwright test --config playwright.config.ts --grep @live",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "changelog": "bun run scripts/changelog/generate.ts",
+    "map:land": "bun run scripts/map/generate-land-dots.ts",
+    "map:dashboard": "bun run scripts/map/import-dashboard.ts",
+    "arcade": "bun run scripts/arcade/fetch-games.ts",
+    "perf": "bun run scripts/perf/measure.ts",
+    "perf:budget": "bun run scripts/perf/js-budget.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
@@ -41,9 +52,13 @@
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@tanstack/react-query-devtools": "^5.103.1",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^22.19.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
     "bun-types": "^1.3.6",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.3.5",
@@ -53,7 +68,9 @@
     "prettier": "^3.8.1",
     "sage-app-sdk": "0.13.0",
     "tailwindcss": "^4.3.3",
+    "topojson-client": "^3.1.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.0",
+    "world-atlas": "^2.0.2"
   }
 }

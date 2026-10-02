@@ -1,0 +1,200 @@
+{
+  "recordedAt": "2026-09-23T10:07:07Z",
+  "start": 1789776000000,
+  "step": 86400000,
+  "countries": {
+    "results": {
+      "A": {
+        "status": 200,
+        "frames": [
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "type": "numeric-multi",
+                "typeVersion": [0, 1],
+                "custom": { "resultType": "vector" }
+              },
+              "fields": [
+                {
+                  "name": "Time",
+                  "type": "time",
+                  "typeInfo": { "frame": "time.Time" },
+                  "config": { "interval": 30000 }
+                },
+                {
+                  "name": "Value",
+                  "type": "number",
+                  "typeInfo": { "frame": "float64" },
+                  "labels": { "country": "AT", "country_display": "Austria" },
+                  "config": { "displayNameFromDS": "{country=\"AT\", country_display=\"Austria\"}" }
+                }
+              ]
+            },
+            "data": { "values": [[1790158027157], [181]] }
+          },
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "type": "numeric-multi",
+                "typeVersion": [0, 1],
+                "custom": { "resultType": "vector" }
+              },
+              "fields": [
+                {
+                  "name": "Time",
+                  "type": "time",
+                  "typeInfo": { "frame": "time.Time" },
+                  "config": { "interval": 30000 }
+                },
+                {
+                  "name": "Value",
+                  "type": "number",
+                  "typeInfo": { "frame": "float64" },
+                  "labels": { "country": "DE", "country_display": "Germany" },
+                  "config": { "displayNameFromDS": "{country=\"DE\", country_display=\"Germany\"}" }
+                }
+              ]
+            },
+            "data": { "values": [[1790158027157], [2027]] }
+          },
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "type": "numeric-multi",
+                "typeVersion": [0, 1],
+                "custom": { "resultType": "vector" }
+              },
+              "fields": [
+                {
+                  "name": "Time",
+                  "type": "time",
+                  "typeInfo": { "frame": "time.Time" },
+                  "config": { "interval": 30000 }
+                },
+                {
+                  "name": "Value",
+                  "type": "number",
+                  "typeInfo": { "frame": "float64" },
+                  "labels": { "country": "GL", "country_display": "Greenland" },
+                  "config": {
+                    "displayNameFromDS": "{country=\"GL\", country_display=\"Greenland\"}"
+                  }
+                }
+              ]
+            },
+            "data": { "values": [[1790158027157], [1]] }
+          },
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "type": "numeric-multi",
+                "typeVersion": [0, 1],
+                "custom": { "resultType": "vector" }
+              },
+              "fields": [
+                {
+                  "name": "Time",
+                  "type": "time",
+                  "typeInfo": { "frame": "time.Time" },
+                  "config": { "interval": 30000 }
+                },
+                {
+                  "name": "Value",
+                  "type": "number",
+                  "typeInfo": { "frame": "float64" },
+                  "labels": { "country": "US", "country_display": "United States" },
+                  "config": {
+                    "displayNameFromDS": "{country=\"US\", country_display=\"United States\"}"
+                  }
+                }
+              ]
+            },
+            "data": { "values": [[1790158027157], [3526]] }
+          }
+        ]
+      }
+    }
+  },
+  "totalHistory": {
+    "results": {
+      "A": {
+        "status": 200,
+        "frames": [
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "type": "timeseries-multi",
+                "typeVersion": [0, 1],
+                "custom": { "calculatedMinStep": 86400000, "resultType": "matrix" },
+                "executedQueryString": "Expr: max by (network) (topk(1, chia_crawler_total_nodes_5_days{network=\"mainnet\"}))\nStep: 24h0m0s"
+              },
+              "fields": [
+                {
+                  "name": "Time",
+                  "type": "time",
+                  "typeInfo": { "frame": "time.Time" },
+                  "config": { "interval": 86400000 }
+                },
+                {
+                  "name": "Value",
+                  "type": "number",
+                  "typeInfo": { "frame": "float64" },
+                  "labels": { "network": "mainnet" },
+                  "config": { "displayNameFromDS": "{network=\"mainnet\"}" }
+                }
+              ]
+            },
+            "data": {
+              "values": [
+                [
+                  1789776000000, 1789862400000, 1789948800000, 1790035200000, 1790121600000,
+                  1790158027662
+                ],
+                [22562, 22361, 22143, 22215, 22259, 21410]
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "asn": {
+    "results": {
+      "A": {
+        "status": 200,
+        "frames": [
+          {
+            "schema": {
+              "refId": "A",
+              "meta": {
+                "typeVersion": [0, 0],
+                "executedQueryString": "SELECT asn, organization, count FROM `chia-exporter`.asn WHERE network = 'mainnet' ORDER BY count DESC LIMIT 3"
+              },
+              "fields": [
+                { "name": "asn", "type": "number", "typeInfo": { "frame": "uint32" } },
+                {
+                  "name": "organization",
+                  "type": "string",
+                  "typeInfo": { "frame": "string", "nullable": true }
+                },
+                { "name": "count", "type": "number", "typeInfo": { "frame": "uint32" } }
+              ]
+            },
+            "data": {
+              "values": [
+                [4134, 3320, 7922],
+                ["Chinanet", "Deutsche Telekom AG", "Comcast Cable Communications, LLC"],
+                [942, 708, 585]
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

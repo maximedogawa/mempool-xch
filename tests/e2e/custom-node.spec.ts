@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { CUSTOM_NODE_URL, mockCustomNode } from "./mockCoinset";
 
 /**
- * Custom full-node RPC parity (TASK-036): with an own node configured the dashboard still shows
+ * Custom full-node RPC parity: with an own node configured the dashboard still shows
  * state, recent blocks, projected blocks (mempool fetched in the browser) and fee cards, polls
  * instead of streaming, and never touches Coinset or the hosted APIs.
  */
@@ -17,8 +17,14 @@ test.describe("custom node", () => {
       if (/api\.coinset\.org/.test(url)) coinset.push(url);
     });
     await page.goto("/");
-    await expect(page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("status").filter({ hasText: "Polling" }).first()).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 20_000 });
+    // Polling is not called out on the pill any more: it reads Live, and only the channel
+    // description below names the transport.
+    await expect(page.getByRole("status").filter({ hasText: "Live" }).first()).toBeVisible({
+      timeout: 20_000,
+    });
     await expect(page.getByRole("status").filter({ hasText: "custom node" }).first()).toBeVisible();
     await expect(page.getByText(/custom node/).first()).toBeVisible();
     await page.waitForTimeout(1_000);
@@ -29,7 +35,9 @@ test.describe("custom node", () => {
   test("settings name the endpoint and the polling channel", async ({ page }) => {
     await mockCustomNode(page);
     await page.goto("/settings");
-    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({
+      timeout: 20_000,
+    });
     await expect(page.getByText(CUSTOM_NODE_URL).first()).toBeVisible();
   });
 });

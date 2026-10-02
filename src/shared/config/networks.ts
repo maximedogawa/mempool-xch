@@ -1,5 +1,11 @@
-/** Networks the app knows about. Endpoints can be overridden per network in settings (TASK-021). */
+/** Networks the app knows about. Endpoints can be overridden per network in settings. */
 export type NetworkId = "mainnet" | "testnet11";
+
+/**
+ * Who answers an endpoint. Coinset and nodexch speak the same dialect (full-node RPC, the
+ * indexed API and the WebSocket on one host); a custom node has the full-node RPC only.
+ */
+export type Provider = "coinset" | "nodexch" | "custom";
 
 export interface NetworkConfig {
   id: NetworkId;
@@ -14,17 +20,26 @@ export interface NetworkConfig {
   wsUrl: string;
   /** Hosts recognised as Coinset: unlock the indexed API, the WebSocket and the summary API. */
   coinsetHosts: string[];
+  /** The hosted nodexch gateway for this network (the settings preset); null where none runs. */
+  nodexchUrl: string | null;
+  /** Its publishable key for this site (baked in at build time); empty without one. */
+  nodexchKey: string;
 }
+
+const NODEXCH_KEY_MAINNET = process.env.NEXT_PUBLIC_NODEXCH_KEY_MAINNET ?? "";
 
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     id: "mainnet",
     label: "Mainnet",
     addressPrefix: "xch",
-    rpcUrl: "https://api.coinset.org",
+    // nodexch is the default; Coinset stays selectable in settings.
+    rpcUrl: "https://api.nodexch.space",
     indexedUrl: "https://api.coinset.org",
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
+    nodexchUrl: "https://api.nodexch.space",
+    nodexchKey: NODEXCH_KEY_MAINNET,
   },
   testnet11: {
     id: "testnet11",
@@ -34,6 +49,8 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     indexedUrl: "https://testnet11.api.coinset.org",
     wsUrl: "wss://testnet11.api.coinset.org/ws",
     coinsetHosts: ["testnet11.api.coinset.org"],
+    nodexchUrl: null,
+    nodexchKey: process.env.NEXT_PUBLIC_NODEXCH_KEY_TESTNET11 ?? "",
   },
 };
 
@@ -50,6 +67,27 @@ export function isCoinsetUrl(network: NetworkId, url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** True when the base URL is the hosted nodexch gateway of this network. */
+export function isNodexchUrl(network: NetworkId, url: string): boolean {
+  const preset = NETWORKS[network].nodexchUrl;
+  if (!preset) return false;
+  try {
+    return new URL(preset).host === new URL(url).host;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Who answers `url`: Coinset by host, nodexch by host or because the user said so for their own
+ * gateway (`declared`), anything else a custom node.
+ */
+export function providerOf(network: NetworkId, url: string, declared?: Provider): Provider {
+  if (isCoinsetUrl(network, url)) return "coinset";
+  if (declared === "nodexch" || isNodexchUrl(network, url)) return "nodexch";
+  return "custom";
 }
 
 /** Chia consensus constants used by the visualisations. */

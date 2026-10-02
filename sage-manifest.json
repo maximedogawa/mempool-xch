@@ -1,14 +1,14 @@
 {
   "manifestVersion": 0,
   "name": "mempoolxch.space",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "icon": "icons/icon-512.png",
   "entry": "index.html",
   "sageVersion": {
     "min": "0.13.0"
   },
   "author": {
-    "name": "mempoolxch.space",
+    "name": "Maxim Edogawa",
     "avatar": "icons/icon-192.png"
   },
   "permissions": {
@@ -22,18 +22,25 @@
           "https://api.dexie.space",
           "https://icons.dexie.space",
           "https://api.mintgarden.io",
+          "https://api.xchandles.com",
           "https://assets.mainnet.mintgarden.io",
-          "https://ipfs.mintgarden.io"
+          "https://ipfs.mintgarden.io",
+          "https://cloudflare-dns.com",
+          "https://dns.google",
+          "https://get.geojs.io",
+          "https://api.gateio.ws",
+          "https://www.okx.com",
+          "https://api.huobi.pro"
         ],
         "optional": []
       },
       "whitelistByNetwork": {
         "mainnet": {
-          "required": [],
+          "required": ["https://api.nodexch.space", "wss://api.nodexch.space"],
           "optional": []
         },
         "testnet11": {
-          "required": [],
+          "required": ["https://tracker.nokitlan.com"],
           "optional": []
         }
       }

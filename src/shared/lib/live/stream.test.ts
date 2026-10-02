@@ -1,10 +1,19 @@
+import { streamUrl } from "./stream";
 import { describe, expect, test } from "bun:test";
-import { backoffDelay, createLiveStream, parseCoinsetMessage, type LiveEvent, type TimerId } from "./stream";
+import {
+  backoffDelay,
+  createLiveStream,
+  parseCoinsetMessage,
+  type LiveEvent,
+  type TimerId,
+} from "./stream";
 
 describe("parseCoinsetMessage", () => {
   test("peak and transaction envelopes", () => {
     expect(
-      parseCoinsetMessage('{"network":"mainnet","seq":1,"message":{"type":"peak","data":{"height":9295535,"tx":false}}}')
+      parseCoinsetMessage(
+        '{"network":"mainnet","seq":1,"message":{"type":"peak","data":{"height":9295535,"tx":false}}}'
+      )
     ).toEqual({ type: "peak", height: 9295535, tx: false });
     expect(
       parseCoinsetMessage(
@@ -62,19 +71,23 @@ class FakeSocket {
   onerror: (() => void) | null = null;
   onclose: (() => void) | null = null;
   closed = false;
+  readyState = 0;
   constructor(readonly url: string) {
     FakeSocket.instances.push(this);
   }
   close() {
     this.closed = true;
+    this.readyState = 3;
   }
   open() {
+    this.readyState = 1;
     this.onopen?.();
   }
   message(data: unknown) {
     this.onmessage?.({ data: JSON.stringify(data) });
   }
   drop() {
+    this.readyState = 3;
     this.onclose?.();
   }
 }
@@ -130,14 +143,19 @@ describe("createLiveStream", () => {
     stream.start();
     await Promise.resolve();
     const s1 = FakeSocket.instances[0]!;
-    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction");
+    expect(s1.url).toBe("wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault");
     expect(stream.status).toBe("connecting");
     s1.open();
     expect(stream.status).toBe("live");
     s1.message({ message: { type: "peak", data: { height: 42, tx: true } } });
     s1.message({ message: { type: "transaction", data: { ids: ["ab"], status: "pending" } } });
     expect(events).toContainEqual({ type: "peak", height: 42, tx: true });
-    expect(events).toContainEqual({ type: "transaction", ids: ["ab"], status: "pending", height: null });
+    expect(events).toContainEqual({
+      type: "transaction",
+      ids: ["ab"],
+      status: "pending",
+      height: null,
+    });
 
     // First drop: reconnect after 1 s.
     s1.drop();
@@ -152,5 +170,164 @@ describe("createLiveStream", () => {
     expect(timers.pending()).toContain(30_000);
     stream.stop();
     expect(FakeSocket.instances.length).toBe(2);
+  });
+
+  test("a socket that is open is never labelled polling, even if its open event was missed", async () => {
+    FakeSocket.instances = [];
+    const timers = fakeTimers();
+    const stream = createLiveStream({
+      wsUrl: "wss://api.coinset.org/ws",
+      poll: async () => ({ peakHeight: 1, peakIsTx: false, mempoolSize: 0 }),
+      onEvent: () => {},
+      pollIntervalMs: 15_000,
+      maxWsFailures: 1,
+      WebSocketImpl: FakeSocket as unknown as typeof WebSocket,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    await Promise.resolve();
+    FakeSocket.instances[0]!.drop();
+    expect(stream.status).toBe("polling");
+
+    // The retry connects and reaches OPEN, but its onopen never runs (a frozen tab, a callback
+    // the browser drops). Nothing else would ever correct the pill.
+    await timers.advance(30_000);
+    const retried = FakeSocket.instances[1]!;
+    retried.readyState = 1;
+    // The retry left the label on "connecting" and, with onopen lost, nothing would move it.
+    expect(stream.status).toBe("connecting");
+
+    // The next poll reads the socket rather than the last event, and puts it right.
+    await timers.advance(15_000);
+    expect(stream.status).toBe("live");
+    stream.stop();
+  });
+
+  test("the background retry brings the pill back to live, and a later poll does not undo it", async () => {
+    FakeSocket.instances = [];
+    const timers = fakeTimers();
+    const stream = createLiveStream({
+      wsUrl: "wss://api.coinset.org/ws",
+      poll: async () => ({ peakHeight: 1, peakIsTx: false, mempoolSize: 0 }),
+      onEvent: () => {},
+      pollIntervalMs: 15_000,
+      maxWsFailures: 1,
+      WebSocketImpl: FakeSocket as unknown as typeof WebSocket,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    await Promise.resolve();
+    FakeSocket.instances[0]!.drop();
+    expect(stream.status).toBe("polling");
+    expect(stream.transport).toBe("polling");
+
+    // The retry at the max backoff reconnects: the tab is on the socket again.
+    await timers.advance(30_000);
+    const retried = FakeSocket.instances[1]!;
+    expect(retried).toBeDefined();
+    retried.open();
+    expect(stream.status).toBe("live");
+    expect(stream.transport).toBe("websocket");
+
+    // Polls keep running behind the socket; none of them may take the pill back to "polling".
+    await timers.advance(15_000);
+    await timers.advance(15_000);
+    expect(stream.status).toBe("live");
+    stream.stop();
+  });
+});
+
+describe("parseCoinsetMessage: reorg and netspace", () => {
+  test("reorg frames carry both peaks and the depth", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"reorg","data":{"id":"reorg_81","detected_at_ms":1789680142516,"old_peak_height":9306355,"old_peak_hash":"aa","new_peak_height":9306354,"new_peak_hash":"bb","reorg_depth":1}}}'
+      )
+    ).toEqual({
+      type: "reorg",
+      oldPeakHeight: 9306355,
+      newPeakHeight: 9306354,
+      depth: 1,
+      detectedAtMs: 1789680142516,
+    });
+  });
+  test("netspace dashboard frames keep the byte count exact; other dashboard kinds are ignored", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"3631225713031519604","difficulty":2272}}}'
+      )
+    ).toEqual({ type: "netspace", bytes: 3631225713031519604n, difficulty: 2272 });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"live","tx_count":462}}}')
+    ).toBeNull();
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"dashboard","data":{"kind":"netspace","bytes":"nope"}}}'
+      )
+    ).toBeNull();
+  });
+});
+
+describe("parseCoinsetMessage: vault", () => {
+  test("recovery steps carry the vault id, action, status and tx", () => {
+    const event = parseCoinsetMessage(
+      `{"message":{"type":"vault","data":{"vault_id":"0x${"ab".repeat(
+        32
+      )}","action":"initiate_recovery","status":"pending","tx_id":"0x${"cd".repeat(32)}"}}}`
+    );
+    expect(event).toMatchObject({
+      type: "vault",
+      vaultId: "ab".repeat(32),
+      action: "initiate_recovery",
+      status: "pending",
+      txId: "cd".repeat(32),
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"vault","data":{"vault_id":"nope"}}}')
+    ).toBeNull();
+  });
+});
+
+test("stopping aborts the poll and ignores its late result, including after restart", async () => {
+  const timers = fakeTimers();
+  const events: LiveEvent[] = [];
+  const pending: {
+    signal: AbortSignal;
+    resolve: (value: { peakHeight: number; peakIsTx: boolean; mempoolSize: number }) => void;
+  }[] = [];
+  const stream = createLiveStream({
+    wsUrl: null,
+    poll: (signal) => new Promise((resolve) => pending.push({ signal, resolve })),
+    onEvent: (event) => events.push(event),
+    ...timers,
+  });
+  stream.start();
+  stream.stop();
+  expect(pending[0]!.signal.aborted).toBe(true);
+  stream.start();
+  const before = events.length;
+  pending[0]!.resolve({ peakHeight: 99, peakIsTx: true, mempoolSize: 10 });
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(events.length).toBe(before);
+  expect(timers.pending()).toEqual([]);
+  stream.stop();
+  pending[1]!.resolve({ peakHeight: 100, peakIsTx: true, mempoolSize: 10 });
+  await Promise.resolve();
+  expect(stream.status).toBe("offline");
+});
+
+describe("streamUrl", () => {
+  test("Coinset's URL as it always was", () => {
+    expect(streamUrl("wss://api.coinset.org/ws")).toBe(
+      "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault"
+    );
+  });
+  test("a nodexch key in the query survives", () => {
+    expect(streamUrl("wss://api.nodexch.space/ws?key=nxp_abc")).toBe(
+      "wss://api.nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
+    );
   });
 });

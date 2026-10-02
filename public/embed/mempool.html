@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Chia mempool · mempoolxch.space</title>
+    <link rel="stylesheet" href="./embed.css" />
+  </head>
+  <body>
+    <div class="embed">
+      <div class="head">
+        <span class="title">Chia mempool</span
+        ><a class="brand" href="/" target="_blank" rel="noreferrer">mempoolxch.space</a>
+      </div>
+      <div class="tiles">
+        <div class="tile">
+          <div class="label">Spend bundles</div>
+          <div class="value tabular" id="count">…</div>
+          <div class="sub">waiting</div>
+        </div>
+        <div class="tile">
+          <div class="label">Cost used</div>
+          <div class="value tabular" id="fill">…</div>
+          <div class="sub" id="cost"></div>
+        </div>
+        <div class="tile">
+          <div class="label">Total fees</div>
+          <div class="value tabular" id="fees">…</div>
+          <div class="sub" id="min"></div>
+        </div>
+      </div>
+      <div
+        class="bar"
+        role="meter"
+        aria-label="Mempool capacity"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        id="meter"
+      >
+        <div class="fill" id="bar" style="width: 0%"></div>
+      </div>
+      <div class="muted" id="foot">Loading…</div>
+      <div class="error" id="error"></div>
+    </div>
+    <script src="./common.js"></script>
+    <script src="./mempool.js"></script>
+  </body>
+</html>

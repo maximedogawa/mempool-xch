@@ -9,7 +9,12 @@
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { MAX_FILE_COUNT, MAX_TOTAL_SIZE_BYTES, validateSourceManifest, type SageManifest } from "./manifestSchema";
+import {
+  MAX_FILE_COUNT,
+  MAX_TOTAL_SIZE_BYTES,
+  validateSourceManifest,
+  type SageManifest,
+} from "./manifestSchema";
 
 const OUT_DIR = resolve(process.argv[2] ?? "out");
 const SOURCE_MANIFEST = resolve("sage-manifest.json");
@@ -56,29 +61,48 @@ try {
   fail(`snapshot directory not found: ${OUT_DIR}`);
 }
 
-const finalManifest = snapshotFiles.includes("sage-manifest.json") ? readManifest(join(OUT_DIR, "sage-manifest.json"), "out/sage-manifest.json") : null;
-if (snapshotFiles.length > 0 && !finalManifest) fail("out/sage-manifest.json is missing — run `sage-app finalize-manifest`");
+const finalManifest = snapshotFiles.includes("sage-manifest.json")
+  ? readManifest(join(OUT_DIR, "sage-manifest.json"), "out/sage-manifest.json")
+  : null;
+if (snapshotFiles.length > 0 && !finalManifest)
+  fail("out/sage-manifest.json is missing — run `sage-app finalize-manifest`");
 
 if (finalManifest) {
   const listed = new Set((finalManifest.files ?? []).map((f) => f.path));
   const shipped = snapshotFiles.filter((p) => p !== "sage-manifest.json");
   const unlisted = shipped.filter((p) => !listed.has(p));
-  if (unlisted.length > 0) fail(`${unlisted.length} snapshot files are not listed in files[] (e.g. ${unlisted.slice(0, 3).join(", ")})`);
+  if (unlisted.length > 0)
+    fail(
+      `${unlisted.length} snapshot files are not listed in files[] (e.g. ${unlisted.slice(0, 3).join(", ")})`
+    );
   else pass(`all ${shipped.length} snapshot files are listed in files[]`);
   const totalSize = (finalManifest.files ?? []).reduce((sum, f) => sum + f.size, 0);
   if (listed.size > MAX_FILE_COUNT) fail(`file count ${listed.size} exceeds ${MAX_FILE_COUNT}`);
-  if (totalSize > MAX_TOTAL_SIZE_BYTES) fail(`snapshot size ${totalSize} exceeds ${MAX_TOTAL_SIZE_BYTES}`);
+  if (totalSize > MAX_TOTAL_SIZE_BYTES)
+    fail(`snapshot size ${totalSize} exceeds ${MAX_TOTAL_SIZE_BYTES}`);
   if (listed.size <= MAX_FILE_COUNT && totalSize <= MAX_TOTAL_SIZE_BYTES) {
-    pass(`snapshot is ${listed.size}/${MAX_FILE_COUNT} files and ${(totalSize / 1024 / 1024).toFixed(1)}/${MAX_TOTAL_SIZE_BYTES / 1024 / 1024} MB`);
+    pass(
+      `snapshot is ${listed.size}/${MAX_FILE_COUNT} files and ${(totalSize / 1024 / 1024).toFixed(1)}/${MAX_TOTAL_SIZE_BYTES / 1024 / 1024} MB`
+    );
   }
   const entry = finalManifest.entry ?? "index.html";
   if (!listed.has(entry)) fail(`entry "${entry}" is not listed`);
   else pass(`entry "${entry}" is listed`);
-  if (finalManifest.icon && !listed.has(finalManifest.icon)) fail(`icon "${finalManifest.icon}" is not listed`);
+  if (finalManifest.icon && !listed.has(finalManifest.icon))
+    fail(`icon "${finalManifest.icon}" is not listed`);
   else if (finalManifest.icon) pass(`icon "${finalManifest.icon}" is listed`);
   const avatar = finalManifest.author?.avatar;
   if (avatar && !listed.has(avatar)) fail(`author.avatar "${avatar}" is not listed`);
-  ["tx.html", "block.html", "address.html", "coin.html", "blocks.html", "mempool.html", "settings.html", "wallet.html"].forEach((page) => {
+  [
+    "tx.html",
+    "block.html",
+    "address.html",
+    "coin.html",
+    "blocks.html",
+    "mempool.html",
+    "settings.html",
+    "wallet.html",
+  ].forEach((page) => {
     if (!listed.has(page)) fail(`route file ${page} is missing from the export`);
   });
 }
@@ -89,7 +113,9 @@ let inlineScripts = 0;
 let manifestLinks = 0;
 htmlFiles.forEach((path) => {
   const html = readFileSync(join(OUT_DIR, path), "utf8");
-  const inline = [...html.matchAll(INLINE_SCRIPT_RE)].filter((m) => !/^<script[^>]*>\s*<\/script>$/.test(m[0]));
+  const inline = [...html.matchAll(INLINE_SCRIPT_RE)].filter(
+    (m) => !/^<script[^>]*>\s*<\/script>$/.test(m[0])
+  );
   if (inline.length > 0) {
     inlineScripts += inline.length;
     fail(`${path}: ${inline.length} inline <script> block(s)`);
@@ -100,13 +126,18 @@ htmlFiles.forEach((path) => {
     fail(`${path}: <link rel="manifest">`);
   }
 });
-if (inlineScripts === 0 && htmlFiles.length > 0) pass(`no inline <script> in ${htmlFiles.length} HTML files`);
+if (inlineScripts === 0 && htmlFiles.length > 0)
+  pass(`no inline <script> in ${htmlFiles.length} HTML files`);
 if (manifestLinks === 0 && htmlFiles.length > 0) pass('no <link rel="manifest">');
 
 const textFiles = snapshotFiles.filter((p) => TEXT_EXTENSIONS.some((ext) => p.endsWith(ext)));
-const swHits = textFiles.filter((p) => SERVICE_WORKER_RE.test(readFileSync(join(OUT_DIR, p), "utf8")));
-if (swHits.length > 0) fail(`service worker registration found in: ${swHits.slice(0, 3).join(", ")}`);
-else if (textFiles.length > 0) pass(`no service worker registration in ${textFiles.length} text files`);
+const swHits = textFiles.filter((p) =>
+  SERVICE_WORKER_RE.test(readFileSync(join(OUT_DIR, p), "utf8"))
+);
+if (swHits.length > 0)
+  fail(`service worker registration found in: ${swHits.slice(0, 3).join(", ")}`);
+else if (textFiles.length > 0)
+  pass(`no service worker registration in ${textFiles.length} text files`);
 
 checks.forEach((c) => console.log(`  ✓ ${c}`));
 problems.forEach((p) => console.error(`  ✗ ${p}`));

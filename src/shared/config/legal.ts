@@ -1,5 +1,5 @@
 /**
- * Operator details for the legal pages (TASK-056). Every `null` renders as a visible
+ * Operator details for the legal pages. Every `null` renders as a visible
  * "[to be filled in: …]" marker on the pages, so an unfilled value can never ship unnoticed.
  * The owner fills these in before launch; the checklist is in the wiki under
  * deployment/legal-launch-checklist.md.

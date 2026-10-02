@@ -1,8 +1,11 @@
 /**
- * Human wording for the live channel a tab is on (TASK-036): the pill tooltip, the footer and
+ * Human wording for the live channel a tab is on: the pill tooltip, the footer and
  * the settings page all use the same description so the user sees the same words everywhere.
  */
+import { plainT } from "@/shared/i18n/plain";
+import type { Provider } from "@/shared/config/networks";
 import type { LiveStatus, LiveTransport } from "./stream";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export interface ChannelDescription {
   /** Short name, e.g. "Server events". */
@@ -15,11 +18,10 @@ export interface ChannelInput {
   status: LiveStatus;
   transport: LiveTransport;
   rpcUrl: string;
-  eventsUrl: string | null;
   wsUrl: string | null;
   isCoinset: boolean;
-  /** Channel the hosted server itself is on, when known from /api/<network>/status. */
-  serverChannel?: "websocket" | "polling" | "connecting" | null;
+  /** Who answers; without it, `isCoinset` decides between Coinset and a custom node. */
+  provider?: Provider;
 }
 
 const host = (url: string) => {
@@ -31,22 +33,32 @@ const host = (url: string) => {
 };
 
 export function describeChannel(input: ChannelInput): ChannelDescription {
+  const t = plainT(commonNs);
   const rpcHost = host(input.rpcUrl);
-  if (!input.isCoinset) {
-    return { name: "Polling (custom node)", detail: `Polling your node at ${rpcHost} every few seconds; no stream, mempool fetched in the browser.` };
+  const provider: Provider = input.provider ?? (input.isCoinset ? "coinset" : "custom");
+  const nodexch = provider === "nodexch";
+  if (provider === "custom") {
+    return {
+      name: t("channel.customName"),
+      detail: t("channel.customDetail", { host: rpcHost }),
+    };
   }
-  if (input.status === "offline") return { name: "Offline", detail: `No connection to ${rpcHost}.` };
-  if (input.transport === "sse" && input.eventsUrl) {
-    const upstream = input.serverChannel === "polling" ? "polling Coinset" : "one Coinset WebSocket";
-    const origin = host(input.eventsUrl);
-    return input.status === "live"
-      ? { name: "Server events", detail: `Live from ${origin}, which relays ${upstream} to every viewer.` }
-      : { name: "Server events (reconnecting)", detail: `Reconnecting to the event stream at ${origin}.` };
-  }
+  if (input.status === "offline")
+    return {
+      name: t("channel.offlineName"),
+      detail: t("channel.offlineDetail", { host: rpcHost }),
+    };
   if (input.transport === "websocket" && input.wsUrl) {
+    const wsHost = host(input.wsUrl);
     return input.status === "live"
-      ? { name: "Coinset socket", detail: `Streaming peak and transaction events from ${host(input.wsUrl)} directly.` }
-      : { name: "Coinset socket (reconnecting)", detail: `Reconnecting to ${host(input.wsUrl)}.` };
+      ? {
+          name: t(nodexch ? "channel.nodexchSocketName" : "channel.socketName"),
+          detail: t("channel.socketDetail", { host: wsHost }),
+        }
+      : {
+          name: t(nodexch ? "channel.nodexchReconnectingName" : "channel.reconnectingName"),
+          detail: t("channel.reconnectingDetail", { host: wsHost }),
+        };
   }
-  return { name: "Polling", detail: `Polling ${rpcHost} every few seconds.` };
+  return { name: t("channel.pollingName"), detail: t("channel.pollingDetail", { host: rpcHost }) };
 }

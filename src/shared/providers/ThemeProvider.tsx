@@ -16,7 +16,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return;
       }
       const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
-      const theme = settings.theme === "system" ? (prefersLight ? "light" : "dark") : settings.theme;
+      const theme =
+        settings.theme === "system" ? (prefersLight ? "light" : "dark") : settings.theme;
       root.setAttribute("data-theme", theme);
     };
     apply();

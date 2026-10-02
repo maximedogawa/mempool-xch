@@ -64,7 +64,9 @@ const csp = buildAppCspForManifest(manifest, NETWORK);
 
 function mimeFor(path: string): string {
   const dot = path.lastIndexOf(".");
-  return dot === -1 ? "application/octet-stream" : (MIME[path.slice(dot)] ?? "application/octet-stream");
+  return dot === -1
+    ? "application/octet-stream"
+    : (MIME[path.slice(dot)] ?? "application/octet-stream");
 }
 
 function respond(status: number, body: BodyInit | null, contentType?: string): Response {
@@ -86,7 +88,8 @@ const server = Bun.serve({
     const target = path === "" ? entry : path;
 
     // No directory index, no SPA fallback: only listed files resolve.
-    if (!listed.has(target)) return respond(404, `not in manifest files[]: /${target}`, "text/plain");
+    if (!listed.has(target))
+      return respond(404, `not in manifest files[]: /${target}`, "text/plain");
 
     const abs = join(DIR, target);
     try {
@@ -98,6 +101,8 @@ const server = Bun.serve({
   },
 });
 
-console.log(`Serving ${DIR} as a Sage snapshot on http://localhost:${server.port} (network: ${NETWORK})`);
+console.log(
+  `Serving ${DIR} as a Sage snapshot on http://localhost:${server.port} (network: ${NETWORK})`
+);
 console.log(`Entry: /${entry}`);
 console.log(`CSP:   ${csp}`);

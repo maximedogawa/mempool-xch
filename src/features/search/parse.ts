@@ -1,10 +1,12 @@
 /**
- * Search input recognition (TASK-011). Anything a Chia user might paste is classified by shape;
+ * Search input recognition. Anything a Chia user might paste is classified by shape;
  * 32-byte hex is ambiguous (tx id, coin id, header hash, CAT asset id, puzzle hash, launcher id)
  * and is resolved by probing in `resolve.ts`.
  */
+import { plainT } from "@/shared/i18n/plain";
 import { decodeBech32m } from "@/shared/lib/chia/address";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
+import searchNs from "@/shared/i18n/messages/en/search";
 
 export type SearchTarget =
   | { kind: "height"; height: number }
@@ -12,11 +14,14 @@ export type SearchTarget =
   | { kind: "nft"; nftId: string; launcherId: string }
   | { kind: "did"; didId: string; launcherId: string }
   | { kind: "hex32"; hex: string }
+  /** Free text matching no known id shape: a name to try against MintGarden. */
+  | { kind: "text"; value: string }
   | { kind: "invalid"; reason: string };
 
 export function parseSearchInput(raw: string): SearchTarget {
+  const t = plainT(searchNs);
   const input = raw.trim();
-  if (input === "") return { kind: "invalid", reason: "Type something to search for." };
+  if (input === "") return { kind: "invalid", reason: t("invalid.empty") };
 
   if (/^\d{1,9}$/.test(input)) return { kind: "height", height: Number(input) };
 
@@ -26,24 +31,28 @@ export function parseSearchInput(raw: string): SearchTarget {
     if (decoded && (decoded.prefix === "xch" || decoded.prefix === "txch")) {
       return { kind: "address", address: lower, puzzleHash: decoded.hash, prefix: decoded.prefix };
     }
-    return { kind: "invalid", reason: "That looks like an address but its checksum is wrong." };
+    return { kind: "invalid", reason: t("invalid.addressChecksum") };
   }
   if (lower.startsWith("nft1")) {
     const decoded = decodeBech32m(lower);
     if (decoded?.prefix === "nft") return { kind: "nft", nftId: lower, launcherId: decoded.hash };
-    return { kind: "invalid", reason: "That looks like an NFT id but its checksum is wrong." };
+    return { kind: "invalid", reason: t("invalid.nftChecksum") };
+  }
+  if (lower.startsWith("offer1")) {
+    return {
+      kind: "invalid",
+      reason: t("invalid.offerFile"),
+    };
   }
   if (lower.startsWith("did:chia:1")) {
     const decoded = decodeBech32m(lower);
-    if (decoded?.prefix === "did:chia:") return { kind: "did", didId: lower, launcherId: decoded.hash };
-    return { kind: "invalid", reason: "That looks like a DID but its checksum is wrong." };
+    if (decoded?.prefix === "did:chia:")
+      return { kind: "did", didId: lower, launcherId: decoded.hash };
+    return { kind: "invalid", reason: t("invalid.didChecksum") };
   }
   if (isHex(input, 32)) return { kind: "hex32", hex: stripHexPrefix(input) };
   if (isHex(input)) {
-    return { kind: "invalid", reason: "Hex ids must be 32 bytes (64 hex characters)." };
+    return { kind: "invalid", reason: t("invalid.hexLength") };
   }
-  return {
-    kind: "invalid",
-    reason: "Not recognised. Try a block height, a tx id, a coin id, an xch/txch address, an nft1 id or a CAT asset id.",
-  };
+  return { kind: "text", value: input };
 }

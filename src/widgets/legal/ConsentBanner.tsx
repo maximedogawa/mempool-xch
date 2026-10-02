@@ -4,17 +4,15 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ConsentCategory } from "@/shared/lib/consent/store";
 import { routes } from "@/shared/lib/routes";
+import { useT } from "@/shared/i18n/useT";
 import { useConsent } from "@/shared/providers/ConsentProvider";
 import { Button } from "@/shared/ui/Button";
+import consentNs from "@/shared/i18n/messages/en/consent";
 
-const CATEGORIES: { id: "necessary" | ConsentCategory; label: string; detail: string }[] = [
-  { id: "necessary", label: "Strictly necessary", detail: "Your settings, caches and this choice, kept in your browser. Always on." },
-  { id: "analytics", label: "Analytics", detail: "Anonymous usage statistics. Not used at the moment." },
-  { id: "advertising", label: "Advertising", detail: "Ads and ad measurement. Not used at the moment." },
-];
+const CATEGORIES: ("necessary" | ConsentCategory)[] = ["necessary", "analytics", "advertising"];
 
 /**
- * Consent panel (TASK-056): opens on the first visit and from "Cookie settings" in the footer.
+ * Consent panel: opens on the first visit and from "Cookie settings" in the footer.
  * Non-modal on purpose, so the explorer stays usable while it is open.
  */
 export function ConsentBanner() {
@@ -25,8 +23,12 @@ export function ConsentBanner() {
 
 function ConsentPanel() {
   const { analytics, advertising, signal, undecided, save, closeSettings } = useConsent();
-  const [choice, setChoice] = useState<Record<ConsentCategory, boolean>>({ analytics, advertising });
+  const [choice, setChoice] = useState<Record<ConsentCategory, boolean>>({
+    analytics,
+    advertising,
+  });
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const t = useT(consentNs);
 
   // Opened on request from the footer: move focus into the panel. On a first visit leave focus alone.
   useEffect(() => {
@@ -45,30 +47,33 @@ function ConsentPanel() {
     >
       <div className="mx-auto flex max-h-[70dvh] max-w-[1280px] flex-col gap-3 overflow-y-auto px-4 py-4 text-sm">
         <div>
-          <h2 id="consent-title" ref={headingRef} tabIndex={-1} className="font-semibold text-fg outline-none">
-            Cookies and local storage
+          <h2
+            id="consent-title"
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-semibold text-fg outline-none"
+          >
+            {t("consent.title")}
           </h2>
           <p className="mt-1 text-fg-muted">
-            This site keeps only what it needs to work in your browser. Nothing for analytics or advertising loads unless you allow it here.{" "}
+            {t("consent.intro")}{" "}
             <Link href={routes.legalCookies()} className="text-accent hover:underline">
-              Cookie policy
+              {t("consent.cookiePolicy")}
             </Link>
             {" · "}
             <Link href={routes.legalPrivacy()} className="text-accent hover:underline">
-              Privacy policy
+              {t("consent.privacyPolicy")}
             </Link>
           </p>
-          {signal ? (
-            <p className="mt-1 text-fg-muted">Your browser sends a Do Not Track or Global Privacy Control signal, so analytics and advertising stay off.</p>
-          ) : null}
+          {signal ? <p className="mt-1 text-fg-muted">{t("consent.signal")}</p> : null}
         </div>
         <fieldset className="flex flex-col gap-2 sm:flex-row sm:gap-6">
-          <legend className="sr-only">Categories</legend>
+          <legend className="sr-only">{t("consent.categoriesLegend")}</legend>
           {CATEGORIES.map((category) => {
-            const necessary = category.id === "necessary";
-            const checked = necessary ? true : choice[category.id as ConsentCategory];
+            const necessary = category === "necessary";
+            const checked = necessary ? true : choice[category as ConsentCategory];
             return (
-              <label key={category.id} className="flex flex-1 items-start gap-2">
+              <label key={category} className="flex flex-1 items-start gap-2">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--primary)]"
@@ -76,13 +81,17 @@ function ConsentPanel() {
                   disabled={necessary || signal}
                   onChange={(event) => {
                     if (necessary) return;
-                    const id = category.id as ConsentCategory;
+                    const id = category as ConsentCategory;
                     setChoice((prev) => ({ ...prev, [id]: event.target.checked }));
                   }}
                 />
                 <span>
-                  <span className="font-medium text-fg">{category.label}</span>
-                  <span className="block text-xs text-fg-muted">{category.detail}</span>
+                  <span className="font-medium text-fg">
+                    {t(`consent.categories.${category}.label`)}
+                  </span>
+                  <span className="block text-xs text-fg-muted">
+                    {t(`consent.categories.${category}.detail`)}
+                  </span>
                 </span>
               </label>
             );
@@ -90,17 +99,22 @@ function ConsentPanel() {
         </fieldset>
         <div className="flex flex-wrap gap-2 sm:justify-end">
           <Button size="sm" onClick={() => save({ analytics: false, advertising: false })}>
-            Reject all
+            {t("consent.rejectAll")}
           </Button>
           <Button size="sm" onClick={() => save(choice)}>
-            Save my choice
+            {t("consent.saveChoice")}
           </Button>
-          <Button size="sm" variant="primary" disabled={signal} onClick={() => save({ analytics: true, advertising: true })}>
-            Accept all
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={signal}
+            onClick={() => save({ analytics: true, advertising: true })}
+          >
+            {t("consent.acceptAll")}
           </Button>
           {!undecided ? (
             <Button size="sm" variant="ghost" onClick={closeSettings}>
-              Close
+              {t("consent.close")}
             </Button>
           ) : null}
         </div>

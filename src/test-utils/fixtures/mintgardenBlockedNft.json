@@ -1,0 +1,42 @@
+{
+  "id": "00efb5d53ad1df6e3aca5afdd4cadc281fc79178cd21227485844c0b9d3691f9",
+  "encoded_id": "nft1qrhmt4f6680kuwk2tt7afjku9q0u0ytce5sjyay9s3xqh8fkj8us4lpxej",
+  "is_blocked": false,
+  "data": {
+    "thumbnail_uri": "https://assets.mainnet.mintgarden.io/thumbnails/407443bc635d73a4e4bd67c405e784376a51d632168576f487349ca84c682c5f_512.webp",
+    "metadata_json": {
+      "name": "R.E #35",
+      "sensitive_content": false,
+      "collection": {
+        "id": "ed53ff20-d509-442d-bb02-882ab6adbc2b",
+        "name": "Kamasutra: R.E. Edition",
+        "attributes": [
+          {
+            "type": "description",
+            "value": "Kamasutra: R.E. Edition captures intimacy through posture, silhouette, and quiet rhythm.\nA refined interpretation of Rear Embrace. Symbolic of trust, control, and primal harmony.\nVeiled in soft shadows and ritual atmosphere, each piece preserves a private moment: sensual, cinematic, and timeles"
+          },
+          {
+            "type": "icon",
+            "value": "https://ipfs.mintgarden.io/ipfs/bafybeiafqevneqbkpmbtlt27aeyctrtpdvy7xvk4uyhef67sr7m72rwkqe/profil.gif"
+          },
+          {
+            "type": "banner",
+            "value": "https://ipfs.mintgarden.io/ipfs/bafybeihdbx6ena4jvcjz2woagdxgg5mepkm4yleoek4zpmtery45ihay5e/banner.jpg"
+          }
+        ]
+      }
+    }
+  },
+  "collection": {
+    "id": "col13dxxucq0jkuwn8dmjkwaa3fmtnqaqzvfx4ztnept39fpt8020wlqm8cyzh",
+    "name": "Kamasutra: R.E. Edition",
+    "sensitive_content": false,
+    "blocked_content": true,
+    "blocked_content_reason": "Pornographic Material"
+  },
+  "creator": {
+    "name": "LegendChia",
+    "minting_blocked": true,
+    "minting_blocked_reason": "Terms of service violation: Pornographic content"
+  }
+}

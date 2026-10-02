@@ -6,10 +6,21 @@ import { useMempoolSummary, useRecentBlocks } from "@/shared/api/hooks";
 import { formatAmount, formatCost, formatFeeRate, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
-import { AssetAmount, AssetBadge, Card, CardBody, CardHeader, Hash, Skeleton, YoursChip } from "@/shared/ui";
+import {
+  AssetAmount,
+  AssetBadge,
+  Card,
+  CardBody,
+  CardHeader,
+  Hash,
+  Skeleton,
+  YoursChip,
+} from "@/shared/ui";
+import feedNs from "@/shared/i18n/messages/en/feed";
 
 const FEED_CAP = 50;
 
@@ -23,21 +34,26 @@ function useTicker(ms: number) {
 
 /** Newest spend bundles entering the mempool. Pauses while hovered so rows stay clickable. */
 export function LiveTransactions() {
+  const t = useT(feedNs);
   const summary = useMempoolSummary();
   const mine = useWalletPendingIds();
   const [paused, setPaused] = useState(false);
   const frozen = useRef<typeof rows>([]);
   useTicker(10_000);
   const rows = useMemo(() => {
-    const items = [...(summary.data?.items ?? [])].sort((a, b) => b.firstSeen - a.firstSeen).slice(0, FEED_CAP);
+    const items = [...(summary.data?.items ?? [])]
+      .sort((a, b) => b.firstSeen - a.firstSeen)
+      .slice(0, FEED_CAP);
     return items;
   }, [summary.data]);
   if (!paused) frozen.current = rows;
   const shown = paused ? frozen.current : rows;
   const knownIds = useRef(new Set<string>());
   const fresh = new Set(shown.filter((r) => !knownIds.current.has(r.id)).map((r) => r.id));
+  // Only the rows on screen matter for the "new" flash; remembering every id ever shown would
+  // grow for as long as the tab stays open.
   useEffect(() => {
-    shown.forEach((r) => knownIds.current.add(r.id));
+    knownIds.current = new Set(shown.map((r) => r.id));
   });
 
   return (
@@ -45,13 +61,17 @@ export function LiveTransactions() {
       <CardHeader
         title={
           <span className="inline-flex items-center gap-2">
-            Latest transactions
-            {paused ? <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] normal-case tracking-normal text-fg-faint">paused</span> : null}
+            {t("latestTransactions")}
+            {paused ? (
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] normal-case tracking-normal text-fg-faint">
+                {t("paused")}
+              </span>
+            ) : null}
           </span>
         }
         action={
           <Link href={routes.mempool()} className="text-xs font-medium text-accent hover:underline">
-            Mempool →
+            {t("mempoolLink")}
           </Link>
         }
       />
@@ -70,19 +90,41 @@ export function LiveTransactions() {
               ))}
             </div>
           ) : shown.length === 0 ? (
-            <p className="py-6 text-center text-sm text-fg-faint">The mempool is empty.</p>
+            <p className="py-6 text-center text-sm text-fg-faint">{t("empty")}</p>
           ) : (
             <ul className="divide-y divide-border/60" aria-live="polite" aria-relevant="additions">
               {shown.map((item) => (
-                <li key={item.id} className={cn("flex items-center gap-3 py-2 text-sm", fresh.has(item.id) && "animate-row-in")}>
+                <li
+                  key={item.id}
+                  className={cn(
+                    "flex items-center gap-3 py-2 pl-2 text-sm",
+                    fresh.has(item.id) && "animate-row-in"
+                  )}
+                >
                   <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} />
                   {mine.has(item.id) ? <YoursChip /> : null}
                   <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
-                  <AssetAmount assets={item.assets} kind={item.kind} className="ml-auto hidden text-fg-muted sm:inline" />
-                  <span className="tabular w-20 text-right text-fg-muted" title={`${formatCost(item.cost)} cost`}>
-                    {BigInt(item.fee) === 0n ? <span className="text-fg-faint">0 fee</span> : `${formatFeeRate(item.feeRate)} m/c`}
+                  <AssetAmount
+                    assets={item.assets}
+                    kind={item.kind}
+                    className="ml-auto hidden text-fg-muted sm:inline"
+                  />
+                  <span
+                    className="tabular w-20 text-right text-fg-muted"
+                    title={t("costTitle", { cost: formatCost(item.cost) })}
+                  >
+                    {BigInt(item.fee) === 0n ? (
+                      <span className="text-fg-faint">{t("zeroFee")}</span>
+                    ) : (
+                      t("feeRate", { rate: formatFeeRate(item.feeRate) })
+                    )}
                   </span>
-                  <span className="tabular w-14 text-right text-xs text-fg-faint" title="First observed by the mempoolxch.space server (not the network's first-seen time)">{formatAge(item.firstSeen)}</span>
+                  <span
+                    className="tabular w-14 text-right text-xs text-fg-faint"
+                    title={t("firstSeenTitle")}
+                  >
+                    {formatAge(item.firstSeen)}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -94,6 +136,7 @@ export function LiveTransactions() {
 }
 
 export function LatestBlocks() {
+  const t = useT(feedNs);
   const { settings } = useSettings();
   const recent = useRecentBlocks(settings.recentBlocks);
   useTicker(10_000);
@@ -101,10 +144,10 @@ export function LatestBlocks() {
   return (
     <Card>
       <CardHeader
-        title="Latest blocks"
+        title={t("latestBlocks")}
         action={
           <Link href={routes.blocks()} className="text-xs font-medium text-accent hover:underline">
-            Blocks →
+            {t("blocksLink")}
           </Link>
         }
       />
@@ -119,19 +162,33 @@ export function LatestBlocks() {
           <ul className="divide-y divide-border/60">
             {blocks.map((b) => (
               <li key={b.height} className="flex items-center gap-3 py-2 text-sm">
-                <Link href={routes.block(b.height)} className="tabular font-semibold text-accent hover:underline">
+                <Link
+                  href={routes.block(b.height)}
+                  className="tabular font-semibold text-accent hover:underline"
+                >
                   {formatNumber(b.height)}
                 </Link>
                 {b.isTransactionBlock ? (
-                  <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">tx block</span>
+                  <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                    {t("txBlock")}
+                  </span>
                 ) : (
-                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-fg-faint">no tx</span>
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-fg-faint">
+                    {t("noTx")}
+                  </span>
                 )}
-                <span className="tabular ml-auto text-fg-muted">{b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : "—"}</span>
-                <span className="mono hidden w-24 truncate text-xs text-fg-faint md:inline" title={b.farmerPuzzleHash}>
+                <span className="tabular ml-auto text-fg-muted">
+                  {b.isTransactionBlock ? formatAmount(b.fees ?? 0n) : "—"}
+                </span>
+                <span
+                  className="mono hidden w-24 truncate text-xs text-fg-faint md:inline"
+                  title={b.farmerPuzzleHash}
+                >
                   {b.farmerPuzzleHash.slice(0, 10)}…
                 </span>
-                <span className="tabular w-16 text-right text-xs text-fg-faint">{b.timestamp ? formatAge(b.timestamp * 1000) : ""}</span>
+                <span className="tabular w-16 text-right text-xs text-fg-faint">
+                  {b.timestamp ? formatAge(b.timestamp * 1000) : ""}
+                </span>
               </li>
             ))}
           </ul>

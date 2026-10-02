@@ -1,5 +1,5 @@
 /**
- * Projected next blocks (TASK-006): pack mempool items by descending fee per cost into blocks
+ * Projected next blocks: pack mempool items by descending fee per cost into blocks
  * bounded by block_max_cost, the same greedy order the Chia node uses when it fills a
  * transaction block. Pure and deterministic so it can be unit tested with fixtures.
  */
@@ -42,7 +42,9 @@ function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2 : (sorted[mid] ?? 0);
+  return sorted.length % 2 === 0
+    ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2
+    : (sorted[mid] ?? 0);
 }
 
 function summarise(
@@ -104,7 +106,10 @@ export function packProjectedBlocks(
 }
 
 /** Which projected block a tx id would land in, or null when it is not in the mempool. */
-export function findProjectedPosition(blocks: ProjectedBlock[], txId: string): { block: ProjectedBlock; position: number } | null {
+export function findProjectedPosition(
+  blocks: ProjectedBlock[],
+  txId: string
+): { block: ProjectedBlock; position: number } | null {
   const id = txId.toLowerCase().replace(/^0x/, "");
   const found = blocks
     .map((block) => ({ block, position: block.items.findIndex((i) => i.id === id) }))

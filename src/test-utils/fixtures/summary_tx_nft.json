@@ -1,1 +1,54 @@
-{"transaction": {"schema_version":1,"id":"1a4e20c28d941152749d486fcefe639c6d22689b9748a016d21ee16fb0ec5db0","source":"mempool","status":"confirmed","cost":84261472,"fee_mojos":"0","confirmed_height":7942389,"confirmed_header_hash":"1f6244beb69263bf563cdad3bacb50bb8be861738b0e4cc95c831c8d3397e696","confirmed_at_ms":1764071350000,"last_updated_ms":1764071350000,"events":[{"type":"Mint","fee_mojos":"0","recipient_p2":"0x68bd54d8a1717e0a44baaf875f424d4529ce226bea65a00eebcb8e87078cd078","minter_p2":"0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9","minter_confidence":"exact","minted":{"asset_type":"nft","asset_id":"0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e"},"inputs":[{"coin_id":"0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e","puzzle_hash":"0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9","amount":"1","coin_type":{"outer_puzzle_type":"XCH","custody_puzzle_type":"SingletonLauncher","custody_p2":"0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9"}}],"outputs":[{"coin_id":"0x76811654ea0207d2ea048d8f5ddf69e3be174f13dab7840e86aa1bc6d4008308","puzzle_hash":"0xa11dc98ad8e9f339012092b1985610c46eb0050d807d946fa7d6e75858e9187d","amount":"1","coin_type":{"outer_puzzle_type":"NFT","custody_puzzle_type":"Unknown","custody_p2":"0x68bd54d8a1717e0a44baaf875f424d4529ce226bea65a00eebcb8e87078cd078","asset_id":"0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e"}}],"memos":[]}]}, "success": true}
+{
+  "transaction": {
+    "schema_version": 1,
+    "id": "1a4e20c28d941152749d486fcefe639c6d22689b9748a016d21ee16fb0ec5db0",
+    "source": "mempool",
+    "status": "confirmed",
+    "cost": 84261472,
+    "fee_mojos": "0",
+    "confirmed_height": 7942389,
+    "confirmed_header_hash": "1f6244beb69263bf563cdad3bacb50bb8be861738b0e4cc95c831c8d3397e696",
+    "confirmed_at_ms": 1764071350000,
+    "last_updated_ms": 1764071350000,
+    "events": [
+      {
+        "type": "Mint",
+        "fee_mojos": "0",
+        "recipient_p2": "0x68bd54d8a1717e0a44baaf875f424d4529ce226bea65a00eebcb8e87078cd078",
+        "minter_p2": "0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9",
+        "minter_confidence": "exact",
+        "minted": {
+          "asset_type": "nft",
+          "asset_id": "0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e"
+        },
+        "inputs": [
+          {
+            "coin_id": "0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e",
+            "puzzle_hash": "0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9",
+            "amount": "1",
+            "coin_type": {
+              "outer_puzzle_type": "XCH",
+              "custody_puzzle_type": "SingletonLauncher",
+              "custody_p2": "0xeff07522495060c066f66f32acc2a77e3a3e737aca8baea4d1a64ea4cdc13da9"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "coin_id": "0x76811654ea0207d2ea048d8f5ddf69e3be174f13dab7840e86aa1bc6d4008308",
+            "puzzle_hash": "0xa11dc98ad8e9f339012092b1985610c46eb0050d807d946fa7d6e75858e9187d",
+            "amount": "1",
+            "coin_type": {
+              "outer_puzzle_type": "NFT",
+              "custody_puzzle_type": "Unknown",
+              "custody_p2": "0x68bd54d8a1717e0a44baaf875f424d4529ce226bea65a00eebcb8e87078cd078",
+              "asset_id": "0x986702452f7e2452c26eb7b15bb59882b891aa6ae03efef3785491d40ac96d5e"
+            }
+          }
+        ],
+        "memos": []
+      }
+    ]
+  },
+  "success": true
+}

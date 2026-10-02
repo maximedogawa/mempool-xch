@@ -1,4 +1,6 @@
 import { CHIA } from "@/shared/config/networks";
+import { getActiveLocale } from "@/shared/i18n/active";
+import { decimalSeparator, formatFixed, formatInteger, numberFormat } from "@/shared/i18n/number";
 
 /** All amounts are bigint mojos end to end. */
 export type Mojos = bigint;
@@ -19,10 +21,10 @@ function formatDecimal(mojos: Mojos, decimals: number, maxFractionDigits: number
   const base = 10n ** BigInt(decimals);
   const whole = abs / base;
   const frac = abs % base;
-  const wholeStr = whole.toLocaleString("en-US");
+  const wholeStr = formatInteger(whole);
   let fracStr = frac.toString().padStart(decimals, "0").slice(0, maxFractionDigits);
   fracStr = fracStr.replace(/0+$/, "");
-  return `${negative ? "-" : ""}${wholeStr}${fracStr ? `.${fracStr}` : ""}`;
+  return `${negative ? "-" : ""}${wholeStr}${fracStr ? `${decimalSeparator()}${fracStr}` : ""}`;
 }
 
 /** Full-precision XCH string, e.g. 1234.000000000123. */
@@ -37,12 +39,12 @@ export function formatCat(mojos: Mojos, maxFractionDigits = 3): string {
 
 /** Keep at most `n` significant digits in the fractional part of "0.000123456". */
 function trimSignificant(decimal: string, n: number): string {
-  const [whole, frac] = decimal.split(".");
+  const [whole, frac] = decimal.split(decimalSeparator());
   if (!frac || whole?.replace("-", "") !== "0") return decimal;
   const match = /^(0*)(\d+)$/.exec(frac);
   if (!match) return decimal;
   const kept = `${match[1]}${match[2]!.slice(0, n)}`.replace(/0+$/, "");
-  return kept ? `${whole}.${kept}` : `${whole}`;
+  return kept ? `${whole}${decimalSeparator()}${kept}` : `${whole}`;
 }
 
 /** Compact, human-scale display: picks mojos, or XCH with sensible precision. */
@@ -50,7 +52,7 @@ export function formatAmount(mojos: Mojos, unit: "xch" | "cat" = "xch"): string 
   if (unit === "cat") return `${formatCat(mojos)} CAT`;
   const abs = mojos < 0n ? -mojos : mojos;
   if (abs === 0n) return "0 XCH";
-  if (abs < 1_000_000n) return `${mojos.toLocaleString("en-US")} mojo`;
+  if (abs < 1_000_000n) return `${formatInteger(mojos)} mojo`;
   if (abs < CHIA.MOJOS_PER_XCH / 1000n) return `${trimSignificant(formatXch(mojos, 12), 4)} XCH`;
   if (abs < CHIA.MOJOS_PER_XCH) return `${formatXch(mojos, 6)} XCH`;
   if (abs < CHIA.MOJOS_PER_XCH * 1000n) return `${formatXch(mojos, 4)} XCH`;
@@ -65,13 +67,22 @@ export function feePerCost(fee: Mojos, cost: number): number {
 
 export function formatFeeRate(rate: number): string {
   if (rate === 0) return "0";
-  if (rate < 0.001) return "<0.001";
-  if (rate < 1) return rate.toFixed(3);
-  if (rate < 100) return rate.toFixed(2);
-  return Math.round(rate).toLocaleString("en-US");
+  if (rate < 0.001) return `<${formatFixed(0.001, 3)}`;
+  if (rate < 1) return formatFixed(rate, 3);
+  if (rate < 100) return formatFixed(rate, 2);
+  return formatInteger(Math.round(rate));
 }
 
 export function formatCost(cost: number): string {
+  if (getActiveLocale() !== "en") {
+    // The locale's own short scale ("11 Mrd.", "1,5 M", "110万").
+    const digits = cost >= 1_000_000_000 ? 2 : cost >= 1_000_000 ? 1 : 0;
+    return numberFormat(undefined, {
+      notation: "compact",
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(cost);
+  }
   if (cost >= 1_000_000_000) return `${(cost / 1_000_000_000).toFixed(2)}B`;
   if (cost >= 1_000_000) return `${(cost / 1_000_000).toFixed(1)}M`;
   if (cost >= 1_000) return `${(cost / 1_000).toFixed(0)}k`;
@@ -79,9 +90,13 @@ export function formatCost(cost: number): string {
 }
 
 export function formatNumber(n: number): string {
-  return n.toLocaleString("en-US");
+  return numberFormat().format(n);
 }
 
 export function formatPercent(ratio: number, digits = 0): string {
-  return `${(ratio * 100).toFixed(digits)}%`;
+  return numberFormat(undefined, {
+    style: "percent",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(ratio);
 }

@@ -1,13 +1,16 @@
 "use client";
 
 import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
-import { assetTotalsFromSpends, assetTotalsFromSummaries, type BlockAssetTotals } from "@/shared/lib/blocks/assetTotals";
+import {
+  assetTotalsFromSpends,
+  assetTotalsFromSummaries,
+  type BlockAssetTotals,
+} from "@/shared/lib/blocks/assetTotals";
+import { loadCachedTotals, saveCachedTotals } from "@/shared/lib/blocks/totalsCache";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
 import { createLimiter } from "@/shared/lib/limit";
-import { fetchChainSnapshot, isChainFallbackError } from "@/shared/api/chain";
-import { RpcError } from "@/shared/lib/rpc/errors";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export interface BlockData {
@@ -40,13 +43,45 @@ export function useBlock(id: string) {
   });
 }
 
-export function useBlockTransactions(height: number | null, cursor: string | null, enabled: boolean) {
+/**
+ * The block page asks for the record and the full block separately: the record is one small
+ * call and carries nearly everything the page shows, the full block (a few hundred KB with the
+ * generator) only adds the cost, so the page paints on the record and fills the rest in.
+ */
+export function useBlockRecord(id: string) {
+  const { client, endpoints } = useSettings();
+  const parsed = parseBlockId(id);
+  return useQuery({
+    queryKey: queryKeys.blockRecord(endpoints.network, id.trim().toLowerCase()),
+    enabled: parsed !== null,
+    queryFn: ({ signal }): Promise<BlockRecord> =>
+      parsed && "height" in parsed
+        ? client.getBlockRecordByHeight(parsed.height, signal)
+        : client.getBlockRecord(parsed!.hash, signal),
+  });
+}
+
+export function useFullBlock(hash: string | null) {
+  const { client, endpoints } = useSettings();
+  return useQuery({
+    queryKey: [...queryKeys.block(endpoints.network, hash ?? ""), "full"],
+    enabled: hash !== null,
+    queryFn: ({ signal }) => client.getBlock(hash!, signal),
+  });
+}
+
+export function useBlockTransactions(
+  height: number | null,
+  cursor: string | null,
+  enabled: boolean
+) {
   const { client, endpoints } = useSettings();
   return useQuery({
     queryKey: queryKeys.blockTxs(endpoints.network, height ?? -1, cursor),
     enabled: enabled && height !== null && client.hasIndexed,
     placeholderData: keepPreviousData,
-    queryFn: ({ signal }) => client.getBlockTransactions(height!, { limit: 50, ...(cursor ? { cursor } : {}) }, signal),
+    queryFn: ({ signal }) =>
+      client.getBlockTransactions(height!, { limit: 50, ...(cursor ? { cursor } : {}) }, signal),
   });
 }
 
@@ -76,7 +111,9 @@ export function useNextTransactionBlock(height: number | null, enabled: boolean)
     enabled: enabled && height !== null,
     queryFn: async ({ signal }): Promise<BlockRecord | null> => {
       const records = await client.getBlockRecords(height! + 1, height! + 41, signal);
-      return records.filter((r) => r.isTransactionBlock).sort((a, b) => a.height - b.height)[0] ?? null;
+      return (
+        records.filter((r) => r.isTransactionBlock).sort((a, b) => a.height - b.height)[0] ?? null
+      );
     },
   });
 }
@@ -87,29 +124,55 @@ const TOTALS_PAGES = 4;
 /** At most this many per-block indexed calls in flight per tab (recent cubes + blocks list). */
 const blockTotalsLimit = createLimiter(3);
 
+function browserStorage(): Storage | null {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Per-asset totals of one block: Coinset summaries (up to 4 pages of 50) or the block's spends. */
 export function useBlockAssetTotals(height: number | null, hash: string | null, enabled: boolean) {
   const { client, endpoints } = useSettings();
   return useQuery({
-    queryKey: [...queryKeys.blockRoot(endpoints.network), "assetTotals", height ?? -1, client.hasIndexed ? "coinset" : "rpc"],
+    queryKey: [
+      ...queryKeys.blockRoot(endpoints.network),
+      "assetTotals",
+      height ?? -1,
+      hash,
+      client.hasIndexed ? "coinset" : "rpc",
+      "detail",
+    ],
     enabled: enabled && height !== null && hash !== null,
     staleTime: Infinity,
     queryFn: async ({ signal }): Promise<BlockAssetTotals> => {
+      const source = client.hasIndexed ? "coinset" : "rpc";
+      const block = { height: height!, hash: hash! };
+      // A first-page total from the cubes is not good enough for the block page.
+      const cached = loadCachedTotals(browserStorage(), endpoints.network, block.hash, source);
+      if (cached && !cached.partial) return cached;
+      const keep = (totals: BlockAssetTotals) => {
+        saveCachedTotals(browserStorage(), endpoints.network, block, totals);
+        return totals;
+      };
       if (client.hasIndexed) {
         const txs: TxSummary[] = [];
         let cursor: string | null = null;
         let partial = false;
         for (let page = 0; page < TOTALS_PAGES; page += 1) {
           const c = cursor;
-          const list: TxList = await blockTotalsLimit(() => client.getBlockTransactions(height!, { limit: 50, ...(c ? { cursor: c } : {}) }, signal));
+          const list: TxList = await blockTotalsLimit(() =>
+            client.getBlockTransactions(height!, { limit: 50, ...(c ? { cursor: c } : {}) }, signal)
+          );
           txs.push(...list.transactions);
           cursor = list.nextCursor;
           if (!cursor) break;
           if (page === TOTALS_PAGES - 1) partial = true;
         }
-        return assetTotalsFromSummaries(txs, partial);
+        return keep(assetTotalsFromSummaries(txs, partial));
       }
-      return assetTotalsFromSpends(await client.getBlockSpends(hash!, signal));
+      return keep(assetTotalsFromSpends(await client.getBlockSpends(hash!, signal)));
     },
   });
 }
@@ -119,29 +182,30 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
   const { client, endpoints } = useSettings();
   return useQueries({
     queries: blocks.map((b) => ({
-      queryKey: [...queryKeys.blockRoot(endpoints.network), "assetTotals", b.height, client.hasIndexed ? "coinset" : "rpc"],
+      queryKey: [
+        ...queryKeys.blockRoot(endpoints.network),
+        "assetTotals",
+        b.height,
+        b.hash,
+        client.hasIndexed ? "coinset" : "rpc",
+        "preview",
+      ],
       staleTime: Infinity,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
-        // Hosted: the server fetches each block's summaries once for everyone and announces
-        // them with a `chain` event (LiveProvider refetches this query then). Until that, the
-        // cube shows no totals rather than every tab asking Coinset itself.
-        if (endpoints.chainUrl) {
-          try {
-            const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-            const cached = snapshot.assets[String(b.height)];
-            if (cached) return cached;
-            if (snapshot.blocks.some((r) => r.height === b.height) || (snapshot.blocks[0]?.height ?? 0) < b.height) {
-              throw new RpcError("not_found", "chain", "Asset totals not cached yet");
-            }
-          } catch (error) {
-            if (!isChainFallbackError(error)) throw error;
-          }
-        }
+        const source = client.hasIndexed ? "coinset" : "rpc";
+        const cached = loadCachedTotals(browserStorage(), endpoints.network, b.hash, source);
+        if (cached) return cached;
+        const keep = (totals: BlockAssetTotals) => {
+          saveCachedTotals(browserStorage(), endpoints.network, b, totals);
+          return totals;
+        };
         if (client.hasIndexed) {
-          const list = await blockTotalsLimit(() => client.getBlockTransactions(b.height, { limit: 50 }, signal));
-          return assetTotalsFromSummaries(list.transactions, list.nextCursor !== null);
+          const list = await blockTotalsLimit(() =>
+            client.getBlockTransactions(b.height, { limit: 50 }, signal)
+          );
+          return keep(assetTotalsFromSummaries(list.transactions, list.nextCursor !== null));
         }
-        return assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal));
+        return keep(assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal)));
       },
     })),
   });

@@ -1,0 +1,69 @@
+{
+  "total": 102,
+  "offset": 0,
+  "limit": 5,
+  "sort": "wins",
+  "gameType": null,
+  "rows": [
+    {
+      "rank": 1,
+      "pubkey": "0xac1c15c478d26a9fdc89974efed91bf26378be9a707b9caf1e96af04025a84c407846aa38a8abf627e0ccfce2befb87a",
+      "name": "Noki",
+      "avatarVersion": 1,
+      "games": 709,
+      "wins": 332,
+      "losses": 319,
+      "draws": 58,
+      "winRate": 0.51,
+      "netMojos": "2096"
+    },
+    {
+      "rank": 2,
+      "pubkey": "0xaac19964a6b4a601f3edbb1efe69f2e4e077147355697cfb29e1e2023bb1f55df01ac6d2c959bc636909af2163fed868",
+      "name": "MrDennis",
+      "avatarVersion": 2,
+      "games": 473,
+      "wins": 194,
+      "losses": 224,
+      "draws": 55,
+      "winRate": 0.464,
+      "netMojos": "438407898406"
+    },
+    {
+      "rank": 3,
+      "pubkey": "0x8fc4e5ba5fab0440707ce560501d2aa27bb329af74bc4321d7fca3cdbbc1ee4366fcc364044b627fb50f6d4516943228",
+      "name": "Zugzwang",
+      "avatarVersion": 0,
+      "games": 74,
+      "wins": 71,
+      "losses": 3,
+      "draws": 0,
+      "winRate": 0.959,
+      "netMojos": "6800000000"
+    },
+    {
+      "rank": 4,
+      "pubkey": "0xa5f40703a243c2c731eae610c217978bad96433e2b45c40720c70d596f1d6554bf7d75194ce92f6a6dc2b8ff612977d3",
+      "name": "Edgar",
+      "avatarVersion": 1,
+      "games": 140,
+      "wins": 63,
+      "losses": 55,
+      "draws": 22,
+      "winRate": 0.534,
+      "netMojos": "659999999831"
+    },
+    {
+      "rank": 5,
+      "pubkey": "0xaa45a4c53c83654bff72f8b0e70aadf76983a618802cc5c161486b28162aa71f9c95eb1c9c9fd93a1ddfcefacd3eb0aa",
+      "name": "ClaudeCode",
+      "avatarVersion": 6,
+      "games": 141,
+      "wins": 62,
+      "losses": 52,
+      "draws": 27,
+      "winRate": 0.544,
+      "netMojos": "-98674675741"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 /**
- * Capability manager for the Sage bridge (TASK-038). Sage shows a permission dialog every time
+ * Capability manager for the Sage bridge. Sage shows a permission dialog every time
  * an app requests a capability, so the app must ask at most once, remember refusals, never call
  * a bridge method whose capability is not granted, and follow grant changes from the host.
  * Transport-free: the client is injected, so the logic is unit-testable.
@@ -17,7 +17,10 @@ export const REFUSED_KEY = "mempool-xch:sage-refused:v1";
 type Listener = () => void;
 
 function extractGranted(raw: unknown): string[] {
-  const r = raw && typeof raw === "object" ? (raw as { granted?: unknown; capabilities?: unknown; full?: unknown }) : {};
+  const r =
+    raw && typeof raw === "object"
+      ? (raw as { granted?: unknown; capabilities?: unknown; full?: unknown })
+      : {};
   const list = r.granted ?? r.capabilities ?? r.full;
   return Array.isArray(list) ? list.map(String) : [];
 }
@@ -38,7 +41,7 @@ export class CapabilityManager {
       const raw = storage?.getItem(REFUSED_KEY);
       if (raw) JSON.parse(raw).forEach((c: string) => this.refused.add(c));
     } catch {
-      // ignore
+      // Storage unavailable or corrupt: start with no remembered refusals.
     }
   }
 
@@ -58,17 +61,18 @@ export class CapabilityManager {
           // Not granted app.get_capabilities: assume nothing.
         }
         try {
-          this.unlisten = client.app.onGrantedCapabilitiesChange?.((event) => {
-            const full = event.full;
-            if (Array.isArray(full)) {
-              this.granted = new Set(full.map(String));
-              full.forEach((c) => this.refused.delete(String(c)));
-              this.persist();
-              this.emit();
-            }
-          }) ?? null;
+          this.unlisten =
+            client.app.onGrantedCapabilitiesChange?.((event) => {
+              const full = event.full;
+              if (Array.isArray(full)) {
+                this.granted = new Set(full.map(String));
+                full.forEach((c) => this.refused.delete(String(c)));
+                this.persist();
+                this.emit();
+              }
+            }) ?? null;
         } catch {
-          // Optional.
+          // Hosts without change events: the set read above stays as it is.
         }
         this.emit();
       })();
@@ -103,7 +107,9 @@ export class CapabilityManager {
       if (!client) return false;
       try {
         const result = await client.app.requestCapabilityGrant({ capability: capability as never });
-        const ok = Boolean((result as { granted?: boolean }).granted ?? (result as { ok?: boolean }).ok);
+        const ok = Boolean(
+          (result as { granted?: boolean }).granted ?? (result as { ok?: boolean }).ok
+        );
         if (ok) {
           this.granted.add(capability);
           this.refused.delete(capability);
@@ -138,7 +144,7 @@ export class CapabilityManager {
     try {
       this.storage?.setItem(REFUSED_KEY, JSON.stringify([...this.refused]));
     } catch {
-      // ignore
+      // Storage unavailable: refusals are remembered for this session only.
     }
   }
 

@@ -1,17 +1,24 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
+import type { NetworkId } from "@/shared/config/networks";
 import { CHIA } from "@/shared/config/networks";
 import { compactMempoolItem } from "@/shared/lib/mempool/compact";
 import { packProjectedBlocks, type ProjectedBlock } from "@/shared/lib/mempool/packing";
-import type { MempoolSummary } from "@/shared/lib/mempool/types";
+import { loadSnapshot, saveSnapshot, SNAPSHOT_MIN_GAP_MS } from "@/shared/lib/mempool/snapshot";
+import { createMempoolItemSync, type MempoolItemSync } from "@/shared/lib/mempool/sync";
+import type { CompactMempoolItem, MempoolSummary } from "@/shared/lib/mempool/types";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
-import { RpcError } from "@/shared/lib/rpc/errors";
-import type { BlockRecord } from "@/shared/lib/rpc/types";
-import { useLive } from "@/shared/providers/LiveProvider";
+import type { BlockchainState, BlockRecord } from "@/shared/lib/rpc/types";
+import type { RpcClient } from "@/shared/lib/rpc/client";
+import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { fetchChainSnapshot, isChainFallbackError as isFallbackError } from "./chain";
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
@@ -19,114 +26,193 @@ export function useBlockchainState() {
   return useQuery({
     queryKey: queryKeys.state(endpoints.network),
     enabled: hydrated,
-    queryFn: async ({ signal }) => {
-      if (endpoints.chainUrl) {
-        try {
-          return (await fetchChainSnapshot(endpoints.chainUrl, signal)).state;
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      return client.getBlockchainState(signal);
-    },
+    queryFn: ({ signal }) => client.getBlockchainState(signal),
     // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
     refetchInterval: 60_000,
   });
 }
 
-/** First-seen times for the browser fallback survive across refetches within the session. */
-const browserFirstSeen = new Map<string, number>();
-
-async function fetchSummaryFromServer(url: string, signal: AbortSignal): Promise<MempoolSummary> {
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new RpcError("http", "summary", `Summary API answered ${response.status}`, { status: response.status });
-  const text = await response.text();
+function browserStorage(): Storage | null {
   try {
-    return JSON.parse(text) as MempoolSummary;
-  } catch (error) {
-    throw new RpcError("malformed", "summary", "Malformed summary", { detail: error });
+    return typeof window !== "undefined" ? window.localStorage : null;
+  } catch {
+    return null;
   }
 }
 
 /**
- * Compact mempool: from the hosted summary API when the endpoint is Coinset, otherwise
- * assembled in the browser from get_all_mempool_items (heavy, but only for custom nodes).
+ * One incremental sync per network, persisting for the tab's lifetime: get_all_mempool_items
+ * carries full puzzle reveals and can be tens of MB, so this fetches the id list and only the
+ * items not already known instead, and keeps the compact form only
+ * (src/shared/lib/mempool/sync.ts). Seeded from the last visit's snapshot so a reload does not
+ * download the whole mempool again.
  */
+const mempoolSyncs = new WeakMap<RpcClient, MempoolItemSync<CompactMempoolItem>>();
+function getMempoolSync(
+  network: NetworkId,
+  client: RpcClient
+): MempoolItemSync<CompactMempoolItem> {
+  let sync = mempoolSyncs.get(client);
+  if (!sync) {
+    const snapshot = loadSnapshot(browserStorage(), network);
+    sync = createMempoolItemSync({
+      getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s),
+      getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s),
+      reduce: compactMempoolItem,
+      seed: snapshot?.items.map((item) => [item.id, item] as const),
+    });
+    mempoolSyncs.set(client, sync);
+  }
+  return sync;
+}
+
+const snapshotSavedAt = new Map<NetworkId, number>();
+function saveSnapshotThrottled(summary: MempoolSummary, network: NetworkId) {
+  if (summary.generatedAt - (snapshotSavedAt.get(network) ?? 0) < SNAPSHOT_MIN_GAP_MS) return;
+  snapshotSavedAt.set(network, summary.generatedAt);
+  saveSnapshot(browserStorage(), summary);
+}
+
+function toSummary(
+  network: NetworkId,
+  state: BlockchainState,
+  items: CompactMempoolItem[],
+  source: MempoolSummary["source"]
+): MempoolSummary {
+  return {
+    network,
+    generatedAt: Date.now(),
+    source,
+    state: {
+      peakHeight: state.peak.height,
+      peakHash: state.peak.headerHash,
+      lastTxBlockHeight: state.peak.isTransactionBlock
+        ? state.peak.height
+        : state.peak.prevTransactionBlockHeight,
+      mempoolSize: state.mempoolSize,
+      mempoolCost: state.mempoolCost,
+      mempoolMaxTotalCost: state.mempoolMaxTotalCost,
+      mempoolFees: state.mempoolFees.toString(),
+      blockMaxCost: state.blockMaxCost,
+      averageBlockTime: state.averageBlockTime,
+      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost).
+      minFeeRate: state.mempoolMinFees.cost_5000000 ?? 0,
+      synced: state.synced,
+    },
+    items,
+  };
+}
+
+/** Compact mempool, synced incrementally in the browser (see getMempoolSync above). */
 export function useMempoolSummary() {
   const { client, endpoints, hydrated } = useSettings();
-  const { status } = useLive();
-  const source = endpoints.summaryUrl ?? "browser";
-  // With a live WebSocket, transaction and peak events already invalidate the summary, so the
-  // interval is only a safety net; while polling it carries the updates itself.
-  const interval = endpoints.summaryUrl ? (status === "live" ? 12_000 : 4_000) : 20_000;
+  const queryClient = useQueryClient();
+  const network = endpoints.network;
+  // Paint the last visit's mempool at once; the first sync replaces it a moment later. Done in
+  // an effect (not initialData) so the hydration render matches the prerendered page.
+  useEffect(() => {
+    if (!hydrated) return;
+    const key = queryKeys.mempoolSummary(network, "browser");
+    if (queryClient.getQueryData(key)) return;
+    const snapshot = loadSnapshot(browserStorage(), network);
+    if (snapshot) {
+      queryClient.setQueryData(
+        key,
+        { ...snapshot, source: "snapshot" },
+        { updatedAt: snapshot.generatedAt }
+      );
+    }
+  }, [hydrated, network, queryClient]);
   return useQuery({
-    queryKey: queryKeys.mempoolSummary(endpoints.network, source),
+    queryKey: queryKeys.mempoolSummary(network, "browser"),
     enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
-      if (endpoints.summaryUrl) {
-        try {
-          return await fetchSummaryFromServer(endpoints.summaryUrl, signal);
-        } catch (error) {
-          // The static Sage snapshot or a dev server without the API falls back to the browser.
-          if (!(error instanceof RpcError && (error.kind === "http" || error.kind === "network"))) throw error;
-        }
-      }
-      const [state, items] = await Promise.all([client.getBlockchainState(signal), client.getAllMempoolItems(signal)]);
-      const now = Date.now();
-      const live = new Set(items.map((i) => i.name));
-      [...browserFirstSeen.keys()].filter((id) => !live.has(id)).forEach((id) => browserFirstSeen.delete(id));
-      const compact = items.map((item) => {
-        const seen = browserFirstSeen.get(item.name) ?? now;
-        browserFirstSeen.set(item.name, seen);
-        return compactMempoolItem(item, seen);
+      const key = queryKeys.mempoolSummary(network, "browser");
+      const statePromise = client.getBlockchainState(signal);
+      let state: BlockchainState | null = null;
+      void statePromise.then(
+        (s) => (state = s),
+        () => undefined
+      );
+      // A cold tab has every pending bundle to fetch; show what has arrived so far instead
+      // of nothing until the last one is in.
+      const items = await getMempoolSync(network, client).sync(signal, (partial) => {
+        if (!state || signal.aborted) return;
+        const soFar = toSummary(network, state, partial, "syncing");
+        queryClient.setQueryData(key, soFar);
+        // Worth keeping even if the tab closes before the sync completes: it is only a seed.
+        saveSnapshotThrottled(soFar, network);
       });
-      // mempool_min_fees.cost_5000000 is already a fee rate (mojos per cost), see server/mempoolSummary.ts
-      const minFeeRate = state.mempoolMinFees.cost_5000000 ?? 0;
-      return {
-        network: endpoints.network,
-        generatedAt: now,
-        source: "browser",
-        state: {
-          peakHeight: state.peak.height,
-          peakHash: state.peak.headerHash,
-          lastTxBlockHeight: state.peak.isTransactionBlock ? state.peak.height : state.peak.prevTransactionBlockHeight,
-          mempoolSize: state.mempoolSize,
-          mempoolCost: state.mempoolCost,
-          mempoolMaxTotalCost: state.mempoolMaxTotalCost,
-          mempoolFees: state.mempoolFees.toString(),
-          blockMaxCost: state.blockMaxCost,
-          averageBlockTime: state.averageBlockTime,
-          minFeeRate,
-          synced: state.synced,
-        },
-        items: compact,
-      };
+      const summary = toSummary(network, await statePromise, items, "browser");
+      saveSnapshotThrottled(summary, endpoints.network);
+      return summary;
     },
-    // While the server is still filling its view (fewer items than the node reports), poll
-    // faster so the first visitor after a restart sees projected blocks within seconds; but
-    // only for the first refetches, a busy mempool can stay "filling" for minutes and each
-    // summary is tens of KB.
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data && data.source === "server" && data.items.length < data.state.mempoolSize * 0.9 && query.state.dataUpdateCount < 12) return 3_000;
-      return interval;
-    },
+    // Peak/transaction events from LiveProvider already invalidate this on activity; the
+    // interval is a safety net only.
+    refetchInterval: 20_000,
     placeholderData: keepPreviousData,
   });
 }
 
-export function useProjectedBlocks(maxBlocks = 8): { blocks: ProjectedBlock[]; summary: MempoolSummary | undefined; isLoading: boolean; error: unknown } {
+/**
+ * Several dashboard widgets project blocks from the same summary; structural sharing keeps the
+ * `items` array identical while the mempool is unchanged, so pack once per array and hand every
+ * caller the same blocks (which also keeps their memoised layouts valid).
+ */
+const packedByItems = new WeakMap<
+  CompactMempoolItem[],
+  Map<number, { options: string; blocks: ProjectedBlock[] }>
+>();
+function packShared(summary: MempoolSummary, maxBlocks: number): ProjectedBlock[] {
+  const blockMaxCost = summary.state.blockMaxCost || CHIA.BLOCK_MAX_COST;
+  const averageBlockTime = summary.state.averageBlockTime || CHIA.TARGET_BLOCK_TIME_S;
+  const options = `${blockMaxCost}:${averageBlockTime}`;
+  let byMaxBlocks = packedByItems.get(summary.items);
+  if (!byMaxBlocks) {
+    byMaxBlocks = new Map();
+    packedByItems.set(summary.items, byMaxBlocks);
+  }
+  const cached = byMaxBlocks.get(maxBlocks);
+  if (cached?.options === options) return cached.blocks;
+  const blocks = packProjectedBlocks(summary.items, {
+    blockMaxCost,
+    averageBlockTime,
+    txBlockRatio: CHIA.TX_BLOCK_RATIO,
+    maxBlocks,
+  });
+  byMaxBlocks.set(maxBlocks, { options, blocks });
+  return blocks;
+}
+
+export function useProjectedBlocks(maxBlocks = 8): {
+  blocks: ProjectedBlock[];
+  summary: MempoolSummary | undefined;
+  isLoading: boolean;
+  error: unknown;
+} {
   const query = useMempoolSummary();
-  const blocks = useMemo(() => {
-    if (!query.data) return [];
-    return packProjectedBlocks(query.data.items, {
-      blockMaxCost: query.data.state.blockMaxCost || CHIA.BLOCK_MAX_COST,
-      averageBlockTime: query.data.state.averageBlockTime || CHIA.TARGET_BLOCK_TIME_S,
-      txBlockRatio: CHIA.TX_BLOCK_RATIO,
-      maxBlocks,
-    });
-  }, [query.data, maxBlocks]);
+  const blocks = useMemo(
+    () => (query.data ? packShared(query.data, maxBlocks) : []),
+    [query.data, maxBlocks]
+  );
   return { blocks, summary: query.data, isLoading: query.isLoading, error: query.error };
+}
+
+/**
+ * Lists already hold the records the block page paints on: put them in the cache under the
+ * block page's keys (height and header hash) so opening a block from a list shows at once.
+ */
+export function seedBlockRecords(
+  queryClient: QueryClient,
+  network: NetworkId,
+  records: BlockRecord[]
+): void {
+  records.forEach((record) => {
+    [String(record.height), record.headerHash.toLowerCase()].forEach((id) => {
+      const key = queryKeys.blockRecord(network, id);
+      if (queryClient.getQueryData(key) === undefined) queryClient.setQueryData(key, record);
+    });
+  });
 }
 
 export interface RecentBlocksResult {
@@ -139,30 +225,23 @@ export interface RecentBlocksResult {
 /** The last `count` transaction blocks (plus the non-transaction blocks between them). */
 export function useRecentBlocks(count: number) {
   const { client, endpoints, hydrated } = useSettings();
+  const queryClient = useQueryClient();
   const state = useBlockchainState();
-  const { peakHeight } = useLive();
+  const peakHeight = useLiveValue("peakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
   return useQuery({
     queryKey: queryKeys.recentBlocks(endpoints.network, count, peak),
     enabled: hydrated && peak !== null,
     placeholderData: keepPreviousData,
+    // The peak is part of the key, so every new block leaves an entry behind: drop it soon.
+    gcTime: 30_000,
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
-      let records: BlockRecord[] | null = null;
-      if (endpoints.chainUrl) {
-        try {
-          // The peak event reaches the tab before the server has the new record; the window is
-          // refetched when the server sends its `chain` event, so a lagging snapshot is used as is.
-          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-          records = snapshot.blocks.filter((b) => b.height < end && b.height >= end - window);
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      if (!records) records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
+      const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
       const all = [...records].sort((a, b) => b.height - a.height);
       const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
+      seedBlockRecords(queryClient, endpoints.network, txBlocks);
       const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
       return { txBlocks, all: all.filter((r) => r.height >= oldest) };
     },
@@ -176,43 +255,10 @@ export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
     enabled: hydrated,
-    queryFn: async ({ signal }) => {
-      if (endpoints.chainUrl) {
-        try {
-          const snapshot = await fetchChainSnapshot(endpoints.chainUrl, signal);
-          if (snapshot.fee && snapshot.fee.cost === cost) return snapshot.fee.estimate;
-        } catch (error) {
-          if (!isFallbackError(error)) throw error;
-        }
-      }
-      return client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal);
-    },
+    queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
     refetchInterval: 45_000,
     placeholderData: keepPreviousData,
   });
 }
 
 export { parseJsonSafe };
-
-export interface ServerStatus {
-  hub: { channel: "websocket" | "polling" | "connecting"; connectedAt: number | null; lastEventAt: number | null; reconnects: number; counters: Record<string, number> } | null;
-  mempool: { items: number; generatedAt: number };
-  now: number;
-}
-
-/** The hosted server's own Coinset channel (/api/<network>/status); null when not hosted. */
-export function useServerStatus() {
-  const { endpoints, hydrated } = useSettings();
-  const url = endpoints.chainUrl ? endpoints.chainUrl.replace(/\/chain(\?.*)?$/, "/status") : null;
-  return useQuery({
-    queryKey: ["server", endpoints.network, "status"],
-    enabled: hydrated && url !== null,
-    refetchInterval: 60_000,
-    retry: false,
-    queryFn: async ({ signal }): Promise<ServerStatus | null> => {
-      const response = await fetch(url!, { signal });
-      if (!response.ok) return null;
-      return (await response.json()) as ServerStatus;
-    },
-  });
-}
