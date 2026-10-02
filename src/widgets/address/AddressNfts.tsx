@@ -89,7 +89,7 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("nfts.filterPlaceholder")}
-              className="h-10 w-full rounded-lg border border-border bg-bg pl-9 pr-3 text-sm outline-none focus:border-primary"
+              className="field w-full pl-9 pr-3"
             />
           </label>
           <label>
@@ -98,7 +98,7 @@ export function AddressNfts({ owner }: { owner: NftOwner }) {
               aria-label={t("nfts.filterCollection")}
               value={collection}
               onChange={(e) => setFilter(e.target.value)}
-              className="h-10 w-full max-w-full rounded-lg border border-border bg-bg px-3 text-sm outline-none focus:border-primary sm:max-w-64"
+              className="field w-full max-w-full sm:max-w-64"
             >
               <option value="">{t("nfts.allCollections")}</option>
               {Object.entries(collections)

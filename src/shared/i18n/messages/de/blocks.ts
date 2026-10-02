@@ -6,6 +6,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     label: "Blöcke",
     projected: "Voraussichtlich · nächste Blöcke",
     confirmed: "Bestätigt · letzte Transaktionsblöcke",
+    now: "Jetzt",
+    backToNow: "Zurück zu jetzt",
+    backToNowLabel: "Die Reihe auf jetzt zentrieren, zwischen dem nächsten und dem neuesten Block",
   },
   projected: {
     emptyLabel: "Der Mempool ist leer: Der nächste Block wird keine Transaktionen enthalten",

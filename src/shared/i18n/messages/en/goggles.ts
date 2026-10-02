@@ -2,7 +2,7 @@
 import { defineNamespace } from "../../translate";
 
 const messages = {
-  title: "Next block",
+  title: "Mempool",
   colourBy: "Colour tiles by",
   modeFee: "Fee",
   modeKind: "Kind",

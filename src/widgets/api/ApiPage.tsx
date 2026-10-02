@@ -164,7 +164,7 @@ export function ApiPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <Tooltip text={t("titleHint")} placement="bottom" />
         </div>
       </header>
@@ -184,7 +184,7 @@ export function ApiPage() {
             </li>
             <li>
               <span className="text-fg-muted">{t("base.websocket")}</span>{" "}
-              <span className="mono">{WS_URL}</span>
+              <span className="mono break-all">{WS_URL}</span>
             </li>
           </ul>
           <p className="text-xs text-fg-faint">

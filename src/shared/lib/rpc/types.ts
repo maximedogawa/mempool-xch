@@ -91,6 +91,10 @@ export interface BlockchainState {
   /** Minimum fee per tier keyed by cost bucket, e.g. cost_5000000 → mojos. */
   mempoolMinFees: Record<string, number>;
   synced: boolean;
+  /** The node is catching up with the network (initial sync or after downtime). */
+  syncMode: boolean;
+  /** Height of the best peak the node knows of while syncing; null when it does not say. */
+  syncTipHeight: number | null;
   nodeId: string;
 }
 

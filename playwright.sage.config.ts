@@ -1,4 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
+import { e2eProjects } from "./playwright.projects";
 
 /**
  * E2E against the Sage static export (`bun run build:sage` first), served the way Sage serves
@@ -23,10 +24,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     locale: "en-US",
   },
-  projects: [
-    { name: "sage-desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "sage-mobile", use: { ...devices["Pixel 7"] } },
-  ],
+  projects: e2eProjects("sage-"),
   webServer: {
     command: `bun run scripts/sage/serve-snapshot.ts --port ${PORT}`,
     url: `http://localhost:${PORT}/`,

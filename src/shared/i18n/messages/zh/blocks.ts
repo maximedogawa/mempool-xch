@@ -6,6 +6,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     label: "区块",
     projected: "预计 · 下一批区块",
     confirmed: "已确认 · 最近的交易区块",
+    now: "当前",
+    backToNow: "回到当前",
+    backToNowLabel: "将区块行居中到当前，即下一个区块与最新区块之间",
   },
   projected: {
     emptyLabel: "内存池为空：下一个区块将不包含交易",

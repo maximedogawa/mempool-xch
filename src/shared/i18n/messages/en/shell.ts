@@ -39,13 +39,22 @@ const messages = {
   skipToContent: "Skip to content",
   connection: {
     live: "Live",
+    syncing: "Syncing",
     connecting: "Connecting",
     offline: "Offline",
     noData: "no data yet",
     connectingHint: "Connecting: {channel}…",
+    syncingHint: "Node still syncing: at {height} of {tip}. Data shown is behind the network.",
+    syncingHintNoTip: "Node still syncing. Data shown is behind the network.",
     hint: "{channel}: {detail} Last update {age}.",
     srStatus: "{label} via {channel}, peak {peak}, last update {age}",
     unknownPeak: "unknown",
+  },
+  sync: {
+    title: "Your node is still syncing: at {height} of {tip} ({percent}%)",
+    titleNoTip: "Your node is still syncing",
+    body: "Blocks, fees and the mempool shown here are behind the network until it catches up; a syncing node keeps no mempool.",
+    settings: "Node settings",
   },
   network: {
     label: "Network",

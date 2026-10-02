@@ -106,18 +106,14 @@ export function HandlePage() {
           )}
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 text-sm">
             <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                {t("handle")}
-              </dt>
+              <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("handle")}</dt>
               <dd className="mono flex min-w-0 items-center gap-1 break-all text-base">
                 {formatHandle(handle)}
                 <CopyButton value={formatHandle(handle)} />
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                {t("resolvesTo")}
-              </dt>
+              <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("resolvesTo")}</dt>
               <dd className="min-w-0 text-sm">
                 {isLoading ? (
                   <Skeleton className="h-5 w-72" />
@@ -137,7 +133,7 @@ export function HandlePage() {
             </div>
             {expiry && expiration !== null ? (
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {expiry.expired ? t("expired") : t("expires")}
                 </dt>
                 <dd
@@ -154,9 +150,7 @@ export function HandlePage() {
             ) : null}
             {art?.nftId ? (
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("nameNft")}
-                </dt>
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("nameNft")}</dt>
                 <dd className="min-w-0">
                   <Hash value={art.nftId} href={routes.nft(art.nftId)} head={14} tail={8} copy />
                 </dd>
@@ -164,7 +158,7 @@ export function HandlePage() {
             ) : null}
             {record?.ownerLauncherId ? (
               <div className="min-w-0">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                   {t("ownerLauncherId")}
                 </dt>
                 <dd className="mono min-w-0 break-all text-xs text-fg-muted">
@@ -197,14 +191,12 @@ export function HandlePage() {
           <CardBody>
             <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                  {t("lastAction")}
-                </dt>
+                <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("lastAction")}</dt>
                 <dd className="capitalize">{registration.actionKind}</dd>
               </div>
               {registration.confirmationHeight !== null ? (
                 <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                     {t("confirmedIn")}
                   </dt>
                   <dd>
@@ -219,7 +211,7 @@ export function HandlePage() {
               ) : null}
               {registration.protocolFee !== null ? (
                 <div>
-                  <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+                  <dt className="text-[11px] font-medium eyebrow text-fg-muted">
                     {t("protocolFee")}
                   </dt>
                   <dd className="tabular">

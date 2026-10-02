@@ -201,7 +201,7 @@ export function ChiaVaults() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("lookup.placeholder")}
               aria-label={t("lookup.inputLabel")}
-              className="mono min-w-0 flex-1 rounded-sm border border-border bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
+              className="field mono min-w-0 flex-1"
             />
             <Button type="submit">{t("lookup.submit")}</Button>
             <Button type="button" variant="ghost" onClick={() => setInput(EXAMPLE.address)}>

@@ -7,6 +7,29 @@ test.describe("dashboard", () => {
     await mockCoinset(page);
   });
 
+  test("a fee card copies its estimate as a plain XCH decimal", async ({ page }) => {
+    // Capture what the page writes, in any browser, without clipboard permissions.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __copied: string[] };
+      w.__copied = [];
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: async (text: string) => void w.__copied.push(text) },
+      });
+    });
+    await page.goto("/");
+    const copy = page.getByRole("button", { name: "Copy the Next block fee in XCH to clipboard" });
+    await expect(copy).toBeVisible({ timeout: 20_000 });
+    await copy.click();
+    const copied = await page.evaluate(
+      () => (window as unknown as { __copied: string[] }).__copied
+    );
+    expect(copied).toHaveLength(1);
+    // Dot decimal, no grouping, no unit: what a wallet's fee field takes.
+    expect(copied[0]).toMatch(/^\d+(\.\d{1,12})?$/);
+    await expect(copy.locator("svg.text-primary")).toBeVisible();
+  });
+
   test("renders projected and confirmed blocks, fees and feeds from fixtures", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/mempoolxch\.space/);

@@ -52,9 +52,7 @@ export function WatchedTxRow({
         </span>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t("tx.kind")}
-            </span>
+            <span className="text-[10px] font-semibold eyebrow text-fg-faint">{t("tx.kind")}</span>
             <WatchStatus pending={status === "pending" && !tx.isError}>
               {tx.isError
                 ? t("common.connectionIssue")

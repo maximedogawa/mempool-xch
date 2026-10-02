@@ -18,7 +18,7 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
   return (
     <th
       className={cn(
-        "whitespace-nowrap border-b border-border px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-fg-muted",
+        "eyebrow whitespace-nowrap border-b border-border px-3 py-2.5 text-left text-[11px] text-fg-muted",
         className
       )}
       {...props}
@@ -28,10 +28,10 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
 
 export function Td({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={cn("border-b border-border/60 px-3 py-2 align-middle", className)} {...props} />
+    <td className={cn("h-12 border-b border-rule px-3 py-2 align-middle", className)} {...props} />
   );
 }
 
 export function Tr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("transition-colors hover:bg-surface-2/60", className)} {...props} />;
+  return <tr className={cn("transition-colors hover:bg-surface-2/70", className)} {...props} />;
 }

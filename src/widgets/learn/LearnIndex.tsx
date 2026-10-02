@@ -11,7 +11,7 @@ export function LearnIndex() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold">{t("index.title")}</h1>
+        <h1 className="page-title">{t("index.title")}</h1>
         <p className="mt-2 text-sm text-fg-muted">{t("index.intro")}</p>
       </header>
       <ol className="flex flex-col gap-3">

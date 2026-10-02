@@ -55,7 +55,7 @@ export function LegalPage({
         ))}
       </nav>
       <header>
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="page-title">{title}</h1>
         <p className="mt-1 text-xs text-fg-faint">
           {t("page.lastUpdated", { date: formatUpdated(locale) })}
         </p>

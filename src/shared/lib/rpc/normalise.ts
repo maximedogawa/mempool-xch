@@ -170,6 +170,11 @@ export function normaliseBlockchainState(raw: unknown): BlockchainState {
     mempoolMaxTotalCost: num(r.mempool_max_total_cost, 110_000_000_000),
     mempoolMinFees: Object.fromEntries(Object.entries(minFees).map(([k, v]) => [k, num(v)])),
     synced: sync.synced === undefined ? true : Boolean(sync.synced),
+    syncMode: Boolean(sync.sync_mode),
+    syncTipHeight:
+      sync.sync_tip_height === undefined || sync.sync_tip_height === null
+        ? null
+        : num(sync.sync_tip_height),
     nodeId: hex(r.node_id),
   };
 }

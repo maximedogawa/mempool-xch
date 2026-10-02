@@ -50,12 +50,7 @@ export function Chip({
       aria-pressed={active}
       onClick={onClick}
       title={title}
-      className={cn(
-        "inline-flex min-h-7 max-w-full items-center gap-1 rounded-full border px-2.5 text-[11px] font-semibold transition-colors",
-        active
-          ? "border-primary bg-primary-soft text-primary"
-          : "border-border text-fg-muted hover:border-border-strong hover:text-fg"
-      )}
+      className={cn("seg max-w-full rounded-full text-[11px]", active && "seg-on")}
     >
       {swatch ? (
         <span
@@ -76,9 +71,7 @@ function Count({ n }: { n: number }) {
 function Group({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div role="group" aria-label={label} className="flex min-w-0 flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
-        {label}
-      </span>
+      <span className="text-[10px] font-semibold eyebrow text-fg-faint">{label}</span>
       <div className="flex flex-wrap items-center gap-1">{children}</div>
     </div>
   );
@@ -114,7 +107,7 @@ function RateInput({
         setText(e.target.value);
         onChange(parseRateInput(e.target.value));
       }}
-      className="h-7 w-20 rounded-full border border-border bg-bg px-2.5 text-[11px] text-fg placeholder:text-fg-faint focus:border-primary"
+      className="field w-20"
     />
   );
 }
@@ -202,7 +195,7 @@ export function GogglesFilterBar({
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <label className="relative flex min-w-0 flex-[1_1_12rem] items-center">
           <Search
             aria-hidden="true"
@@ -218,7 +211,7 @@ export function GogglesFilterBar({
             aria-label={t("searchLabel")}
             placeholder={t("searchPlaceholder")}
             maxLength={100}
-            className="h-8 w-full min-w-0 rounded-full border border-border bg-bg pl-8 pr-3 text-xs text-fg placeholder:text-fg-faint focus:border-primary"
+            className="field w-full min-w-0 pl-8 pr-3"
           />
         </label>
         <button
@@ -226,12 +219,7 @@ export function GogglesFilterBar({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((o) => !o)}
-          className={cn(
-            "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors",
-            open || panelCount > 0
-              ? "border-primary text-primary"
-              : "border-border text-fg-muted hover:text-fg"
-          )}
+          className={cn("seg rounded-full", (open || panelCount > 0) && "seg-on")}
         >
           <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
           {t("moreFilters")}
@@ -241,19 +229,24 @@ export function GogglesFilterBar({
             </span>
           ) : null}
         </button>
-      </div>
-
-      <div role="group" aria-label={t("filterKind")} className="flex flex-wrap items-center gap-1">
-        {TX_KINDS.filter((k) => (kindCounts[k] ?? 0) > 0 || filters.kinds.includes(k)).map((k) => (
-          <Chip
-            key={k}
-            active={filters.kinds.includes(k)}
-            onClick={() => setFilters((f) => ({ ...f, kinds: toggle(f.kinds, k) }))}
-            swatch={KIND_COLOR[k]}
-          >
-            {t(`kinds.${k}`)} <Count n={kindCounts[k] ?? 0} />
-          </Chip>
-        ))}
+        <div
+          role="group"
+          aria-label={t("filterKind")}
+          className="flex flex-wrap items-center gap-1"
+        >
+          {TX_KINDS.filter((k) => (kindCounts[k] ?? 0) > 0 || filters.kinds.includes(k)).map(
+            (k) => (
+              <Chip
+                key={k}
+                active={filters.kinds.includes(k)}
+                onClick={() => setFilters((f) => ({ ...f, kinds: toggle(f.kinds, k) }))}
+                swatch={KIND_COLOR[k]}
+              >
+                {t(`kinds.${k}`)} <Count n={kindCounts[k] ?? 0} />
+              </Chip>
+            )
+          )}
+        </div>
       </div>
 
       {open ? (
@@ -335,7 +328,7 @@ export function GogglesFilterBar({
             ) : null}
           </Group>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+            <label className="flex flex-col gap-1 text-[10px] font-semibold eyebrow text-fg-faint">
               {t("nonMatching")}
               <select
                 value={prefs.nonMatching}
@@ -345,18 +338,18 @@ export function GogglesFilterBar({
                     nonMatching: e.target.value === "hide" ? "hide" : "dim",
                   }))
                 }
-                className="h-7 rounded-full border border-border bg-bg px-2 text-[11px] font-semibold normal-case tracking-normal text-fg"
+                className="field"
               >
                 <option value="dim">{t("nonMatchingDim")}</option>
                 <option value="hide">{t("nonMatchingHide")}</option>
               </select>
             </label>
-            <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+            <label className="flex flex-col gap-1 text-[10px] font-semibold eyebrow text-fg-faint">
               {t("groupBy")}
               <select
                 value={prefs.groupBy}
                 onChange={(e) => onChange((p) => ({ ...p, groupBy: e.target.value as GroupBy }))}
-                className="h-7 rounded-full border border-border bg-bg px-2 text-[11px] font-semibold normal-case tracking-normal text-fg"
+                className="field"
               >
                 <option value="none">{t("groupNone")}</option>
                 <option value="fee">{t("groupFee")}</option>

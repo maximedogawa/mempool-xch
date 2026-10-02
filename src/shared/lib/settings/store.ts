@@ -12,8 +12,9 @@ import {
 } from "@/shared/config/networks";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { isLocale, type LocalePreference } from "@/shared/i18n/config";
+import { DEFAULT_THEME, isThemeId, type ThemePreference } from "@/shared/theme";
 
-export type ThemePreference = "dark" | "light" | "system";
+export type { ThemePreference } from "@/shared/theme";
 
 /** One network's endpoint: its URL, whether it is a nodexch gateway, and its publishable key. */
 export interface Endpoint {
@@ -49,7 +50,7 @@ export const DEFAULT_SETTINGS: Settings = {
     mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
     testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
   },
-  theme: "dark",
+  theme: DEFAULT_THEME,
   recentBlocks: 8,
   sounds: true,
   notifications: false,
@@ -130,7 +131,8 @@ function sanitise(raw: unknown): Settings {
       return [id, endpoint];
     })
   ) as Settings["endpoints"];
-  const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
+  const theme: ThemePreference =
+    r.theme === "system" || isThemeId(r.theme) ? r.theme : DEFAULT_THEME;
   const recentBlocks =
     typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20
       ? r.recentBlocks

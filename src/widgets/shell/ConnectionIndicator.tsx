@@ -14,7 +14,7 @@ import { useSage } from "@/shared/providers/SageProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import shellNs from "@/shared/i18n/messages/en/shell";
 
-type PillTone = "live" | "connecting" | "offline";
+type PillTone = "live" | "syncing" | "connecting" | "offline";
 
 /**
  * Network and connection pill in one: the dot pulses green while updates are arriving, spins
@@ -47,11 +47,21 @@ export function ConnectionIndicator({ className }: { className?: string }) {
     isCoinset: endpoints.isCoinset,
     provider: endpoints.provider,
   });
-  const tone: PillTone = status === "polling" ? "live" : status;
+  // A node that answers but is still catching up is not live: what it serves is behind.
+  const syncing = state.data !== undefined && !state.data.synced;
+  const liveTone: PillTone = status === "polling" ? "live" : status;
+  const tone: PillTone = liveTone === "live" && syncing ? "syncing" : liveTone;
   const hint =
     status === "connecting"
       ? t("connection.connectingHint", { channel: channel.name })
-      : t("connection.hint", { channel: channel.name, detail: channel.detail, age });
+      : tone === "syncing"
+        ? state.data?.syncTipHeight
+          ? t("connection.syncingHint", {
+              height: formatNumber(state.data.peak.height),
+              tip: formatNumber(state.data.syncTipHeight),
+            })
+          : t("connection.syncingHintNoTip")
+        : t("connection.hint", { channel: channel.name, detail: channel.detail, age });
   const label = t(`connection.${tone}`);
   const isTestnet = settings.network !== "mainnet";
   const styles =
@@ -59,7 +69,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
       ? "border-danger/40 bg-danger-soft text-danger"
       : tone === "connecting"
         ? "border-border bg-surface text-fg-muted"
-        : isTestnet
+        : isTestnet || tone === "syncing"
           ? "border-warning/50 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning"
           : "border-primary/40 bg-primary-soft text-primary";
   return (
@@ -86,9 +96,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
             <span
               className={cn(
                 "relative h-2 w-2 shrink-0 rounded-full",
-                isTestnet
-                  ? "bg-warning shadow-[0_0_8px_var(--warning)]"
-                  : "bg-primary shadow-[0_0_8px_var(--primary)]"
+                isTestnet || tone === "syncing" ? "bg-warning" : "bg-primary"
               )}
             />
           )}

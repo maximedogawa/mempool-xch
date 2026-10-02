@@ -18,7 +18,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     plays: "局数",
     howToPlay: "玩法说明",
     hideHowToPlay: "收起玩法说明",
-    play: "开始游戏",
+    play: "在 {site} 上玩",
+    playHint: "游戏需要 arcade21 账户以及通过 WalletConnect 连接的钱包：请先在 arcade21 网站登录。",
     homepage: "主页",
   },
   rooms: {

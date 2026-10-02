@@ -59,7 +59,7 @@ export function PoolsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
+      <h1 className="page-title">{t("title")}</h1>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
@@ -114,7 +114,7 @@ export function PoolsPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("share.search")}
                 aria-label={t("share.search")}
-                className="h-8 w-44 rounded-sm border border-border bg-surface px-2 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none sm:w-64"
+                className="field w-44 sm:w-64"
               />
             ) : null
           }

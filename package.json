@@ -1,6 +1,6 @@
 {
   "name": "mempool-xch",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "author": "Maxim Edogawa",
@@ -30,6 +30,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changelog": "bun run scripts/changelog/generate.ts",
+    "themes": "bun run scripts/themes/build.ts",
+    "node:proxy": "bun run scripts/node/proxy.ts",
+    "node:probe": "bun run scripts/node/probe.ts",
     "map:land": "bun run scripts/map/generate-land-dots.ts",
     "map:dashboard": "bun run scripts/map/import-dashboard.ts",
     "arcade": "bun run scripts/arcade/fetch-games.ts",

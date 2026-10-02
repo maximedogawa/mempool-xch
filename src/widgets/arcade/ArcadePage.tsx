@@ -6,7 +6,6 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { useT } from "@/shared/i18n/useT";
-import { FEATURES } from "@/shared/config/features";
 import { gamingNetwork, gamingProviderFor } from "@/shared/config/gaming";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { Badge, Button, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
@@ -127,14 +126,15 @@ function GameCard({ game }: { game: Game }) {
         </div>
       ) : null}
       <div className="flex flex-wrap gap-3 text-xs">
-        {game.playUrl ? (
-          <ExternalLink
-            href={game.playUrl}
-            className="rounded-full border border-primary bg-primary-soft px-3 py-1 font-semibold text-primary hover:underline"
-          >
-            {t("game.play")}
-          </ExternalLink>
-        ) : null}
+        {/* The game's own page opens the bare game; playing needs an arcade21 account and a
+            wallet connected with WalletConnect, which the arcade21 website sets up first. */}
+        <ExternalLink
+          href={arcade.tracker.url}
+          title={t("game.playHint")}
+          className="rounded-full border border-primary bg-primary-soft px-3 py-1 font-semibold text-primary hover:underline"
+        >
+          {t("game.play", { site: arcade.tracker.name })}
+        </ExternalLink>
         {game.homepage ? (
           <ExternalLink href={game.homepage} className="text-accent hover:underline">
             {t("game.homepage")}
@@ -232,7 +232,7 @@ function RoomsCard() {
               onChange={(e) => setNeedle(e.target.value)}
               placeholder={t("rooms.searchPlaceholder")}
               aria-label={t("rooms.searchLabel")}
-              className="w-full rounded-sm border border-border bg-bg px-2.5 py-1.5 text-xs text-fg placeholder:text-fg-faint focus:border-primary focus:outline-none"
+              className="field w-full"
             />
             {PHASES.map((phase) => {
               const list = filtered.filter((r) => r.phase === phase);
@@ -331,12 +331,7 @@ function Arcade21Section() {
                   type="button"
                   aria-pressed={genre === g}
                   onClick={() => setGenre(g)}
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize transition-colors",
-                    genre === g
-                      ? "border-primary bg-primary-soft text-primary"
-                      : "border-border text-fg-muted hover:text-fg"
-                  )}
+                  className={cn("seg rounded-full text-[11px] capitalize", genre === g && "seg-on")}
                 >
                   {g === "all" ? t("allGenres") : g}
                 </button>
@@ -399,7 +394,7 @@ function PausedCard() {
 /**
  * /gaming follows the selected network. A network with a live gaming provider (Testnet11:
  * nokitlan) shows its duels; mainnet shows Pot Potato, read from the chain, and the arcade21
- * catalogue only while FEATURES.arcadeMainnet is on.
+ * catalogue and rooms.
  */
 export function ArcadePage() {
   const t = useT(arcadeNs);
@@ -409,7 +404,7 @@ export function ArcadePage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
+        <h1 className="page-title">{t("title")}</h1>
         <Tooltip text={t("titleHint")} placement="bottom" />
         <Badge tone={settings.network === "mainnet" ? "neutral" : "warning"}>
           {networkConfig.label}
@@ -421,7 +416,7 @@ export function ArcadePage() {
       ) : settings.network === "mainnet" ? (
         <>
           <PotPotatoCard />
-          {FEATURES.arcadeMainnet ? <Arcade21Section /> : <PausedCard />}
+          <Arcade21Section />
         </>
       ) : (
         <PausedCard />

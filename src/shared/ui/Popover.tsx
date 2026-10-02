@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
 /**
- * Click-to-open panel anchored under a trigger button: closes on an outside click or Escape,
- * returns focus to the trigger on close. Used for the header's nav "More" menu and info panel,
+ * Click-to-open panel anchored under a trigger button: closes on an outside click, on Escape
+ * and once a link or menu item inside it is chosen (a menu that stayed open over the page it
+ * had just opened was a bug, TASK-111), and returns focus to the trigger on Escape. Used for the header's nav "More" menu and info panel,
  * where a plain hover Tooltip is not enough because the content is interactive (links).
  */
 export function Popover({
@@ -51,6 +52,9 @@ export function Popover({
         <div
           role="menu"
           aria-label={label}
+          onClick={(e) => {
+            if ((e.target as Element).closest("a, [role='menuitem']")) setOpen(false);
+          }}
           className={cn(
             "absolute top-full z-40 mt-2 min-w-[200px] rounded-sm border border-border bg-bg-elevated p-1.5 text-sm shadow-card",
             align === "end" ? "right-0" : "left-0",

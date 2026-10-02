@@ -2,11 +2,11 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
+import { Skeleton } from "@/shared/ui/Skeleton";
 
 /**
  * The block "cube": a front face whose lower part is filled proportionally to the block's
- * cost usage, with a lit top face and a shaded side face for depth, a bright fill line and a
- * soft inner glow. Original implementation styled after the mempool.space silhouette
+ * cost usage, with a lit top face and a shaded side face for depth and a thin waterline. Original implementation styled after the mempool.space silhouette
  *.
  */
 export function BlockCube({
@@ -35,7 +35,7 @@ export function BlockCube({
   ariaLabel: string;
   className?: string;
   animate?: boolean;
-  /** Soft pulsing glow following the cube silhouette (the next block). */
+  /** A still, soft halo following the cube silhouette (the next block). */
   glow?: boolean;
   /** Highlight the front face (drill-down open). */
   selected?: boolean;
@@ -53,16 +53,14 @@ export function BlockCube({
     background: empty
       ? "var(--block-empty)"
       : [
-          // empty part: dark glass with a faint grid so the fill level reads at a glance
+          // empty part: glass with a faint ruled grid so the fill level reads at a glance
           `linear-gradient(to top, transparent ${pct}%, var(--cube-glass) ${pct}%)`,
           `repeating-linear-gradient(to top, transparent 0 11px, var(--cube-grid) 11px 12px)`,
-          // filled part: the fee gradient with a vertical sheen and a bright waterline
-          `linear-gradient(to top, var(--cube-fill-shade), rgba(255,255,255,0.10) ${Math.max(0, pct - 1)}%, rgba(255,255,255,0.55) ${pct}%, transparent ${pct + 1}%)`,
+          // filled part: the fee gradient with a faint sheen and a thin ink waterline
+          `linear-gradient(to top, var(--cube-fill-shade), var(--cube-sheen) ${Math.max(0, pct - 1)}%, var(--cube-waterline) ${pct}%, transparent ${pct + 1}%)`,
           gradient,
         ].join(", "),
-    boxShadow: empty
-      ? "inset 0 0 0 1px rgba(255,255,255,0.04)"
-      : "var(--cube-edge), var(--cube-drop)",
+    boxShadow: empty ? "var(--cube-empty-edge)" : "var(--cube-edge), var(--cube-drop)",
     textShadow: "var(--cube-text-shadow)",
   };
   const body = (
@@ -83,7 +81,7 @@ export function BlockCube({
           transform: "skewX(-45deg)",
           transformOrigin: "bottom left",
           borderTopRightRadius: 3,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14)",
+          boxShadow: "inset 0 1px 0 var(--cube-top-line)",
         }}
       />
       {/* side face: shaded */}
@@ -110,7 +108,7 @@ export function BlockCube({
           variant === "projected" &&
             !selected &&
             !watched &&
-            "outline-1 outline-dashed outline-white/15 -outline-offset-4",
+            "outline-1 outline-dashed outline-[var(--cube-dash)] -outline-offset-4",
           watched && !selected && "outline-2 outline-solid outline-warning -outline-offset-2",
           selected && "outline-2 outline-solid outline-primary -outline-offset-2",
           (onClick || href) && "group-hover:-translate-y-1"
@@ -145,6 +143,26 @@ export function BlockCube({
   return (
     <div aria-label={ariaLabel} role="img" className={cn(common, className)}>
       {body}
+    </div>
+  );
+}
+
+/**
+ * A loading block with the exact geometry of a loaded one: the height label above, the cube
+ * (faces included) with placeholder lines where its figures go, and the chip below, so the
+ * row keeps its height when the data arrives.
+ */
+export function BlockCubeSkeleton({ size = 124 }: { size?: number }) {
+  return (
+    <div aria-hidden="true" className="flex flex-col items-center gap-1">
+      <Skeleton className="h-4 w-14" />
+      <BlockCube fill={0} gradient="" variant="empty" ariaLabel="" size={size}>
+        <Skeleton className="h-[15px] w-3/5" />
+        <Skeleton className="mt-1 h-2.5 w-2/5" />
+        <Skeleton className="mt-2.5 h-[13px] w-1/2" />
+        <Skeleton className="mt-1 h-[11px] w-2/5" />
+      </BlockCube>
+      <Skeleton className="h-5 w-20 rounded-full" />
     </div>
   );
 }
