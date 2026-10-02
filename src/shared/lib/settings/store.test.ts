@@ -33,7 +33,7 @@ describe("settings store", () => {
     });
     expect(reloaded.get().network).toBe("mainnet");
     expect(reloaded.get().recentBlocks).toBe(8);
-    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.coinset.org");
+    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
     expect(reloaded.get().endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
     reloaded.reset();
     expect(reloaded.get()).toEqual(DEFAULT_SETTINGS);
@@ -47,8 +47,16 @@ describe("settings store", () => {
 });
 
 describe("resolveEndpoints", () => {
-  test("Coinset unlocks the indexed API and WebSocket", () => {
+  test("mainnet defaults to nodexch", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
+    expect(r.provider).toBe("nodexch");
+    expect(r.rpcUrl).toBe("https://api.nodexch.space");
+  });
+  test("Coinset unlocks the indexed API and WebSocket", () => {
+    const r = resolveEndpoints({
+      ...DEFAULT_SETTINGS,
+      endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet: { rpcUrl: "https://api.coinset.org" } },
+    });
     expect(r.isCoinset).toBe(true);
     expect(r.indexedUrl).toBe("https://api.coinset.org");
     expect(r.wsUrl).toBe("wss://api.coinset.org/ws");
@@ -81,12 +89,12 @@ describe("nodexch endpoints", () => {
     ).get();
 
   test("the hosted gateway is nodexch by its host: indexed API and WebSocket on its own host", () => {
-    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://nodexch.space/" }));
+    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://api.nodexch.space/" }));
     expect(e.provider).toBe("nodexch");
     expect(e.isCoinset).toBe(false);
-    expect(e.rpcUrl).toBe("https://nodexch.space");
-    expect(e.indexedUrl).toBe("https://nodexch.space");
-    expect(e.wsUrl).toBe("wss://nodexch.space/ws");
+    expect(e.rpcUrl).toBe("https://api.nodexch.space");
+    expect(e.indexedUrl).toBe("https://api.nodexch.space");
+    expect(e.wsUrl).toBe("wss://api.nodexch.space/ws");
   });
 
   test("a self-hosted gateway is nodexch when marked, and its key rides in the socket URL", () => {
@@ -104,11 +112,11 @@ describe("nodexch endpoints", () => {
 
   test("only a publishable key is kept; a secret key never is", () => {
     const secret = withMainnet({
-      rpcUrl: "https://nodexch.space",
+      rpcUrl: "https://api.nodexch.space",
       apiKey: "nxs_Zk3vQ0aBq1v0m3J2o0r8c5Tt",
     });
     expect(secret.endpoints.mainnet.apiKey).toBeUndefined();
-    const kept = withMainnet({ rpcUrl: "https://nodexch.space", apiKey: ` ${PUBLISHABLE} ` });
+    const kept = withMainnet({ rpcUrl: "https://api.nodexch.space", apiKey: ` ${PUBLISHABLE} ` });
     expect(kept.endpoints.mainnet.apiKey).toBe(PUBLISHABLE);
   });
 

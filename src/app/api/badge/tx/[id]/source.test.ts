@@ -12,11 +12,11 @@ describe("badgeSource", () => {
 
   test("a nodexch gateway and its key per network", () => {
     const env = {
-      MEMPOOL_RPC_URL_MAINNET: "https://nodexch.space/ ",
+      MEMPOOL_RPC_URL_MAINNET: "https://api.nodexch.space/ ",
       MEMPOOL_RPC_KEY_MAINNET: "nxs_secret",
     };
     expect(badgeSource("mainnet", env)).toEqual({
-      url: "https://nodexch.space",
+      url: "https://api.nodexch.space",
       key: "nxs_secret",
     });
     expect(badgeSource("testnet11", env).url).toBe("https://testnet11.api.coinset.org");

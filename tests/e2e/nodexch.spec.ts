@@ -22,7 +22,7 @@ test.describe("nodexch provider", () => {
     });
     await expect.poll(() => seen.sockets.length, { timeout: 20_000 }).toBeGreaterThan(0);
     const socket = new URL(seen.sockets[0]!);
-    expect(socket.host).toBe("nodexch.space");
+    expect(socket.host).toBe("api.nodexch.space");
     expect(socket.searchParams.get("key")).toBe(NODEXCH_KEY);
     expect(socket.searchParams.get("events")).toContain("peak");
     expect(seen.requests.length).toBeGreaterThan(0);

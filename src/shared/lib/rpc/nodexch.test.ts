@@ -26,8 +26,8 @@ const fetchImpl: FetchLike = async (input, init) => {
 
 describe("a nodexch gateway", () => {
   const client = createRpcClient({
-    rpcUrl: "https://nodexch.space",
-    indexedUrl: "https://nodexch.space",
+    rpcUrl: "https://api.nodexch.space",
+    indexedUrl: "https://api.nodexch.space",
     nodexch: { apiKey: "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt" },
     fetchImpl,
   });
@@ -37,13 +37,13 @@ describe("a nodexch gateway", () => {
     await client.getBlockchainState().catch(() => undefined);
     const headers = new Headers(calls[0]!.init!.headers);
     expect(headers.get("authorization")).toBe("Bearer nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt");
-    expect(calls[0]!.url).toBe("https://nodexch.space/get_blockchain_state");
+    expect(calls[0]!.url).toBe("https://api.nodexch.space/get_blockchain_state");
   });
 
   test("peers come from the node channel, with the listening port", async () => {
     calls.length = 0;
     const peers = await client.getConnections();
-    expect(calls[0]!.url).toBe("https://nodexch.space/x/node/v1/peers");
+    expect(calls[0]!.url).toBe("https://api.nodexch.space/x/node/v1/peers");
     expect(new Headers(calls[0]!.init!.headers).get("authorization")).toContain("nxp_");
     expect(peers).toHaveLength(1);
     expect(peers[0]!.peerHost).toBe("203.0.113.0");

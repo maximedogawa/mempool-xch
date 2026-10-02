@@ -26,17 +26,20 @@ export interface NetworkConfig {
   nodexchKey: string;
 }
 
+const NODEXCH_KEY_MAINNET = process.env.NEXT_PUBLIC_NODEXCH_KEY_MAINNET ?? "";
+
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     id: "mainnet",
     label: "Mainnet",
     addressPrefix: "xch",
-    rpcUrl: "https://api.coinset.org",
+    // nodexch is the default; Coinset stays selectable in settings.
+    rpcUrl: "https://api.nodexch.space",
     indexedUrl: "https://api.coinset.org",
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
-    nodexchUrl: "https://nodexch.space",
-    nodexchKey: process.env.NEXT_PUBLIC_NODEXCH_KEY_MAINNET ?? "",
+    nodexchUrl: "https://api.nodexch.space",
+    nodexchKey: NODEXCH_KEY_MAINNET,
   },
   testnet11: {
     id: "testnet11",

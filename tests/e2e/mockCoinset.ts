@@ -654,6 +654,16 @@ export async function seedConsent(page: Page) {
 /** Intercepts every Coinset call; anything unknown answers not found. */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
+  // nodexch is the app's default; these specs exercise the Coinset path, so choose it unless a
+  // spec stored its own settings.
+  await page.addInitScript(() => {
+    const key = "mempool-xch:settings:v1";
+    if (window.localStorage.getItem(key)) return;
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({ endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } } })
+    );
+  });
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
@@ -746,7 +756,7 @@ export async function mockCustomNode(page: Page) {
   );
 }
 
-export const NODEXCH_URL = "https://nodexch.space";
+export const NODEXCH_URL = "https://api.nodexch.space";
 export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
 
 /**
@@ -778,7 +788,7 @@ export async function mockNodexch(page: Page) {
     requests: [] as { url: string; authorization: string | null }[],
     sockets: [] as string[],
   };
-  await page.route(/https:\/\/nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
       authorization: route.request().headers().authorization ?? null,
@@ -796,7 +806,7 @@ export async function mockNodexch(page: Page) {
       success: true,
     });
   });
-  await page.route(/https:\/\/nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
+  await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
       authorization: route.request().headers().authorization ?? null,
@@ -804,7 +814,7 @@ export async function mockNodexch(page: Page) {
     return answerNodeMethod(route);
   });
   // The gateway's frames, in Coinset's shape: a peak right after the upgrade.
-  await page.routeWebSocket(/wss:\/\/nodexch\.space\/ws.*/, (ws) => {
+  await page.routeWebSocket(/wss:\/\/api\.nodexch\.space\/ws.*/, (ws) => {
     seen.sockets.push(ws.url());
     ws.send(
       JSON.stringify({

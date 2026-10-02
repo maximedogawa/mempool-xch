@@ -326,8 +326,8 @@ describe("streamUrl", () => {
     );
   });
   test("a nodexch key in the query survives", () => {
-    expect(streamUrl("wss://nodexch.space/ws?key=nxp_abc")).toBe(
-      "wss://nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
+    expect(streamUrl("wss://api.nodexch.space/ws?key=nxp_abc")).toBe(
+      "wss://api.nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
     );
   });
 });

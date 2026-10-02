@@ -36,8 +36,8 @@
       },
       "whitelistByNetwork": {
         "mainnet": {
-          "required": [],
-          "optional": ["https://nodexch.space", "wss://nodexch.space"]
+          "required": ["https://api.nodexch.space", "wss://api.nodexch.space"],
+          "optional": []
         },
         "testnet11": {
           "required": ["https://tracker.nokitlan.com"],
