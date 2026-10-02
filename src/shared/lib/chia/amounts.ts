@@ -32,6 +32,19 @@ export function formatXch(mojos: Mojos, maxFractionDigits = 12): string {
   return formatDecimal(mojos, 12, maxFractionDigits);
 }
 
+/**
+ * Machine-readable XCH decimal for the clipboard and wallet inputs, e.g. "0.000001756": dot
+ * separator, no grouping, full 12-digit precision with trailing zeros trimmed, whatever the
+ * display locale.
+ */
+export function xchPlain(mojos: Mojos): string {
+  const negative = mojos < 0n;
+  const abs = negative ? -mojos : mojos;
+  const whole = abs / CHIA.MOJOS_PER_XCH;
+  const frac = (abs % CHIA.MOJOS_PER_XCH).toString().padStart(12, "0").replace(/0+$/, "");
+  return `${negative ? "-" : ""}${whole}${frac ? `.${frac}` : ""}`;
+}
+
 /** CAT units (3 decimals). */
 export function formatCat(mojos: Mojos, maxFractionDigits = 3): string {
   return formatDecimal(mojos, 3, maxFractionDigits);

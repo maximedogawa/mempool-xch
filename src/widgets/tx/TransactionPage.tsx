@@ -181,7 +181,7 @@ function EventCard({ event, index }: { event: TxSummaryEvent; index: number }) {
       {event.participants.length > 0 ? (
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wider text-fg-muted">
+            <tr className="text-left text-[11px] eyebrow text-fg-muted">
               <th className="py-1 font-semibold">{t("event.participant")}</th>
               <th className="py-1 font-semibold">{t("event.sent")}</th>
               <th className="py-1 font-semibold">{t("event.received")}</th>
@@ -690,7 +690,7 @@ function Heading({
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-semibold">{t("heading")}</h1>
+          <h1 className="page-title">{t("heading")}</h1>
           <StatusBadge status={status} />
           {kind}
         </div>

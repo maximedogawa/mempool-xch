@@ -23,7 +23,7 @@ test.describe("next-block goggles", () => {
     await mockMempool(page);
   });
 
-  test("tiles carry no text; a tile's tooltip is anchored, in the viewport and human-readable", async ({
+  test("tiles carry no text; a tile's tooltip is anchored, in the viewport and human-readable @touch", async ({
     page,
     isMobile,
   }) => {
@@ -75,7 +75,7 @@ test.describe("next-block goggles", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
-  test("the block summary opens the block card", async ({ page, isMobile }) => {
+  test("the block summary opens the block card @touch", async ({ page, isMobile }) => {
     const section = await open(page);
     const summary = section.getByRole("button", { name: /Block details/ });
     if (isMobile) await summary.tap();
@@ -89,8 +89,7 @@ test.describe("next-block goggles", () => {
     await expect(card).toContainText("Next transaction block");
   });
 
-  test("keyboard moves between tiles and shows their details", async ({ page, isMobile }) => {
-    test.skip(isMobile, "desktop only");
+  test("keyboard moves between tiles and shows their details", async ({ page }) => {
     const section = await open(page);
     const tiles = section.locator("[data-tile]");
     await expect(section.locator("[data-tile][tabindex='0']")).toHaveCount(1);
@@ -177,11 +176,7 @@ test.describe("next-block goggles", () => {
 });
 
 test.describe("next-block goggles with a full block", () => {
-  test("a filter re-lays out a full block and hides what does not match", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "desktop only");
+  test("a filter re-lays out a full block and hides what does not match", async ({ page }) => {
     await mockMempool(page, 1_000);
     await page.goto("/");
     const section = goggles(page);
@@ -201,16 +196,108 @@ test.describe("next-block goggles with a full block", () => {
     await expect.poll(() => tiles.count()).toBeLessThan(before);
   });
 
+  test("asset icons on tiles are round badges", async ({ page }) => {
+    await mockMempool(page);
+    const section = await open(page);
+    const icon = section.locator(".goggles-tile-icon").first();
+    await expect(icon).toBeVisible();
+    const shape = await icon.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return {
+        width: box.width,
+        height: box.height,
+        radius: parseFloat(style.borderTopLeftRadius),
+        overflow: style.overflow,
+      };
+    });
+    expect(shape.width).toBe(shape.height);
+    expect(shape.radius).toBeGreaterThanOrEqual(shape.width / 2);
+    expect(shape.overflow).toBe("hidden");
+    const box = (await icon.boundingBox())!;
+    await page.screenshot({
+      path: test.info().outputPath("tile-icon.png"),
+      clip: { x: box.x - 24, y: box.y - 16, width: 96, height: 56 },
+    });
+  });
+
+  // The motion contract (TASK-106): state animations settle within 450 ms, bundles returning to
+  // view drop in from above their cell, and reduced motion keeps nothing but fades.
+  for (const reduced of [false, true]) {
+    test(`re-layout motion is short${reduced ? " and fade-only under reduced motion" : ", arrivals drop in from above"}`, async ({
+      page,
+    }) => {
+      await mockMempool(page);
+      if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+      // Record every tile animation as it starts: sampling document.getAnimations() after the
+      // click missed short fades that had already finished on a loaded machine.
+      await page.addInitScript(() => {
+        const w = window as unknown as { __tileAnimations: unknown[] };
+        w.__tileAnimations = [];
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (
+          this: Element,
+          keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+          options?: number | KeyframeAnimationOptions
+        ) {
+          const animation = animate.call(this, keyframes, options);
+          if (this.closest("[data-tile]")) {
+            const effect = animation.effect as KeyframeEffect;
+            const frames = effect.getKeyframes();
+            w.__tileAnimations.push({
+              end: Number(effect.getComputedTiming().endTime),
+              props: [...new Set(frames.flatMap((f) => Object.keys(f)))].filter(
+                (k) => !["offset", "easing", "composite", "computedOffset"].includes(k)
+              ),
+              from: String(frames[0]?.transform ?? ""),
+              to: String(frames[frames.length - 1]?.transform ?? ""),
+            });
+          }
+          return animation;
+        };
+      });
+      const section = await open(page);
+      await section.getByRole("button", { name: "Filters" }).click();
+      await section.getByLabel("Non-matching").selectOption("hide");
+      const cat = section
+        .getByRole("group", { name: "Filter by asset kind" })
+        .getByRole("button", { name: /^CAT/ });
+      await cat.click();
+      await expect.poll(() => section.locator("[data-tile]").count()).toBeLessThan(5);
+      await page.waitForTimeout(600);
+      // Clearing the filter brings four bundles back: they are arrivals.
+      await page.evaluate(() => {
+        (window as unknown as { __tileAnimations: unknown[] }).__tileAnimations = [];
+      });
+      await cat.click();
+      type Motion = { end: number; props: string[]; from: string; to: string };
+      const read = () =>
+        page.evaluate(() => (window as unknown as { __tileAnimations: Motion[] }).__tileAnimations);
+      await expect.poll(async () => (await read()).length).toBeGreaterThan(0);
+      const motion = await read();
+      expect(motion.length).toBeGreaterThan(0);
+      for (const m of motion) expect(m.end).toBeLessThanOrEqual(450);
+      if (reduced) {
+        for (const m of motion) expect(m.props).toEqual(["opacity"]);
+        return;
+      }
+      const y = (transform: string) =>
+        Number(/translate\([^,]+,\s*(-?[\d.]+)px/.exec(transform)?.[1]);
+      const drops = motion.filter(
+        (m) => m.props.includes("opacity") && m.from.includes("translate")
+      );
+      expect(drops.length).toBeGreaterThan(0);
+      for (const m of drops) expect(y(m.from)).toBeLessThan(y(m.to));
+    });
+  }
+
   // A frame budget measured on a developer machine. GitHub's shared runners draw without a GPU
   // and run the same re-layout about six times slower (30 fps, a ~190 ms task, measured with
   // CPU throttling), so there the numbers describe the runner, not the app: the functional
   // re-layout above runs everywhere, this budget locally and in `bun run perf`.
-  test("re-layout animates at 50 fps or better with no long task over 200 ms", async ({
+  test("re-layout animates at 50 fps or better with no long task over 200 ms @local", async ({
     page,
-    isMobile,
   }) => {
-    test.skip(isMobile, "desktop only");
-    test.skip(!!process.env.CI, "frame budget depends on the machine; CI runners have no GPU");
     await mockMempool(page, 1_000);
     await page.addInitScript(() => {
       const w = window as unknown as { __longTasks: number[] };

@@ -1,35 +1,5 @@
-/* Shared look of the embeds: the site's tokens, dark by default, ?theme=light flips them. */
-:root {
-  color-scheme: dark;
-  --bg: #0f1220;
-  --surface: #1c2033;
-  --border: #2c3350;
-  --fg: #e8ebf5;
-  --fg-muted: #9aa3c2;
-  --primary: #5ece7b;
-  --primary-soft: rgba(94, 206, 123, 0.14);
-  --warning: #f5c542;
-  --danger: #f0616d;
-  --fee-0: #4c5b7b;
-  --fee-1: #3aac59;
-  --fee-2: #8fd35c;
-  --fee-3: #f5c542;
-  --fee-4: #f2903b;
-  --fee-5: #f0616d;
-}
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f6fb;
-  --surface: #ffffff;
-  --border: #d9deec;
-  --fg: #10142a;
-  --fg-muted: #4d5674;
-  --primary: #2f9a4d;
-  --primary-soft: rgba(47, 154, 77, 0.12);
-  --warning: #b78a00;
-  --danger: #c93a47;
-  --fee-0: #9aa3c2;
-}
+/* Shared look of the embeds. Colours come from themes.css, generated from the app's themes
+   (src/shared/theme) by `bun run themes`; common.js picks one from ?theme=, dark by default. */
 * {
   box-sizing: border-box;
 }
@@ -55,7 +25,7 @@ body {
   min-height: 100vh;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface);
 }
 .head {
@@ -171,7 +141,7 @@ body {
   font-weight: 600;
 }
 .pill.pending {
-  background: rgba(245, 197, 66, 0.15);
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
   color: var(--warning);
 }
 .pill.confirmed {
@@ -180,7 +150,7 @@ body {
 }
 .pill.removed,
 .pill.unknown {
-  background: rgba(240, 97, 109, 0.14);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
   color: var(--danger);
 }
 .status {

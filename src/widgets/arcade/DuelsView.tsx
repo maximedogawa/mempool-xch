@@ -57,7 +57,7 @@ function PlayerBadge({ player, app }: { player: DuelPlayer; app: string }) {
       <span
         aria-hidden="true"
         className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-        style={{ background: `hsl(${hue} 55% 42%)` }}
+        style={{ background: `hsl(${hue} 26% 40%)` }}
       >
         {player.name
           .replace(/[^\p{L}\p{N}]/gu, "")
@@ -278,7 +278,7 @@ function LeaderboardCard({ provider }: { provider: GamingProvider }) {
         ) : (
           <table className="w-full text-xs" data-testid="duels-leaderboard">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wider text-fg-faint">
+              <tr className="text-left text-[11px] eyebrow text-fg-faint">
                 <th scope="col" className="w-6 py-1 font-medium">
                   {t("duels.leaderboard.rank")}
                 </th>
@@ -354,7 +354,7 @@ export function DuelsView({ provider }: { provider: GamingProvider }) {
         />
         <div className="relative flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+            <span className="text-[11px] font-semibold eyebrow text-primary">
               {t("duels.eyebrow", { name: provider.name })}
             </span>
             <h2 className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
@@ -365,7 +365,7 @@ export function DuelsView({ provider }: { provider: GamingProvider }) {
           <div className="flex flex-wrap gap-2">
             <ExternalLink
               href={links.newRoom(provider.appUrl)}
-              className="inline-flex h-9 items-center rounded-sm bg-primary px-3.5 text-sm font-semibold text-primary-fg hover:bg-primary-strong"
+              className="inline-flex min-h-11 items-center rounded-control border border-[var(--cta-edge)] bg-cta px-4 text-sm font-bold text-cta-fg transition hover:-translate-y-px hover:bg-cta-hover"
             >
               {t("duels.openRoom")}
             </ExternalLink>

@@ -39,13 +39,22 @@ const messages: Translation<(typeof en)["messages"]> = {
   skipToContent: "跳到主要内容",
   connection: {
     live: "实时",
+    syncing: "同步中",
     connecting: "连接中",
     offline: "离线",
     noData: "暂无数据",
     connectingHint: "正在连接：{channel}…",
+    syncingHint: "节点仍在同步：已到 {height} / {tip}。显示的数据落后于网络。",
+    syncingHintNoTip: "节点仍在同步。显示的数据落后于网络。",
     hint: "{channel}：{detail} 最后更新 {age}。",
     srStatus: "{label}，通过 {channel}，最新高度 {peak}，最后更新 {age}",
     unknownPeak: "未知",
+  },
+  sync: {
+    title: "你的节点仍在同步：已到 {height} / {tip}（{percent}%）",
+    titleNoTip: "你的节点仍在同步",
+    body: "在追上网络之前，这里显示的区块、手续费和内存池都会滞后；同步中的节点不维护内存池。",
+    settings: "节点设置",
   },
   network: {
     label: "网络",

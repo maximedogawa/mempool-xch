@@ -94,7 +94,7 @@ function Depth({ bids, asks }: { bids: MarketLevel[]; asks: MarketLevel[] }) {
   return (
     <div className="grid grid-cols-2 gap-3 text-xs">
       <div>
-        <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-primary">
+        <div className="mb-1 flex justify-between text-[10px] eyebrow text-primary">
           <span>{t("bids")}</span>
           <span>{t("amountPrice")}</span>
         </div>
@@ -112,7 +112,7 @@ function Depth({ bids, asks }: { bids: MarketLevel[]; asks: MarketLevel[] }) {
         })}
       </div>
       <div>
-        <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-danger">
+        <div className="mb-1 flex justify-between text-[10px] eyebrow text-danger">
           <span>{t("asks")}</span>
           <span>{t("priceAmount")}</span>
         </div>
@@ -254,7 +254,7 @@ export function MarketPage() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold">{t("title")}</h1>
+          <h1 className="page-title">{t("title")}</h1>
           <p className="mt-1 max-w-2xl text-sm text-fg-muted">{t("intro")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -383,16 +383,14 @@ export function MarketPage() {
           </ul>
           <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
             <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-fg-muted">
+              <h3 className="mb-2 text-xs font-semibold eyebrow text-fg-muted">
                 {t("takerTitle")}
               </h3>
               <TakerBar buy={share.buy} sell={share.sell} />
               <p className="mt-2 text-[11px] text-fg-faint">{t("takerNote")}</p>
             </div>
             <div>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-fg-muted">
-                {t("fills")}
-              </h3>
+              <h3 className="mb-2 text-xs font-semibold eyebrow text-fg-muted">{t("fills")}</h3>
               {data.tape.length ? (
                 <ol
                   className="max-h-56 overflow-y-auto text-xs"
@@ -491,7 +489,7 @@ export function MarketPage() {
             className="rounded-card border border-border bg-surface-2 px-4 py-3"
             data-testid="market-dex-cex"
           >
-            <div className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+            <div className="text-[11px] font-medium eyebrow text-fg-muted">
               {t("dexCexSpread", { asset: dexAsset, quote })}
             </div>
             <div className="tabular mt-1 text-2xl font-semibold">

@@ -2,21 +2,10 @@ import { expect, test } from "@playwright/test";
 import { mockCoinset, mockCustomNode, VAULT_ADDRESS, VAULT_LAUNCHER } from "./mockCoinset";
 
 test.describe("vaults", () => {
-  test("Vaults menu opens the prefarm vaults and the Chia Vaults lookup", async ({
-    page,
-    isMobile,
-  }) => {
+  // The More menu entry is covered by navigation.spec.ts.
+  test("the vaults page shows the prefarm vaults and the Chia Vaults lookup", async ({ page }) => {
     await mockCoinset(page);
-    if (isMobile) {
-      // The primary navigation is collapsed on phones; the page itself is what matters here.
-      await page.goto("/vaults");
-    } else {
-      await page.goto("/");
-      // Vaults lives under the header's More menu, not the top bar.
-      await page.getByRole("button", { name: "More", exact: true }).click();
-      await page.getByRole("menuitem", { name: "Vaults" }).click();
-      await expect(page).toHaveURL(/\/vaults$/);
-    }
+    await page.goto("/vaults");
     await expect(page.getByRole("heading", { level: 1, name: "Prefarm tracker" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Chia Vaults" })).toBeVisible();
 

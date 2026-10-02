@@ -111,7 +111,7 @@ export function DidProfileCard({ launcherId, didId }: { launcherId: string; didI
         )}
         {collections?.length ? (
           <div className="border-t border-border pt-3">
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+            <p className="mb-2 text-[11px] font-medium eyebrow text-fg-muted">
               {t("collectionsHeld")}
             </p>
             <ul className="flex flex-wrap gap-2">

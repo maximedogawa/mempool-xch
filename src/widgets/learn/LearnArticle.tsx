@@ -25,7 +25,7 @@ export function LearnArticle({ slug, children }: { slug: string; children: React
         <span className="text-fg">{t(`${meta.key}.title`)}</span>
       </nav>
       <header>
-        <h1 className="text-2xl font-semibold">{t(`${meta.key}.title`)}</h1>
+        <h1 className="page-title">{t(`${meta.key}.title`)}</h1>
         <p className="mt-2 text-sm text-fg-muted">{t(`${meta.key}.summary`)}</p>
         <p className="mt-1 text-xs text-fg-faint">
           {t("article.minRead", { minutes: meta.minutes })}

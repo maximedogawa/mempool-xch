@@ -123,7 +123,7 @@ export function BlockCoinFlow({
                 aria-label={t("flow.rewardCoins")}
                 className="flex flex-col gap-1 rounded-sm border border-border bg-bg p-3 text-sm"
               >
-                <h3 className="text-xs font-medium uppercase tracking-wider text-fg-muted">
+                <h3 className="text-xs font-medium eyebrow text-fg-muted">
                   {t("flow.rewardsTitle", { count: flow.rewards.length })}
                 </h3>
                 <p className="text-xs text-fg-faint">{t("flow.rewardsIntro")}</p>

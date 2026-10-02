@@ -5,10 +5,9 @@ import { formatEta } from "@/shared/lib/format/time";
 import { feeGradient } from "@/shared/lib/mempool/feeBands";
 import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { useT } from "@/shared/i18n/useT";
-import { Skeleton } from "@/shared/ui/Skeleton";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { WatchedBlockBadge } from "@/widgets/watchlist/WatchlistParts";
-import { BlockCube } from "./BlockCube";
+import { BlockCube, BlockCubeSkeleton } from "./BlockCube";
 import blocksNs from "@/shared/i18n/messages/en/blocks";
 
 const CUBE = 138;
@@ -31,19 +30,30 @@ export function ProjectedBlocks({
   const mine = useWalletPendingIds();
   if (loading && blocks.length === 0) {
     return (
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-4">
         {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-[156px] w-[156px]" />
+          <BlockCubeSkeleton key={i} size={CUBE} />
         ))}
       </div>
     );
   }
   if (blocks.length === 0) {
     return (
-      <BlockCube fill={0} gradient="" variant="empty" ariaLabel={t("projected.emptyLabel")}>
-        <span className="text-xs text-fg-faint">{t("projected.empty")}</span>
-        <span className="text-[11px] text-fg-faint">{t("projected.mempool")}</span>
-      </BlockCube>
+      // Label and chip rows kept empty, so the column is as tall as a loaded block.
+      <div className="flex flex-col items-center gap-1">
+        <span aria-hidden="true" className="h-4" />
+        <BlockCube
+          fill={0}
+          gradient=""
+          variant="empty"
+          ariaLabel={t("projected.emptyLabel")}
+          size={CUBE}
+        >
+          <span className="text-xs text-fg-faint">{t("projected.empty")}</span>
+          <span className="text-[11px] text-fg-faint">{t("projected.mempool")}</span>
+        </BlockCube>
+        <span aria-hidden="true" className="h-5" />
+      </div>
     );
   }
   // Row-reversed so the next block sits against the divider and the scroll starts there.
@@ -67,7 +77,7 @@ export function ProjectedBlocks({
           eta: formatEta(block.etaSeconds),
         });
         return (
-          <li key={block.index} className="flex flex-col items-center gap-1">
+          <li key={block.index} className="blocks-snap flex flex-col items-center gap-1">
             <span className="tabular h-4 text-xs font-semibold text-fg-muted">
               {block.index === 0 ? t("projected.nextBlock") : `+${block.index}`}
             </span>
@@ -103,12 +113,13 @@ export function ProjectedBlocks({
               </span>
               {watched ? <WatchedBlockBadge count={watched} /> : null}
               {yours ? (
-                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-primary-fg shadow-[0_0_10px_var(--primary)]">
+                <span className="mt-1 inline-flex h-5 items-center rounded-full bg-primary px-2 text-[10px] font-bold uppercase tracking-wide text-primary-fg">
                   {t("projected.yours", { count: yours })}
                 </span>
               ) : null}
             </BlockCube>
-            <span className="inline-flex h-5 items-center rounded-full border border-primary/40 bg-primary-soft px-2 text-[10px] font-semibold text-primary">
+            {/* Opaque, so the queue's flow line passes behind the chip like a rail behind a stop. */}
+            <span className="relative inline-flex h-5 items-center rounded-full border border-primary/40 bg-[color-mix(in_srgb,var(--primary)_14%,var(--surface))] px-2 text-[10px] font-semibold text-primary">
               {t("projected.inEta", { eta: formatEta(block.etaSeconds) })}
             </span>
           </li>

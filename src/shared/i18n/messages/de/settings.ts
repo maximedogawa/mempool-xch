@@ -17,7 +17,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     intro:
       "Standardmäßig liest mempoolxch.space die Chain über den öffentlichen Full-Node-RPC von <coinset>Coinset</coinset> – direkt aus Ihrem Browser, ganz ohne eigenen Node. Sie können jedes Netzwerk stattdessen auf einen beliebigen HTTPS-Endpunkt richten, der mit dem Chia-Full-Node-RPC kompatibel ist. Funktionen, die nur Coinset bietet (semantische Transaktionszusammenfassungen, Adresshistorie und der WebSocket-Stream), werden bei eigenen Endpunkten automatisch abgeschaltet; die App fragt dann regelmäßig ab und lädt den rohen Mempool im Browser.",
     ownNode:
-      "<strong>Eigenen Node verwenden?</strong> Ein normaler Chia Full Node lauscht auf <code>https://localhost:8555</code> mit gegenseitigem TLS: Er verlangt das Client-Zertifikat des Nodes, das ein Browser nicht vorweisen kann, und sendet keine CORS-Header. Setzen Sie einen kleinen Reverse Proxy davor, der TLS mit dem Client-Zertifikat terminiert und <code>Access-Control-Allow-Origin</code> ergänzt, und tragen Sie dann hier die Proxy-URL ein. <guide>Schritt-für-Schritt-Anleitung</guide>.",
+      "<strong>Eigenen Node verwenden?</strong> Ein normaler Chia Full Node lauscht auf <code>https://localhost:8555</code> mit gegenseitigem TLS: Er verlangt das Client-Zertifikat des Nodes, das ein Browser nicht vorweisen kann, und sendet keine CORS-Header. Setzen Sie einen kleinen Reverse Proxy davor, der TLS mit dem Client-Zertifikat terminiert und <code>Access-Control-Allow-Origin</code> ergänzt, und tragen Sie dann hier die Proxy-URL mit IP-Adresse ein, z. B. <code>http://127.0.0.1:8556</code>: <code>localhost</code> kann auf IPv6 auflösen und einen Proxy auf 127.0.0.1 verfehlen. <guide>Schritt-für-Schritt-Anleitung</guide>.",
     nodexch:
       "<strong>nodexch?</strong> Ein nodexch-Gateway spricht Coinsets Dialekt vor seinem eigenen Full Node: Full-Node-RPC, die indexierte API und der WebSocket auf einem Host. Wählen Sie die Vorgabe oder markieren Sie Ihr eigenes Gateway als nodexch; ein öffentlicher Schlüssel (<code>nxp_…</code>), gebunden an die Herkunft dieser Seite, wird bei jedem Aufruf mitgeschickt. Tragen Sie hier nie einen geheimen Schlüssel ein.",
   },
@@ -29,6 +29,10 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "Speichern",
     reset: "Auf Coinset zurücksetzen",
     ok: "Spitze {height} in {ms} ms",
+    syncing:
+      "Der Knoten synchronisiert noch: bei {height} von {tip} ({percent} %). Blöcke und Mempool hinken hinterher, bis er synchron ist.",
+    syncingNoTip:
+      "Der Knoten synchronisiert noch: Blöcke und Mempool hinken hinterher, bis er synchron ist.",
     okCustom:
       "Spitze {height} in {ms} ms · eigener Node: indexierte API, WebSocket und Summary-API aus",
     sageHttpsOnly: "In Sage können nur https-Endpunkte freigegeben werden.",
@@ -46,9 +50,11 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Darstellung",
     theme: "Design",
     dark: "Dunkel",
-    darkHint: "mempool.space-Stil",
+    darkHint: "Tinte und Nachtstahl",
     light: "Hell",
-    lightHint: "hell und klar",
+    lightHint: "mineralisch hell, Standard",
+    midnight: "Mitternacht",
+    midnightHint: "das ursprüngliche Navy und Grün, glänzend",
     system: "System",
     systemHint: "folgt Ihrem Gerät",
     sageLocked:

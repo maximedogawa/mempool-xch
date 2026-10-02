@@ -33,7 +33,7 @@ export function OwnedNftsPage() {
           <ArrowLeft size={15} aria-hidden="true" />
           {isDid ? t("owned.backToDid") : t("owned.backToAddress")}
         </Link>
-        <h1 className="text-xl font-semibold">{t("owned.title")}</h1>
+        <h1 className="page-title">{t("owned.title")}</h1>
         <div className="text-sm text-fg-muted">
           {t.rich("owned.heldBy", {
             owner: () => (

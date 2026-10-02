@@ -3,13 +3,9 @@ import { expect, test } from "@playwright/test";
 import arcade from "../../src/shared/config/arcade.json";
 import games from "../../src/test-utils/fixtures/nokitlan_games.json";
 import rooms from "../../src/test-utils/fixtures/nokitlan_rooms.json";
-import { parseFlag } from "../../src/shared/config/features";
 import { mockArcadeRooms } from "./mockArcade";
 import { mockCoinset } from "./mockCoinset";
 import { mockNokitlan, NOKITLAN_TRACKER, selectTestnet } from "./mockNokitlan";
-
-/** The e2e server is a production build, so arcade21 is off unless the build set the flag. */
-const ARCADE_MAINNET = parseFlag(process.env.NEXT_PUBLIC_FEATURE_ARCADE_MAINNET, false);
 
 test.describe("arcade", () => {
   test.beforeEach(async ({ page }) => {
@@ -42,7 +38,6 @@ test.describe("arcade", () => {
   test("rooms come live through the rewrite: searchable, one accordion section per phase", async ({
     page,
   }) => {
-    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
     await page.goto("/gaming");
     await expect(page.getByTestId("rooms-waiting-count")).toHaveText("1");
     await expect(page.getByTestId("rooms-playing-count")).toHaveText("1");
@@ -67,11 +62,19 @@ test.describe("arcade", () => {
     await expect(page.getByText(/live · 30 s/)).toBeVisible();
   });
 
-  test("games: no source links, no intro sentence, genre filter", async ({ page }) => {
-    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
+  test("games: no source links, no intro sentence, genre filter, play opens the arcade21 site", async ({
+    page,
+  }) => {
     await page.goto("/gaming");
     const games = page.getByRole("list", { name: "Games" });
     await expect(games.getByRole("listitem")).toHaveCount(arcade.games.length);
+    // Playing needs an arcade21 account and a WalletConnect wallet: every Play link opens the
+    // arcade21 website, never the bare game page.
+    const play = games.getByRole("link", { name: `Play on ${arcade.tracker.name}` });
+    await expect(play).toHaveCount(arcade.games.length);
+    for (const href of await play.evaluateAll((links) => links.map((a) => a.getAttribute("href"))))
+      expect(href).toBe(arcade.tracker.url);
+    await expect(games.locator('a[href*="/game-assets/"]')).toHaveCount(0);
     await expect(games.getByRole("link", { name: "Source" })).toHaveCount(0);
     await expect(page.getByText(/games registered on the/)).toHaveCount(0);
     await expect(page.getByText(/cannot be read from your browser/)).toHaveCount(0);
@@ -88,7 +91,6 @@ test.describe("arcade", () => {
   test("when the tracker is unreachable the rooms card falls back to the snapshot", async ({
     page,
   }) => {
-    test.skip(!ARCADE_MAINNET, "arcade21 is behind NEXT_PUBLIC_FEATURE_ARCADE_MAINNET");
     await page.unroute("**/api/arcade/announce**");
     await page.route("**/api/arcade/announce**", (route) =>
       route.fulfill({ status: 502, body: "bad gateway" })
@@ -97,28 +99,6 @@ test.describe("arcade", () => {
     await expect(
       page.getByText(new RegExp(`${arcade.rooms.total} rooms announced on the tracker`))
     ).toBeVisible({ timeout: 15_000 });
-  });
-
-  test("Arcade sits in the More menu", async ({ page, isMobile }) => {
-    test.skip(isMobile, "the More menu is part of the desktop navigation");
-    await page.goto("/");
-    await page.getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Arcade" }).click();
-    await expect(page).toHaveURL(/\/gaming$/);
-  });
-  test("mainnet with the flag off: no arcade21 catalogue, a switch to testnet gaming", async ({
-    page,
-  }) => {
-    test.skip(ARCADE_MAINNET, "this build shows arcade21 on mainnet");
-    await mockNokitlan(page);
-    await page.goto("/gaming");
-    await expect(page.getByTestId("potato-clock")).toBeVisible();
-    const paused = page.getByTestId("arcade-paused");
-    await expect(paused).toContainText("Mainnet games are paused");
-    await expect(page.getByRole("list", { name: "Games" })).toHaveCount(0);
-    await paused.getByRole("button", { name: "Switch to Testnet11 gaming" }).click();
-    await expect(page.getByTestId("duels")).toBeVisible();
-    await expect(page.getByTestId("potato-clock")).toHaveCount(0);
   });
 });
 
@@ -165,8 +145,7 @@ test.describe("testnet gaming", () => {
     await expect(page.getByRole("link", { name: "Open a room" }).first()).toBeVisible();
   });
 
-  test("axe passes on the testnet view", async ({ page, isMobile }) => {
-    test.skip(isMobile, "markup is the same on both projects");
+  test("axe passes on the testnet view", async ({ page }) => {
     await page.goto("/gaming");
     await expect(page.getByTestId("duels-leaderboard")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

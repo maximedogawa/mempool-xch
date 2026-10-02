@@ -97,7 +97,7 @@ export function CatPage() {
             rounded="rounded-full"
           />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <h1 className="text-2xl font-semibold">
+            <h1 className="page-title break-words">
               {tokens.isLoading ? t("cat.loading") : tokenLabel(token, assetId)}
             </h1>
             {token?.description ? (
@@ -114,9 +114,7 @@ export function CatPage() {
               <p className="text-sm text-fg-faint">{t("cat.notListed")}</p>
             ) : null}
             <dl className="text-sm">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-                {t("cat.assetId")}
-              </dt>
+              <dt className="text-[11px] font-medium eyebrow text-fg-muted">{t("cat.assetId")}</dt>
               <dd className="mono flex items-center gap-1 break-all">
                 0x{assetId}
                 <CopyButton value={`0x${assetId}`} />

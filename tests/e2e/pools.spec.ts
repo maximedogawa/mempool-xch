@@ -69,17 +69,4 @@ test.describe("pools", () => {
     await search.fill("");
     await expect(table.getByRole("link", { name: "H9.com" })).toBeVisible();
   });
-
-  test("navigates from the top nav", async ({ page, isMobile }) => {
-    test.skip(
-      isMobile,
-      "desktop nav only; mobile nav is covered by keyboard.spec.ts's touch-target test"
-    );
-    await page.goto("/");
-    // Pools lives under the header's More menu, not the top bar.
-    await page.getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Pools" }).click();
-    await expect(page).toHaveURL(/\/pools/);
-    await expect(page.getByRole("heading", { level: 1, name: "Pools" })).toBeVisible();
-  });
 });

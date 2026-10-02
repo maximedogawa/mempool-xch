@@ -45,11 +45,16 @@ interface Ghost {
   tiles: TileView[];
 }
 
-const EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
-const MOVE_MS = 450;
-const ENTER_MS = 380;
-const LEAVE_MS = 320;
-const DEPART_MS = 1_100;
+const EASE = "cubic-bezier(0.2, 0.7, 0.2, 1)";
+/** Tiles that stay glide to their new cell. */
+const MOVE_MS = 360;
+/** New bundles drop into the queue from above their cell. */
+const ENTER_MS = 320;
+/** Arrivals in one update land one after another, at most this far apart in total. */
+const ENTER_STAGGER_MS = 120;
+const LEAVE_MS = 200;
+/** A confirmed block slides off toward the recent blocks. */
+const DEPART_MS = 700;
 /** Leave at most this many fading ghosts at once; beyond it tiles simply vanish. */
 const MAX_GHOSTS = 600;
 
@@ -81,12 +86,13 @@ function TileBody({ tile }: { tile: TileView }) {
           className="goggles-tile-image pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
       ) : tile.icon ? (
-        <span className="pointer-events-none absolute left-1 top-1 rounded-full bg-white/80 p-px">
+        <span className="goggles-tile-icon pointer-events-none absolute left-1 top-1">
           <AssetIcon
             kind={tile.kind}
             assetId={tile.assetId}
             size={14}
             sensitivity={tile.sensitivity}
+            className="rounded-full"
           />
         </span>
       ) : null}
@@ -99,9 +105,10 @@ function TileBody({ tile }: { tile: TileView }) {
 /**
  * The tiles of the treemap: absolutely positioned links moved with CSS transforms. Layout
  * changes animate FLIP-style with the Web Animations API (transform and opacity only, so the
- * compositor does the work): tiles that stay glide and resize from their old cell, new ones grow
- * in, departed ones fade out as ghosts, and a confirmed block slides off toward the recent
- * blocks. Nothing animates while the tab is hidden; reduced motion keeps only the fades.
+ * compositor does the work): tiles that stay glide and resize from their old cell, new ones drop
+ * into the queue from above in a short stagger, departed ones fade out as ghosts, and a
+ * confirmed block slides off toward the recent blocks. Nothing animates while the tab is hidden;
+ * reduced motion keeps only the fades.
  * Memoised: hover and tooltip state live in the parent and never re-render the tiles.
  */
 export const GogglesTiles = memo(function GogglesTiles({
@@ -137,23 +144,31 @@ export const GogglesTiles = memo(function GogglesTiles({
     // First paint, background tab: just show the result.
     if (!prev || document.hidden || !layer.current) return;
     const reduced = prefersReducedMotion();
-    layer.current.querySelectorAll<HTMLElement>("[data-tile]").forEach((el) => {
+    const elements = [...layer.current.querySelectorAll<HTMLElement>("[data-tile]")];
+    const arrivals = elements.filter((el) => departing || !prev.has(el.dataset.id ?? "")).length;
+    let arrived = 0;
+    elements.forEach((el) => {
       const tile = next.get(el.dataset.id ?? "");
       if (!tile) return;
       const old = prev.get(tile.id);
       const to = `translate(${tile.x}px, ${tile.y}px)`;
       if (!old || departing) {
+        // Top of the block first, as if the queue were settling into it.
+        const stagger = arrivals > 1 ? (arrived++ / (arrivals - 1)) * ENTER_STAGGER_MS : 0;
+        const drop = Math.min(28, Math.max(10, tile.height * 0.6));
         el.animate(
           reduced
             ? [{ opacity: 0 }, { opacity: 1 }]
             : [
-                {
-                  opacity: 0,
-                  transform: `translate(${tile.x + tile.width * 0.3}px, ${tile.y + tile.height * 0.3}px) scale(0.4)`,
-                },
+                { opacity: 0, transform: `translate(${tile.x}px, ${tile.y - drop}px)` },
                 { opacity: 1, transform: to },
               ],
-          { duration: ENTER_MS, delay: departing ? 280 : 0, easing: EASE, fill: "backwards" }
+          {
+            duration: ENTER_MS,
+            delay: (departing ? 240 : 0) + (reduced ? 0 : stagger),
+            easing: EASE,
+            fill: "backwards",
+          }
         );
         return;
       }
@@ -164,7 +179,7 @@ export const GogglesTiles = memo(function GogglesTiles({
         Math.abs(old.height - tile.height) > 0.5;
       if (!moved) return;
       if (reduced) {
-        el.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 200 });
+        el.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
         return;
       }
       const sx = drawn(tile.width) > 0 ? drawn(old.width) / drawn(tile.width) : 1;
@@ -205,13 +220,13 @@ export const GogglesTiles = memo(function GogglesTiles({
           : depart
             ? [
                 { opacity: 1, transform: "translate(0, 0) scale(1)" },
-                { opacity: 0.9, transform: "translate(18%, -8%) scale(0.72)", offset: 0.35 },
-                { opacity: 0, transform: "translate(70%, -45%) scale(0.25)" },
+                { opacity: 0.85, transform: "translate(22%, 0) scale(0.9)", offset: 0.4 },
+                { opacity: 0, transform: "translate(80%, 0) scale(0.7)" },
               ]
             : [{ opacity: 1 }, { opacity: 0 }],
         {
-          duration: reduced ? 250 : depart ? DEPART_MS : LEAVE_MS,
-          easing: depart ? "cubic-bezier(0.5, 0, 0.75, 0)" : "ease-out",
+          duration: reduced ? 200 : depart ? DEPART_MS : LEAVE_MS,
+          easing: depart ? "cubic-bezier(0.55, 0, 0.7, 0.2)" : "ease-out",
           fill: "forwards",
         }
       );
@@ -272,7 +287,7 @@ export const GogglesTiles = memo(function GogglesTiles({
             data-depart={ghost.depart ? "1" : "0"}
             className="absolute inset-0"
             style={{
-              transformOrigin: `${canvasWidth}px 0px`,
+              transformOrigin: `${canvasWidth}px ${canvasHeight / 2}px`,
               width: canvasWidth,
               height: canvasHeight,
             }}

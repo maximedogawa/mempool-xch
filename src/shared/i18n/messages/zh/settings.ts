@@ -16,7 +16,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     intro:
       "默认情况下，mempoolxch.space 直接在您的浏览器中通过 <coinset>Coinset</coinset> 的公共全节点 RPC 读取链上数据，无需自己运行节点。您也可以将每个网络指向任何兼容 Chia 全节点 RPC 的 HTTPS 端点。使用自定义端点时，仅 Coinset 提供的功能（语义化交易摘要、地址历史和 WebSocket 数据流）会自动关闭，应用将改为轮询，并在浏览器中获取原始内存池。",
     ownNode:
-      "<strong>使用自己的节点？</strong>标准的 Chia 全节点在 <code>https://localhost:8555</code> 上以双向 TLS 监听：它要求提供节点的客户端证书（浏览器无法提供），并且不发送 CORS 头。请在其前面放置一个小型反向代理，用客户端证书终止 TLS 并添加 <code>Access-Control-Allow-Origin</code>，然后在此处输入代理 URL。<guide>分步指南</guide>。",
+      "<strong>使用自己的节点？</strong>标准的 Chia 全节点在 <code>https://localhost:8555</code> 上以双向 TLS 监听：它要求提供节点的客户端证书（浏览器无法提供），并且不发送 CORS 头。请在其前面放置一个小型反向代理，用客户端证书终止 TLS 并添加 <code>Access-Control-Allow-Origin</code>，然后在此处用 IP 地址输入代理 URL，例如 <code>http://127.0.0.1:8556</code>：<code>localhost</code> 可能解析为 IPv6，从而连不到监听 127.0.0.1 的代理。<guide>分步指南</guide>。",
     nodexch:
       "<strong>nodexch？</strong>nodexch 网关在其自有全节点之前使用 Coinset 的接口方式：全节点 RPC、索引 API 和 WebSocket 位于同一主机。选择预设，或将您自己的网关标记为 nodexch；每次调用都会附带一个绑定到本站来源的可公开密钥（<code>nxp_…</code>）。切勿在此输入秘密密钥。",
   },
@@ -28,6 +28,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     save: "保存",
     reset: "重置为 Coinset",
     ok: "最新高度 {height}，耗时 {ms} 毫秒",
+    syncing:
+      "节点仍在同步：已到 {height} / {tip}（{percent}%）。同步完成前，区块和内存池数据会滞后。",
+    syncingNoTip: "节点仍在同步：同步完成前，区块和内存池数据会滞后。",
     okCustom:
       "最新高度 {height}，耗时 {ms} 毫秒 · 自定义节点：索引 API、WebSocket 和摘要 API 已关闭",
     sageHttpsOnly: "在 Sage 中只能将 https 端点加入白名单。",
@@ -45,9 +48,11 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "外观",
     theme: "主题",
     dark: "深色",
-    darkHint: "mempool.space 风格",
+    darkHint: "墨色与夜钢",
     light: "浅色",
-    lightHint: "明亮清晰",
+    lightHint: "矿物浅色（默认）",
+    midnight: "午夜",
+    midnightHint: "原版海军蓝与绿色，带光泽",
     system: "系统",
     systemHint: "跟随设备",
     sageLocked: "在 Sage 中，应用跟随钱包的主题（当前为{theme}）。请在 Sage 的设置中更改。",

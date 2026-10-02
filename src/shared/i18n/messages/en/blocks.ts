@@ -6,6 +6,9 @@ const messages = {
     label: "Blocks",
     projected: "Projected · next blocks",
     confirmed: "Confirmed · recent transaction blocks",
+    now: "Now",
+    backToNow: "Back to now",
+    backToNowLabel: "Centre the row on now, between the next block and the newest block",
   },
   projected: {
     emptyLabel: "Mempool is empty: the next block will carry no transactions",
