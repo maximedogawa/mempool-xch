@@ -79,4 +79,74 @@ test.describe("nodexch provider", () => {
       })
       .toBe(true);
   });
+
+  test("the map draws the gateway's own count of the network", async ({ page }) => {
+    await mockNodexch(page);
+    await page.goto("/map");
+    await expect(page.getByText(/Source: the crawler of nodexch\.space/)).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByText("IP geolocation by DB-IP (db-ip.com), CC BY 4.0")).toBeVisible();
+    await expect(page.getByText("1,234").first()).toBeVisible();
+  });
+
+  test("when nodexch.space fails, nothing moves to Coinset or Dexie by itself; Coinset is picked in Settings", async ({
+    page,
+  }) => {
+    const seen = await mockNodexch(page, { down: true });
+    await page.goto("/tokens");
+    await expect
+      .poll(() => seen.requests.some((r) => r.url.includes("/dexie/")), { timeout: 20_000 })
+      .toBe(true);
+    await page.goto("/");
+    await expect
+      .poll(() => seen.requests.some((r) => r.url.endsWith("/get_blockchain_state")), {
+        timeout: 20_000,
+      })
+      .toBe(true);
+    await page.waitForTimeout(2_000);
+    expect(seen.coinset, "Coinset is not asked behind a failing nodexch").toEqual([]);
+    expect(seen.dexie, "Dexie is not asked behind a failing nodexch").toEqual([]);
+    await expect(page.getByTestId("connection-fallback")).toHaveCount(0);
+
+    // The way back to Coinset is the provider choice.
+    await page.goto("/settings");
+    await page
+      .locator("fieldset")
+      .first()
+      .getByRole("radio", { name: /^Coinset/ })
+      .check({ force: true });
+    await page.getByRole("button", { name: /^Save/ }).first().click();
+    // In-app navigation: a reload would run the mock's seed again and undo the choice.
+    await page.getByRole("link", { name: "mempoolxch.space home" }).click();
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 20_000 });
+    expect(seen.coinset.length, "Coinset answers once it is chosen").toBeGreaterThan(0);
+    for (const r of seen.coinset) expect(r.authorization, r.url).toBeNull();
+  });
+});
+
+test.describe("provider choice", () => {
+  test("nodexch.space is the default, and Coinset or an own node can be picked", async ({
+    page,
+  }) => {
+    await mockNodexch(page);
+    // A visitor with nothing stored: the hosted gateway, not Coinset.
+    await page.addInitScript(() => localStorage.removeItem("mempool-xch:settings:v1"));
+    await page.goto("/settings");
+    const mainnet = page.locator("fieldset").first();
+    await expect(mainnet.getByRole("radio", { name: /^nodexch\.space/ })).toBeChecked();
+    await expect(page.getByText("nodexch.space default")).toBeVisible();
+    await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
+
+    await mainnet.getByRole("radio", { name: /^Coinset/ }).check({ force: true });
+    await expect(page.locator("#rpc-mainnet")).toHaveValue("https://api.coinset.org");
+    await mainnet.getByRole("radio", { name: /^Own node/ }).check({ force: true });
+    await expect(page.locator("#rpc-mainnet")).toHaveValue("");
+    await expect(page.locator("#rpc-mainnet")).toHaveAttribute(
+      "placeholder",
+      "http://127.0.0.1:8556"
+    );
+  });
 });

@@ -49,6 +49,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "{channel}：{detail} 最后更新 {age}。",
     srStatus: "{label}，通过 {channel}，最新高度 {peak}，最后更新 {age}",
     unknownPeak: "未知",
+    fallback: "{host} 无响应（{reason}）：在其恢复前改从 Coinset 读取。",
   },
   sync: {
     title: "你的节点仍在同步：已到 {height} / {tip}（{percent}%）",

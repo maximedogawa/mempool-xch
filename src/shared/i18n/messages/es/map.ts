@@ -165,11 +165,14 @@ const messages: Translation<(typeof en)["messages"]> = {
     "Fuente: <link>panel Peer Info de Chia</link>, observado el {observed} UTC. El panel de países abarca {placed} de los {total} nodos que informa el panel de población. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
   sourceGap:
     "Fuente: <link>panel Peer Info de Chia</link>, observado el {observed} UTC. El panel de países abarca {placed} de los {total} nodos que informa el panel de población; la diferencia de {gap} nodos se debe a dos consultas separadas del panel, no a un error de redondeo. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
+  sourceNodexch:
+    "Fuente: el rastreador de {host}, contado el {observed} UTC. Sus países abarcan {placed} de los {total} nodos que vio en los últimos cinco días. Solo se envían direcciones de nodos a un servicio de geolocalización, nunca la del visitante.",
   attribution:
     "Estadísticas de nodos de Chia Network Inc., de su <link>panel público Peer Info</link>, importadas a mano como instantánea estática.",
   history: {
     title: "La red a lo largo del tiempo",
     action: "cada 3 días · últimos dos años",
+    actionNodexch: "un recuento al día · desde 2022",
     seriesLabel: "Serie",
     total: "Nodos completos",
     capacity: "Fiables",
@@ -177,6 +180,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     ipv6: "IPv6",
     chartLabel: "{series} a lo largo del tiempo",
     note: "Las series del rastreador del panel Peer Info, una muestra cada tres días, hasta la instantánea.",
+    noteNodexch:
+      "El recuento diario de nodos de Chia hasta que el rastreador propio de la pasarela tomó el relevo; después, el suyo.",
     versionsTitle: "Versiones a lo largo del tiempo",
     versionsAction: "cada 3 días · último año",
     versionsLabel: "Nodos por versión a lo largo del tiempo",

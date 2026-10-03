@@ -43,6 +43,8 @@ release and on `workflow_dispatch`. Build args:
 | `NEXT_PUBLIC_COMMIT_SHA`             | Shown in the footer                                                              |
 | `NEXT_PUBLIC_APP_URL`                | Public origin, used for the Sage install URL and the summary API in the snapshot |
 | `NEXT_PUBLIC_FEATURE_GAMING_TESTNET` | `0` hides the nokitlan testnet gaming on `/gaming`; unset = on everywhere        |
+| `NEXT_PUBLIC_NODEXCH_KEY_MAINNET`    | The site's publishable nodexch key (`nxp_…`, bound to the site's origin)         |
+| `NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK`  | `1`: a failing nodexch.space is answered by Coinset and Dexie; unset = off       |
 
 Locally:
 

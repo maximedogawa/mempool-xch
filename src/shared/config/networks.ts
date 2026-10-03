@@ -33,8 +33,7 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     id: "mainnet",
     label: "Mainnet",
     addressPrefix: "xch",
-    // nodexch is the default; Coinset stays selectable in settings.
-    rpcUrl: "https://api.nodexch.space",
+    rpcUrl: "https://api.coinset.org",
     indexedUrl: "https://api.coinset.org",
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
@@ -78,6 +77,23 @@ export function isNodexchUrl(network: NetworkId, url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Whether the hosted nodexch gateway hands a failing request to the original by itself (Coinset
+ * for the chain, Dexie for its paths). Off unless the build sets
+ * NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK=1: while nodexch is being tested its failures must show, and
+ * Coinset is one click away in Settings.
+ */
+export const NODEXCH_AUTO_FALLBACK = process.env.NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK === "1";
+
+/**
+ * The endpoint a network starts on: the hosted nodexch gateway where one runs (mainnet), Coinset
+ * elsewhere (testnet11). With NODEXCH_AUTO_FALLBACK, Coinset is the automatic fallback of the
+ * hosted gateway (TASK-113); without it, Coinset is a choice in Settings.
+ */
+export function defaultEndpointUrl(network: NetworkId): string {
+  return NETWORKS[network].nodexchUrl ?? NETWORKS[network].rpcUrl;
 }
 
 /**
