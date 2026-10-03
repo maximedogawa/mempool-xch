@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { NETWORKS } from "@/shared/config/networks";
+import { NETWORKS, defaultEndpointUrl, hasHostedNodexch } from "@/shared/config/networks";
 import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -54,6 +54,47 @@ describe("resolveEndpoints", () => {
     expect(r.provider).toBe("nodexch");
     expect(r.rpcUrl).toBe("https://api.nodexch.space");
     expect(r.fallback).toBeNull();
+  });
+  test("a build without the site's key never sends a visitor to the hosted gateway", () => {
+    // The gateway answers 401 without a key: every request of a fresh visitor failed (0.11.0).
+    const key = NETWORKS.mainnet.nodexchKey;
+    NETWORKS.mainnet.nodexchKey = "";
+    try {
+      expect(hasHostedNodexch("mainnet")).toBe(false);
+      expect(defaultEndpointUrl("mainnet")).toBe("https://api.coinset.org");
+      // Settings that already name the gateway (written by a build with the key) read Coinset.
+      const stored = resolveEndpoints(DEFAULT_SETTINGS);
+      expect(stored).toMatchObject({
+        provider: "coinset",
+        rpcUrl: "https://api.coinset.org",
+        indexedUrl: "https://api.coinset.org",
+        wsUrl: "wss://api.coinset.org/ws",
+        apiKey: null,
+      });
+      // The visitor's own key still reaches it.
+      const own = resolveEndpoints({
+        ...DEFAULT_SETTINGS,
+        endpoints: {
+          ...DEFAULT_SETTINGS.endpoints,
+          mainnet: { rpcUrl: "https://api.nodexch.space", apiKey: "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt" },
+        },
+      });
+      expect(own.provider).toBe("nodexch");
+      expect(own.apiKey).toBe("nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt");
+      // Old Coinset defaults stay on Coinset instead of moving to a gateway that refuses them.
+      const storage = memoryStorage();
+      storage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } } })
+      );
+      expect(createSettingsStore(storage).get().endpoints.mainnet.rpcUrl).toBe(
+        "https://api.coinset.org"
+      );
+    } finally {
+      NETWORKS.mainnet.nodexchKey = key;
+    }
+    expect(hasHostedNodexch("mainnet")).toBe(true);
+    expect(hasHostedNodexch("testnet11")).toBe(false);
   });
   test("with the automatic fallback on, the hosted gateway falls back to Coinset", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { autoFallback: true });

@@ -83,7 +83,7 @@ test.describe("nodexch provider", () => {
   test("the map draws the gateway's own count of the network", async ({ page }) => {
     await mockNodexch(page);
     await page.goto("/map");
-    await expect(page.getByText(/Source: the crawler of nodexch\.space/)).toBeVisible({
+    await expect(page.getByText(/Source: the crawler of api\.nodexch\.space/)).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText("IP geolocation by DB-IP (db-ip.com), CC BY 4.0")).toBeVisible();
@@ -128,18 +128,21 @@ test.describe("nodexch provider", () => {
 });
 
 test.describe("provider choice", () => {
-  test("nodexch.space is the default, and Coinset or an own node can be picked", async ({
+  test("a build without the site's key starts on Coinset; nodexch.space or an own node can be picked", async ({
     page,
   }) => {
     await mockNodexch(page);
-    // A visitor with nothing stored: the hosted gateway, not Coinset.
+    // A visitor with nothing stored, on a build without NEXT_PUBLIC_NODEXCH_KEY_MAINNET (this
+    // one): the gateway refuses keyless requests, so the default is Coinset.
     await page.addInitScript(() => localStorage.removeItem("mempool-xch:settings:v1"));
     await page.goto("/settings");
     const mainnet = page.locator("fieldset").first();
-    await expect(mainnet.getByRole("radio", { name: /^nodexch\.space/ })).toBeChecked();
-    await expect(page.getByText("nodexch.space default")).toBeVisible();
-    await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
+    await expect(mainnet.getByRole("radio", { name: /^Coinset/ })).toBeChecked();
+    await expect(page.getByText("Coinset default").first()).toBeVisible();
+    await expect(page.locator("#rpc-mainnet")).toHaveValue("https://api.coinset.org");
 
+    await mainnet.getByRole("radio", { name: /^nodexch\.space/ }).check({ force: true });
+    await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
     await mainnet.getByRole("radio", { name: /^Coinset/ }).check({ force: true });
     await expect(page.locator("#rpc-mainnet")).toHaveValue("https://api.coinset.org");
     await mainnet.getByRole("radio", { name: /^Own node/ }).check({ force: true });

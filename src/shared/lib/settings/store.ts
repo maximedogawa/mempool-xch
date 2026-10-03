@@ -122,6 +122,9 @@ export function resolveEndpoints(
   if (provider === "nodexch") {
     // The site's own key for the hosted gateway, the user's for theirs.
     const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
+    // The hosted gateway refuses every request without a key (401). Settings may still name it
+    // (stored by a build that had the site's key, or picked without one): Coinset answers then.
+    if (!apiKey && isNodexchUrl(network, rpcUrl)) return coinsetEndpoints(network);
     return {
       network,
       rpcUrl,

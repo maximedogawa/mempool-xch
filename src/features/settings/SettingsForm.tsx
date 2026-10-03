@@ -275,7 +275,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
           )}
         >
           {isDefault
-            ? t(config.nodexchUrl ? "endpoint.nodexchDefault" : "endpoint.coinsetDefault")
+            ? t(
+                isNodexchUrl(network, defaultUrl)
+                  ? "endpoint.nodexchDefault"
+                  : "endpoint.coinsetDefault"
+              )
             : savedProvider === "coinset"
               ? "Coinset"
               : savedProvider === "nodexch"
