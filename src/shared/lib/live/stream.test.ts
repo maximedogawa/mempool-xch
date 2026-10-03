@@ -254,6 +254,25 @@ describe("parseCoinsetMessage: reorg and netspace", () => {
       detectedAtMs: 1789680142516,
     });
   });
+  test("a nodexch block frame with the node's record is a new block, every digit kept", () => {
+    const frame =
+      '{"message":{"type":"dashboard","data":{"kind":"block","height":7,"header_hash":"0xab","timestamp":1790480000,"fees":5,"additions":1,"removals":1,"record":{"height":7,"header_hash":"0xAB","prev_hash":"0xaa","weight":340282366920938463463374607431768211455,"total_iters":1,"timestamp":1790480000,"fees":5,"farmer_puzzle_hash":"0x01","pool_puzzle_hash":"0x02"}}}}';
+    const parsed = parseCoinsetMessage(frame);
+    if (parsed?.type !== "block") throw new Error("not a block");
+    expect(parsed.record.height).toBe(7);
+    expect(parsed.record.headerHash).toBe("ab");
+    expect(parsed.record.weight).toBe(340282366920938463463374607431768211455n);
+    expect(parsed.record.isTransactionBlock).toBe(true);
+    // Without the record (an older gateway) the frame is not a block event.
+    expect(parseCoinsetMessage(frame.replace(/,"record":\{[^}]*\}/, ""))).toBeNull();
+  });
+  test("a nodexch peak frame also carries the header hash and the block's time", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"peak","data":{"height":7,"header_hash":"0xAB","tx":true,"timestamp":1790480000}}}'
+      )
+    ).toEqual({ type: "peak", height: 7, tx: true, headerHash: "ab", timestamp: 1790480000 });
+  });
   test("a nodexch live frame is the state a poll would return; Coinset's own live kind is not", () => {
     expect(
       parseCoinsetMessage(
@@ -420,15 +439,27 @@ describe("createLiveStream: quiet polling", () => {
     socket().open();
     socket().message(LIVE);
     await timers.advance(1_000);
-    expect(polls()).toBe(2);
+    expect(polls()).toBe(1);
     // Quiet from here: nothing for a minute, however many short intervals pass.
     await timers.advance(30_000);
-    expect(polls()).toBe(2);
+    expect(polls()).toBe(1);
     await timers.advance(30_000);
-    expect(polls()).toBe(3);
+    expect(polls()).toBe(2);
     socket().drop();
     await timers.advance(1_000);
-    expect(polls()).toBe(4);
+    expect(polls()).toBe(3);
+    stream.stop();
+  });
+
+  test("the first state frame also stretches the poll that was already scheduled", async () => {
+    const { stream, timers, socket, polls } = start(60_000);
+    await Promise.resolve();
+    socket().open();
+    await timers.advance(0);
+    socket().message(LIVE);
+    // The short poll (1 s) scheduled at start does not run.
+    for (let i = 0; i < 5; i++) await timers.advance(1_000);
+    expect(polls()).toBe(1);
     stream.stop();
   });
 

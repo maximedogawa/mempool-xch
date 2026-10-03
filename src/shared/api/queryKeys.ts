@@ -6,7 +6,8 @@ export const queryKeys = {
   state: (network: NetworkId) => ["chain", network, "state"] as const,
   blockRecords: (network: NetworkId, start: number, end: number) =>
     ["chain", network, "records", start, end] as const,
-  recentBlocks: (network: NetworkId, count: number, peak: number | null) =>
+  /** `peak` "live" for a window the socket keeps current (a nodexch gateway). */
+  recentBlocks: (network: NetworkId, count: number, peak: number | "live" | null) =>
     ["chain", network, "recent", count, peak] as const,
   blockRoot: (network: NetworkId) => ["chain", network, "block"] as const,
   block: (network: NetworkId, id: string) => ["chain", network, "block", id] as const,

@@ -19,6 +19,7 @@ import type { BlockchainState, BlockRecord } from "@/shared/lib/rpc/types";
 import type { RpcClient } from "@/shared/lib/rpc/client";
 import { useLiveValue, useMeteredLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { recentWindow, type RecentBlocksResult } from "@/shared/lib/blocks/recent";
 import { queryKeys } from "./queryKeys";
 
 export function useBlockchainState() {
@@ -273,12 +274,7 @@ export function seedBlockRecords(
   });
 }
 
-export interface RecentBlocksResult {
-  /** Newest first. */
-  txBlocks: BlockRecord[];
-  /** Every record in the window, newest first, for gap markers. */
-  all: BlockRecord[];
-}
+export type { RecentBlocksResult };
 
 /** The last `count` transaction blocks (plus the non-transaction blocks between them). */
 export function useRecentBlocks(count: number) {
@@ -286,32 +282,24 @@ export function useRecentBlocks(count: number) {
   const queryClient = useQueryClient();
   const state = useBlockchainState();
   const peakHeight = useLiveValue("peakHeight");
-  const txPeakHeight = useLiveValue("txPeakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
-  // A metered gateway is asked once per transaction block, not once per block: the blocks in
-  // between carry no transactions and come with the next one (the window still ends at the peak).
-  const statePeak = state.data?.peak;
-  const stateTxPeak = statePeak
-    ? statePeak.isTransactionBlock
-      ? statePeak.height
-      : statePeak.prevTransactionBlockHeight
-    : null;
-  const keyPeak = endpoints.provider === "nodexch" ? (txPeakHeight ?? stateTxPeak ?? peak) : peak;
+  // A metered gateway's window has one key: LiveProvider asks for it again only on a
+  // transaction block, or adds the blocks its socket pushes (the window still ends at the peak).
+  const keyPeak = endpoints.provider === "nodexch" ? "live" : peak;
   return useQuery({
     queryKey: queryKeys.recentBlocks(endpoints.network, count, keyPeak),
     enabled: hydrated && peak !== null,
     placeholderData: keepPreviousData,
-    // The peak is part of the key, so every new block leaves an entry behind: drop it soon.
+    // On other providers the peak is part of the key, so every new block leaves an entry
+    // behind: drop it soon.
     gcTime: 30_000,
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
       const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
-      const all = [...records].sort((a, b) => b.height - a.height);
-      const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
-      seedBlockRecords(queryClient, endpoints.network, txBlocks);
-      const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
-      return { txBlocks, all: all.filter((r) => r.height >= oldest) };
+      const result = recentWindow(records, count);
+      seedBlockRecords(queryClient, endpoints.network, result.txBlocks);
+      return result;
     },
   });
 }

@@ -80,6 +80,11 @@ export const PACED_QUOTA_PAUSE_MS = 5 * 60_000;
  * again at once. A refused call is tried once more after that wait, a failed one (network,
  * 5xx) once after a pause; a used-up quota is not retried at all and holds every call back for
  * a while. The error is then marked so that TanStack Query does not retry it on top.
+ *
+ * Better than a refusal is not being refused: every answer says the key's rate a minute and
+ * what is left of it (`x-ratelimit-limit`, `x-ratelimit-remaining`; `observe`). With little
+ * left, calls start one refill apart (a minute over the rate: 6 s on a plan of 10 a minute)
+ * instead of running into 429s.
  */
 export function createPacedGate({
   concurrency = 4,
@@ -97,7 +102,10 @@ export function createPacedGate({
   const limit = createLimiter(concurrency);
   let holdUntil = 0;
   let nextStart = 0;
-  /** Waits out the hold, then takes the next start slot, `minGapMs` after the one before. */
+  /** The gap between starts: `minGapMs`, or one refill while the key's rate is nearly used. */
+  let gapMs = minGapMs;
+  let lastStart = -Infinity;
+  /** Waits out the hold, then takes the next start slot, `gapMs` after the one before. */
   const turn = async (signal?: AbortSignal) => {
     for (;;) {
       signal?.throwIfAborted();
@@ -105,9 +113,10 @@ export function createPacedGate({
       if (now() >= at) break;
       await delay(at - now(), signal);
     }
-    nextStart = now() + minGapMs;
+    lastStart = now();
+    nextStart = lastStart + gapMs;
   };
-  return <T>(read: () => Promise<T>, signal?: AbortSignal): Promise<T> =>
+  const gate = <T>(read: () => Promise<T>, signal?: AbortSignal): Promise<T> =>
     limit(async () => {
       for (let attempt = 0; ; attempt++) {
         await turn(signal);
@@ -138,4 +147,16 @@ export function createPacedGate({
         }
       }
     }, signal);
+  /** What an answer said of the key's rate: requests a minute, and how many are left now. */
+  const observe = (perMinute: number, remaining: number) => {
+    if (!Number.isFinite(perMinute) || perMinute <= 0 || !Number.isFinite(remaining)) return;
+    const refillMs = 60_000 / perMinute;
+    // Calls already in flight take from what is left too: slow down before it is gone.
+    const low = remaining <= concurrency;
+    gapMs = low ? Math.max(minGapMs, refillMs) : minGapMs;
+    // Plenty left again: the next call need not wait out a slow slot taken before.
+    nextStart = low ? Math.max(nextStart, now() + gapMs) : Math.min(nextStart, lastStart + gapMs);
+    if (remaining <= 0) holdUntil = Math.max(holdUntil, now() + refillMs);
+  };
+  return Object.assign(gate, { observe });
 }

@@ -6,11 +6,14 @@
 import { compactAllFromGateway } from "@/shared/lib/mempool/gatewayItem";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
+import { normaliseBlockRecord } from "@/shared/lib/rpc/normalise";
+import type { BlockRecord } from "@/shared/lib/rpc/types";
 
 export type LiveStatus = "connecting" | "live" | "polling" | "offline";
 
 export type LiveEvent =
-  | { type: "peak"; height: number; tx: boolean }
+  /** `headerHash` and `timestamp` (seconds) only where the frame carries them (nodexch). */
+  | { type: "peak"; height: number; tx: boolean; headerHash?: string; timestamp?: number }
   | {
       type: "transaction";
       ids: string[];
@@ -45,6 +48,8 @@ export type LiveEvent =
    * gateway, or an item its budget left unfetched): the mempool then has to be read again.
    */
   | { type: "mempoolDelta"; added: CompactMempoolItem[] | null; removed: string[] }
+  /** A new block with its full record (a nodexch `block` frame that carries one, TASK-148). */
+  | { type: "block"; record: BlockRecord }
   /** Coinset's periodic netspace estimate (dashboard event, kind "netspace"). */
   | { type: "netspace"; bytes: bigint; difficulty: number }
   /** A Chia Vault recovery step seen by Coinset (events=vault). */
@@ -121,7 +126,9 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
   try {
     // Coin amounts in a mempool delta are mojos as bare numbers, which can pass 2^53.
     envelope = (
-      raw.includes('"mempool_delta"') ? parseJsonSafe(raw) : JSON.parse(raw)
+      raw.includes('"mempool_delta"') || raw.includes('"record"')
+        ? parseJsonSafe(raw)
+        : JSON.parse(raw)
     ) as CoinsetEnvelope;
   } catch {
     return null;
@@ -132,7 +139,15 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
   if (message.type === "peak") {
     const height = Number(data.height);
     if (!Number.isFinite(height)) return null;
-    return { type: "peak", height, tx: Boolean(data.tx) };
+    return {
+      type: "peak",
+      height,
+      tx: Boolean(data.tx),
+      ...(typeof data.header_hash === "string"
+        ? { headerHash: data.header_hash.replace(/^0x/, "").toLowerCase() }
+        : {}),
+      ...(typeof data.timestamp === "number" ? { timestamp: data.timestamp } : {}),
+    };
   }
   if (message.type === "transaction") {
     const ids = Array.isArray(data.ids)
@@ -200,6 +215,11 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
         String(id).replace(/^0x/, "").toLowerCase()
       ),
     };
+  }
+  if (message.type === "dashboard" && data.kind === "block") {
+    if (!data.record || typeof data.record !== "object") return null;
+    const record = normaliseBlockRecord(data.record);
+    return Number.isFinite(record.height) && record.headerHash ? { type: "block", record } : null;
   }
   if (message.type === "dashboard" && data.kind === "netspace") {
     // bytes arrives as a decimal string well beyond 2^53; keep it exact.
@@ -315,7 +335,11 @@ export function createLiveStream(options: LiveStreamOptions): LiveStream {
     ws.onmessage = (event) => {
       const parsed = parseCoinsetMessage(String(event.data));
       if (!parsed) return;
-      if (parsed.type === "state") socketPushesState = true;
+      if (parsed.type === "state" && !socketPushesState) {
+        socketPushesState = true;
+        // The poll scheduled before the socket said so would ask for what it now pushes.
+        if (pollTimer !== null) schedulePoll(quietPollInterval);
+      }
       options.onEvent(parsed);
     };
     ws.onerror = () => {

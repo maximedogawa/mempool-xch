@@ -197,3 +197,29 @@ test("a refusal that is no rate limit (403, 404) is handed on at once", async ()
   expect((error as RpcError).retryHandled).toBe(false);
   expect(waits).toEqual([]);
 });
+
+test("with the key's rate nearly used, calls start one refill apart and wait when none is left", async () => {
+  const { read, starts, now } = paced();
+  // A plan of 10 a minute: one request every 6 s once the burst is gone.
+  read.observe(10, 3);
+  await read(async () => {
+    starts.push(now());
+  });
+  await read(async () => {
+    starts.push(now());
+  });
+  expect(starts[1]! - starts[0]!).toBeGreaterThanOrEqual(6_000);
+  read.observe(10, 0);
+  const before = now();
+  await read(async () => {
+    starts.push(now());
+  });
+  expect(starts[2]! - before).toBeGreaterThanOrEqual(6_000);
+  // Plenty left again: back to the short gap.
+  read.observe(10, 9);
+  const at = now();
+  await read(async () => {
+    starts.push(now());
+  });
+  expect(starts[3]! - at).toBeLessThan(6_000);
+});

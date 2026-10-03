@@ -17,6 +17,7 @@ import {
   type LiveTransport,
 } from "@/shared/lib/live/stream";
 import { queryKeys } from "@/shared/api/queryKeys";
+import { addRecentBlock, type RecentBlocksResult } from "@/shared/lib/blocks/recent";
 import { applyMempoolDelta } from "@/shared/lib/mempool/delta";
 import type { MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
@@ -29,8 +30,6 @@ export interface LiveContextValue {
   /** Unix ms of the last event (peak, transaction or poll sample). */
   lastEventAt: number | null;
   peakHeight: number | null;
-  /** Height of the newest transaction block seen on this connection; null until one arrives. */
-  txPeakHeight: number | null;
   /** Monotonic counter bumped on every transaction batch, for feeds that want a nudge. */
   txBatch: number;
   lastTxEvent: Extract<LiveEvent, { type: "transaction" }> | null;
@@ -47,7 +46,6 @@ const INITIAL: LiveContextValue = {
   transport: "polling",
   lastEventAt: null,
   peakHeight: null,
-  txPeakHeight: null,
   txBatch: 0,
   lastTxEvent: null,
   netspace: null,
@@ -92,6 +90,7 @@ const LiveContext = createContext<LiveStore | null>(null);
  */
 const METERED_MEMPOOL_GAP_MS = 30_000;
 const METERED_QUIET_POLL_MS = 5 * 60_000;
+const STATE_FRAME_WAIT_MS = 400;
 
 /** Coalesces bursts of invalidations (Coinset sends several mempool deltas per second when busy). */
 function throttled(fn: () => void, ms: number) {
@@ -151,10 +150,16 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     // Only the families that change with a new peak: state, fees and the recent window.
     // Per-block data (records by hash, transactions, asset totals) is immutable and keyed by
     // height/hash, so it is never invalidated here.
+    // The socket pushes the state (a nodexch gateway's live and peak frames): the cached
+    // state follows them and is not asked for again on a new block.
+    let statePushed = false;
+    // The socket pushes each new block's record: the recent window takes them as they come.
+    let blocksPushed = false;
+    const recentKey = [...queryKeys.chainRoot(network), "recent"] as const;
     const invalidateChain = throttled(() => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
+      if (!statePushed) void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
-      void queryClient.invalidateQueries({ queryKey: [...queryKeys.chainRoot(network), "recent"] });
+      if (!blocksPushed) void queryClient.invalidateQueries({ queryKey: recentKey });
     }, 1_000);
     const invalidateMempool = throttled(
       () => void queryClient.invalidateQueries({ queryKey: queryKeys.mempoolRoot(network) }),
@@ -191,6 +196,15 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       onEvent: (event) => {
         if (event.type === "status") {
           store.set({ status: event.status, transport: stream.transport });
+          if (event.status !== "live" && blocksPushed) {
+            blocksPushed = false;
+            void queryClient.invalidateQueries({ queryKey: recentKey });
+          }
+          if (event.status !== "live" && statePushed) {
+            // Frames were missed while the socket was away: ask for the state again.
+            statePushed = false;
+            void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
+          }
           if (event.status !== "live" && deltaFed) {
             // Deltas were missed while the socket was away: read the mempool again.
             deltaFed = false;
@@ -206,14 +220,29 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           }
           const firstPeak = peakRef.current === null;
           peakRef.current = event.height;
-          store.set({
-            lastEventAt,
-            peakHeight: event.height,
-            ...(event.tx ? { txPeakHeight: event.height } : {}),
-          });
+          store.set({ lastEventAt, peakHeight: event.height });
           // The first peak only says where the chain is: every reader has just asked (and a
           // reorg, which also clears the peak, has invalidated them itself).
           if (firstPeak) return;
+          if (statePushed) {
+            queryClient.setQueryData<BlockchainState>(
+              queryKeys.state(network),
+              (prev) =>
+                prev && {
+                  ...prev,
+                  peak: {
+                    ...prev.peak,
+                    height: event.height,
+                    isTransactionBlock: event.tx,
+                    prevTransactionBlockHeight: prev.peak.isTransactionBlock
+                      ? prev.peak.height
+                      : prev.peak.prevTransactionBlockHeight,
+                    ...(event.headerHash ? { headerHash: event.headerHash } : {}),
+                    ...(event.tx && event.timestamp ? { timestamp: event.timestamp } : {}),
+                  },
+                }
+            );
+          }
           if (deltaFed) {
             patchSummaryState({
               peakHeight: event.height,
@@ -222,9 +251,13 @@ export function LiveProvider({ children }: { children: ReactNode }) {
           }
           // Only a transaction block changes fees, the mempool and the row of blocks.
           if (metered && !event.tx) return;
-          invalidateChain();
+          // A nodexch gateway sends the block's state frame right after its peak frame: wait
+          // for it, so that the state is not asked for when the socket is about to say it.
+          if (metered) window.setTimeout(invalidateChain, STATE_FRAME_WAIT_MS);
+          else invalidateChain();
           if (!deltaFed) invalidateMempool();
         } else if (event.type === "state") {
+          statePushed = true;
           store.set({ lastEventAt });
           // The gateway's own figures stand in for the poll: keep the cached state current.
           queryClient.setQueryData<BlockchainState>(
@@ -244,6 +277,15 @@ export function LiveProvider({ children }: { children: ReactNode }) {
             mempoolFees: event.mempoolFees.toString(),
             synced: event.synced,
           });
+        } else if (event.type === "block") {
+          blocksPushed = true;
+          store.set({ lastEventAt });
+          for (const query of queryClient.getQueryCache().findAll({ queryKey: recentKey })) {
+            const prev = query.state.data as RecentBlocksResult | undefined;
+            const count = Number(query.queryKey[3]);
+            if (!prev || !Number.isFinite(count)) continue;
+            queryClient.setQueryData(query.queryKey, addRecentBlock(prev, event.record, count));
+          }
         } else if (event.type === "mempoolDelta") {
           store.set({ lastEventAt });
           const current = queryClient.getQueryData<MempoolSummary>(summaryKey);

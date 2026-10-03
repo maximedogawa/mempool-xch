@@ -101,7 +101,8 @@ async function post(
   params: Raw,
   timeoutMs: number,
   signal?: AbortSignal,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
+  onResponse?: (response: Response) => void
 ): Promise<Raw> {
   if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
   const controller = new AbortController();
@@ -117,6 +118,7 @@ async function post(
       body: stringifyJsonSafe(params),
       signal: controller.signal,
     });
+    onResponse?.(response);
     text = await response.text();
   } catch (error) {
     if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
@@ -155,8 +157,16 @@ export function createRpcClient(options: RpcClientOptions) {
   // Coinset's read budget for Coinset, a nodexch gateway's pace for nodexch; a custom node
   // is the visitor's own and is not held back.
   const gate = options.nodexch ? nodexchRead : hasIndexed ? coinsetRead : null;
+  /** A nodexch answer says what is left of the key's rate: the pace follows it. */
+  const observeRate = options.nodexch
+    ? (response: Response) =>
+        nodexchRead.observe(
+          Number(response.headers.get("x-ratelimit-limit") ?? NaN),
+          Number(response.headers.get("x-ratelimit-remaining") ?? NaN)
+        )
+    : undefined;
   const rpcDirect = (method: string, params: Raw = {}, signal?: AbortSignal) =>
-    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal, headers);
+    post(fetchImpl, options.rpcUrl, method, params, timeoutMs, signal, headers, observeRate);
   const rpc = (method: string, params: Raw = {}, signal?: AbortSignal) =>
     gate
       ? gate(() => rpcDirect(method, params, signal), signal)
@@ -171,6 +181,7 @@ export function createRpcClient(options: RpcClientOptions) {
           headers,
           signal,
         });
+        observeRate?.(response);
         text = await response.text();
       } catch (error) {
         if (signal?.aborted) throw new RpcError("aborted", path, "aborted");
@@ -190,7 +201,7 @@ export function createRpcClient(options: RpcClientOptions) {
       throw new RpcError("rpc", method, "Indexed API is only available with Coinset or nodexch");
     }
     const call = () =>
-      post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal, headers);
+      post(fetchImpl, options.indexedUrl!, method, params, timeoutMs, signal, headers, observeRate);
     return gate ? gate(call, signal) : call();
   };
 
