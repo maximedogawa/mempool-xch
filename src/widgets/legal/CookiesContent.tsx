@@ -12,7 +12,7 @@ import legalNs from "@/shared/i18n/messages/en/legal";
 const NECESSARY = [
   { key: "mempool-xch:settings:v1", row: "settings" },
   { key: "mempool-xch:tokens:v2", row: "tokens" },
-  { key: "mempool-xch:history:v1:<network>", row: "history" },
+  { key: "mempool-xch:history:v2:<network>", row: "history" },
   { key: "mempool-xch:mempool-snapshot:v1:<network>", row: "snapshot" },
   { key: "mempool-xch:watchlist:v1", row: "watchlist" },
   { key: "mempool-xch:goggles:v1", row: "goggles" },

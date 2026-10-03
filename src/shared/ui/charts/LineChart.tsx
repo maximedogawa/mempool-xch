@@ -5,6 +5,7 @@ import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import type { Point } from "@/shared/lib/charts/smoothing";
 import uiNs from "@/shared/i18n/messages/en/ui";
+import { ChartPlaceholder } from "./ChartPlaceholder";
 
 /**
  * Dependency-free single-series line chart (SVG), following StackedAreaChart's accessibility
@@ -88,14 +89,7 @@ export function LineChart({
   }, [points, scale, innerH, innerW, pad.l, pad.t]);
 
   if (!model || points.length < 2) {
-    return (
-      <div
-        className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
-        style={{ height }}
-      >
-        {t("chart.notEnough")}
-      </div>
-    );
+    return <ChartPlaceholder label={t("chart.notEnough")} height={height} className={className} />;
   }
 
   const hoverPoint = hover !== null ? points[hover] : null;

@@ -3,6 +3,7 @@ import { FEE_BANDS } from "./feeBands";
 import {
   appendSample,
   costWeightedMedianFeeRate,
+  coversMempool,
   loadHistory,
   MAX_SAMPLES,
   MIN_SAMPLE_GAP_MS,
@@ -116,12 +117,26 @@ describe("mempool history", () => {
     saveHistory(storage, "mainnet", [{ t: 1, bands: [1], count: 1, fees: 0 }]);
     expect(loadHistory(storage, "mainnet")).toEqual([{ t: 1, bands: [1], count: 1, fees: 0 }]);
     expect(loadHistory(storage, "testnet11")).toEqual([]);
-    data.set("mempool-xch:history:v1:mainnet", "{oops");
+    data.set("mempool-xch:history:v2:mainnet", "{oops");
     expect(loadHistory(storage, "mainnet")).toEqual([]);
     data.set(
-      "mempool-xch:history:v1:mainnet",
+      "mempool-xch:history:v2:mainnet",
       JSON.stringify([{ bad: true }, { t: 2, bands: [], count: 0, fees: 0 }])
     );
     expect(loadHistory(storage, "mainnet").length).toBe(1);
+  });
+});
+
+describe("coversMempool", () => {
+  const summary = (items: number, size: number) =>
+    ({
+      items: Array.from({ length: items }, () => ({})),
+      state: { mempoolSize: size },
+    }) as unknown as MempoolSummary;
+  test("only a summary holding (nearly) the whole mempool is sampled", () => {
+    expect(coversMempool(summary(82, 82))).toBe(true);
+    expect(coversMempool(summary(75, 82))).toBe(true);
+    expect(coversMempool(summary(3, 82))).toBe(false);
+    expect(coversMempool(summary(0, 0))).toBe(true);
   });
 });
