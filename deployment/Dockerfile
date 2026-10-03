@@ -21,11 +21,9 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 # Feature flags (src/shared/config/features.ts); empty keeps the built-in default.
 ARG NEXT_PUBLIC_FEATURE_GAMING_TESTNET
 ENV NEXT_PUBLIC_FEATURE_GAMING_TESTNET=$NEXT_PUBLIC_FEATURE_GAMING_TESTNET
-# The hosted nodexch gateway (src/shared/config/networks.ts): whether a failing gateway is
-# answered by Coinset and Dexie by itself. The site's key is not a build arg: the running
-# container reads NODEXCH_KEY_MAINNET from its environment (src/shared/config/runtime.ts).
-ARG NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK
-ENV NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK=$NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK
+# The main API, its fallback and the site's nodexch key are not build args: the running container
+# reads API_URL_MAINNET, API_FALLBACK_URL_MAINNET and NODEXCH_KEY_MAINNET from its environment
+# (src/shared/config/runtime.ts).
 
 # Sage static snapshot first (its own `next build` with output: export into ./out), then the
 # standalone server. Both invoke `next build`, so they must run in sequence.

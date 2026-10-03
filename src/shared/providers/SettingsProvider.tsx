@@ -23,7 +23,7 @@ import { createDexieFetch, type DexieRoute } from "@/shared/lib/hosted/dexie";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { loadProbe, probeIndexed, saveProbe } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
-import { NETWORKS, NODEXCH_AUTO_FALLBACK, type NetworkConfig } from "@/shared/config/networks";
+import { NETWORKS, fallbackEndpointUrl, type NetworkConfig } from "@/shared/config/networks";
 
 export interface SettingsContextValue {
   settings: Settings;
@@ -47,7 +47,7 @@ export interface SettingsContextValue {
   dexieRoute: DexieRoute | null;
   /**
    * fetch for Dexie API URLs: through `dexieRoute` when there is one, else Dexie itself (and
-   * Dexie behind a failing gateway only with NODEXCH_AUTO_FALLBACK).
+   * Dexie behind a failing gateway only where the server names a fallback, fallbackEndpointUrl).
    */
   dexieFetch: FetchLike;
 }
@@ -185,13 +185,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   // Read per request, so one fetch serves every provider; before hydration (SSR defaults) Dexie
   // is asked directly, as it always was, instead of a gateway the visitor may not use. The
   // gateway's answer stands (owner, 2026-10-02): a failing nodexch shows, Dexie is not asked
-  // behind it, unless the build turns the automatic fallback on (NODEXCH_AUTO_FALLBACK).
+  // behind it, unless the server names a fallback (fallbackEndpointUrl).
   const dexieFetch = useMemo(
     () =>
       createDexieFetch({
         route: () => (hydratedRef.current ? dexieRouteOf(activeEndpoints.current) : null),
         fetch: (input, init) => fetch(input, init),
-        fallback: NODEXCH_AUTO_FALLBACK,
+        fallback: fallbackEndpointUrl("mainnet") !== null,
       }),
     []
   );

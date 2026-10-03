@@ -12,6 +12,8 @@ services:
     image: mempool-xch:local
     # Run-time settings, as ONCE passes them (deployment/README.md).
     environment:
+      API_URL_MAINNET: ${API_URL_MAINNET:-}
+      API_FALLBACK_URL_MAINNET: ${API_FALLBACK_URL_MAINNET:-}
       NODEXCH_KEY_MAINNET: ${NODEXCH_KEY_MAINNET:-}
     ports:
       - "8080:80"

@@ -102,7 +102,9 @@ describe("resolveEndpoints", () => {
     expect(hasHostedNodexch("testnet11")).toBe(false);
   });
   test("with the automatic fallback on, the hosted gateway falls back to Coinset", () => {
-    const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { autoFallback: true });
+    const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", {
+      fallbackUrl: "https://api.coinset.org",
+    });
     expect(r.provider).toBe("nodexch");
     expect(r.rpcUrl).toBe("https://api.nodexch.space");
     expect(r.indexedUrl).toBe("https://api.nodexch.space");
@@ -114,10 +116,54 @@ describe("resolveEndpoints", () => {
       isCoinset: true,
       apiKey: null,
     });
-    // Testnet11 has no gateway: Coinset by default, and nothing to fall back to.
-    const testnet = resolveEndpoints(DEFAULT_SETTINGS, "testnet11", { autoFallback: true });
+    // Testnet11 has no gateway and the server names no fallback for it: Coinset, on its own.
+    const testnet = resolveEndpoints(DEFAULT_SETTINGS, "testnet11");
     expect(testnet.provider).toBe("coinset");
     expect(testnet.fallback).toBeNull();
+  });
+  test("the fallback the server names: any URL, and for a Coinset main API too", () => {
+    // Not Coinset: a plain full-node RPC, as a custom node is.
+    const node = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", {
+      fallbackUrl: "https://node.example.test/",
+    });
+    expect(node.provider).toBe("nodexch");
+    expect(node.fallback).toMatchObject({
+      provider: "custom",
+      rpcUrl: "https://node.example.test",
+      indexedUrl: null,
+      wsUrl: null,
+      apiKey: null,
+    });
+    // The main API never falls back to itself.
+    expect(
+      resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { fallbackUrl: "https://api.nodexch.space/" })
+        .fallback
+    ).toBeNull();
+    // A site that starts on Coinset (no key) falls back from Coinset.
+    const key = NETWORKS.mainnet.nodexchKey;
+    setSiteKeys({});
+    try {
+      const coinset = resolveEndpoints(
+        {
+          ...DEFAULT_SETTINGS,
+          endpoints: {
+            ...DEFAULT_SETTINGS.endpoints,
+            mainnet: { rpcUrl: "https://api.coinset.org" },
+          },
+        },
+        "mainnet",
+        { fallbackUrl: "https://node.example.test" }
+      );
+      expect(coinset.provider).toBe("coinset");
+      expect(coinset.fallback?.rpcUrl).toBe("https://node.example.test");
+      // nodexch.space stored without any key: the fallback answers instead of Coinset.
+      expect(
+        resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { fallbackUrl: "https://node.example.test" })
+          .rpcUrl
+      ).toBe("https://node.example.test");
+    } finally {
+      setSiteKeys({ mainnet: key });
+    }
   });
   test("an endpoint the visitor chose never falls back", () => {
     const own = resolveEndpoints(
@@ -129,14 +175,21 @@ describe("resolveEndpoints", () => {
         },
       },
       "mainnet",
-      { autoFallback: true }
+      { fallbackUrl: "https://api.coinset.org" }
     );
     expect(own.provider).toBe("nodexch");
     expect(own.fallback).toBeNull();
-    const coinset = resolveEndpoints({
-      ...DEFAULT_SETTINGS,
-      endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet: { rpcUrl: "https://api.coinset.org" } },
-    });
+    const coinset = resolveEndpoints(
+      {
+        ...DEFAULT_SETTINGS,
+        endpoints: {
+          ...DEFAULT_SETTINGS.endpoints,
+          mainnet: { rpcUrl: "https://api.coinset.org" },
+        },
+      },
+      "mainnet",
+      { fallbackUrl: "https://node.example.test" }
+    );
     expect(coinset.provider).toBe("coinset");
     expect(coinset.fallback).toBeNull();
   });

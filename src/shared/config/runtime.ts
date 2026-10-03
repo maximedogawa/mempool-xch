@@ -1,11 +1,12 @@
 /**
  * Settings the server hands the browser at run time instead of baking them into the bundle: the
- * site's nodexch keys come from the container's environment (ONCE: `once update <host> --env`),
- * so one image serves any deployment and a key changes without a rebuild.
+ * site's main API, its fallback and its nodexch keys come from the container's environment (ONCE:
+ * `once update <host> --env`), so one image serves any deployment and a setting changes without
+ * a rebuild.
  *
  * The standalone server answers /runtime-config.js (src/app/runtime-config.js/route.ts) with one
  * assignment to a global; the root layout loads it before any app module runs. The static Sage
- * export has no server and no such script: there the global is missing and every key is empty.
+ * export has no server and no such script: there the global is missing and every value is empty.
  */
 
 /** A nodexch publishable key: safe in a browser because the gateway binds it to origins. */
@@ -17,6 +18,10 @@ const GLOBAL = "__MEMPOOL_RUNTIME__";
 export interface RuntimeConfig {
   /** The site's publishable nodexch key per network id; absent without one. */
   nodexchKeys: Record<string, string>;
+  /** Mainnet's main API (API_URL_MAINNET): where a visitor's reads start; absent = built in. */
+  apiUrl?: string;
+  /** Where mainnet reads go when the main API fails (API_FALLBACK_URL_MAINNET); absent = nowhere. */
+  fallbackUrl?: string;
 }
 
 /** Network id → the server environment variable that holds the site's key for it. */
@@ -32,7 +37,29 @@ export function runtimeConfigFromEnv(env: Record<string, string | undefined>): R
     const key = env[name]?.trim() ?? "";
     if (PUBLISHABLE_KEY.test(key)) nodexchKeys[network] = key;
   }
-  return { nodexchKeys };
+  const config: RuntimeConfig = { nodexchKeys };
+  const apiUrl = endpointUrl(env.API_URL_MAINNET);
+  if (apiUrl) config.apiUrl = apiUrl;
+  const fallbackUrl = endpointUrl(env.API_FALLBACK_URL_MAINNET);
+  if (fallbackUrl && fallbackUrl !== apiUrl) config.fallbackUrl = fallbackUrl;
+  return config;
+}
+
+/**
+ * An endpoint base URL without its trailing slash; empty for anything else. https only, plain
+ * http for a local node: a visitor's browser must be able to call it from the https site.
+ */
+function endpointUrl(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return "";
+  try {
+    const url = new URL(value.trim());
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (url.protocol !== "https:" && !(local && url.protocol === "http:")) return "";
+    if (url.username || url.password || url.search || url.hash) return "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return "";
+  }
 }
 
 /** The body of /runtime-config.js. */
@@ -42,7 +69,20 @@ export function runtimeConfigScript(config: RuntimeConfig): string {
 
 /** The site's nodexch key for a network as the server handed it over; empty without one. */
 export function runtimeNodexchKey(network: string): string {
-  const config = (globalThis as { [GLOBAL]?: Partial<RuntimeConfig> })[GLOBAL];
-  const key = config?.nodexchKeys?.[network];
+  const key = runtimeConfig()?.nodexchKeys?.[network];
   return typeof key === "string" && PUBLISHABLE_KEY.test(key) ? key : "";
+}
+
+function runtimeConfig(): Partial<RuntimeConfig> | undefined {
+  return (globalThis as { [GLOBAL]?: Partial<RuntimeConfig> })[GLOBAL];
+}
+
+/** Mainnet's main API as the server handed it over; empty without one. */
+export function runtimeApiUrl(): string {
+  return endpointUrl(runtimeConfig()?.apiUrl);
+}
+
+/** Mainnet's fallback API as the server handed it over; empty without one. */
+export function runtimeFallbackUrl(): string {
+  return endpointUrl(runtimeConfig()?.fallbackUrl);
 }
