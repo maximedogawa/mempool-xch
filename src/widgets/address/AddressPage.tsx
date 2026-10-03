@@ -44,6 +44,8 @@ import { useAddressData, type CoinFallback } from "./useAddressData";
 import { holdingsFromBalances } from "@/shared/lib/portfolio/valuation";
 import addressNs from "@/shared/i18n/messages/en/address";
 import { light } from "@/shared/theme/themes/light";
+import { nodexchDexieIconUrl } from "@/shared/lib/hosted/dexie";
+import { catIconCandidates } from "@/shared/ui/assetIconCandidates";
 
 /**
  * The portfolio (chart, prices, Dexie's ticker list) only shows for an address that holds
@@ -74,7 +76,7 @@ function Unavailable({ what }: { what: string }) {
 export function AddressPage() {
   const t = useT(addressNs);
   const raw = useDetailId("address") ?? "";
-  const { networkConfig, endpoints } = useSettings();
+  const { networkConfig, endpoints, dexieRoute } = useSettings();
   const resolved = useMemo(
     () => resolveAddressId(raw, networkConfig.addressPrefix),
     [raw, networkConfig.addressPrefix]
@@ -328,7 +330,12 @@ export function AddressPage() {
                             className="flex items-center gap-2 hover:underline md:whitespace-nowrap"
                           >
                             <AssetImage
-                              urls={token?.iconUrl ? [token.iconUrl] : []}
+                              urls={catIconCandidates({
+                                registryIconUrl: token?.iconUrl,
+                                gatewayIconUrl: dexieRoute
+                                  ? nodexchDexieIconUrl(dexieRoute.gateway, c.assetId)
+                                  : null,
+                              })}
                               alt={token?.name ?? t("cats.tokenAlt")}
                               className="h-6 w-6 shrink-0"
                               rounded="rounded-full"

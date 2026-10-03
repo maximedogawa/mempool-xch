@@ -6,9 +6,17 @@
  */
 import { RpcError } from "./errors";
 
+/**
+ * The puzzle hash the probe asks the balance of: all zeros, which holds nothing. A balance is
+ * what the indexed pages need (addresses, the portfolio, transactions); a gateway with an own
+ * node derives it from the chain and keeps no reorg log, so `get_reorgs`, the earlier probe,
+ * answered "index not enabled" there while balances worked, and switched them all off.
+ */
+export const INDEX_PROBE_P2 = "0".repeat(64);
+
 /** The part of the client the probe uses. */
 export interface IndexedProbeClient {
-  getReorgs: (opts: { limit?: number }, signal?: AbortSignal) => Promise<unknown>;
+  getXchBalanceByP2: (p2: string, signal?: AbortSignal) => Promise<unknown>;
 }
 
 /**
@@ -21,7 +29,7 @@ export async function probeIndexed(
   signal?: AbortSignal
 ): Promise<boolean> {
   try {
-    await client.getReorgs({ limit: 1 }, signal);
+    await client.getXchBalanceByP2(INDEX_PROBE_P2, signal);
     return true;
   } catch (error) {
     if (!(error instanceof RpcError)) return true;
@@ -32,7 +40,8 @@ export async function probeIndexed(
 
 /** The probe is an indexed call, the dearest kind on a metered gateway: its answer is kept. */
 export const PROBE_TTL_MS = 60 * 60_000;
-const PROBE_KEY = "mempool-xch:nodexch-index:v1";
+/** v2: the probe asks a balance; answers of the `get_reorgs` probe (v1) are not trusted. */
+const PROBE_KEY = "mempool-xch:nodexch-index:v2";
 
 type ProbeStorage = Pick<Storage, "getItem" | "setItem">;
 

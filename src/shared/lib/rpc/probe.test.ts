@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { RpcError } from "./errors";
 import { probeIndexed } from "./probe";
 
-const answering = { getReorgs: async () => ({ reorgs: [] }) };
+const answering = { getXchBalanceByP2: async () => ({ confirmed: 0 }) };
 const failing = (error: unknown) => ({
-  getReorgs: async () => {
+  getXchBalanceByP2: async () => {
     throw error;
   },
 });
@@ -16,12 +16,16 @@ describe("probeIndexed", () => {
 
   test("501 or 'index not enabled' means it is off", async () => {
     expect(
-      await probeIndexed(failing(new RpcError("http", "get_reorgs", "HTTP 501", { status: 501 })))
+      await probeIndexed(
+        failing(new RpcError("http", "get_xch_balance_by_p2", "HTTP 501", { status: 501 }))
+      )
     ).toBe(false);
     expect(
       await probeIndexed(
         failing(
-          new RpcError("rpc", "get_reorgs", "index not enabled", { detail: '{"success":false}' })
+          new RpcError("rpc", "get_xch_balance_by_p2", "index not enabled", {
+            detail: '{"success":false}',
+          })
         )
       )
     ).toBe(false);
@@ -29,10 +33,12 @@ describe("probeIndexed", () => {
 
   test("a network error or another refusal says nothing about the index", async () => {
     expect(
-      await probeIndexed(failing(new RpcError("network", "get_reorgs", "Network error")))
+      await probeIndexed(failing(new RpcError("network", "get_xch_balance_by_p2", "Network error")))
     ).toBe(true);
     expect(
-      await probeIndexed(failing(new RpcError("http", "get_reorgs", "HTTP 429", { status: 429 })))
+      await probeIndexed(
+        failing(new RpcError("http", "get_xch_balance_by_p2", "HTTP 429", { status: 429 }))
+      )
     ).toBe(true);
     expect(await probeIndexed(failing(new Error("boom")))).toBe(true);
   });

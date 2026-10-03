@@ -17,7 +17,8 @@ import {
   type ResolvedEndpoints,
   type Settings,
 } from "@/shared/lib/settings/store";
-import { createRpcClient, type RpcClient } from "@/shared/lib/rpc/client";
+import { createRpcClient, type FetchLike, type RpcClient } from "@/shared/lib/rpc/client";
+import { createDexieFetch, type DexieRoute } from "@/shared/lib/hosted/dexie";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { loadProbe, probeIndexed, saveProbe } from "@/shared/lib/rpc/probe";
 import { RpcError } from "@/shared/lib/rpc/errors";
@@ -32,6 +33,21 @@ export interface SettingsContextValue {
   client: RpcClient;
   /** True until the client-side store has replaced the SSR defaults. */
   hydrated: boolean;
+  /**
+   * The nodexch gateway that answers Dexie's API paths and icons, on a network with a hosted
+   * gateway while nodexch is the provider; null when Dexie is asked directly (Coinset, a custom
+   * node, testnet11).
+   */
+  dexieRoute: DexieRoute | null;
+  /** fetch for Dexie API URLs: through `dexieRoute` when there is one, else Dexie itself. */
+  dexieFetch: FetchLike;
+}
+
+/** Dexie's paths on the gateway, only where a hosted gateway runs: elsewhere Dexie stays. */
+function dexieRouteOf(endpoints: ResolvedEndpoints): DexieRoute | null {
+  return endpoints.provider === "nodexch" && NETWORKS[endpoints.network].nodexchUrl
+    ? { gateway: endpoints.rpcUrl, apiKey: endpoints.apiKey }
+    : null;
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -106,6 +122,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }),
     [endpoints.rpcUrl, endpoints.indexedUrl, endpoints.provider, endpoints.apiKey]
   );
+  // Read per request, so one fetch serves every provider; before hydration (SSR defaults) Dexie
+  // is asked directly, as it always was, instead of a gateway the visitor may not use. The
+  // gateway's answer stands (owner, 2026-10-02): a failing nodexch shows, Dexie is not asked
+  // behind it.
+  const dexieFetch = useMemo(
+    () =>
+      createDexieFetch({
+        route: () => (hydratedRef.current ? dexieRouteOf(activeEndpoints.current) : null),
+        fetch: (input, init) => fetch(input, init),
+        fallback: false,
+      }),
+    []
+  );
+  const dexieRoute = useMemo(
+    () => (hydrated ? dexieRouteOf(endpoints) : null),
+    [hydrated, endpoints]
+  );
   const value = useMemo<SettingsContextValue>(
     () => ({
       settings,
@@ -115,8 +148,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       networkConfig: NETWORKS[settings.network],
       client,
       hydrated,
+      dexieRoute,
+      dexieFetch,
     }),
-    [settings, store, endpoints, client, hydrated]
+    [settings, store, endpoints, client, hydrated, dexieRoute, dexieFetch]
   );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

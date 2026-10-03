@@ -811,7 +811,35 @@ export async function mockNodexch(page: Page) {
   const seen = {
     requests: [] as { url: string; authorization: string | null }[],
     sockets: [] as string[],
+    /** Requests that went to Dexie itself (its API or its icon host). */
+    dexie: [] as string[],
+    /** Icons asked of the gateway: public files, sent without the key. */
+    icons: [] as string[],
   };
+  // Dexie's paths on the gateway, in Dexie's shapes, and its icons; Dexie itself stays untouched.
+  await page.route(/https:\/\/api\.nodexch\.space\/dexie\/icons\/.*/, (route) => {
+    seen.icons.push(route.request().url());
+    return route.fulfill({ status: 404, body: "" });
+  });
+  await page.route(/https:\/\/api\.nodexch\.space\/dexie\/v\d\/.*/, (route) => {
+    const url = route.request().url();
+    seen.requests.push({ url, authorization: route.request().headers().authorization ?? null });
+    if (url.includes("/dexie/v3/prices/tickers"))
+      return json(route, { success: true, tickers: DEXIE_TICKERS });
+    if (url.includes("/dexie/v1/assets"))
+      return json(route, {
+        success: true,
+        count: DEXIE_ASSETS.length,
+        page: 1,
+        page_size: 100,
+        assets: DEXIE_ASSETS,
+      });
+    return json(route, { success: true, count: 0, offers: [] });
+  });
+  await page.route(/https:\/\/(api|icons)\.dexie\.space\/.*/, (route) => {
+    seen.dexie.push(route.request().url());
+    return route.fulfill({ status: 599, body: "must not be called with nodexch" });
+  });
   await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
@@ -890,7 +918,8 @@ export async function mockNodexch(page: Page) {
       success: true,
     });
   });
-  await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
+  // Every node and indexed method (their names carry digits: get_xch_balance_by_p2).
+  await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z0-9_]+$/, (route) => {
     seen.requests.push({
       url: route.request().url(),
       authorization: route.request().headers().authorization ?? null,

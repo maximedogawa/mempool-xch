@@ -37,8 +37,10 @@ test.describe("nodexch request footprint", () => {
 
     // The load is one call: the gateway's dashboard answers the state, the fee quote, the
     // recent blocks with their records and asset totals and the mempool items at once, and its
-    // socket says what changes. The exception: get_reorgs twice on a first visit (the block time
-    // card, and the index probe, which is then remembered for an hour).
+    // socket says what changes. Beside it, on a first visit: the token registry (Dexie's list
+    // through the gateway, then kept in localStorage), the index probe (a balance, remembered
+    // for an hour) and get_reorgs for the block time card (a gateway that keeps no reorg log is
+    // not asked again for an hour).
     expect(counts["x/node/v1/dashboard"] ?? 0, "the dashboard is asked once").toBe(1);
     for (const method of [
       "get_blockchain_state",
@@ -50,7 +52,9 @@ test.describe("nodexch request footprint", () => {
       "get_mempool_item_by_tx_id",
     ])
       expect(counts[method] ?? 0, `${method} is not needed`).toBe(0);
-    expect(counts.get_reorgs ?? 0).toBeLessThanOrEqual(2);
-    expect(seen.requests.length, JSON.stringify(counts)).toBeLessThanOrEqual(3);
+    for (const method of ["get_reorgs", "get_xch_balance_by_p2", "dexie/v1/assets"])
+      expect(counts[method] ?? 0, `${method} is asked once`).toBeLessThanOrEqual(1);
+    expect(seen.requests.length, JSON.stringify(counts)).toBeLessThanOrEqual(4);
+    expect(seen.dexie, "Dexie itself is not asked").toEqual([]);
   });
 });

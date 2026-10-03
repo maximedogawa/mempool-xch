@@ -17,6 +17,26 @@ describe("catIconCandidates", () => {
     ).toEqual(["https://wallet.example/icon.png", MINTGARDEN_ASSET, DEXIE]);
   });
 
+  test("with a nodexch gateway the icon comes from the gateway alone, nothing from Dexie", () => {
+    const gateway = "https://api.nodexch.space/dexie/icons/abc.webp";
+    expect(
+      catIconCandidates({
+        walletIconUrl: "https://wallet.example/icon.png",
+        registryIconUrl: DEXIE,
+        dexieIconUrl: DEXIE,
+        gatewayIconUrl: gateway,
+      })
+    ).toEqual(["https://wallet.example/icon.png", gateway]);
+    // A gateway on a host the image allowlist does not know is not used for images.
+    expect(
+      catIconCandidates({
+        registryIconUrl: null,
+        dexieIconUrl: DEXIE,
+        gatewayIconUrl: "https://gateway.example/dexie/icons/abc.webp",
+      })
+    ).toEqual([DEXIE]);
+  });
+
   test("drops a plain-http wallet icon", () => {
     expect(
       catIconCandidates({

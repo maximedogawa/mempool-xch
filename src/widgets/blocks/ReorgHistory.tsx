@@ -2,11 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { markRouteOff, routeOff } from "@/shared/api/gateway";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { formatNumber } from "@/shared/lib/chia/amounts";
 import { formatAge, formatDateTime } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
-import { errorMessage } from "@/shared/lib/rpc/errors";
+import type { RpcClient } from "@/shared/lib/rpc/client";
+import { errorMessage, RpcError } from "@/shared/lib/rpc/errors";
 import { useLiveValue } from "@/shared/providers/LiveProvider";
 import { useT } from "@/shared/i18n/useT";
 import { useSettings } from "@/shared/providers/SettingsProvider";
@@ -25,10 +28,23 @@ import {
 } from "@/shared/ui";
 import blocksNs from "@/shared/i18n/messages/en/blocks";
 
+const REORGS_PATH = "/get_reorgs";
+
+/**
+ * A nodexch gateway with an own node keeps no reorg log: `get_reorgs` answers "index not
+ * enabled" there while its other indexed methods work. Remembered for an hour per gateway
+ * (src/shared/api/gateway.ts), so the paid request is not repeated on every load.
+ */
+function reorgsOff(client: RpcClient): boolean {
+  return client.metered && routeOff(client, REORGS_PATH);
+}
+
 /** Reorg events Coinset persisted, newest first; refreshed when the live stream reports one. */
 export function useReorgs(limit = 20) {
   const { client, endpoints, hydrated } = useSettings();
   const lastReorg = useLiveValue("lastReorg");
+  const [off, setOff] = useState(false);
+  useEffect(() => setOff(reorgsOff(client)), [client]);
   return useQuery({
     queryKey: [
       ...queryKeys.chainRoot(endpoints.network),
@@ -36,8 +52,22 @@ export function useReorgs(limit = 20) {
       limit,
       lastReorg?.detectedAtMs ?? 0,
     ],
-    queryFn: ({ signal }) => client.getReorgs({ limit }, signal),
-    enabled: hydrated && client.hasIndexed,
+    queryFn: async ({ signal }) => {
+      try {
+        return await client.getReorgs({ limit }, signal);
+      } catch (error) {
+        if (
+          error instanceof RpcError &&
+          (error.status === 501 || /index not enabled/i.test(error.message))
+        ) {
+          markRouteOff(client, REORGS_PATH);
+          setOff(true);
+        }
+        throw error;
+      }
+    },
+    enabled: hydrated && client.hasIndexed && !off && !reorgsOff(client),
+    retry: false,
     staleTime: 5 * 60_000,
   });
 }
@@ -50,7 +80,8 @@ export function ReorgHistory() {
   const t = useT(blocksNs);
   const { client } = useSettings();
   const reorgs = useReorgs();
-  if (!client.hasIndexed) return null;
+  // No log on this source (a custom node, or a gateway that keeps none): no card.
+  if (!client.hasIndexed || reorgsOff(client)) return null;
   return (
     <Card>
       <CardHeader
