@@ -1,3 +1,5 @@
+import { runtimeNodexchKey } from "./runtime";
+
 /** Networks the app knows about. Endpoints can be overridden per network in settings. */
 export type NetworkId = "mainnet" | "testnet11";
 
@@ -22,11 +24,12 @@ export interface NetworkConfig {
   coinsetHosts: string[];
   /** The hosted nodexch gateway for this network (the settings preset); null where none runs. */
   nodexchUrl: string | null;
-  /** Its publishable key for this site (baked in at build time); empty without one. */
-  nodexchKey: string;
+  /**
+   * Its publishable key for this site, handed over by the server at run time
+   * (src/shared/config/runtime.ts); empty without one.
+   */
+  readonly nodexchKey: string;
 }
-
-const NODEXCH_KEY_MAINNET = process.env.NEXT_PUBLIC_NODEXCH_KEY_MAINNET ?? "";
 
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
@@ -38,7 +41,9 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
     nodexchUrl: "https://api.nodexch.space",
-    nodexchKey: NODEXCH_KEY_MAINNET,
+    get nodexchKey() {
+      return runtimeNodexchKey("mainnet");
+    },
   },
   testnet11: {
     id: "testnet11",
@@ -49,7 +54,9 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     wsUrl: "wss://testnet11.api.coinset.org/ws",
     coinsetHosts: ["testnet11.api.coinset.org"],
     nodexchUrl: null,
-    nodexchKey: process.env.NEXT_PUBLIC_NODEXCH_KEY_TESTNET11 ?? "",
+    get nodexchKey() {
+      return runtimeNodexchKey("testnet11");
+    },
   },
 };
 
@@ -88,17 +95,18 @@ export function isNodexchUrl(network: NetworkId, url: string): boolean {
 export const NODEXCH_AUTO_FALLBACK = process.env.NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK === "1";
 
 /**
- * True when this build can use the hosted nodexch gateway of a network: one runs there and the
- * build carries the site's publishable key. The gateway answers 401 to a request without a key,
- * so a build without one must not send its visitors there.
+ * True when this site can use the hosted nodexch gateway of a network: one runs there and the
+ * server handed over the site's publishable key. The gateway answers 401 to a request without a
+ * key, so a site without one must not send its visitors there.
  */
 export function hasHostedNodexch(network: NetworkId): boolean {
   return Boolean(NETWORKS[network].nodexchUrl && NETWORKS[network].nodexchKey);
 }
 
 /**
- * The endpoint a network starts on: the hosted nodexch gateway where this build can use it
- * (mainnet, with the site's key), Coinset elsewhere (testnet11, or a build without the key).
+ * The endpoint a network starts on: the hosted nodexch gateway where this site can use it
+ * (mainnet, with the site's key), Coinset elsewhere (testnet11, a server without the key, the
+ * Sage export).
  * With NODEXCH_AUTO_FALLBACK, Coinset is the automatic fallback of the hosted gateway (TASK-113);
  * without it, Coinset is a choice in Settings.
  */

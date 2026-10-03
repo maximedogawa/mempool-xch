@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import Script from "next/script";
 import type { ReactNode } from "react";
+import { RUNTIME_CONFIG_PATH } from "@/shared/config/runtime";
 import { DEFAULT_THEME, SCHEME_THEMES, themeById } from "@/shared/theme";
 import { AppProviders } from "@/shared/providers/AppProviders";
 import { AppShell } from "@/widgets/shell/AppShell";
@@ -14,6 +16,8 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   display: "swap",
 });
+
+const IS_SAGE_BUILD = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mempoolxch.space"),
@@ -46,6 +50,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppProviders>
           <AppShell>{children}</AppShell>
         </AppProviders>
+        {/* The server's run-time settings (the site's nodexch key), read before any app module
+            runs. The Sage export has no server to answer it. */}
+        {IS_SAGE_BUILD ? null : <Script src={RUNTIME_CONFIG_PATH} strategy="beforeInteractive" />}
       </body>
     </html>
   );

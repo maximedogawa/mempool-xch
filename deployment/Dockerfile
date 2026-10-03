@@ -17,17 +17,14 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
 ENV NEXT_PUBLIC_COMMIT_SHA=$NEXT_PUBLIC_COMMIT_SHA
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-ARG NEXT_PUBLIC_NODEXCH_KEY_MAINNET
-ENV NEXT_PUBLIC_NODEXCH_KEY_MAINNET=$NEXT_PUBLIC_NODEXCH_KEY_MAINNET
 
 # Feature flags (src/shared/config/features.ts); empty keeps the built-in default.
 ARG NEXT_PUBLIC_FEATURE_GAMING_TESTNET
 ENV NEXT_PUBLIC_FEATURE_GAMING_TESTNET=$NEXT_PUBLIC_FEATURE_GAMING_TESTNET
-# The hosted nodexch gateway (src/shared/config/networks.ts): the site's publishable key, bound
-# to its origin, and whether a failing gateway is answered by Coinset and Dexie by itself.
-ARG NEXT_PUBLIC_NODEXCH_KEY_MAINNET
+# The hosted nodexch gateway (src/shared/config/networks.ts): whether a failing gateway is
+# answered by Coinset and Dexie by itself. The site's key is not a build arg: the running
+# container reads NODEXCH_KEY_MAINNET from its environment (src/shared/config/runtime.ts).
 ARG NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK
-ENV NEXT_PUBLIC_NODEXCH_KEY_MAINNET=$NEXT_PUBLIC_NODEXCH_KEY_MAINNET
 ENV NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK=$NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK
 
 # Sage static snapshot first (its own `next build` with output: export into ./out), then the

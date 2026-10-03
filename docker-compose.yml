@@ -9,8 +9,10 @@ services:
         NEXT_PUBLIC_APP_VERSION: ${APP_VERSION:-dev}
         NEXT_PUBLIC_COMMIT_SHA: ${COMMIT_SHA:-local}
         NEXT_PUBLIC_APP_URL: https://mempoolxch.space
-        NEXT_PUBLIC_NODEXCH_KEY_MAINNET: ${NODEXCH_KEY_MAINNET:-}
     image: mempool-xch:local
+    # Run-time settings, as ONCE passes them (deployment/README.md).
+    environment:
+      NODEXCH_KEY_MAINNET: ${NODEXCH_KEY_MAINNET:-}
     ports:
       - "8080:80"
     restart: unless-stopped

@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { NETWORKS, defaultEndpointUrl, hasHostedNodexch } from "@/shared/config/networks";
+import { runtimeConfigScript } from "@/shared/config/runtime";
 import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
+
+/** What the server's /runtime-config.js does in a browser. */
+const setSiteKeys = (nodexchKeys: Record<string, string>) =>
+  new Function(runtimeConfigScript({ nodexchKeys }))();
 
 function memoryStorage(initial: Record<string, string> = {}) {
   const data = new Map(Object.entries(initial));
@@ -55,14 +60,14 @@ describe("resolveEndpoints", () => {
     expect(r.rpcUrl).toBe("https://api.nodexch.space");
     expect(r.fallback).toBeNull();
   });
-  test("a build without the site's key never sends a visitor to the hosted gateway", () => {
+  test("a site without its key never sends a visitor to the hosted gateway", () => {
     // The gateway answers 401 without a key: every request of a fresh visitor failed (0.11.0).
     const key = NETWORKS.mainnet.nodexchKey;
-    NETWORKS.mainnet.nodexchKey = "";
+    setSiteKeys({});
     try {
       expect(hasHostedNodexch("mainnet")).toBe(false);
       expect(defaultEndpointUrl("mainnet")).toBe("https://api.coinset.org");
-      // Settings that already name the gateway (written by a build with the key) read Coinset.
+      // Settings that already name the gateway (written while the site had its key) read Coinset.
       const stored = resolveEndpoints(DEFAULT_SETTINGS);
       expect(stored).toMatchObject({
         provider: "coinset",
@@ -91,7 +96,7 @@ describe("resolveEndpoints", () => {
         "https://api.coinset.org"
       );
     } finally {
-      NETWORKS.mainnet.nodexchKey = key;
+      setSiteKeys({ mainnet: key });
     }
     expect(hasHostedNodexch("mainnet")).toBe(true);
     expect(hasHostedNodexch("testnet11")).toBe(false);
@@ -213,8 +218,7 @@ describe("nodexch endpoints", () => {
     expect(e.isCoinset).toBe(false);
     expect(e.rpcUrl).toBe("https://api.nodexch.space");
     expect(e.indexedUrl).toBe("https://api.nodexch.space");
-    // The build's own key (NEXT_PUBLIC_NODEXCH_KEY_MAINNET, read from .env when there is one)
-    // rides in the socket URL; without one the URL is bare.
+    // The site's own key (handed over by the server at run time) rides in the socket URL.
     const key = NETWORKS.mainnet.nodexchKey;
     expect(e.wsUrl).toBe(
       key ? `wss://api.nodexch.space/ws?key=${key}` : "wss://api.nodexch.space/ws"

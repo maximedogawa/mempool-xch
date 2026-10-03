@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  DEFAULT_SETTINGS,
+  SSR_SETTINGS,
   getSettingsStore,
   resolveEndpoints,
   type ResolvedEndpoints,
@@ -66,7 +66,7 @@ const noSubscribe = () => () => {};
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-const serverSnapshot = () => DEFAULT_SETTINGS;
+const serverSnapshot = () => SSR_SETTINGS;
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const store = getSettingsStore();

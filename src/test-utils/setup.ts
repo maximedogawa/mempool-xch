@@ -2,9 +2,13 @@
 // surprises and no accidental network access from the RPC client.
 import { afterEach, beforeEach } from "bun:test";
 
-// A build with the site's nodexch key, so the defaults are those of production; set before any
-// module reads it (src/shared/config/networks.ts).
-process.env.NEXT_PUBLIC_NODEXCH_KEY_MAINNET = "nxp_unitTestKey0123456789abcdef";
+import { runtimeConfigScript } from "@/shared/config/runtime";
+
+// A site with its nodexch key, so the defaults are those of production: what the server's
+// /runtime-config.js does in a browser, before any module reads it.
+new Function(
+  runtimeConfigScript({ nodexchKeys: { mainnet: "nxp_unitTestKey0123456789abcdef" } })
+)();
 
 const realFetch = globalThis.fetch;
 
