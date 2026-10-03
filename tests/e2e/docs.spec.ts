@@ -11,7 +11,7 @@ test.describe("docs", () => {
   }) => {
     await page.goto("/docs#channels");
     const section = page.locator("#channels");
-    await expect(section.getByText("Coinset socket", { exact: true })).toBeVisible();
+    await expect(section.getByText("Live stream", { exact: true })).toBeVisible();
     await expect(section.getByText("Server events")).toHaveCount(0);
   });
 

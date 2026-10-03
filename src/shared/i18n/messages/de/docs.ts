@@ -92,9 +92,9 @@ const messages: Translation<(typeof en)["messages"]> = {
       q: "Woher kommen Live-Updates?",
       a: "Die Verbindungsanzeige (mit der Maus darüberfahren), die Fußzeile und die Einstellungen nennen den Kanal, den Ihr Tab nutzt. Dazwischen gibt es keinen Server: Diese Website hostet nur die App selbst, und jeder Tab spricht direkt mit dem Chain-Endpunkt.",
       socket:
-        "<strong>Coinset-Socket</strong>: Ihr Tab streamt Peak-Höhe und Transaktionsereignisse direkt über den WebSocket von Coinset. Der normale Modus auf mempoolxch.space und im In-App-Snapshot von Sage.",
+        "<strong>Live-Stream</strong>: Ihr Tab streamt Peak-Höhe und Transaktionsereignisse direkt über den WebSocket von Coinset. Der normale Modus auf mempoolxch.space und im In-App-Snapshot von Sage.",
       polling:
-        "<strong>Polling</strong>: Es ist kein Stream verfügbar, daher fragt der Tab den Endpunkt alle paar Sekunden ab. Immer der Fall bei einem eigenen Node und der Fallback, wenn der Socket keine Verbindung herstellen kann.",
+        "<strong>Abfragen</strong>: Es ist kein Live-Stream verfügbar, daher fragt der Tab den Endpunkt alle paar Sekunden ab. Immer der Fall bei einem eigenen Node und der Fallback, wenn der Socket keine Verbindung herstellen kann.",
     },
   },
   more: {

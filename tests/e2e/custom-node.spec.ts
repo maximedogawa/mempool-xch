@@ -57,7 +57,7 @@ test.describe("custom node", () => {
       if (/api\.coinset\.org/.test(r.url())) coinset.push(r.url());
     });
     await page.goto("/settings");
-    await expect(page.getByText("Live channel: Polling (custom node)")).toBeVisible({
+    await expect(page.getByText("Live channel: Requests (custom node)")).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText(CUSTOM_NODE_URL).first()).toBeVisible();

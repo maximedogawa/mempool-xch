@@ -32,7 +32,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   what: {
     noIndexed: "自定义节点不可用",
-    pollingOnly: "仅轮询",
+    pollingOnly: "仅定时请求",
     viaDns: "通过 cloudflare-dns.com",
   },
   detail: {
@@ -49,12 +49,12 @@ const messages: Translation<(typeof en)["messages"]> = {
   live: {
     state: {
       live: "实时",
-      polling: "轮询",
+      polling: "定时请求",
       connecting: "连接中",
       offline: "离线",
     },
-    websocket: "{state}（WebSocket）",
-    viaPolling: "{state}（轮询）",
+    websocket: "{state}（实时数据流，WebSocket）",
+    viaPolling: "{state}（定时请求）",
     lastEvent: " · 最近事件 {age}",
     peak: " · 最新高度 #{height}",
   },
