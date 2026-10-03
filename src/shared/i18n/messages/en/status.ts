@@ -32,7 +32,7 @@ const messages = {
   },
   what: {
     noIndexed: "not available on a custom node",
-    pollingOnly: "requests only",
+    pollingOnly: "polling only",
     viaDns: "via cloudflare-dns.com",
   },
   detail: {
@@ -48,13 +48,13 @@ const messages = {
   },
   live: {
     state: {
-      live: "live",
-      polling: "on requests",
+      live: "connected",
+      polling: "polling",
       connecting: "connecting",
       offline: "offline",
     },
-    websocket: "{state} over the live stream (websocket)",
-    viaPolling: "{state} by requests",
+    websocket: "{state} · live stream",
+    viaPolling: "{state} · polling",
     lastEvent: " · last event {age}",
     peak: " · peak #{height}",
   },

@@ -3,19 +3,18 @@ import { defineNamespace } from "../../translate";
 
 const messages = {
   channel: {
-    customName: "Requests (custom node)",
-    customDetail:
-      "Asking your node at {host} every few seconds; a custom node has no live stream, the mempool is fetched in the browser.",
+    customName: "Polling",
+    customDetail: "Checking your node at {host} every few seconds.",
     offlineName: "Offline",
     offlineDetail: "No connection to {host}.",
-    socketName: "Live stream (Coinset)",
-    socketDetail: "Peak and transaction events streamed from {host} over a websocket.",
-    reconnectingName: "Live stream (Coinset, reconnecting)",
+    socketName: "Live stream",
+    socketDetail: "Live updates from {host}.",
+    reconnectingName: "Live stream (reconnecting)",
     reconnectingDetail: "Reconnecting to {host}.",
-    nodexchSocketName: "Live stream (nodexch)",
-    nodexchReconnectingName: "Live stream (nodexch, reconnecting)",
-    pollingName: "Requests (live stream unavailable)",
-    pollingDetail: "No live stream right now: asking {host} every few seconds.",
+    nodexchSocketName: "Live stream",
+    nodexchReconnectingName: "Live stream (reconnecting)",
+    pollingName: "Polling",
+    pollingDetail: "Checking {host} every few seconds.",
   },
   rpcError: {
     network: "Could not reach the node. Check your connection or the configured endpoint.",

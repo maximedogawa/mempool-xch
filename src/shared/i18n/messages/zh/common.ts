@@ -3,19 +3,18 @@ import type en from "../en/common";
 
 const messages: Translation<(typeof en)["messages"]> = {
   channel: {
-    customName: "定时请求（自定义节点）",
-    customDetail:
-      "每隔几秒请求您位于 {host} 的节点；自定义节点没有实时数据流，内存池在浏览器中获取。",
+    customName: "轮询",
+    customDetail: "每隔几秒检查您位于 {host} 的节点。",
     offlineName: "离线",
     offlineDetail: "无法连接到 {host}。",
-    socketName: "实时数据流（Coinset）",
-    socketDetail: "通过 WebSocket 从 {host} 接收最新高度和交易事件。",
-    reconnectingName: "实时数据流（Coinset，重新连接中）",
+    socketName: "实时数据流",
+    socketDetail: "来自 {host} 的实时更新。",
+    reconnectingName: "实时数据流（重新连接中）",
     reconnectingDetail: "正在重新连接到 {host}。",
-    nodexchSocketName: "实时数据流（nodexch）",
-    nodexchReconnectingName: "实时数据流（nodexch，重新连接中）",
-    pollingName: "定时请求（无实时数据流）",
-    pollingDetail: "当前没有实时数据流：每隔几秒请求 {host}。",
+    nodexchSocketName: "实时数据流",
+    nodexchReconnectingName: "实时数据流（重新连接中）",
+    pollingName: "轮询",
+    pollingDetail: "每隔几秒检查 {host}。",
   },
   rpcError: {
     network: "无法连接到节点。请检查您的网络连接或所配置的端点。",

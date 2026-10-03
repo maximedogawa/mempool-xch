@@ -3,19 +3,18 @@ import type en from "../en/common";
 
 const messages: Translation<(typeof en)["messages"]> = {
   channel: {
-    customName: "Consultas (nodo propio)",
-    customDetail:
-      "Consultando tu nodo en {host} cada pocos segundos; un nodo propio no tiene flujo en vivo, la mempool se carga en el navegador.",
+    customName: "Sondeo",
+    customDetail: "Consultando tu nodo en {host} cada pocos segundos.",
     offlineName: "Sin conexión",
     offlineDetail: "Sin conexión con {host}.",
-    socketName: "Flujo en vivo (Coinset)",
-    socketDetail: "Eventos de pico y de transacciones de {host} por websocket.",
-    reconnectingName: "Flujo en vivo (Coinset, reconectando)",
+    socketName: "Flujo en vivo",
+    socketDetail: "Actualizaciones en vivo de {host}.",
+    reconnectingName: "Flujo en vivo (reconectando)",
     reconnectingDetail: "Reconectando con {host}.",
-    nodexchSocketName: "Flujo en vivo (nodexch)",
-    nodexchReconnectingName: "Flujo en vivo (nodexch, reconectando)",
-    pollingName: "Consultas (sin flujo en vivo)",
-    pollingDetail: "Sin flujo en vivo ahora: consultando {host} cada pocos segundos.",
+    nodexchSocketName: "Flujo en vivo",
+    nodexchReconnectingName: "Flujo en vivo (reconectando)",
+    pollingName: "Sondeo",
+    pollingDetail: "Consultando {host} cada pocos segundos.",
   },
   rpcError: {
     network: "No se pudo contactar con el nodo. Revisa tu conexión o el endpoint configurado.",

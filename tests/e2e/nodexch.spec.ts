@@ -43,7 +43,7 @@ test.describe("nodexch provider", () => {
   test("settings name nodexch and its socket", async ({ page }) => {
     await mockNodexch(page);
     await page.goto("/settings");
-    await expect(page.getByText(/Live channel: Live stream \(nodexch\)/)).toBeVisible({
+    await expect(page.getByText(/Live channel: Live stream/)).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText(NODEXCH_URL).first()).toBeVisible();

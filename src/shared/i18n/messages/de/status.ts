@@ -32,7 +32,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   what: {
     noIndexed: "bei einem eigenen Node nicht verfügbar",
-    pollingOnly: "nur Abfragen",
+    pollingOnly: "nur Polling",
     viaDns: "über cloudflare-dns.com",
   },
   detail: {
@@ -48,13 +48,13 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   live: {
     state: {
-      live: "live",
-      polling: "per Abfrage",
+      live: "verbunden",
+      polling: "Polling",
       connecting: "verbindet",
       offline: "offline",
     },
-    websocket: "{state} über den Live-Stream (WebSocket)",
-    viaPolling: "{state} per Abfrage",
+    websocket: "{state} · Live-Stream",
+    viaPolling: "{state} · Polling",
     lastEvent: " · letztes Ereignis {age}",
     peak: " · Spitze #{height}",
   },

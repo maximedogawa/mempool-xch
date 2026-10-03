@@ -3,19 +3,18 @@ import type en from "../en/common";
 
 const messages: Translation<(typeof en)["messages"]> = {
   channel: {
-    customName: "Abfragen (eigener Node)",
-    customDetail:
-      "Fragt Ihren Node unter {host} alle paar Sekunden ab; ein eigener Node hat keinen Live-Stream, der Mempool wird im Browser geladen.",
+    customName: "Polling",
+    customDetail: "Prüft Ihren Node unter {host} alle paar Sekunden.",
     offlineName: "Offline",
     offlineDetail: "Keine Verbindung zu {host}.",
-    socketName: "Live-Stream (Coinset)",
-    socketDetail: "Peak- und Transaktionsereignisse von {host} über einen WebSocket.",
-    reconnectingName: "Live-Stream (Coinset, verbindet neu)",
-    reconnectingDetail: "Verbindet erneut mit {host}.",
-    nodexchSocketName: "Live-Stream (nodexch)",
-    nodexchReconnectingName: "Live-Stream (nodexch, verbindet neu)",
-    pollingName: "Abfragen (kein Live-Stream)",
-    pollingDetail: "Gerade kein Live-Stream: fragt {host} alle paar Sekunden ab.",
+    socketName: "Live-Stream",
+    socketDetail: "Live-Updates von {host}.",
+    reconnectingName: "Live-Stream (verbindet neu)",
+    reconnectingDetail: "Verbindet neu mit {host}.",
+    nodexchSocketName: "Live-Stream",
+    nodexchReconnectingName: "Live-Stream (verbindet neu)",
+    pollingName: "Polling",
+    pollingDetail: "Prüft {host} alle paar Sekunden.",
   },
   rpcError: {
     network:
