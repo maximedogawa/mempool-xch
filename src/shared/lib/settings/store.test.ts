@@ -34,6 +34,7 @@ describe("settings store", () => {
     });
     expect(reloaded.get().network).toBe("mainnet");
     expect(reloaded.get().recentBlocks).toBe(8);
+    // A blank endpoint is the network's default provider: nodexch.space on mainnet (TASK-113).
     expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
     expect(reloaded.get().endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
     reloaded.reset();
@@ -48,10 +49,86 @@ describe("settings store", () => {
 });
 
 describe("resolveEndpoints", () => {
-  test("mainnet defaults to nodexch", () => {
+  test("the default is the hosted nodexch gateway, without a fallback: Coinset is a choice", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
     expect(r.provider).toBe("nodexch");
     expect(r.rpcUrl).toBe("https://api.nodexch.space");
+    expect(r.fallback).toBeNull();
+  });
+  test("with the automatic fallback on, the hosted gateway falls back to Coinset", () => {
+    const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { autoFallback: true });
+    expect(r.provider).toBe("nodexch");
+    expect(r.rpcUrl).toBe("https://api.nodexch.space");
+    expect(r.indexedUrl).toBe("https://api.nodexch.space");
+    expect(r.fallback).toMatchObject({
+      provider: "coinset",
+      rpcUrl: "https://api.coinset.org",
+      indexedUrl: "https://api.coinset.org",
+      wsUrl: "wss://api.coinset.org/ws",
+      isCoinset: true,
+      apiKey: null,
+    });
+    // Testnet11 has no gateway: Coinset by default, and nothing to fall back to.
+    const testnet = resolveEndpoints(DEFAULT_SETTINGS, "testnet11", { autoFallback: true });
+    expect(testnet.provider).toBe("coinset");
+    expect(testnet.fallback).toBeNull();
+  });
+  test("an endpoint the visitor chose never falls back", () => {
+    const own = resolveEndpoints(
+      {
+        ...DEFAULT_SETTINGS,
+        endpoints: {
+          ...DEFAULT_SETTINGS.endpoints,
+          mainnet: { rpcUrl: "https://gw.example.test", provider: "nodexch" },
+        },
+      },
+      "mainnet",
+      { autoFallback: true }
+    );
+    expect(own.provider).toBe("nodexch");
+    expect(own.fallback).toBeNull();
+    const coinset = resolveEndpoints({
+      ...DEFAULT_SETTINGS,
+      endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet: { rpcUrl: "https://api.coinset.org" } },
+    });
+    expect(coinset.provider).toBe("coinset");
+    expect(coinset.fallback).toBeNull();
+  });
+  test("settings from before version 2 move the old Coinset default to nodexch once", () => {
+    const storage = memoryStorage();
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        network: "mainnet",
+        endpoints: {
+          mainnet: { rpcUrl: "https://api.coinset.org" },
+          testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+        },
+      })
+    );
+    const migrated = createSettingsStore(storage).get();
+    expect(migrated.endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
+    expect(migrated.endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
+    expect(migrated.providersVersion).toBe(2);
+    // A custom node chosen before stays.
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ endpoints: { mainnet: { rpcUrl: "http://127.0.0.1:8556" } } })
+    );
+    expect(createSettingsStore(storage).get().endpoints.mainnet.rpcUrl).toBe(
+      "http://127.0.0.1:8556"
+    );
+    // Coinset picked in version 2 is a choice, not the old default.
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        providersVersion: 2,
+        endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } },
+      })
+    );
+    expect(createSettingsStore(storage).get().endpoints.mainnet.rpcUrl).toBe(
+      "https://api.coinset.org"
+    );
   });
   test("Coinset unlocks the indexed API and WebSocket", () => {
     const r = resolveEndpoints({

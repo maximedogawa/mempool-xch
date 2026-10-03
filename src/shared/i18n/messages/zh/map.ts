@@ -153,11 +153,14 @@ const messages: Translation<(typeof en)["messages"]> = {
     "来源：<link>Chia Peer Info 仪表板</link>，观测于 {observed} UTC。国家面板统计了节点总数面板所报告的 {total} 个节点中的 {placed} 个。只有节点地址会被发送到地理定位服务，访问者的地址绝不会发送。",
   sourceGap:
     "来源：<link>Chia Peer Info 仪表板</link>，观测于 {observed} UTC。国家面板统计了节点总数面板所报告的 {total} 个节点中的 {placed} 个；{gap} 个节点的差距来自两个独立的仪表板查询，而不是舍入误差。只有节点地址会被发送到地理定位服务，访问者的地址绝不会发送。",
+  sourceNodexch:
+    "来源：{host} 的爬虫，统计于 {observed} UTC。其国家数据涵盖了它在最近五天内看到的 {total} 个节点中的 {placed} 个。只有节点地址会被发送到地理定位服务，访问者的地址绝不会发送。",
   attribution:
     "节点统计数据由 Chia Network Inc. 提供，来自其公开的 <link>Peer Info 仪表板</link>，以静态快照的形式手动导入。",
   history: {
     title: "网络随时间的变化",
     action: "每 3 天 · 最近两年",
+    actionNodexch: "每天一次统计 · 自 2022 年起",
     seriesLabel: "数据系列",
     total: "全节点",
     capacity: "可靠节点",
@@ -165,6 +168,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     ipv6: "IPv6",
     chartLabel: "{series} 随时间的变化",
     note: "Peer Info 仪表板的爬虫数据系列，每三天一个样本，截至快照时间。",
+    noteNodexch: "在网关自己的爬虫接手之前为 Chia 的每日节点统计，之后为网关自己的统计。",
     versionsTitle: "版本随时间的变化",
     versionsAction: "每 3 天 · 最近一年",
     versionsLabel: "各版本节点数随时间的变化",

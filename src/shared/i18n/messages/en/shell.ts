@@ -49,6 +49,7 @@ const messages = {
     hint: "{channel}: {detail} Last update {age}.",
     srStatus: "{label} via {channel}, peak {peak}, last update {age}",
     unknownPeak: "unknown",
+    fallback: "{host} is not answering ({reason}): reads go to Coinset until it is back.",
   },
   sync: {
     title: "Your node is still syncing: at {height} of {tip} ({percent}%)",

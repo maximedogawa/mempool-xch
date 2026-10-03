@@ -412,7 +412,9 @@ export function createRpcClient(options: RpcClientOptions) {
       coinName: string,
       signal?: AbortSignal
     ): Promise<Record<string, string[]>> {
-      const r = await rpc("get_memos_by_coin_name", { coin_name: withHexPrefix(coinName) }, signal);
+      // The parameter is `name`, as on get_coin_record_by_name: Coinset answers `coin_name` with
+      // "Name not in request" (and no memos), a nodexch gateway with 400.
+      const r = await rpc("get_memos_by_coin_name", { name: withHexPrefix(coinName) }, signal);
       const memos =
         r.memos && typeof r.memos === "object" ? (r.memos as Record<string, unknown>) : {};
       return Object.fromEntries(

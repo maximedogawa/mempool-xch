@@ -165,11 +165,14 @@ const messages: Translation<(typeof en)["messages"]> = {
     "Quelle: <link>Chia-Peer-Info-Dashboard</link>, erfasst {observed} UTC. Das Länder-Panel erfasst {placed} der {total} Nodes, die das Bestands-Panel meldet. An einen Geolokalisierungsdienst werden nur Node-Adressen gesendet, niemals die des Besuchers.",
   sourceGap:
     "Quelle: <link>Chia-Peer-Info-Dashboard</link>, erfasst {observed} UTC. Das Länder-Panel erfasst {placed} der {total} Nodes, die das Bestands-Panel meldet; die Lücke von {gap} Nodes entsteht zwischen zwei getrennten Dashboard-Abfragen und ist kein Rundungsfehler. An einen Geolokalisierungsdienst werden nur Node-Adressen gesendet, niemals die des Besuchers.",
+  sourceNodexch:
+    "Quelle: der Crawler von {host}, gezählt {observed} UTC. Seine Länder erfassen {placed} der {total} Nodes, die er in den letzten fünf Tagen gesehen hat. An einen Geolokalisierungsdienst werden nur Node-Adressen gesendet, niemals die des Besuchers.",
   attribution:
     "Node-Statistiken von Chia Network Inc. aus dessen öffentlichem <link>Peer-Info-Dashboard</link>, von Hand als statischer Snapshot übernommen.",
   history: {
     title: "Netzwerk im Zeitverlauf",
     action: "alle 3 Tage · letzte zwei Jahre",
+    actionNodexch: "eine Zählung pro Tag · seit 2022",
     seriesLabel: "Reihe",
     total: "Full Nodes",
     capacity: "Zuverlässig",
@@ -177,6 +180,8 @@ const messages: Translation<(typeof en)["messages"]> = {
     ipv6: "IPv6",
     chartLabel: "{series} im Zeitverlauf",
     note: "Die Crawler-Reihen des Peer-Info-Dashboards, ein Wert alle drei Tage, bis zum Snapshot.",
+    noteNodexch:
+      "Chias tägliche Node-Zählung, bis der eigene Crawler des Gateways übernahm, danach dessen Zählung.",
     versionsTitle: "Versionen im Zeitverlauf",
     versionsAction: "alle 3 Tage · letztes Jahr",
     versionsLabel: "Nodes nach Version im Zeitverlauf",

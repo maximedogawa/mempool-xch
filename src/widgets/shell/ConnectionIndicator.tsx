@@ -29,7 +29,7 @@ type PillTone = "live" | "syncing" | "connecting" | "offline";
 export function ConnectionIndicator({ className }: { className?: string }) {
   const t = useT(shellNs);
   const { status, transport, lastEventAt, peakHeight } = useLive();
-  const { settings, update, endpoints } = useSettings();
+  const { settings, update, endpoints, fallback } = useSettings();
   const { inSage } = useSage();
   const state = useBlockchainState();
   const peak = peakHeight ?? state.data?.peak.height ?? null;
@@ -63,13 +63,20 @@ export function ConnectionIndicator({ className }: { className?: string }) {
           : t("connection.syncingHintNoTip")
         : t("connection.hint", { channel: channel.name, detail: channel.detail, age });
   const label = t(`connection.${tone}`);
+  // The hosted gateway failed and reads went to Coinset: still live, but not where they belong.
+  const fallbackHint = fallback
+    ? t("connection.fallback", {
+        host: new URL(fallback.from).host,
+        reason: fallback.reason ?? "?",
+      })
+    : null;
   const isTestnet = settings.network !== "mainnet";
   const styles =
     tone === "offline"
       ? "border-danger/40 bg-danger-soft text-danger"
       : tone === "connecting"
         ? "border-border bg-surface text-fg-muted"
-        : isTestnet || tone === "syncing"
+        : isTestnet || tone === "syncing" || fallback
           ? "border-warning/50 bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] text-warning"
           : "border-primary/40 bg-primary-soft text-primary";
   return (
@@ -96,7 +103,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
             <span
               className={cn(
                 "relative h-2 w-2 shrink-0 rounded-full",
-                isTestnet || tone === "syncing" ? "bg-warning" : "bg-primary"
+                isTestnet || tone === "syncing" || fallback ? "bg-warning" : "bg-primary"
               )}
             />
           )}
@@ -108,6 +115,7 @@ export function ConnectionIndicator({ className }: { className?: string }) {
             peak: peak ?? t("connection.unknownPeak"),
             age,
           })}
+          {fallbackHint ? `. ${fallbackHint}` : null}
         </span>
         <select
           value={settings.network}
@@ -135,6 +143,11 @@ export function ConnectionIndicator({ className }: { className?: string }) {
           ) : null}
         </span>
         <span className="block text-fg-muted">{hint}</span>
+        {fallbackHint ? (
+          <span className="block text-warning" data-testid="connection-fallback">
+            {fallbackHint}
+          </span>
+        ) : null}
         {inSage ? <span className="block text-fg-muted">{t("network.followsSage")}</span> : null}
       </span>
     </span>

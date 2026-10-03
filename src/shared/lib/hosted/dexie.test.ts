@@ -1,11 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { FetchLike } from "@/shared/lib/rpc/client";
-import {
-  createDexieFetch,
-  nodexchDexieIconUrl,
-  nodexchDexieUrl,
-  type DexieRoute,
-} from "./dexie";
+import { createDexieFetch, nodexchDexieIconUrl, nodexchDexieUrl, type DexieRoute } from "./dexie";
 
 const GATEWAY = "https://nodexch.space";
 const TICKERS = "https://api.dexie.space/v3/prices/tickers";

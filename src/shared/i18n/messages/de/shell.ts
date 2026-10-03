@@ -50,6 +50,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "{channel}: {detail} Letzte Aktualisierung {age}.",
     srStatus: "{label} über {channel}, Spitze {peak}, letzte Aktualisierung {age}",
     unknownPeak: "unbekannt",
+    fallback: "{host} antwortet nicht ({reason}): gelesen wird bei Coinset, bis es wieder da ist.",
   },
   sync: {
     title: "Dein Knoten synchronisiert noch: bei {height} von {tip} ({percent} %)",

@@ -15,7 +15,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "Endpoints RPC de nodo completo",
     sage: "<strong>Dentro de Sage:</strong> tu saldo, tus monedas y tus transacciones vienen de la propia billetera. El puente de apps de Sage no ofrece RPC de nodo (ni consultas de pico, mempool o bloques), así que los datos de toda la cadena vienen del endpoint de abajo; un endpoint propio se autoriza en Sage al guardarlo.",
     intro:
-      "Por defecto, mempoolxch.space lee la cadena a través del RPC público de nodo completo de <coinset>Coinset</coinset>, directamente desde tu navegador y sin necesidad de nodo propio. Puedes apuntar cada red a cualquier endpoint HTTPS compatible con el RPC de nodo completo de Chia. Las funciones exclusivas de Coinset (resúmenes semánticos de transacciones, historial de direcciones y el stream WebSocket) se desactivan automáticamente con endpoints propios, y la app pasa a sondear y a descargar la mempool en bruto en el navegador.",
+      "Por defecto mempoolxch.space lee la cadena a través de <strong>nodexch.space</strong>, una pasarela nodexch pública, directamente desde tu navegador, sin necesidad de nodo propio. Si no responde, las lecturas pasan solas al RPC público de nodo completo de <coinset>Coinset</coinset> y vuelven en cuanto se recupera. También puedes elegir Coinset directamente o apuntar cada red a tu propio nodo o pasarela. Las funciones que necesitan una API indexada (resúmenes semánticos de transacciones, historial de direcciones y el flujo WebSocket) se desactivan con un nodo simple, y la app consulta periódicamente y descarga el mempool en bruto en el navegador.",
     ownNode:
       "<strong>¿Usas tu propio nodo?</strong> Un nodo completo de Chia estándar escucha en <code>https://localhost:8555</code> con TLS mutuo: exige el certificado de cliente del nodo, que un navegador no puede presentar, y no envía cabeceras CORS. Pon delante un pequeño proxy inverso que termine el TLS con el certificado de cliente y añada <code>Access-Control-Allow-Origin</code>, y luego introduce aquí la URL del proxy con la dirección IP, p. ej. <code>http://127.0.0.1:8556</code>: <code>localhost</code> puede resolverse a IPv6 y no llegar a un proxy en 127.0.0.1. <guide>Guía paso a paso</guide>.",
     nodexch:
@@ -24,11 +24,10 @@ const messages: Translation<(typeof en)["messages"]> = {
   endpoint: {
     addresses: "(direcciones {prefix})",
     coinsetDefault: "Coinset por defecto",
-    nodexchDefault: "nodexch por defecto",
     customNode: "Nodo propio",
     test: "Probar conexión",
     save: "Guardar",
-    reset: "Restablecer a Coinset",
+    reset: "Restablecer predeterminado",
     ok: "Pico {height} en {ms} ms",
     syncing:
       "El nodo aún se está sincronizando: en {height} de {tip} ({percent} %). Los bloques y el mempool van con retraso hasta que termine.",
@@ -40,12 +39,20 @@ const messages: Translation<(typeof en)["messages"]> = {
     sageRefused: "Sage no permitió este host; el endpoint no se guardó.",
     sageAllowed: "Sage permitió este host.",
     nodexch: "nodexch",
-    nodexchPreset: "Usar api.nodexch.space",
     nodexchToggle: "Este endpoint es un gateway nodexch",
     apiKey: "Clave publicable",
     apiKeyHint: "nxp_… (opcional con el preajuste api.nodexch.space)",
     apiKeyInvalid: "En un navegador solo va una clave publicable (nxp_…).",
     okNodexch: "Pico {height} en {ms} ms · nodexch: API indexada y WebSocket activos",
+    providers: "Proveedor",
+    pickNodexch: "nodexch.space",
+    pickNodexchHint: "predeterminado · Coinset como respaldo automático",
+    pickCoinset: "Coinset",
+    pickCoinsetHint: "RPC público de nodo completo",
+    pickOwn: "Nodo propio",
+    pickOwnHint: "nodo local o tu propia pasarela",
+    nodexchDefault: "nodexch.space predeterminado",
+    fallback: "nodexch.space no responde ({reason}): las lecturas van a Coinset hasta que vuelva.",
   },
   appearance: {
     title: "Apariencia",

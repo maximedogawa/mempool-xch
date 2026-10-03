@@ -5,7 +5,10 @@
  */
 import {
   NETWORKS,
+  NODEXCH_AUTO_FALLBACK,
   NETWORK_IDS,
+  defaultEndpointUrl,
+  isNodexchUrl,
   providerOf,
   type NetworkId,
   type Provider,
@@ -28,9 +31,17 @@ export interface Endpoint {
 /** A nodexch publishable key: safe in a browser because the gateway binds it to origins. */
 export const PUBLISHABLE_KEY = /^nxp_[A-Za-z0-9_-]{16,128}$/;
 
+/**
+ * 2: the default endpoint is the network's default provider (nodexch.space on mainnet); settings
+ * written before (1) still hold the old Coinset default and move to it once.
+ */
+export const PROVIDERS_VERSION = 2;
+
 export interface Settings {
   network: NetworkId;
   endpoints: Record<NetworkId, Endpoint>;
+  /** Which endpoint defaults these settings were written with (PROVIDERS_VERSION). */
+  providersVersion: number;
   theme: ThemePreference;
   /** Number of recent blocks on the dashboard strip. */
   recentBlocks: number;
@@ -47,9 +58,10 @@ export const STORAGE_KEY = "mempool-xch:settings:v1";
 export const DEFAULT_SETTINGS: Settings = {
   network: "mainnet",
   endpoints: {
-    mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
-    testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
+    mainnet: { rpcUrl: defaultEndpointUrl("mainnet") },
+    testnet11: { rpcUrl: defaultEndpointUrl("testnet11") },
   },
+  providersVersion: PROVIDERS_VERSION,
   theme: DEFAULT_THEME,
   recentBlocks: 8,
   sounds: true,
@@ -69,6 +81,26 @@ export interface ResolvedEndpoints {
   isCoinset: boolean;
   /** The publishable key sent to a nodexch gateway; null otherwise. */
   apiKey: string | null;
+  /**
+   * Where reads go when this endpoint fails: Coinset for the hosted nodexch gateway when the
+   * build turns the automatic fallback on (NODEXCH_AUTO_FALLBACK), nothing otherwise and nothing
+   * for an endpoint the visitor chose (a local node, their own gateway, Coinset itself).
+   */
+  fallback: ResolvedEndpoints | null;
+}
+
+/** Coinset for a network: the hosted gateway's fallback and the provider of the same name. */
+export function coinsetEndpoints(network: NetworkId): ResolvedEndpoints {
+  return {
+    network,
+    rpcUrl: NETWORKS[network].rpcUrl,
+    indexedUrl: NETWORKS[network].indexedUrl,
+    wsUrl: NETWORKS[network].wsUrl,
+    provider: "coinset",
+    isCoinset: true,
+    apiKey: null,
+    fallback: null,
+  };
 }
 
 /** A nodexch gateway's WebSocket: its own host, `/ws`, the key in the query (publishable keys only). */
@@ -81,10 +113,11 @@ export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
 
 export function resolveEndpoints(
   settings: Settings,
-  network: NetworkId = settings.network
+  network: NetworkId = settings.network,
+  { autoFallback = NODEXCH_AUTO_FALLBACK }: { autoFallback?: boolean } = {}
 ): ResolvedEndpoints {
   const endpoint = settings.endpoints[network];
-  const rpcUrl = (endpoint?.rpcUrl?.trim() || NETWORKS[network].rpcUrl).replace(/\/$/, "");
+  const rpcUrl = (endpoint?.rpcUrl?.trim() || defaultEndpointUrl(network)).replace(/\/$/, "");
   const provider = providerOf(network, rpcUrl, endpoint?.provider);
   if (provider === "nodexch") {
     // The site's own key for the hosted gateway, the user's for theirs.
@@ -97,6 +130,7 @@ export function resolveEndpoints(
       provider,
       isCoinset: false,
       apiKey,
+      fallback: autoFallback && isNodexchUrl(network, rpcUrl) ? coinsetEndpoints(network) : null,
     };
   }
   const isCoinset = provider === "coinset";
@@ -108,6 +142,7 @@ export function resolveEndpoints(
     provider,
     isCoinset,
     apiKey: null,
+    fallback: null,
   };
 }
 
@@ -116,12 +151,19 @@ function sanitise(raw: unknown): Settings {
   const network = NETWORK_IDS.includes(r.network as NetworkId)
     ? (r.network as NetworkId)
     : DEFAULT_SETTINGS.network;
+  const written = typeof r.providersVersion === "number" ? r.providersVersion : 1;
   const endpoints = Object.fromEntries(
     NETWORK_IDS.map((id) => {
       const raw = r.endpoints?.[id];
-      const url = raw?.rpcUrl;
+      const url = typeof raw?.rpcUrl === "string" ? raw.rpcUrl.trim() : "";
+      // Before version 2 the Coinset URL was simply the default nobody chose: move it to the
+      // network's default provider once. A custom URL or an own gateway is a choice and stays.
+      const oldDefault =
+        written < PROVIDERS_VERSION &&
+        url.replace(/\/$/, "") === NETWORKS[id].rpcUrl &&
+        raw?.provider !== "nodexch";
       const endpoint: Endpoint = {
-        rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl,
+        rpcUrl: url && !oldDefault ? url : defaultEndpointUrl(id),
       };
       if (raw?.provider === "nodexch") endpoint.provider = "nodexch";
       // Only a publishable key is kept: a secret key must never sit in a browser.
@@ -140,7 +182,16 @@ function sanitise(raw: unknown): Settings {
   const sounds = r.sounds !== false;
   const notifications = r.notifications === true;
   const locale: LocalePreference = isLocale(r.locale) ? r.locale : "auto";
-  return { network, endpoints, theme, recentBlocks, sounds, notifications, locale };
+  return {
+    network,
+    endpoints,
+    providersVersion: PROVIDERS_VERSION,
+    theme,
+    recentBlocks,
+    sounds,
+    notifications,
+    locale,
+  };
 }
 
 type Listener = () => void;

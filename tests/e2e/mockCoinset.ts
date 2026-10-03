@@ -651,19 +651,37 @@ export async function seedConsent(page: Page) {
   });
 }
 
-/** Intercepts every Coinset call; anything unknown answers not found. */
+/**
+ * Intercepts every Coinset call; anything unknown answers not found. The app's default provider
+ * is nodexch.space (TASK-113): these specs run on Coinset chosen outright, unless a spec seeds its
+ * own endpoints, and nodexch.space is unreachable so a leak falls back instead of going out.
+ */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
-  // nodexch is the app's default; these specs exercise the Coinset path, so choose it unless a
-  // spec stored its own settings.
   await page.addInitScript(() => {
     const key = "mempool-xch:settings:v1";
-    if (window.localStorage.getItem(key)) return;
-    window.localStorage.setItem(
-      key,
-      JSON.stringify({ endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } } })
-    );
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) ?? "{}");
+      if (stored.endpoints) return;
+      localStorage.setItem(
+        key,
+        JSON.stringify({
+          ...stored,
+          providersVersion: 2,
+          endpoints: {
+            mainnet: { rpcUrl: "https://api.coinset.org" },
+            testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+          },
+        })
+      );
+    } catch {
+      // Storage unavailable: the app runs on its defaults and falls back to Coinset.
+    }
   });
+  await page.route(/https:\/\/api\.nodexch\.space\/.*/, (route) =>
+    route.abort("connectionrefused")
+  );
+  await page.routeWebSocket(/wss:\/\/api\.nodexch\.space\/.*/, (ws) => ws.close());
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
@@ -789,7 +807,7 @@ export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
  * /x/node/v1/peers. Every request and socket is recorded, so a spec can check the key and that
  * nothing went to Coinset.
  */
-export async function mockNodexch(page: Page) {
+export async function mockNodexch(page: Page, { down = false }: { down?: boolean } = {}) {
   await seedConsent(page);
   await page.addInitScript(
     ({ rpcUrl, apiKey }) => {
@@ -811,11 +829,36 @@ export async function mockNodexch(page: Page) {
   const seen = {
     requests: [] as { url: string; authorization: string | null }[],
     sockets: [] as string[],
+    coinset: [] as { url: string; authorization: string | null }[],
     /** Requests that went to Dexie itself (its API or its icon host). */
     dexie: [] as string[],
     /** Icons asked of the gateway: public files, sent without the key. */
     icons: [] as string[],
   };
+  // Down: the gateway answers 503, so the app falls back to Coinset (TASK-113).
+  if (down) {
+    await page.route(/https:\/\/api\.nodexch\.space\/.*/, (route) => {
+      seen.requests.push({
+        url: route.request().url(),
+        authorization: route.request().headers().authorization ?? null,
+      });
+      return route.fulfill({ status: 503, body: "gateway down" });
+    });
+    await page.routeWebSocket(/wss:\/\/api\.nodexch\.space\/ws.*/, (ws) => ws.close());
+    await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) => {
+      seen.coinset.push({
+        url: route.request().url(),
+        authorization: route.request().headers().authorization ?? null,
+      });
+      return answerNodeMethod(route);
+    });
+    await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+    await mockDexie(page);
+    page.on("request", (r) => {
+      if (r.url().startsWith("https://api.dexie.space/")) seen.dexie.push(r.url());
+    });
+    return seen;
+  }
   // Dexie's paths on the gateway, in Dexie's shapes, and its icons; Dexie itself stays untouched.
   await page.route(/https:\/\/api\.nodexch\.space\/dexie\/icons\/.*/, (route) => {
     seen.icons.push(route.request().url());
@@ -866,6 +909,35 @@ export async function mockNodexch(page: Page) {
     });
     const items = gatewayMempoolItems();
     return json(route, { size: items.length, items, success: true });
+  });
+  // What the gateway's crawler counted: the map's source instead of the shipped snapshot.
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/network$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return json(route, {
+      attribution: "IP geolocation by DB-IP (db-ip.com), CC BY 4.0",
+      countries: [
+        { country: "US", nodes: 700 },
+        { country: "DE", nodes: 500 },
+        { country: "AT", nodes: 34 },
+      ],
+      history: [
+        { day: "2026-01-01", nodes: 1300, source: "chia" },
+        { day: "2026-01-02", nodes: 1234, source: "nodexch" },
+      ],
+      latest: {
+        day: new Date().toISOString().slice(0, 10),
+        nodes: 1234,
+        ipv4: 1000,
+        ipv6: 234,
+        reliable: 99,
+        source: "nodexch",
+        taken_at: new Date().toISOString(),
+        versions: [{ version: "2.7.4", nodes: 80 }],
+      },
+    });
   });
   // An explorer's first load in one call (TASK-152): the state, the gateway's fee quote, the
   // recent blocks with the node's records and the totals of the transaction blocks among them,
