@@ -168,10 +168,11 @@ function ThemePicker() {
 
 function EndpointRow({ network }: { network: NetworkId }) {
   const t = useT(settingsNs);
-  const { settings, update, fallback } = useSettings();
+  const { settings, update, fallback, hydrated } = useSettings();
   const { inSage } = useSage();
   const config = NETWORKS[network];
-  const defaultUrl = defaultEndpointUrl(network);
+  // The server rendered without the site's nodexch key: its default was Coinset.
+  const defaultUrl = hydrated ? defaultEndpointUrl(network) : config.rpcUrl;
   const saved = settings.endpoints[network];
   const value = saved.rpcUrl;
   // The fields follow the saved endpoint until the visitor edits them: the first render still
@@ -275,7 +276,11 @@ function EndpointRow({ network }: { network: NetworkId }) {
           )}
         >
           {isDefault
-            ? t(config.nodexchUrl ? "endpoint.nodexchDefault" : "endpoint.coinsetDefault")
+            ? t(
+                isNodexchUrl(network, defaultUrl)
+                  ? "endpoint.nodexchDefault"
+                  : "endpoint.coinsetDefault"
+              )
             : savedProvider === "coinset"
               ? "Coinset"
               : savedProvider === "nodexch"

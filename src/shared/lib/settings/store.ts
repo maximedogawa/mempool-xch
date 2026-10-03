@@ -13,6 +13,7 @@ import {
   type NetworkId,
   type Provider,
 } from "@/shared/config/networks";
+import { PUBLISHABLE_KEY } from "@/shared/config/runtime";
 import { browserStorage } from "@/shared/lib/browserStorage";
 import { isLocale, type LocalePreference } from "@/shared/i18n/config";
 import { DEFAULT_THEME, isThemeId, type ThemePreference } from "@/shared/theme";
@@ -28,8 +29,7 @@ export interface Endpoint {
   apiKey?: string;
 }
 
-/** A nodexch publishable key: safe in a browser because the gateway binds it to origins. */
-export const PUBLISHABLE_KEY = /^nxp_[A-Za-z0-9_-]{16,128}$/;
+export { PUBLISHABLE_KEY };
 
 /**
  * 2: the default endpoint is the network's default provider (nodexch.space on mainnet); settings
@@ -67,6 +67,19 @@ export const DEFAULT_SETTINGS: Settings = {
   sounds: true,
   notifications: false,
   locale: "auto",
+};
+
+/**
+ * What the server rendered with, and so what the browser's hydration render must see: the server
+ * never has the site's nodexch key (it reaches the browser at run time), so its defaults are
+ * Coinset, while DEFAULT_SETTINGS in a browser with the key name the hosted gateway.
+ */
+export const SSR_SETTINGS: Settings = {
+  ...DEFAULT_SETTINGS,
+  endpoints: {
+    mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
+    testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
+  },
 };
 
 export interface ResolvedEndpoints {
@@ -122,6 +135,9 @@ export function resolveEndpoints(
   if (provider === "nodexch") {
     // The site's own key for the hosted gateway, the user's for theirs.
     const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
+    // The hosted gateway refuses every request without a key (401). Settings may still name it
+    // (stored while the site had its key, or picked without one): Coinset answers then.
+    if (!apiKey && isNodexchUrl(network, rpcUrl)) return coinsetEndpoints(network);
     return {
       network,
       rpcUrl,

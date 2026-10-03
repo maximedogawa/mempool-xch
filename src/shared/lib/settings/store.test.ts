@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { NETWORKS } from "@/shared/config/networks";
+import { NETWORKS, defaultEndpointUrl, hasHostedNodexch } from "@/shared/config/networks";
+import { runtimeConfigScript } from "@/shared/config/runtime";
 import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
+
+/** What the server's /runtime-config.js does in a browser. */
+const setSiteKeys = (nodexchKeys: Record<string, string>) =>
+  new Function(runtimeConfigScript({ nodexchKeys }))();
 
 function memoryStorage(initial: Record<string, string> = {}) {
   const data = new Map(Object.entries(initial));
@@ -54,6 +59,47 @@ describe("resolveEndpoints", () => {
     expect(r.provider).toBe("nodexch");
     expect(r.rpcUrl).toBe("https://api.nodexch.space");
     expect(r.fallback).toBeNull();
+  });
+  test("a site without its key never sends a visitor to the hosted gateway", () => {
+    // The gateway answers 401 without a key: every request of a fresh visitor failed (0.11.0).
+    const key = NETWORKS.mainnet.nodexchKey;
+    setSiteKeys({});
+    try {
+      expect(hasHostedNodexch("mainnet")).toBe(false);
+      expect(defaultEndpointUrl("mainnet")).toBe("https://api.coinset.org");
+      // Settings that already name the gateway (written while the site had its key) read Coinset.
+      const stored = resolveEndpoints(DEFAULT_SETTINGS);
+      expect(stored).toMatchObject({
+        provider: "coinset",
+        rpcUrl: "https://api.coinset.org",
+        indexedUrl: "https://api.coinset.org",
+        wsUrl: "wss://api.coinset.org/ws",
+        apiKey: null,
+      });
+      // The visitor's own key still reaches it.
+      const own = resolveEndpoints({
+        ...DEFAULT_SETTINGS,
+        endpoints: {
+          ...DEFAULT_SETTINGS.endpoints,
+          mainnet: { rpcUrl: "https://api.nodexch.space", apiKey: "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt" },
+        },
+      });
+      expect(own.provider).toBe("nodexch");
+      expect(own.apiKey).toBe("nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt");
+      // Old Coinset defaults stay on Coinset instead of moving to a gateway that refuses them.
+      const storage = memoryStorage();
+      storage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } } })
+      );
+      expect(createSettingsStore(storage).get().endpoints.mainnet.rpcUrl).toBe(
+        "https://api.coinset.org"
+      );
+    } finally {
+      setSiteKeys({ mainnet: key });
+    }
+    expect(hasHostedNodexch("mainnet")).toBe(true);
+    expect(hasHostedNodexch("testnet11")).toBe(false);
   });
   test("with the automatic fallback on, the hosted gateway falls back to Coinset", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { autoFallback: true });
@@ -172,8 +218,7 @@ describe("nodexch endpoints", () => {
     expect(e.isCoinset).toBe(false);
     expect(e.rpcUrl).toBe("https://api.nodexch.space");
     expect(e.indexedUrl).toBe("https://api.nodexch.space");
-    // The build's own key (NEXT_PUBLIC_NODEXCH_KEY_MAINNET, read from .env when there is one)
-    // rides in the socket URL; without one the URL is bare.
+    // The site's own key (handed over by the server at run time) rides in the socket URL.
     const key = NETWORKS.mainnet.nodexchKey;
     expect(e.wsUrl).toBe(
       key ? `wss://api.nodexch.space/ws?key=${key}` : "wss://api.nodexch.space/ws"
