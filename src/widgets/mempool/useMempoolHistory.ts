@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMempoolSummary } from "@/shared/api/hooks";
 import {
   appendSample,
+  coversMempool,
   loadHistory,
   sampleFromSummary,
   saveHistory,
@@ -29,6 +30,8 @@ export function useMempoolHistory(): { history: MempoolSample[]; startedAt: numb
     if (!summary.data || loadedFor.current !== endpoints.network) return;
     // A snapshot from the last visit or a first sync in progress is not the mempool right now.
     if (summary.data.source === "snapshot" || summary.data.source === "syncing") return;
+    // Nor is one that holds only part of it (items the source has not handed over yet).
+    if (!coversMempool(summary.data)) return;
     const sample = sampleFromSummary(summary.data, Date.now());
     setHistory((prev) => {
       const next = appendSample(prev, sample);

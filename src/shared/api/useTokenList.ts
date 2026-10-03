@@ -2,17 +2,24 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useSettings } from "@/shared/providers/SettingsProvider";
 import { loadTokenList, type TokenInfo, type TokenMap } from "./tokenList";
 
 export const TOKEN_QUERY_KEY = ["assets", "tokens"] as const;
 
 export const fetchTokenMap = loadTokenList;
 
-/** The CAT token registry, loaded once per session (Dexie) and shared by every component. */
+/**
+ * The CAT token registry, loaded once per session and shared by every component: Dexie's list,
+ * through the nodexch gateway when it is the provider.
+ */
 export function useTokenList() {
+  const { dexieFetch, hydrated } = useSettings();
   return useQuery<TokenMap>({
     queryKey: TOKEN_QUERY_KEY,
-    queryFn: () => fetchTokenMap(),
+    queryFn: () => fetchTokenMap(dexieFetch),
+    // Who answers (the gateway or Dexie) is known once the stored settings are read.
+    enabled: hydrated,
     staleTime: Infinity,
     gcTime: Infinity,
     retry: 1,
@@ -29,12 +36,14 @@ export function useAsset(assetId: string | null | undefined): TokenInfo | undefi
 /** Kicks off the registry load at app start so the first badge already has icons. */
 export function AssetRegistryLoader() {
   const queryClient = useQueryClient();
+  const { dexieFetch, hydrated } = useSettings();
   useEffect(() => {
+    if (!hydrated) return;
     void queryClient.prefetchQuery({
       queryKey: TOKEN_QUERY_KEY,
-      queryFn: () => fetchTokenMap(),
+      queryFn: () => fetchTokenMap(dexieFetch),
       staleTime: Infinity,
     });
-  }, [queryClient]);
+  }, [queryClient, dexieFetch, hydrated]);
   return null;
 }

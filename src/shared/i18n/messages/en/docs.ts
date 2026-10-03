@@ -91,10 +91,9 @@ const messages = {
     channels: {
       q: "Where do live updates come from?",
       a: "The connection pill (hover it), the footer and Settings name the channel your tab is on. There is no server in between: this site only hosts the app itself, and every tab talks to the chain endpoint directly.",
-      socket:
-        "<strong>Coinset socket</strong>: your tab streams peak height and transaction events from Coinset's WebSocket directly. The normal mode on mempoolxch.space and inside the Sage in-app snapshot.",
+      socket: "<strong>Live stream</strong>: updates arrive as they happen. The usual mode.",
       polling:
-        "<strong>Polling</strong>: no stream is available, so the tab asks the endpoint every few seconds. Always the case with a custom node, and the fallback if the socket cannot connect.",
+        "<strong>Polling</strong>: the app checks for updates every few seconds. With your own node, or while the live stream is unavailable.",
     },
   },
   more: {

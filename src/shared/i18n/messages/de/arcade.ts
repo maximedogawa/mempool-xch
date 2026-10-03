@@ -53,13 +53,6 @@ const messages: Translation<(typeof en)["messages"]> = {
     breakdown: " ({list})",
     openArcade: "Arcade öffnen",
   },
-  paused: {
-    title: "Mainnet-Spiele sind pausiert",
-    body: "Der arcade21-Tracker führt auf dem Mainnet derzeit keine Spiele zuverlässig durch, deshalb sind Katalog und Räume hier ausgeblendet, bis er es wieder tut. Pot Potato oben läuft vollständig on-chain und ist nicht betroffen.",
-    testnet:
-      "Die Spiele desselben Entwicklers laufen live im Testnet bei {name}: offene Räume, laufende Duelle und eine Bestenliste, mit kostenlosen Testcoins als Einsatz.",
-    switch: "Zu Testnet11-Gaming wechseln",
-  },
   duels: {
     eyebrow: "Testnet11 · live von {name}",
     title: "1-gegen-1-Duelle, on-chain abgerechnet",

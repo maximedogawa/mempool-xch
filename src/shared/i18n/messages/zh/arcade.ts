@@ -51,13 +51,6 @@ const messages: Translation<(typeof en)["messages"]> = {
     breakdown: "（{list}）",
     openArcade: "打开游戏厅",
   },
-  paused: {
-    title: "主网游戏已暂停",
-    body: "arcade21 追踪器目前在主网上无法可靠运行对局，因此在其恢复之前，这里隐藏了它的游戏目录和房间。上方的 Pot Potato 完全在链上运行，不受影响。",
-    testnet:
-      "同一位开发者的游戏正在测试网的 {name} 上实时运行：开放房间、进行中的对决和排行榜，使用免费测试币作为赌注。",
-    switch: "切换到 Testnet11 游戏",
-  },
   duels: {
     eyebrow: "Testnet11 · 实时来自 {name}",
     title: "1 对 1 对决，链上结算",

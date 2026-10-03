@@ -12,8 +12,9 @@ import type { CompactAssets } from "@/shared/lib/mempool/types";
 import type { CoinSpend, TxSummary } from "@/shared/lib/rpc/types";
 
 export interface BlockAssetTotals extends CompactAssets {
-  source: "coinset" | "rpc";
-  /** Number of transactions (Coinset) or coin spends (rpc) the totals cover. */
+  /** `gateway`: a nodexch gateway's loop summed the block's spends as `rpc` does (TASK-150). */
+  source: "coinset" | "rpc" | "gateway";
+  /** Number of transactions (Coinset) or coin spends (rpc, gateway) the totals cover. */
   count: number;
   /** True when not every transaction of the block was fetched. */
   partial: boolean;

@@ -15,7 +15,7 @@ import { routes } from "@/shared/lib/routes";
 import apiNs from "@/shared/i18n/messages/en/api";
 
 function curl(endpoint: ApiEndpoint): string {
-  return `curl -s -X POST ${RPC_BASE}/${endpoint.method} \\\n  -H "content-type: application/json" \\\n  -d '${endpoint.body}'`;
+  return `curl -s -X POST ${RPC_BASE}/${endpoint.method} \\\n  -H "authorization: Bearer nxp_…" \\\n  -H "content-type: application/json" \\\n  -d '${endpoint.body}'`;
 }
 
 function EndpointRow({ endpoint }: { endpoint: ApiEndpoint }) {
@@ -184,7 +184,7 @@ export function ApiPage() {
             </li>
             <li>
               <span className="text-fg-muted">{t("base.websocket")}</span>{" "}
-              <span className="mono">{WS_URL}</span>
+              <span className="mono break-all">{WS_URL}</span>
             </li>
           </ul>
           <p className="text-xs text-fg-faint">

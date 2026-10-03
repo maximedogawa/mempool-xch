@@ -15,22 +15,21 @@ import { loadSnapshot, saveSnapshot, SNAPSHOT_MIN_GAP_MS } from "@/shared/lib/me
 import { createMempoolItemSync, type MempoolItemSync } from "@/shared/lib/mempool/sync";
 import type { CompactMempoolItem, MempoolSummary } from "@/shared/lib/mempool/types";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
-import type { BlockchainState, BlockRecord } from "@/shared/lib/rpc/types";
+import type { BlockchainState, BlockRecord, FeeEstimate } from "@/shared/lib/rpc/types";
 import type { RpcClient } from "@/shared/lib/rpc/client";
-import { useLiveValue } from "@/shared/providers/LiveProvider";
+import { feeEstimateFromQuote } from "@/shared/lib/nodexch/dashboard";
+import {
+  dashboardStart,
+  fetchBlockchainState,
+  MEMPOOL_ITEMS_PATH,
+  markRouteOff,
+  routeOff,
+  seedBlockTotals,
+} from "./gateway";
+import { useLiveValue, useMeteredLive } from "@/shared/providers/LiveProvider";
 import { useSettings } from "@/shared/providers/SettingsProvider";
+import { recentWindow, type RecentBlocksResult } from "@/shared/lib/blocks/recent";
 import { queryKeys } from "./queryKeys";
-
-export function useBlockchainState() {
-  const { client, endpoints, hydrated } = useSettings();
-  return useQuery({
-    queryKey: queryKeys.state(endpoints.network),
-    enabled: hydrated,
-    queryFn: ({ signal }) => client.getBlockchainState(signal),
-    // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
-    refetchInterval: 60_000,
-  });
-}
 
 function browserStorage(): Storage | null {
   try {
@@ -38,6 +37,18 @@ function browserStorage(): Storage | null {
   } catch {
     return null;
   }
+}
+
+export function useBlockchainState() {
+  const { client, endpoints, hydrated } = useSettings();
+  const meteredLive = useMeteredLive();
+  return useQuery({
+    queryKey: queryKeys.state(endpoints.network),
+    enabled: hydrated,
+    queryFn: ({ signal }) => fetchBlockchainState(client, signal),
+    // LiveProvider's poll already refreshes this cache entry; this is a safety net only.
+    refetchInterval: meteredLive ? false : 60_000,
+  });
 }
 
 /**
@@ -58,6 +69,9 @@ function getMempoolSync(
     sync = createMempoolItemSync({
       getAllMempoolTxIds: (s) => client.getAllMempoolTxIds(s),
       getMempoolItemByTxId: (id, s) => client.getMempoolItemByTxId(id, s),
+      // A nodexch gateway counts requests and serves the listing from its loop's cache; on
+      // Coinset and custom nodes the listing is tens of MB of fresh node work, so not there.
+      getAllMempoolItems: client.metered ? (s) => client.getAllMempoolItems(s) : undefined,
       reduce: compactMempoolItem,
       seed: snapshot?.items.map((item) => [item.id, item] as const),
     });
@@ -103,10 +117,17 @@ function toSummary(
   };
 }
 
+/** With a live nodexch socket the deltas carry every change: a full read is only a check. */
+const METERED_MEMPOOL_RESYNC_MS = 5 * 60_000;
+
+/** As old as the poll lets the state get anyway (LiveProvider polls every 5 to 15 s). */
+const STATE_REUSE_MS = 15_000;
+
 /** Compact mempool, synced incrementally in the browser (see getMempoolSync above). */
 export function useMempoolSummary() {
   const { client, endpoints, hydrated } = useSettings();
   const queryClient = useQueryClient();
+  const meteredLive = useMeteredLive();
   const network = endpoints.network;
   // Paint the last visit's mempool at once; the first sync replaces it a moment later. Done in
   // an effect (not initialData) so the hydration render matches the prerendered page.
@@ -128,7 +149,14 @@ export function useMempoolSummary() {
     enabled: hydrated,
     queryFn: async ({ signal }): Promise<MempoolSummary> => {
       const key = queryKeys.mempoolSummary(network, "browser");
-      const statePromise = client.getBlockchainState(signal);
+      // The state the poll, the socket or the state query already holds, when it is recent:
+      // a sync runs every few seconds on a busy mempool and need not ask for it each time.
+      const statePromise = queryClient.fetchQuery({
+        queryKey: queryKeys.state(network),
+        // Its own signal: the state query is shared, a cancelled sync must not fail it.
+        queryFn: ({ signal: stateSignal }) => fetchBlockchainState(client, stateSignal),
+        staleTime: STATE_REUSE_MS,
+      });
       let state: BlockchainState | null = null;
       void statePromise.then(
         (s) => (state = s),
@@ -136,6 +164,21 @@ export function useMempoolSummary() {
       );
       // A cold tab has every pending bundle to fetch; show what has arrived so far instead
       // of nothing until the last one is in.
+      // A nodexch gateway hands the whole mempool over in one call (the load's dashboard call,
+      // else its mempool items route), and its socket's deltas then keep it current
+      // (LiveProvider), so nothing is asked per transaction.
+      const dashboard = await dashboardStart(client);
+      const fromGateway = dashboard
+        ? dashboard.mempool.items
+        : routeOff(client, MEMPOOL_ITEMS_PATH)
+          ? null
+          : await client.getMempoolItems(signal);
+      if (fromGateway) {
+        const summary = toSummary(network, await statePromise, fromGateway, "browser");
+        saveSnapshotThrottled(summary, network);
+        return summary;
+      }
+      if (!dashboard) markRouteOff(client, MEMPOOL_ITEMS_PATH);
       const items = await getMempoolSync(network, client).sync(signal, (partial) => {
         if (!state || signal.aborted) return;
         const soFar = toSummary(network, state, partial, "syncing");
@@ -149,7 +192,7 @@ export function useMempoolSummary() {
     },
     // Peak/transaction events from LiveProvider already invalidate this on activity; the
     // interval is a safety net only.
-    refetchInterval: 20_000,
+    refetchInterval: meteredLive ? METERED_MEMPOOL_RESYNC_MS : 20_000,
     placeholderData: keepPreviousData,
   });
 }
@@ -215,12 +258,7 @@ export function seedBlockRecords(
   });
 }
 
-export interface RecentBlocksResult {
-  /** Newest first. */
-  txBlocks: BlockRecord[];
-  /** Every record in the window, newest first, for gap markers. */
-  all: BlockRecord[];
-}
+export type { RecentBlocksResult };
 
 /** The last `count` transaction blocks (plus the non-transaction blocks between them). */
 export function useRecentBlocks(count: number) {
@@ -229,34 +267,62 @@ export function useRecentBlocks(count: number) {
   const state = useBlockchainState();
   const peakHeight = useLiveValue("peakHeight");
   const peak = peakHeight ?? state.data?.peak.height ?? null;
+  // A metered gateway's window has one key: LiveProvider asks for it again only on a
+  // transaction block, or adds the blocks its socket pushes (the window still ends at the peak).
+  const keyPeak = endpoints.provider === "nodexch" ? "live" : peak;
   return useQuery({
-    queryKey: queryKeys.recentBlocks(endpoints.network, count, peak),
+    queryKey: queryKeys.recentBlocks(endpoints.network, count, keyPeak),
     enabled: hydrated && peak !== null,
     placeholderData: keepPreviousData,
-    // The peak is part of the key, so every new block leaves an entry behind: drop it soon.
+    // On other providers the peak is part of the key, so every new block leaves an entry
+    // behind: drop it soon.
     gcTime: 30_000,
     queryFn: async ({ signal }): Promise<RecentBlocksResult> => {
+      // A gateway's dashboard call carries the records of its last blocks and their totals:
+      // enough for the row when it holds `count` transaction blocks (a gateway just started
+      // has read only a few).
+      if (client.metered) {
+        const dashboard = await dashboardStart(client);
+        if (dashboard) {
+          seedBlockTotals(queryClient, endpoints.network, dashboard.totals);
+          const result = recentWindow(dashboard.records, count);
+          if (result.txBlocks.length >= count) {
+            seedBlockRecords(queryClient, endpoints.network, result.txBlocks);
+            return result;
+          }
+        }
+      }
       const end = (peak ?? 0) + 1;
       const window = Math.max(20, Math.ceil(count / CHIA.TX_BLOCK_RATIO) + 10);
       const records = await client.getBlockRecords(Math.max(0, end - window), end, signal);
-      const all = [...records].sort((a, b) => b.height - a.height);
-      const txBlocks = all.filter((r) => r.isTransactionBlock).slice(0, count);
-      seedBlockRecords(queryClient, endpoints.network, txBlocks);
-      const oldest = txBlocks[txBlocks.length - 1]?.height ?? 0;
-      return { txBlocks, all: all.filter((r) => r.height >= oldest) };
+      const result = recentWindow(records, count);
+      seedBlockRecords(queryClient, endpoints.network, result.txBlocks);
+      return result;
     },
   });
 }
 
 export const FEE_TARGETS_S = [60, 300, 600] as const;
 
+/**
+ * The node's estimate for a transaction of `cost`. On a nodexch gateway the load's dashboard
+ * call carries the gateway's quote (for 1, 3 and 10 blocks) and the socket's `fees` frames
+ * then keep it current (LiveProvider); the node is asked only where there is no quote.
+ */
 export function useFeeEstimate(cost = CHIA.REFERENCE_SPEND_COST) {
   const { client, endpoints, hydrated } = useSettings();
+  const meteredLive = useMeteredLive();
   return useQuery({
     queryKey: [...queryKeys.fee(endpoints.network), cost],
     enabled: hydrated,
-    queryFn: ({ signal }) => client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal),
-    refetchInterval: 45_000,
+    queryFn: async ({ signal }): Promise<FeeEstimate> => {
+      if (client.metered) {
+        const dashboard = await dashboardStart(client);
+        if (dashboard?.fees) return feeEstimateFromQuote(dashboard.fees, cost, dashboard.state);
+      }
+      return client.getFeeEstimate(cost, [...FEE_TARGETS_S], signal);
+    },
+    refetchInterval: meteredLive ? false : 45_000,
     placeholderData: keepPreviousData,
   });
 }

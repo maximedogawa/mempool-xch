@@ -3,15 +3,16 @@ import type en from "../en/common";
 
 const messages: Translation<(typeof en)["messages"]> = {
   channel: {
-    customName: "Sondeo (nodo propio)",
-    customDetail:
-      "Consultando tu nodo en {host} cada pocos segundos; sin stream, la mempool se carga en el navegador.",
+    customName: "Sondeo",
+    customDetail: "Consultando tu nodo en {host} cada pocos segundos.",
     offlineName: "Sin conexión",
     offlineDetail: "Sin conexión con {host}.",
-    socketName: "Socket de Coinset",
-    socketDetail: "Recibiendo eventos de pico y de transacciones directamente de {host}.",
-    reconnectingName: "Socket de Coinset (reconectando)",
+    socketName: "Flujo en vivo",
+    socketDetail: "Actualizaciones en vivo de {host}.",
+    reconnectingName: "Flujo en vivo (reconectando)",
     reconnectingDetail: "Reconectando con {host}.",
+    nodexchSocketName: "Flujo en vivo",
+    nodexchReconnectingName: "Flujo en vivo (reconectando)",
     pollingName: "Sondeo",
     pollingDetail: "Consultando {host} cada pocos segundos.",
   },

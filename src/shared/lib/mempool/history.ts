@@ -33,7 +33,16 @@ export function costWeightedMedianFeeRate(items: { cost: number; feeRate: number
   return 0;
 }
 
-export const HISTORY_KEY_PREFIX = "mempool-xch:history:v1:";
+/** v2: v1 kept samples of a half-synced mempool, drawn as dips to almost nothing. */
+export const HISTORY_KEY_PREFIX = "mempool-xch:history:v2:";
+/** A summary that holds less of the mempool than this says little about it: no sample. */
+export const MIN_SAMPLE_COVERAGE = 0.9;
+
+/** Whether a summary holds enough of the mempool for a sample of it to mean something. */
+export function coversMempool(summary: MempoolSummary): boolean {
+  const size = summary.state.mempoolSize;
+  return size <= 0 || summary.items.length >= size * MIN_SAMPLE_COVERAGE;
+}
 export const MAX_SAMPLES = 1_500;
 export const DEFAULT_WINDOW_MS = 2 * 60 * 60 * 1000;
 /** Do not store two samples closer than this. */

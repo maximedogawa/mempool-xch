@@ -4,6 +4,28 @@ import { useId, useMemo, useState } from "react";
 import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
 import uiNs from "@/shared/i18n/messages/en/ui";
+import { ChartPlaceholder } from "./ChartPlaceholder";
+
+/**
+ * Runs of points close enough in time to be drawn as one area: samples further apart than a
+ * few usual intervals (the tab was closed, or the source did not answer) are not joined by a
+ * long made-up slope; the chart leaves the gap open instead.
+ */
+export function segmentsOf(times: number[], minGapMs = 2 * 60_000): number[][] {
+  if (times.length === 0) return [];
+  const steps = times
+    .slice(1)
+    .map((t, i) => t - times[i]!)
+    .sort((a, b) => a - b);
+  const usual = steps[Math.floor(steps.length / 2)] ?? 0;
+  const gap = Math.max(minGapMs, usual * 4);
+  const runs: number[][] = [[0]];
+  for (let i = 1; i < times.length; i++) {
+    if (times[i]! - times[i - 1]! > gap) runs.push([]);
+    runs[runs.length - 1]!.push(i);
+  }
+  return runs;
+}
 
 export interface StackedSeries {
   id: string;
@@ -60,33 +82,40 @@ export function StackedAreaChart({
         return { x: x(p.t), y0: y(below), y1: y(below + (p.values[si] ?? 0)) };
       })
     );
-    const paths = stacks.map((stack) => {
-      const top = stack
-        .map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`)
-        .join(" ");
-      const bottom = [...stack]
-        .reverse()
-        .map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`)
-        .join(" ");
-      return `${top} ${bottom} Z`;
-    });
+    const runs = segmentsOf(points.map((p) => p.t));
+    const paths = stacks.map((stack) =>
+      runs
+        .map((run) => {
+          // A lone sample is drawn as a sliver, not as nothing.
+          const part =
+            run.length === 1
+              ? [-1.5, 1.5].map((dx) => ({ ...stack[run[0]!]!, x: stack[run[0]!]!.x + dx }))
+              : run.map((i) => stack[i]!);
+          const top = part
+            .map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`)
+            .join(" ");
+          const bottom = [...part]
+            .reverse()
+            .map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`)
+            .join(" ");
+          return `${top} ${bottom} Z`;
+        })
+        .join(" ")
+    );
+    const gaps = runs.slice(1).map((run, i) => ({
+      from: x(points[runs[i]![runs[i]!.length - 1]!]!.t),
+      to: x(points[run[0]!]!.t),
+    }));
     const ticks = [0, 0.5, 1].map((f) => ({ v: max * f, y: y(max * f) }));
     const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({
       t: t0 + span * f,
       x: pad.l + innerW * f,
     }));
-    return { paths, ticks, timeTicks, x, totals, max };
+    return { paths, gaps, ticks, timeTicks, x, totals, max };
   }, [points, series, innerH, innerW, pad.l, pad.t]);
 
   if (!model || points.length < 2) {
-    return (
-      <div
-        className={cn("flex items-center justify-center text-sm text-fg-faint", className)}
-        style={{ height }}
-      >
-        {t("chart.collecting")}
-      </div>
-    );
+    return <ChartPlaceholder label={t("chart.collecting")} height={height} className={className} />;
   }
 
   const hoverPoint = hover !== null ? points[hover] : null;
@@ -160,6 +189,26 @@ export function StackedAreaChart({
           >
             {formatTime(tick.t)}
           </text>
+        ))}
+        {model.gaps.map((gap) => (
+          <g key={gap.from}>
+            <rect
+              x={gap.from}
+              y={pad.t}
+              width={Math.max(0, gap.to - gap.from)}
+              height={innerH}
+              fill="var(--surface-2)"
+              opacity={0.5}
+            />
+            <line
+              x1={gap.from}
+              x2={gap.to}
+              y1={pad.t + innerH}
+              y2={pad.t + innerH}
+              stroke="var(--fg-faint)"
+              strokeDasharray="2 4"
+            />
+          </g>
         ))}
         {model.paths.map((d, i) => (
           <path

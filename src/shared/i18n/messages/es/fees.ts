@@ -7,6 +7,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "En Chia las comisiones se pagan por coste CLVM, no por byte. Las estimaciones son para un gasto de referencia de {cost} de coste (un envío simple típico de XCH). Multiplica la tasa en mojo por unidad de coste por el coste de tu gasto para obtener la comisión.",
     targets: {
       nextBlock: "Próximo bloque",
+      threeMinutes: "~3 minutos",
       fiveMinutes: "~5 minutos",
       tenMinutes: "~10 minutos",
     },

@@ -4,6 +4,7 @@ import { e2eProjects } from "./playwright.projects";
 /**
  * E2E against a production build with Coinset mocked by route interception (tests/e2e).
  * `LIVE=1 bun run test:live` runs the @live smoke tests against the real Coinset instead.
+ * Manual only (not in CI); the projects are in playwright.projects.ts.
  */
 const PORT = Number(process.env.E2E_PORT ?? 3210);
 
@@ -15,7 +16,7 @@ export default defineConfig({
   // toHaveURL after a nav click waits on a round trip, not just on rendering.
   expect: { timeout: 15_000 },
   fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,

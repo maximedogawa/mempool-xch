@@ -12,7 +12,7 @@ const messages = {
   base: {
     title: "Base URLs",
     intro:
-      "Every method below is a <code>POST</code> to <code>{base}/{method}</code> with a JSON body, no authentication, CORS open. The full-node RPC and Coinset's indexed API share the same host.",
+      "Every method below is a <code>POST</code> to <code>{base}/{method}</code> with a JSON body, a publishable key (<code>nxp_…</code>) in the <code>Authorization: Bearer</code> header, CORS open. The full-node RPC and the indexed API share the same host. Testnet11 is served by Coinset without a key.",
     mainnet: "Mainnet:",
     testnet: "Testnet11:",
     websocket: "WebSocket (peak and transaction events):",

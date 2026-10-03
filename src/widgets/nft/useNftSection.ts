@@ -8,6 +8,7 @@ import {
   type CollectionInterval,
   type NftEventKind,
 } from "@/shared/lib/nft/mintgarden";
+import { useSettings } from "@/shared/providers/SettingsProvider";
 
 export function useTopCollections(interval: CollectionInterval = "30", size = 10) {
   return useQuery({
@@ -39,10 +40,11 @@ export function useNftEvents(kinds: NftEventKind[] | undefined, size = 25) {
 }
 
 export function useNftOffers(nftId: string, enabled: boolean) {
+  const { dexieFetch, hydrated } = useSettings();
   return useQuery({
     queryKey: ["nftSection", "offers", nftId],
-    queryFn: () => fetchNftOffers(nftId),
-    enabled,
+    queryFn: () => fetchNftOffers(nftId, (url) => dexieFetch(url)),
+    enabled: enabled && hydrated,
     staleTime: 60_000,
   });
 }

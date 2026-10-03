@@ -654,6 +654,16 @@ export async function seedConsent(page: Page) {
 /** Intercepts every Coinset call; anything unknown answers not found. */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
+  // nodexch is the app's default; these specs exercise the Coinset path, so choose it unless a
+  // spec stored its own settings.
+  await page.addInitScript(() => {
+    const key = "mempool-xch:settings:v1";
+    if (window.localStorage.getItem(key)) return;
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({ endpoints: { mainnet: { rpcUrl: "https://api.coinset.org" } } })
+    );
+  });
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, answerNodeMethod);
   // WebSocket: block the upgrade so the app falls back to polling deterministically.
   await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
@@ -744,4 +754,210 @@ export async function mockCustomNode(page: Page) {
   await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) =>
     route.fulfill({ status: 599, body: "must not be called with a custom node" })
   );
+}
+
+/** The fixture's pending transactions as a gateway gives them: compact, details included. */
+function gatewayMempoolItems() {
+  return Object.values(mempoolItems.mempool_items).map((item) => ({
+    id: item.spend_bundle_name,
+    first_seen_ms: NOW - 60_000,
+    fee_mojos: item.fee,
+    cost: item.cost,
+    spends: item.spend_bundle.coin_spends.length,
+    additions: item.additions.slice(0, 6),
+    removals: item.removals.slice(0, 6),
+    addition_count: item.additions.length,
+    removal_count: item.removals.length,
+    kind: "xch",
+    asset_ids: [],
+    assets: {
+      xch: String(item.removals.reduce((sum, coin) => sum + coin.amount, 0)),
+      cats: [],
+      nfts: 0,
+      dids: 0,
+      singletons: 0,
+    },
+  }));
+}
+
+export const NODEXCH_URL = "https://api.nodexch.space";
+export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
+
+/**
+ * The hosted nodexch gateway (Coinset's dialect in front of an own node): RPC and the indexed
+ * API on one host, the WebSocket on /ws with the publishable key in its query, peers on
+ * /x/node/v1/peers. Every request and socket is recorded, so a spec can check the key and that
+ * nothing went to Coinset.
+ */
+export async function mockNodexch(page: Page) {
+  await seedConsent(page);
+  await page.addInitScript(
+    ({ rpcUrl, apiKey }) => {
+      window.localStorage.setItem(
+        "mempool-xch:settings:v1",
+        JSON.stringify({
+          network: "mainnet",
+          endpoints: {
+            mainnet: { rpcUrl, apiKey },
+            testnet11: { rpcUrl: "https://testnet11.api.coinset.org" },
+          },
+          theme: "dark",
+          recentBlocks: 8,
+        })
+      );
+    },
+    { rpcUrl: NODEXCH_URL, apiKey: NODEXCH_KEY }
+  );
+  const seen = {
+    requests: [] as { url: string; authorization: string | null }[],
+    sockets: [] as string[],
+    /** Requests that went to Dexie itself (its API or its icon host). */
+    dexie: [] as string[],
+    /** Icons asked of the gateway: public files, sent without the key. */
+    icons: [] as string[],
+  };
+  // Dexie's paths on the gateway, in Dexie's shapes, and its icons; Dexie itself stays untouched.
+  await page.route(/https:\/\/api\.nodexch\.space\/dexie\/icons\/.*/, (route) => {
+    seen.icons.push(route.request().url());
+    return route.fulfill({ status: 404, body: "" });
+  });
+  await page.route(/https:\/\/api\.nodexch\.space\/dexie\/v\d\/.*/, (route) => {
+    const url = route.request().url();
+    seen.requests.push({ url, authorization: route.request().headers().authorization ?? null });
+    if (url.includes("/dexie/v3/prices/tickers"))
+      return json(route, { success: true, tickers: DEXIE_TICKERS });
+    if (url.includes("/dexie/v1/assets"))
+      return json(route, {
+        success: true,
+        count: DEXIE_ASSETS.length,
+        page: 1,
+        page_size: 100,
+        assets: DEXIE_ASSETS,
+      });
+    return json(route, { success: true, count: 0, offers: [] });
+  });
+  await page.route(/https:\/\/(api|icons)\.dexie\.space\/.*/, (route) => {
+    seen.dexie.push(route.request().url());
+    return route.fulfill({ status: 599, body: "must not be called with nodexch" });
+  });
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/peers$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return json(route, {
+      connections: [
+        {
+          type: 1,
+          peer_host: "203.0.113.0",
+          peer_server_port: 8444,
+          peak_height: 9295535,
+          creation_time: 1700000000,
+        },
+      ],
+      success: true,
+    });
+  });
+  // The whole mempool in one call, each entry as a mempool_delta frame gives it (TASK-147).
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/mempool\/items$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    const items = gatewayMempoolItems();
+    return json(route, { size: items.length, items, success: true });
+  });
+  // An explorer's first load in one call (TASK-152): the state, the gateway's fee quote, the
+  // recent blocks with the node's records and the totals of the transaction blocks among them,
+  // and the mempool items. The fixture's dozen records are padded with eight older transaction
+  // blocks, as the gateway's memory of 32 blocks holds more than the row shows.
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/dashboard$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    const items = gatewayMempoolItems();
+    const padded = Array.from({ length: 8 }, (_, i) => {
+      const height = blockRecords.block_records[0]!.height - 1 - i;
+      return {
+        ...syntheticBlockRecord(height, NAMED_POOL_PUZZLE_HASH),
+        timestamp: 1789478000 - i * 52,
+        fees: 0,
+      };
+    });
+    const blocks = [...blockRecords.block_records, ...padded]
+      .sort((a, b) => b.height - a.height)
+      .map((record) => ({
+        height: record.height,
+        header_hash: record.header_hash,
+        timestamp: record.timestamp,
+        fees: record.fees,
+        additions: record.timestamp === null ? 0 : 3,
+        removals: record.timestamp === null ? 0 : 2,
+        record,
+        ...(record.timestamp === null
+          ? {}
+          : {
+              spends: 2,
+              assets: { xch: "1500000000000", cats: [], nfts: 0, dids: 0, singletons: 0 },
+            }),
+      }));
+    return json(route, {
+      blockchain_state: blockchainState.blockchain_state,
+      fees: {
+        estimates: [
+          { blocks: 1, fee_per_cost: 0.062281, fee_for_typical_cost: 311405 },
+          { blocks: 3, fee_per_cost: 0.000286, fee_for_typical_cost: 1430 },
+          { blocks: 10, fee_per_cost: 0.000036, fee_for_typical_cost: 180 },
+        ],
+        min_fee_per_cost: 0,
+        min_fee_for_typical_cost: 0,
+      },
+      blocks,
+      mempool: { size: items.length, items },
+      success: true,
+    });
+  });
+  // Every node and indexed method (their names carry digits: get_xch_balance_by_p2).
+  await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z0-9_]+$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    return answerNodeMethod(route);
+  });
+  // The gateway's frames, in Coinset's shape: a peak right after the upgrade.
+  await page.routeWebSocket(/wss:\/\/api\.nodexch\.space\/ws.*/, (ws) => {
+    seen.sockets.push(ws.url());
+    ws.send(
+      JSON.stringify({
+        network: "mainnet",
+        seq: 1,
+        message: { type: "peak", data: { height: 9295535, tx: true } },
+      })
+    );
+    // nodexch's own dashboard frame: what a poll of get_blockchain_state would say.
+    ws.send(
+      JSON.stringify({
+        network: "mainnet",
+        seq: 2,
+        message: {
+          type: "dashboard",
+          data: {
+            kind: "live",
+            peak_height: 9295535,
+            mempool_size: 3,
+            mempool_cost: 60_000_000,
+            mempool_fees: 0,
+            synced: true,
+          },
+        },
+      })
+    );
+  });
+  await page.route(/https:\/\/(testnet11\.)?api\.coinset\.org\/.*/, (route) =>
+    route.fulfill({ status: 599, body: "must not be called with nodexch" })
+  );
+  await page.routeWebSocket(/wss:\/\/.*coinset\.org\/ws.*/, (ws) => ws.close());
+  return seen;
 }

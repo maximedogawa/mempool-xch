@@ -12,7 +12,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   base: {
     title: "URL base",
     intro:
-      "Cada método de abajo es un <code>POST</code> a <code>{base}/{method}</code> con un cuerpo JSON, sin autenticación y con CORS abierto. El RPC del nodo completo y la API indexada de Coinset comparten el mismo host.",
+      "Cada método de abajo es un <code>POST</code> a <code>{base}/{method}</code> con un cuerpo JSON, con una clave publicable (<code>nxp_…</code>) en la cabecera <code>Authorization: Bearer</code> y con CORS abierto. El RPC del nodo completo y la API indexada comparten el mismo host. Testnet11 lo sirve Coinset sin clave.",
     mainnet: "Mainnet:",
     testnet: "Testnet11:",
     websocket: "WebSocket (eventos de pico y de transacciones):",

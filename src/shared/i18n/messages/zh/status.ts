@@ -25,6 +25,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   names: {
     coinsetRpc: "Coinset 全节点 RPC",
     ownNode: "您的节点（全节点 RPC）",
+    nodexch: "nodexch 网关（全节点 RPC 与索引 API）",
     indexed: "Coinset 索引 API",
     live: "实时数据流",
     dns: "Chia DNS 引导节点",
@@ -47,13 +48,13 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   live: {
     state: {
-      live: "实时",
+      live: "已连接",
       polling: "轮询",
       connecting: "连接中",
       offline: "离线",
     },
-    websocket: "{state}（WebSocket）",
-    viaPolling: "{state}（轮询）",
+    websocket: "{state} · 实时数据流",
+    viaPolling: "{state} · 轮询",
     lastEvent: " · 最近事件 {age}",
     peak: " · 最新高度 #{height}",
   },

@@ -88,10 +88,9 @@ const messages: Translation<(typeof en)["messages"]> = {
     channels: {
       q: "实时更新从哪里来？",
       a: "连接状态标签（将鼠标悬停其上）、页脚和设置页都会显示您的标签页正在使用的通道。中间没有任何服务器：本站只托管应用本身，每个标签页都直接与链端点通信。",
-      socket:
-        "<strong>Coinset WebSocket</strong>：您的标签页直接从 Coinset 的 WebSocket 流式接收最新高度和交易事件。这是 mempoolxch.space 上以及 Sage 应用内快照中的常规模式。",
+      socket: "<strong>实时数据流</strong>：更新即时到达。这是常用模式。",
       polling:
-        "<strong>轮询</strong>：没有可用的数据流，因此标签页每隔几秒向端点发起请求。使用自定义节点时始终如此，也是 WebSocket 无法连接时的后备方案。",
+        "<strong>轮询</strong>：应用每隔几秒检查更新。使用自己的节点时，或实时数据流不可用时。",
     },
   },
   more: {

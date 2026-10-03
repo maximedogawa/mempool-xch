@@ -7,6 +7,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "Chia-Gebühren werden pro CLVM-Kosteneinheit gezahlt, nicht pro Byte. Die Schätzungen gelten für eine Referenzausgabe mit {cost} Kosten (eine typische einfache XCH-Überweisung). Multiplizieren Sie den Satz in Mojo pro Kosteneinheit mit den Kosten Ihrer Ausgabe, um die Gebühr zu erhalten.",
     targets: {
       nextBlock: "Nächster Block",
+      threeMinutes: "~3 Minuten",
       fiveMinutes: "~5 Minuten",
       tenMinutes: "~10 Minuten",
     },

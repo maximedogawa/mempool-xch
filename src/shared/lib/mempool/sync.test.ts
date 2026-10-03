@@ -178,3 +178,43 @@ test("a superseded request cannot put removed items back in the cache", async ()
   expect(((await rejected) as Error).message).toBe("Superseded sync");
   expect(sync.size).toBe(0);
 });
+
+describe("createMempoolItemSync with a bulk call (a metered gateway)", () => {
+  function setup(ids: string[][], bulk: () => Promise<MempoolItem[]>) {
+    let idsCall = 0;
+    const calls = { item: [] as string[], bulk: 0 };
+    const sync = createMempoolItemSync({
+      getAllMempoolTxIds: async () => ids[Math.min(idsCall++, ids.length - 1)]!,
+      getMempoolItemByTxId: async (id) => {
+        calls.item.push(id);
+        return fakeItem(id);
+      },
+      getAllMempoolItems: async () => {
+        calls.bulk += 1;
+        return bulk();
+      },
+      reduce: (item) => item.name,
+      now: () => 1000,
+    });
+    return { sync, calls };
+  }
+
+  test("a cold tab costs two requests, not one per pending transaction", async () => {
+    const all = ["a", "b", "c", "d", "e"];
+    const { sync, calls } = setup([all, [...all, "f"]], async () => [...all, "zz"].map(fakeItem));
+    expect((await sync.sync()).sort()).toEqual(all);
+    expect(calls).toEqual({ item: [], bulk: 1 });
+    // One new transaction afterwards is one small call, not the whole listing again.
+    expect((await sync.sync()).sort()).toEqual([...all, "f"]);
+    expect(calls).toEqual({ item: ["f"], bulk: 1 });
+  });
+
+  test("a listing that fails falls back to the items one by one", async () => {
+    const { sync, calls } = setup([["a", "b", "c"]], async () => {
+      throw new Error("too large");
+    });
+    expect((await sync.sync()).sort()).toEqual(["a", "b", "c"]);
+    expect(calls.bulk).toBe(1);
+    expect(calls.item.sort()).toEqual(["a", "b", "c"]);
+  });
+});

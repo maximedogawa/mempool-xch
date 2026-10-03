@@ -3,6 +3,8 @@
 import { useQueries } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { DEXIE_ASSETS_URL } from "@/shared/api/tokenList";
+import { nodexchDexieRequest } from "@/shared/lib/hosted/dexie";
+import { INDEX_PROBE_P2 } from "@/shared/lib/rpc/probe";
 import { useT } from "@/shared/i18n/useT";
 import type { MessageValues } from "@/shared/i18n/translate";
 import { formatNumber } from "@/shared/lib/chia/amounts";
@@ -68,7 +70,7 @@ const TONE: Record<Health, string> = {
  */
 export function StatusPage() {
   const t = useT(statusNs);
-  const { client, endpoints, hydrated } = useSettings();
+  const { client, endpoints, hydrated, dexieRoute } = useSettings();
   const live = useLive();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -96,24 +98,18 @@ export function StatusPage() {
         queryKey: ["status", "indexed", endpoints.indexedUrl],
         enabled: hydrated && client.hasIndexed,
         queryFn: async ({ signal }: { signal: AbortSignal }): Promise<CheckResult> => {
-          const { value, ms } = await timed(() => client.getReorgs({ limit: 1 }, signal));
-          return {
-            health: slow(ms),
-            detail: value.reorgs[0]
-              ? {
-                  key: "detail.lastReorg",
-                  ageMs: value.reorgs[0].detectedAtMs,
-                }
-              : { key: "detail.answering" },
-            latencyMs: ms,
-          };
+          const { ms } = await timed(() => client.getXchBalanceByP2(INDEX_PROBE_P2, signal));
+          return { health: slow(ms), detail: { key: "detail.answering" }, latencyMs: ms };
         },
       },
       {
-        queryKey: ["status", "dexie"],
+        queryKey: ["status", "dexie", dexieRoute?.gateway ?? null],
         queryFn: async ({ signal }: { signal: AbortSignal }): Promise<CheckResult> => {
+          // Whoever answers Dexie's paths is what is measured: the gateway when it is asked.
+          const url = `${DEXIE_ASSETS_URL}?page_size=1&type=cat`;
+          const routed = dexieRoute ? nodexchDexieRequest(dexieRoute, url, { signal }) : null;
           const { value, ms } = await timed(() =>
-            fetch(`${DEXIE_ASSETS_URL}?page_size=1&type=cat`, { signal })
+            routed ? fetch(routed.url, routed.init) : fetch(url, { signal })
           );
           if (!value.ok)
             return { health: "down", detail: { text: `HTTP ${value.status}` }, latencyMs: ms };
@@ -176,8 +172,16 @@ export function StatusPage() {
     hidden?: boolean;
   }[] = [
     {
-      id: endpoints.isCoinset ? "coinset-full-node-rpc" : "your-node-full-node-rpc-",
-      name: endpoints.isCoinset ? t("names.coinsetRpc") : t("names.ownNode"),
+      id: endpoints.isCoinset
+        ? "coinset-full-node-rpc"
+        : endpoints.provider === "nodexch"
+          ? "nodexch-gateway"
+          : "your-node-full-node-rpc-",
+      name: endpoints.isCoinset
+        ? t("names.coinsetRpc")
+        : endpoints.provider === "nodexch"
+          ? t("names.nodexch")
+          : t("names.ownNode"),
       what: endpoints.rpcUrl.replace(/^https?:\/\//, ""),
       index: 0,
     },
@@ -211,7 +215,14 @@ export function StatusPage() {
         latencyMs: 0,
       },
     },
-    { id: "dexie", name: "Dexie", what: "api.dexie.space", index: 2 },
+    {
+      id: "dexie",
+      name: "Dexie",
+      what: dexieRoute
+        ? `${dexieRoute.gateway.replace(/^https?:\/\//, "").replace(/\/$/, "")}/dexie`
+        : "api.dexie.space",
+      index: 2,
+    },
     { id: "mintgarden", name: "MintGarden", what: "api.mintgarden.io", index: 3 },
     { id: "chia-dns-introducers", name: t("names.dns"), what: t("what.viaDns"), index: 4 },
     { id: "geojs", name: "GeoJS", what: "get.geojs.io", index: 5 },

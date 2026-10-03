@@ -53,13 +53,6 @@ const messages = {
     breakdown: " ({list})",
     openArcade: "Open the arcade",
   },
-  paused: {
-    title: "Mainnet games are paused",
-    body: "The arcade21 tracker is not running games reliably on mainnet right now, so its catalogue and rooms are hidden here until it does. Pot Potato above lives entirely on chain and is not affected.",
-    testnet:
-      "The same developer's games run live on testnet at {name}: open rooms, live duels and a leaderboard, with free test coins as stakes.",
-    switch: "Switch to Testnet11 gaming",
-  },
   duels: {
     eyebrow: "Testnet11 · live from {name}",
     title: "1v1 duels, settled on chain",

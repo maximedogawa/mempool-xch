@@ -25,6 +25,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   names: {
     coinsetRpc: "Coinset-Full-Node-RPC",
     ownNode: "Ihr Node (Full-Node-RPC)",
+    nodexch: "nodexch-Gateway (Full-Node-RPC und indexierte API)",
     indexed: "Indexierte Coinset-API",
     live: "Live-Stream",
     dns: "Chia-DNS-Introducer",
@@ -47,13 +48,13 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   live: {
     state: {
-      live: "live",
+      live: "verbunden",
       polling: "Polling",
       connecting: "verbindet",
       offline: "offline",
     },
-    websocket: "{state} über WebSocket",
-    viaPolling: "{state} per Polling",
+    websocket: "{state} · Live-Stream",
+    viaPolling: "{state} · Polling",
     lastEvent: " · letztes Ereignis {age}",
     peak: " · Spitze #{height}",
   },

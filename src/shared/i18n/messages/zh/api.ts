@@ -12,7 +12,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   base: {
     title: "基础 URL",
     intro:
-      "下面的每个方法都是向 <code>{base}/{method}</code> 发送的 <code>POST</code> 请求，带 JSON 请求体，无需认证，CORS 开放。全节点 RPC 与 Coinset 的索引 API 使用同一主机。",
+      "下面的每个方法都是向 <code>{base}/{method}</code> 发送的 <code>POST</code> 请求，带 JSON 请求体，在 <code>Authorization: Bearer</code> 请求头中带上可公开密钥（<code>nxp_…</code>），CORS 开放。全节点 RPC 与索引 API 使用同一主机。Testnet11 由 Coinset 提供，无需密钥。",
     mainnet: "主网：",
     testnet: "Testnet11：",
     websocket: "WebSocket（最新高度和交易事件）：",

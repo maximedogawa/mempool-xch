@@ -17,7 +17,9 @@ import { browserStorage } from "@/shared/lib/browserStorage";
  * missing ones stop looking like a broken image.
  */
 export function isDexiePlaceholder(url: string, width: number, height: number): boolean {
-  return url.startsWith(`${DEXIE_ICON_BASE}/`) && width === 500 && height === 500;
+  // The same file through a nodexch gateway: `<gateway>/dexie/icons/<asset id>.webp`.
+  const dexieIcon = url.startsWith(`${DEXIE_ICON_BASE}/`) || url.includes("/dexie/icons/");
+  return dexieIcon && width === 500 && height === 500;
 }
 
 export const MISSING_ICONS_KEY = "mempool-xch:missing-icons:v1";

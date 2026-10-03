@@ -92,9 +92,9 @@ const messages: Translation<(typeof en)["messages"]> = {
       q: "¿De dónde vienen las actualizaciones en vivo?",
       a: "El indicador de conexión (pasa el cursor por encima), el pie de página y los ajustes indican el canal que usa tu pestaña. No hay ningún servidor intermedio: este sitio solo aloja la app, y cada pestaña habla directamente con el endpoint de la cadena.",
       socket:
-        "<strong>Socket de Coinset</strong>: tu pestaña recibe en streaming la altura del pico y los eventos de transacciones directamente del WebSocket de Coinset. Es el modo normal en mempoolxch.space y dentro de la instantánea integrada en Sage.",
+        "<strong>Flujo en vivo</strong>: las actualizaciones llegan al momento. El modo habitual.",
       polling:
-        "<strong>Sondeo</strong>: no hay stream disponible, así que la pestaña consulta el endpoint cada pocos segundos. Siempre es así con un nodo propio, y es la alternativa si el socket no puede conectarse.",
+        "<strong>Sondeo</strong>: la app busca actualizaciones cada pocos segundos. Con un nodo propio, o mientras el flujo en vivo no está disponible.",
     },
   },
   more: {

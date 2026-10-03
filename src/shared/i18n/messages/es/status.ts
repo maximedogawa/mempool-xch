@@ -25,6 +25,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   names: {
     coinsetRpc: "RPC de nodo completo de Coinset",
     ownNode: "Tu nodo (RPC de nodo completo)",
+    nodexch: "Gateway nodexch (RPC de nodo completo e API indexada)",
     indexed: "API indexada de Coinset",
     live: "Flujo en vivo",
     dns: "Introductores DNS de Chia",
@@ -47,13 +48,13 @@ const messages: Translation<(typeof en)["messages"]> = {
   },
   live: {
     state: {
-      live: "en vivo",
+      live: "conectado",
       polling: "sondeo",
       connecting: "conectando",
       offline: "sin conexión",
     },
-    websocket: "{state} por websocket",
-    viaPolling: "{state} mediante sondeo",
+    websocket: "{state} · flujo en vivo",
+    viaPolling: "{state} · sondeo",
     lastEvent: " · último evento {age}",
     peak: " · pico #{height}",
   },

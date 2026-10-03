@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { NETWORKS } from "@/shared/config/networks";
 import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -33,7 +34,7 @@ describe("settings store", () => {
     });
     expect(reloaded.get().network).toBe("mainnet");
     expect(reloaded.get().recentBlocks).toBe(8);
-    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.coinset.org");
+    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
     expect(reloaded.get().endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
     reloaded.reset();
     expect(reloaded.get()).toEqual(DEFAULT_SETTINGS);
@@ -47,8 +48,16 @@ describe("settings store", () => {
 });
 
 describe("resolveEndpoints", () => {
-  test("Coinset unlocks the indexed API and WebSocket", () => {
+  test("mainnet defaults to nodexch", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
+    expect(r.provider).toBe("nodexch");
+    expect(r.rpcUrl).toBe("https://api.nodexch.space");
+  });
+  test("Coinset unlocks the indexed API and WebSocket", () => {
+    const r = resolveEndpoints({
+      ...DEFAULT_SETTINGS,
+      endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet: { rpcUrl: "https://api.coinset.org" } },
+    });
     expect(r.isCoinset).toBe(true);
     expect(r.indexedUrl).toBe("https://api.coinset.org");
     expect(r.wsUrl).toBe("wss://api.coinset.org/ws");
@@ -65,5 +74,64 @@ describe("resolveEndpoints", () => {
     expect(resolveEndpoints(DEFAULT_SETTINGS, "testnet11").wsUrl).toBe(
       "wss://testnet11.api.coinset.org/ws"
     );
+  });
+});
+
+describe("nodexch endpoints", () => {
+  const PUBLISHABLE = "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt";
+  const withMainnet = (mainnet: Record<string, unknown>) =>
+    createSettingsStore(
+      memoryStorage({
+        [STORAGE_KEY]: JSON.stringify({
+          ...DEFAULT_SETTINGS,
+          endpoints: { ...DEFAULT_SETTINGS.endpoints, mainnet },
+        }),
+      })
+    ).get();
+
+  test("the hosted gateway is nodexch by its host: indexed API and WebSocket on its own host", () => {
+    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://api.nodexch.space/" }));
+    expect(e.provider).toBe("nodexch");
+    expect(e.isCoinset).toBe(false);
+    expect(e.rpcUrl).toBe("https://api.nodexch.space");
+    expect(e.indexedUrl).toBe("https://api.nodexch.space");
+    // The build's own key (NEXT_PUBLIC_NODEXCH_KEY_MAINNET, read from .env when there is one)
+    // rides in the socket URL; without one the URL is bare.
+    const key = NETWORKS.mainnet.nodexchKey;
+    expect(e.wsUrl).toBe(
+      key ? `wss://api.nodexch.space/ws?key=${key}` : "wss://api.nodexch.space/ws"
+    );
+  });
+
+  test("a self-hosted gateway is nodexch when marked, and its key rides in the socket URL", () => {
+    const e = resolveEndpoints(
+      withMainnet({ rpcUrl: "http://localhost:8600", provider: "nodexch", apiKey: PUBLISHABLE })
+    );
+    expect(e.provider).toBe("nodexch");
+    expect(e.apiKey).toBe(PUBLISHABLE);
+    expect(e.wsUrl).toBe(`ws://localhost:8600/ws?key=${PUBLISHABLE}`);
+    const unmarked = resolveEndpoints(withMainnet({ rpcUrl: "http://localhost:8600" }));
+    expect(unmarked.provider).toBe("custom");
+    expect(unmarked.indexedUrl).toBeNull();
+    expect(unmarked.wsUrl).toBeNull();
+  });
+
+  test("only a publishable key is kept; a secret key never is", () => {
+    const secret = withMainnet({
+      rpcUrl: "https://api.nodexch.space",
+      apiKey: "nxs_Zk3vQ0aBq1v0m3J2o0r8c5Tt",
+    });
+    expect(secret.endpoints.mainnet.apiKey).toBeUndefined();
+    const kept = withMainnet({ rpcUrl: "https://api.nodexch.space", apiKey: ` ${PUBLISHABLE} ` });
+    expect(kept.endpoints.mainnet.apiKey).toBe(PUBLISHABLE);
+  });
+
+  test("Coinset stays Coinset whatever is declared", () => {
+    const e = resolveEndpoints(
+      withMainnet({ rpcUrl: "https://api.coinset.org", provider: "nodexch" })
+    );
+    expect(e.provider).toBe("coinset");
+    expect(e.isCoinset).toBe(true);
+    expect(e.apiKey).toBeNull();
   });
 });

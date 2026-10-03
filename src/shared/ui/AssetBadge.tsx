@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useState, useSyncExternalStore } from "react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
+import { nodexchDexieIconUrl } from "@/shared/lib/hosted/dexie";
+import { useSettings } from "@/shared/providers/SettingsProvider";
 import { useAsset } from "@/shared/api/useTokenList";
 import { launcherIdToNftId } from "@/shared/lib/chia/address";
 import { cn } from "@/shared/lib/cn";
@@ -59,6 +61,7 @@ export function AssetIcon({
   sensitivity?: Sensitivity | null;
 }) {
   const token = useAsset(kind === "cat" ? assetId : undefined);
+  const { dexieRoute } = useSettings();
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const iconMissing = useIconMissing();
   // NFT thumbnails: assetId is the 32-byte launcher id (same field CAT asset ids use,
@@ -86,6 +89,8 @@ export function AssetIcon({
       walletIconUrl: iconUrl,
       registryIconUrl: token?.iconUrl,
       dexieIconUrl: assetId ? dexieIconUrl(assetId) : null,
+      gatewayIconUrl:
+        assetId && dexieRoute ? nodexchDexieIconUrl(dexieRoute.gateway, assetId) : null,
     });
     const src = candidates.find((u) => !failed.has(u) && !iconMissing(u)) ?? null;
     if (src) {

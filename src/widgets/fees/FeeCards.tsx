@@ -18,11 +18,17 @@ import {
 } from "@/shared/ui";
 import feesNs from "@/shared/i18n/messages/en/fees";
 
+/** The seconds a target stands for; a nodexch gateway's quote is for 1, 3 and 10 blocks. */
 const TARGET_LABELS = {
   60: "nextBlock",
+  180: "threeMinutes",
   300: "fiveMinutes",
   600: "tenMinutes",
-} as const satisfies Record<(typeof FEE_TARGETS_S)[number], string>;
+} as const satisfies Record<(typeof FEE_TARGETS_S)[number] | 180, string>;
+
+function targetLabel(seconds: number): (typeof TARGET_LABELS)[keyof typeof TARGET_LABELS] {
+  return TARGET_LABELS[seconds as keyof typeof TARGET_LABELS] ?? "nextBlock";
+}
 
 export function FeeCards() {
   const t = useT(feesNs);
@@ -44,50 +50,54 @@ export function FeeCards() {
       />
       <CardBody className="flex flex-col gap-3">
         <div className="grid grid-cols-3 gap-2">
-          {FEE_TARGETS_S.map((target, i) => {
-            const estimate = fee.data?.estimates[i];
-            const rate =
-              estimate !== undefined ? Number(estimate) / CHIA.REFERENCE_SPEND_COST : null;
-            const band = rate !== null ? feeBandFor(rate) : null;
-            return (
-              <div
-                key={target}
-                className="flex flex-col gap-0.5 rounded-sm border border-border bg-bg px-3 py-2.5"
-                style={band ? { borderBottom: `3px solid var(${band.cssVar})` } : undefined}
-              >
-                <span className="flex items-start justify-between gap-1">
-                  <span className="text-[11px] font-medium eyebrow text-fg-muted">
-                    {t(`cards.targets.${TARGET_LABELS[target]}`)}
-                  </span>
-                  {/* A plain XCH decimal, ready for a wallet's fee field. */}
-                  {estimate !== undefined ? (
-                    <CopyButton
-                      value={xchPlain(estimate)}
-                      label={t("cards.copyXch", {
-                        target: t(`cards.targets.${TARGET_LABELS[target]}`),
-                      })}
-                      className="-mr-1.5 -mt-1 h-6 w-6"
-                    />
-                  ) : null}
-                </span>
-                {fee.isLoading ? (
-                  <Skeleton className="h-6 w-16" />
-                ) : rate !== null ? (
-                  <>
-                    <span className="tabular text-lg font-semibold leading-tight">
-                      {formatFeeRate(rate)}{" "}
-                      <span className="text-xs font-normal text-fg-muted">
-                        {t("cards.mojoPerCost")}
-                      </span>
+          {(fee.data?.targetTimes.length ? fee.data.targetTimes : FEE_TARGETS_S).map(
+            (target, i) => {
+              const estimate = fee.data?.estimates[i];
+              const rate =
+                estimate !== undefined ? Number(estimate) / CHIA.REFERENCE_SPEND_COST : null;
+              const band = rate !== null ? feeBandFor(rate) : null;
+              return (
+                <div
+                  key={target}
+                  className="flex flex-col gap-0.5 rounded-sm border border-border bg-bg px-3 py-2.5"
+                  style={band ? { borderBottom: `3px solid var(${band.cssVar})` } : undefined}
+                >
+                  <span className="flex items-start justify-between gap-1">
+                    <span className="text-[11px] font-medium eyebrow text-fg-muted">
+                      {t(`cards.targets.${targetLabel(target)}`)}
                     </span>
-                    <span className="tabular text-xs text-fg-faint">{formatAmount(estimate!)}</span>
-                  </>
-                ) : (
-                  <span className="text-sm text-fg-faint">{t("cards.notAvailable")}</span>
-                )}
-              </div>
-            );
-          })}
+                    {/* A plain XCH decimal, ready for a wallet's fee field. */}
+                    {estimate !== undefined ? (
+                      <CopyButton
+                        value={xchPlain(estimate)}
+                        label={t("cards.copyXch", {
+                          target: t(`cards.targets.${targetLabel(target)}`),
+                        })}
+                        className="-mr-1.5 -mt-1 h-6 w-6"
+                      />
+                    ) : null}
+                  </span>
+                  {fee.isLoading ? (
+                    <Skeleton className="h-6 w-16" />
+                  ) : rate !== null ? (
+                    <>
+                      <span className="tabular text-lg font-semibold leading-tight">
+                        {formatFeeRate(rate)}{" "}
+                        <span className="text-xs font-normal text-fg-muted">
+                          {t("cards.mojoPerCost")}
+                        </span>
+                      </span>
+                      <span className="tabular text-xs text-fg-faint">
+                        {formatAmount(estimate!)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-fg-faint">{t("cards.notAvailable")}</span>
+                  )}
+                </div>
+              );
+            }
+          )}
         </div>
         {state ? (
           <CapacityBar
@@ -119,7 +129,10 @@ export function FeeCards() {
             )
           ) : null}
         </p>
-        {fee.data ? (
+        {fee.data &&
+        fee.data.feesLastBlock !== null &&
+        fee.data.feeRateLastBlock !== null &&
+        fee.data.currentFeeRate !== null ? (
           <p className="text-xs text-fg-faint">
             {t("cards.lastBlock", {
               fees: formatAmount(fee.data.feesLastBlock),

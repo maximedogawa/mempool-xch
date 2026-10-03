@@ -2,6 +2,8 @@
 
 import { ExternalLink } from "lucide-react";
 import { dexieIconUrl } from "@/shared/api/tokenList";
+import { nodexchDexieIconUrl } from "@/shared/lib/hosted/dexie";
+import { catIconCandidates } from "@/shared/ui/assetIconCandidates";
 import { useDetailId } from "@/shared/hooks/useDetailId";
 import { useCallback, useMemo } from "react";
 import { useMempoolSummary } from "@/shared/api/hooks";
@@ -50,7 +52,7 @@ export function CatPage() {
   const t = useT(assetsNs);
   const raw = useDetailId("cat") ?? "";
   const assetId = normaliseId32(raw);
-  const { client, endpoints } = useSettings();
+  const { client, endpoints, dexieRoute } = useSettings();
   const tokens = useTokenList();
   const summary = useMempoolSummary();
   const id = assetId ?? "";
@@ -91,7 +93,11 @@ export function CatPage() {
         <CardHeader title={t("cat.title")} action={<KindBadge kind="cat" />} />
         <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <AssetImage
-            urls={[token?.iconUrl ?? dexieIconUrl(assetId)]}
+            urls={catIconCandidates({
+              registryIconUrl: token?.iconUrl,
+              dexieIconUrl: dexieIconUrl(assetId),
+              gatewayIconUrl: dexieRoute ? nodexchDexieIconUrl(dexieRoute.gateway, assetId) : null,
+            })}
             alt={token?.name ?? t("cat.iconAlt")}
             className="h-20 w-20 shrink-0"
             rounded="rounded-full"

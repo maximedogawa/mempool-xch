@@ -25,6 +25,7 @@ const messages = {
   names: {
     coinsetRpc: "Coinset full-node RPC",
     ownNode: "Your node (full-node RPC)",
+    nodexch: "nodexch gateway (full-node RPC and indexed API)",
     indexed: "Coinset indexed API",
     live: "Live stream",
     dns: "Chia DNS introducers",
@@ -47,13 +48,13 @@ const messages = {
   },
   live: {
     state: {
-      live: "live",
+      live: "connected",
       polling: "polling",
       connecting: "connecting",
       offline: "offline",
     },
-    websocket: "{state} over websocket",
-    viaPolling: "{state} via polling",
+    websocket: "{state} · live stream",
+    viaPolling: "{state} · polling",
     lastEvent: " · last event {age}",
     peak: " · peak #{height}",
   },

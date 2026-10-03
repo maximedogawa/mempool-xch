@@ -10,7 +10,7 @@ const base = {
 describe("describeChannel", () => {
   test("on the direct Coinset socket", () => {
     const d = describeChannel({ ...base, status: "live", transport: "websocket" });
-    expect(d.name).toBe("Coinset socket");
+    expect(d.name).toBe("Live stream");
     expect(d.detail).toContain("api.coinset.org");
   });
   test("polling and custom node", () => {
@@ -25,12 +25,30 @@ describe("describeChannel", () => {
       status: "polling",
       transport: "polling",
     });
-    expect(custom.name).toBe("Polling (custom node)");
+    expect(custom.name).toBe("Polling");
     expect(custom.detail).toContain("node.example.test:8556");
   });
   test("offline", () => {
     expect(describeChannel({ ...base, status: "offline", transport: "websocket" }).name).toBe(
       "Offline"
+    );
+  });
+});
+
+describe("describeChannel for nodexch", () => {
+  const nodexch = {
+    rpcUrl: "https://api.nodexch.space",
+    wsUrl: "wss://api.nodexch.space/ws?key=nxp_abc",
+    isCoinset: false,
+    provider: "nodexch",
+  } as const;
+  test("a nodexch socket, not polling a custom node", () => {
+    const live = describeChannel({ ...nodexch, status: "live", transport: "websocket" });
+    expect(live.name).toBe("Live stream");
+    expect(live.detail).toContain("api.nodexch.space");
+    expect(live.detail).not.toContain("nxp_abc");
+    expect(describeChannel({ ...nodexch, status: "connecting", transport: "websocket" }).name).toBe(
+      "Live stream (reconnecting)"
     );
   });
 });

@@ -1,3 +1,4 @@
+import { streamUrl } from "./stream";
 import { describe, expect, test } from "bun:test";
 import {
   backoffDelay,
@@ -114,9 +115,10 @@ describe("createLiveStream", () => {
     await Promise.resolve();
     expect(events).toContainEqual({ type: "status", status: "polling" });
     expect(events).toContainEqual({ type: "peak", height: 10, tx: false });
-    expect(events).toContainEqual({ type: "mempool", size: 3 });
+    // The first sample has nothing to compare with: only a change is an event.
+    expect(events.filter((e) => e.type === "mempool")).toEqual([]);
     await timers.advance(1000);
-    expect(events.filter((e) => e.type === "mempool").length).toBe(2);
+    expect(events.filter((e) => e.type === "mempool")).toEqual([{ type: "mempool", size: 4 }]);
     expect(events.filter((e) => e.type === "peak").length).toBe(1);
     await timers.advance(1000);
     expect(events).toContainEqual({ type: "peak", height: 11, tx: true });
@@ -252,6 +254,117 @@ describe("parseCoinsetMessage: reorg and netspace", () => {
       detectedAtMs: 1789680142516,
     });
   });
+  test("a nodexch block frame with the node's record is a new block, every digit kept", () => {
+    const frame =
+      '{"message":{"type":"dashboard","data":{"kind":"block","height":7,"header_hash":"0xab","timestamp":1790480000,"fees":5,"additions":1,"removals":1,"record":{"height":7,"header_hash":"0xAB","prev_hash":"0xaa","weight":340282366920938463463374607431768211455,"total_iters":1,"timestamp":1790480000,"fees":5,"farmer_puzzle_hash":"0x01","pool_puzzle_hash":"0x02"}}}}';
+    const parsed = parseCoinsetMessage(frame);
+    if (parsed?.type !== "block") throw new Error("not a block");
+    expect(parsed.record.height).toBe(7);
+    expect(parsed.record.headerHash).toBe("ab");
+    expect(parsed.record.weight).toBe(340282366920938463463374607431768211455n);
+    expect(parsed.record.isTransactionBlock).toBe(true);
+    // Without the record (an older gateway) the frame is not a block event.
+    expect(parseCoinsetMessage(frame.replace(/,"record":\{[^}]*\}/, ""))).toBeNull();
+  });
+  test("a nodexch block frame carries the transaction block's asset totals when the loop read them", () => {
+    const frame =
+      '{"message":{"type":"dashboard","data":{"kind":"block","height":7,"header_hash":"0xab","timestamp":1790480000,"fees":5,"additions":1,"removals":1,"record":{"height":7,"header_hash":"0xAB","prev_hash":"0xaa","weight":1,"total_iters":1,"timestamp":1790480000,"fees":5,"farmer_puzzle_hash":"0x01","pool_puzzle_hash":"0x02"},"spends":17,"assets":{"xch":"12209542198803","cats":[{"asset_id":"0xCC","amount":"3938"}],"nfts":1,"dids":0,"singletons":2}}}}';
+    const parsed = parseCoinsetMessage(frame);
+    if (parsed?.type !== "block") throw new Error("not a block");
+    expect(parsed.totals).toEqual({
+      xch: "12209542198803",
+      cats: [{ assetId: "cc", amount: "3938" }],
+      nfts: 1,
+      dids: 0,
+      singletons: 2,
+      source: "gateway",
+      count: 17,
+      partial: false,
+    });
+    // A block the loop did not read, or a non-transaction block: no totals, still a block.
+    const bare = parseCoinsetMessage(frame.replace(/,"spends":17,"assets":\{.*\}\}\}\}$/, "}}}"));
+    if (bare?.type !== "block") throw new Error("not a block");
+    expect(bare.totals).toBeNull();
+  });
+  test("a nodexch fees frame is the gateway's quote; one without targets is nothing", () => {
+    const parsed = parseCoinsetMessage(
+      '{"message":{"type":"dashboard","data":{"kind":"fees","estimates":[{"blocks":1,"fee_per_cost":3.0,"fee_for_typical_cost":15000000},{"blocks":3,"fee_per_cost":1.0,"fee_for_typical_cost":5000000},{"blocks":10,"fee_per_cost":0.0,"fee_for_typical_cost":0}],"min_fee_per_cost":0.0,"min_fee_for_typical_cost":0}}}'
+    );
+    expect(parsed).toEqual({
+      type: "fees",
+      quote: {
+        targets: [
+          { blocks: 1, feePerCost: 3 },
+          { blocks: 3, feePerCost: 1 },
+          { blocks: 10, feePerCost: 0 },
+        ],
+        minFeePerCost: 0,
+      },
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"fees","estimates":[]}}}')
+    ).toBeNull();
+  });
+  test("a nodexch peak frame also carries the header hash and the block's time", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"peak","data":{"height":7,"header_hash":"0xAB","tx":true,"timestamp":1790480000}}}'
+      )
+    ).toEqual({ type: "peak", height: 7, tx: true, headerHash: "ab", timestamp: 1790480000 });
+  });
+  test("a nodexch live frame is the state a poll would return; Coinset's own live kind is not", () => {
+    expect(
+      parseCoinsetMessage(
+        '{"message":{"type":"dashboard","data":{"kind":"live","peak_height":9295535,"mempool_size":12,"mempool_cost":140000000,"mempool_fees":"9007199254740993","synced":true}}}'
+      )
+    ).toEqual({
+      type: "state",
+      peakHeight: 9295535,
+      mempoolSize: 12,
+      mempoolCost: 140000000,
+      mempoolFees: 9007199254740993n,
+      synced: true,
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"live","tx_count":462}}}')
+    ).toBeNull();
+  });
+  test("a nodexch mempool delta carries compact items; one entry without details voids them", () => {
+    const entry = (id: string, details: boolean) => ({
+      id: `0x${id}`,
+      first_seen_ms: 5,
+      fee_mojos: 10,
+      cost: 5,
+      ...(details
+        ? {
+            spends: 1,
+            additions: [],
+            removals: [{ parent_coin_info: "0x01", puzzle_hash: "0x02", amount: "@amount@" }],
+            addition_count: 0,
+            removal_count: 1,
+            kind: "xch",
+            asset_ids: [],
+            assets: { xch: "9007199254740993", cats: [], nfts: 0, dids: 0, singletons: 0 },
+          }
+        : {}),
+    });
+    const frame = (added: unknown[]) =>
+      JSON.stringify({
+        message: {
+          type: "dashboard",
+          data: { kind: "mempool_delta", added, removed: ["0xAB"] },
+        },
+        // A bare number past 2^53, as the gateway writes a large coin.
+      }).replace('"@amount@"', "9007199254740993");
+    const parsed = parseCoinsetMessage(frame([entry("aa", true)]));
+    if (parsed?.type !== "mempoolDelta") throw new Error("not a mempool delta");
+    expect(parsed.removed).toEqual(["ab"]);
+    expect(parsed.added?.map((i) => [i.id, i.kind, i.feeRate])).toEqual([["aa", "xch", 2]]);
+    // Past 2^53: the digits survive the parse.
+    expect(parsed.added?.[0]?.removals[0]?.amount).toBe("9007199254740993");
+    const partial = parseCoinsetMessage(frame([entry("aa", true), entry("bb", false)]));
+    expect(partial).toEqual({ type: "mempoolDelta", added: null, removed: ["ab"] });
+  });
   test("netspace dashboard frames keep the byte count exact; other dashboard kinds are ignored", () => {
     expect(
       parseCoinsetMessage(
@@ -316,4 +429,86 @@ test("stopping aborts the poll and ignores its late result, including after rest
   pending[1]!.resolve({ peakHeight: 100, peakIsTx: true, mempoolSize: 10 });
   await Promise.resolve();
   expect(stream.status).toBe("offline");
+});
+
+describe("streamUrl", () => {
+  test("Coinset's URL as it always was", () => {
+    expect(streamUrl("wss://api.coinset.org/ws")).toBe(
+      "wss://api.coinset.org/ws?events=peak,transaction,reorg,dashboard,vault"
+    );
+  });
+  test("a nodexch key in the query survives", () => {
+    expect(streamUrl("wss://api.nodexch.space/ws?key=nxp_abc")).toBe(
+      "wss://api.nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
+    );
+  });
+});
+
+describe("createLiveStream: quiet polling", () => {
+  const LIVE = {
+    message: {
+      type: "dashboard",
+      data: { kind: "live", peak_height: 10, mempool_size: 3, mempool_cost: 1, mempool_fees: 0 },
+    },
+  };
+  function start(quietPollIntervalMs?: number) {
+    FakeSocket.instances = [];
+    const timers = fakeTimers();
+    let polls = 0;
+    const stream = createLiveStream({
+      wsUrl: "wss://api.nodexch.space/ws",
+      poll: async () => {
+        polls += 1;
+        return { peakHeight: 10, peakIsTx: false, mempoolSize: 3 };
+      },
+      onEvent: () => undefined,
+      pollIntervalMs: 1_000,
+      quietPollIntervalMs,
+      WebSocketImpl: FakeSocket as unknown as typeof WebSocket,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+    });
+    stream.start();
+    return { stream, timers, socket: () => FakeSocket.instances[0]!, polls: () => polls };
+  }
+
+  test("a socket that pushes state stretches the poll; losing it brings the short one back", async () => {
+    const { stream, timers, socket, polls } = start(60_000);
+    await Promise.resolve();
+    socket().open();
+    socket().message(LIVE);
+    await timers.advance(1_000);
+    expect(polls()).toBe(1);
+    // Quiet from here: nothing for a minute, however many short intervals pass.
+    await timers.advance(30_000);
+    expect(polls()).toBe(1);
+    await timers.advance(30_000);
+    expect(polls()).toBe(2);
+    socket().drop();
+    await timers.advance(1_000);
+    expect(polls()).toBe(3);
+    stream.stop();
+  });
+
+  test("the first state frame also stretches the poll that was already scheduled", async () => {
+    const { stream, timers, socket, polls } = start(60_000);
+    await Promise.resolve();
+    socket().open();
+    await timers.advance(0);
+    socket().message(LIVE);
+    // The short poll (1 s) scheduled at start does not run.
+    for (let i = 0; i < 5; i++) await timers.advance(1_000);
+    expect(polls()).toBe(1);
+    stream.stop();
+  });
+
+  test("an open socket without state frames (Coinset) keeps the short poll", async () => {
+    const { stream, timers, socket, polls } = start(60_000);
+    await Promise.resolve();
+    socket().open();
+    socket().message({ message: { type: "peak", data: { height: 10, tx: false } } });
+    for (let i = 0; i < 3; i++) await timers.advance(1_000);
+    expect(polls()).toBe(4);
+    stream.stop();
+  });
 });
