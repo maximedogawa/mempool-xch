@@ -6,9 +6,9 @@ import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { useT } from "@/shared/i18n/useT";
-import { gamingNetwork, gamingProviderFor } from "@/shared/config/gaming";
+import { gamingProviderFor } from "@/shared/config/gaming";
 import { useSettings } from "@/shared/providers/SettingsProvider";
-import { Badge, Button, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
+import { Badge, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
 import { ExternalLink } from "@/shared/ui/ExternalLink";
 import { DuelsView } from "./DuelsView";
 import { PotPotatoCard } from "./PotPotatoCard";
@@ -310,7 +310,7 @@ function RoomsCard() {
   );
 }
 
-/** The arcade21 catalogue (snapshot, bun run arcade) and its live rooms: mainnet, behind a flag. */
+/** The arcade21 catalogue (snapshot, bun run arcade) and its live rooms: always shown on mainnet. */
 function Arcade21Section() {
   const t = useT(arcadeNs);
   const games = arcade.games as Game[];
@@ -361,40 +361,10 @@ function Arcade21Section() {
   );
 }
 
-/** Mainnet with the arcade21 flag off: say why, and hand over to the network where games run. */
-function PausedCard() {
-  const t = useT(arcadeNs);
-  const { update } = useSettings();
-  const target = gamingNetwork();
-  const provider = target ? gamingProviderFor(target) : null;
-  return (
-    <Card data-testid="arcade-paused">
-      <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex max-w-3xl flex-col gap-1">
-          <h2 className="text-base font-semibold text-fg">{t("paused.title")}</h2>
-          <p className="text-sm text-fg-muted">{t("paused.body")}</p>
-          {provider ? (
-            <p className="text-sm text-fg-muted">{t("paused.testnet", { name: provider.name })}</p>
-          ) : null}
-        </div>
-        {target ? (
-          <Button
-            variant="primary"
-            className="shrink-0"
-            onClick={() => update({ network: target })}
-          >
-            {t("paused.switch")}
-          </Button>
-        ) : null}
-      </CardBody>
-    </Card>
-  );
-}
-
 /**
  * /gaming follows the selected network. A network with a live gaming provider (Testnet11:
  * nokitlan) shows its duels; mainnet shows Pot Potato, read from the chain, and the arcade21
- * catalogue and rooms.
+ * catalogue and rooms, with no flag. A network without either shows the heading alone.
  */
 export function ArcadePage() {
   const t = useT(arcadeNs);
@@ -418,9 +388,7 @@ export function ArcadePage() {
           <PotPotatoCard />
           <Arcade21Section />
         </>
-      ) : (
-        <PausedCard />
-      )}
+      ) : null}
     </div>
   );
 }

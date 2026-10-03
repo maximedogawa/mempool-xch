@@ -28,8 +28,3 @@ export function gamingProviderFor(network: NetworkId): GamingProvider | null {
   if (network === "testnet11" && !FEATURES.gamingTestnet) return null;
   return PROVIDERS[network] ?? null;
 }
-
-/** The first network with a live gaming provider, the target of the mainnet "switch" button. */
-export function gamingNetwork(): NetworkId | null {
-  return (Object.keys(PROVIDERS) as NetworkId[]).find((n) => gamingProviderFor(n)) ?? null;
-}
