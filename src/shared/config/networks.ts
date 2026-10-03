@@ -33,8 +33,7 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     id: "mainnet",
     label: "Mainnet",
     addressPrefix: "xch",
-    // nodexch is the default; Coinset stays selectable in settings.
-    rpcUrl: "https://api.nodexch.space",
+    rpcUrl: "https://api.coinset.org",
     indexedUrl: "https://api.coinset.org",
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],

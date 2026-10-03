@@ -14,7 +14,9 @@ function fakeFetch(answer: (url: string) => Response | Promise<Response> | "thro
     if (a === "throw") return Promise.reject(new TypeError("fetch failed"));
     if (a === "hang")
       return new Promise((_, reject) =>
-        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")))
+        init?.signal?.addEventListener("abort", () =>
+          reject(new DOMException("aborted", "AbortError"))
+        )
       );
     return Promise.resolve(a);
   };
