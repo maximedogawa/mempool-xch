@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { NETWORKS } from "@/shared/config/networks";
 import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -94,7 +95,12 @@ describe("nodexch endpoints", () => {
     expect(e.isCoinset).toBe(false);
     expect(e.rpcUrl).toBe("https://api.nodexch.space");
     expect(e.indexedUrl).toBe("https://api.nodexch.space");
-    expect(e.wsUrl).toBe("wss://api.nodexch.space/ws");
+    // The build's own key (NEXT_PUBLIC_NODEXCH_KEY_MAINNET, read from .env when there is one)
+    // rides in the socket URL; without one the URL is bare.
+    const key = NETWORKS.mainnet.nodexchKey;
+    expect(e.wsUrl).toBe(
+      key ? `wss://api.nodexch.space/ws?key=${key}` : "wss://api.nodexch.space/ws"
+    );
   });
 
   test("a self-hosted gateway is nodexch when marked, and its key rides in the socket URL", () => {

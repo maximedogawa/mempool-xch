@@ -22,6 +22,7 @@ import { addRecentBlock, type RecentBlocksResult } from "@/shared/lib/blocks/rec
 import { applyMempoolDelta } from "@/shared/lib/mempool/delta";
 import type { MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
 import { feeEstimateFromQuote } from "@/shared/lib/nodexch/dashboard";
+import { isRpcError } from "@/shared/lib/rpc/errors";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 import { useSettings } from "./SettingsProvider";
 
@@ -140,6 +141,28 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     void queryClient.invalidateQueries(
       first ? { predicate: (query) => query.state.fetchStatus !== "fetching" } : undefined
     );
+    // A query without `enabled: hydrated` was in flight too, but from the hydration render: its
+    // request was refused, and the line above left it alone. It ends as that refusal a moment
+    // later: ask it again then, with the real endpoint (which cannot be refused the same way).
+    const refused = first
+      ? queryClient.getQueryCache().subscribe((event) => {
+          const { status, error } = event.query.state;
+          if (
+            event.type === "updated" &&
+            status === "error" &&
+            isRpcError(error) &&
+            error.kind === "aborted" &&
+            error.method === "hydration"
+          ) {
+            const queryKey = event.query.queryKey;
+            window.setTimeout(
+              () => void queryClient.invalidateQueries({ queryKey, exact: true }),
+              0
+            );
+          }
+        })
+      : null;
+    const stopRefused = refused ? window.setTimeout(refused, 10_000) : null;
     // Network or endpoint changed: forget everything learnt from the previous one so widgets
     // that key on the peak (recent blocks, confirmations) wait for the new chain's first poll.
     peakRef.current = null;
@@ -374,6 +397,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       stream.stop();
       invalidateChain.cancel();
       invalidateMempool.cancel();
+      refused?.();
+      if (stopRefused !== null) window.clearTimeout(stopRefused);
     };
   }, [client, endpoints.wsUrl, hydrated, metered, network, queryClient, store]);
 

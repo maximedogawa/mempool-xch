@@ -123,6 +123,9 @@ async function post(
     text = await response.text();
   } catch (error) {
     if (signal?.aborted) throw new RpcError("aborted", method, "aborted");
+    // A refusal of the fetch itself (the settings are not read yet) is what it says it is, not
+    // a network failure to retry.
+    if (error instanceof RpcError) throw error;
     throw new RpcError("network", method, `Network error calling ${method}`, { detail: error });
   } finally {
     clearTimeout(timer);
@@ -186,6 +189,7 @@ export function createRpcClient(options: RpcClientOptions) {
         text = await response.text();
       } catch (error) {
         if (signal?.aborted) throw new RpcError("aborted", path, "aborted");
+        if (error instanceof RpcError) throw error;
         throw new RpcError("network", path, `Network error calling ${path}`, { detail: error });
       }
       if (!response.ok) throw httpError(response, path, text);
