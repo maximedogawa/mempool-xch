@@ -3,8 +3,10 @@
  * reconnect and a polling fallback on get_blockchain_state for endpoints without a stream.
  * Emits one normalised event type so the UI does not care where updates come from.
  */
+import type { BlockAssetTotals } from "@/shared/lib/blocks/assetTotals";
 import { compactAllFromGateway } from "@/shared/lib/mempool/gatewayItem";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
+import { blockTotalsFromFrame, parseFeeQuote, type FeeQuote } from "@/shared/lib/nodexch/dashboard";
 import { parseJsonSafe } from "@/shared/lib/rpc/json";
 import { normaliseBlockRecord } from "@/shared/lib/rpc/normalise";
 import type { BlockRecord } from "@/shared/lib/rpc/types";
@@ -48,8 +50,13 @@ export type LiveEvent =
    * gateway, or an item its budget left unfetched): the mempool then has to be read again.
    */
   | { type: "mempoolDelta"; added: CompactMempoolItem[] | null; removed: string[] }
-  /** A new block with its full record (a nodexch `block` frame that carries one, TASK-148). */
-  | { type: "block"; record: BlockRecord }
+  /**
+   * A new block with its full record (a nodexch `block` frame that carries one, TASK-148) and,
+   * for a transaction block the gateway's loop read, its asset totals (TASK-150).
+   */
+  | { type: "block"; record: BlockRecord; totals: BlockAssetTotals | null }
+  /** The gateway's fee estimate after a transaction block changed it (nodexch `fees` frame, TASK-153). */
+  | { type: "fees"; quote: FeeQuote }
   /** Coinset's periodic netspace estimate (dashboard event, kind "netspace"). */
   | { type: "netspace"; bytes: bigint; difficulty: number }
   /** A Chia Vault recovery step seen by Coinset (events=vault). */
@@ -219,7 +226,13 @@ export function parseCoinsetMessage(raw: string): LiveEvent | null {
   if (message.type === "dashboard" && data.kind === "block") {
     if (!data.record || typeof data.record !== "object") return null;
     const record = normaliseBlockRecord(data.record);
-    return Number.isFinite(record.height) && record.headerHash ? { type: "block", record } : null;
+    return Number.isFinite(record.height) && record.headerHash
+      ? { type: "block", record, totals: blockTotalsFromFrame(data) }
+      : null;
+  }
+  if (message.type === "dashboard" && data.kind === "fees") {
+    const quote = parseFeeQuote(data);
+    return quote ? { type: "fees", quote } : null;
   }
   if (message.type === "dashboard" && data.kind === "netspace") {
     // bytes arrives as a decimal string well beyond 2^53; keep it exact.

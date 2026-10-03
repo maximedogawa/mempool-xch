@@ -17,6 +17,7 @@ const coinsetRead = createReadGate();
 const nodexchRead = createPacedGate();
 import { compactAllFromGateway } from "@/shared/lib/mempool/gatewayItem";
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
+import { parseDashboard, type GatewayDashboard } from "@/shared/lib/nodexch/dashboard";
 import { parseJsonSafe, stringifyJsonSafe } from "./json";
 import {
   normaliseBlockRecord,
@@ -449,6 +450,22 @@ export function createRpcClient(options: RpcClientOptions) {
       try {
         const r = await channel("/x/node/v1/mempool/items", signal);
         return Array.isArray(r.items) ? compactAllFromGateway(r.items) : null;
+      } catch (error) {
+        if (error instanceof RpcError && error.kind === "http" && error.status === 404) return null;
+        throw error;
+      }
+    },
+
+    /**
+     * An explorer's first load in one request from a nodexch gateway's loop
+     * (`/x/node/v1/dashboard`, nodexch TASK-152): the state, the fee quote, the recent blocks
+     * with their records and asset totals, the mempool items. Null when this is no nodexch
+     * gateway or the gateway is older than the route (404).
+     */
+    async getDashboard(signal?: AbortSignal): Promise<GatewayDashboard | null> {
+      if (!options.nodexch) return null;
+      try {
+        return parseDashboard(await channel("/x/node/v1/dashboard", signal));
       } catch (error) {
         if (error instanceof RpcError && error.kind === "http" && error.status === 404) return null;
         throw error;

@@ -7,6 +7,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     hint: "Chia 手续费按 CLVM 成本支付，而不是按字节。估算基于成本为 {cost} 的参考花费（一次典型的单笔 XCH 转账）。将每单位成本的 mojo 费率乘以您的花费成本即可得到手续费。",
     targets: {
       nextBlock: "下一个区块",
+      threeMinutes: "约 3 分钟",
       fiveMinutes: "约 5 分钟",
       tenMinutes: "约 10 分钟",
     },

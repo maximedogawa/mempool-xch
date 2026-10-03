@@ -11,6 +11,8 @@ import { loadCachedTotals, saveCachedTotals } from "@/shared/lib/blocks/totalsCa
 import { queryKeys } from "@/shared/api/queryKeys";
 import { isHex, stripHexPrefix } from "@/shared/lib/chia/hex";
 import type { BlockRecord, FullBlockSummary, TxSummary, TxList } from "@/shared/lib/rpc/types";
+import type { RpcClient } from "@/shared/lib/rpc/client";
+import type { NetworkId } from "@/shared/config/networks";
 import { createLimiter } from "@/shared/lib/limit";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 
@@ -158,25 +160,43 @@ function browserStorage(): Storage | null {
   }
 }
 
-/** Per-asset totals of one block: Coinset summaries (up to 4 pages of 50) or the block's spends. */
+/**
+ * Where a block's totals come from: a nodexch gateway's loop sums them itself (TASK-150) and
+ * the dashboard call and the block frames seed them (src/shared/api/hooks.ts); Coinset's
+ * summaries otherwise, or the block's spends on a bare node.
+ */
+function totalsSource(client: RpcClient): BlockAssetTotals["source"] {
+  return client.metered ? "gateway" : client.hasIndexed ? "coinset" : "rpc";
+}
+
+/**
+ * The cached totals for `source`. A gateway's block that its loop did not read (a lean budget
+ * with no room) falls back to Coinset's summaries through the gateway, so a cached one of those
+ * counts too.
+ */
+function cachedTotals(
+  network: NetworkId,
+  hash: string,
+  source: BlockAssetTotals["source"]
+): BlockAssetTotals | null {
+  const own = loadCachedTotals(browserStorage(), network, hash, source);
+  if (own || source !== "gateway") return own;
+  return loadCachedTotals(browserStorage(), network, hash, "coinset");
+}
+
+/** Per-asset totals of one block: the gateway's, Coinset summaries (up to 4 pages of 50) or the block's spends. */
 export function useBlockAssetTotals(height: number | null, hash: string | null, enabled: boolean) {
   const { client, endpoints } = useSettings();
+  const source = totalsSource(client);
   return useQuery({
-    queryKey: [
-      ...queryKeys.blockRoot(endpoints.network),
-      "assetTotals",
-      height ?? -1,
-      hash,
-      client.hasIndexed ? "coinset" : "rpc",
-      "detail",
-    ],
+    queryKey: queryKeys.blockTotals(endpoints.network, height ?? -1, hash ?? "", source, "detail"),
     enabled: enabled && height !== null && hash !== null,
     staleTime: Infinity,
     queryFn: async ({ signal }): Promise<BlockAssetTotals> => {
-      const source = client.hasIndexed ? "coinset" : "rpc";
       const block = { height: height!, hash: hash! };
-      // A first-page total from the cubes is not good enough for the block page.
-      const cached = loadCachedTotals(browserStorage(), endpoints.network, block.hash, source);
+      // A first-page total from the cubes is not good enough for the block page; the gateway's
+      // totals cover the whole block.
+      const cached = cachedTotals(endpoints.network, block.hash, source);
       if (cached && !cached.partial) return cached;
       const keep = (totals: BlockAssetTotals) => {
         saveCachedTotals(browserStorage(), endpoints.network, block, totals);
@@ -209,29 +229,16 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
 export function useBlocksAssetTotals(blocks: { height: number; hash: string }[]) {
   const { client, endpoints } = useSettings();
   const ready = useAfterFirstPaint();
+  const source = totalsSource(client);
   return useQueries({
     queries: blocks.map((b) => ({
-      queryKey: [
-        ...queryKeys.blockRoot(endpoints.network),
-        "assetTotals",
-        b.height,
-        b.hash,
-        client.hasIndexed ? "coinset" : "rpc",
-        "preview",
-      ],
+      queryKey: queryKeys.blockTotals(endpoints.network, b.height, b.hash, source, "preview"),
       enabled: ready,
       staleTime: Infinity,
       // Totals this browser already has show at once; only missing ones wait for the fetch.
-      initialData: () =>
-        loadCachedTotals(
-          browserStorage(),
-          endpoints.network,
-          b.hash,
-          client.hasIndexed ? "coinset" : "rpc"
-        ) ?? undefined,
+      initialData: () => cachedTotals(endpoints.network, b.hash, source) ?? undefined,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
-        const source = client.hasIndexed ? "coinset" : "rpc";
-        const cached = loadCachedTotals(browserStorage(), endpoints.network, b.hash, source);
+        const cached = cachedTotals(endpoints.network, b.hash, source);
         if (cached) return cached;
         const keep = (totals: BlockAssetTotals) => {
           saveCachedTotals(browserStorage(), endpoints.network, b, totals);

@@ -266,6 +266,45 @@ describe("parseCoinsetMessage: reorg and netspace", () => {
     // Without the record (an older gateway) the frame is not a block event.
     expect(parseCoinsetMessage(frame.replace(/,"record":\{[^}]*\}/, ""))).toBeNull();
   });
+  test("a nodexch block frame carries the transaction block's asset totals when the loop read them", () => {
+    const frame =
+      '{"message":{"type":"dashboard","data":{"kind":"block","height":7,"header_hash":"0xab","timestamp":1790480000,"fees":5,"additions":1,"removals":1,"record":{"height":7,"header_hash":"0xAB","prev_hash":"0xaa","weight":1,"total_iters":1,"timestamp":1790480000,"fees":5,"farmer_puzzle_hash":"0x01","pool_puzzle_hash":"0x02"},"spends":17,"assets":{"xch":"12209542198803","cats":[{"asset_id":"0xCC","amount":"3938"}],"nfts":1,"dids":0,"singletons":2}}}}';
+    const parsed = parseCoinsetMessage(frame);
+    if (parsed?.type !== "block") throw new Error("not a block");
+    expect(parsed.totals).toEqual({
+      xch: "12209542198803",
+      cats: [{ assetId: "cc", amount: "3938" }],
+      nfts: 1,
+      dids: 0,
+      singletons: 2,
+      source: "gateway",
+      count: 17,
+      partial: false,
+    });
+    // A block the loop did not read, or a non-transaction block: no totals, still a block.
+    const bare = parseCoinsetMessage(frame.replace(/,"spends":17,"assets":\{.*\}\}\}\}$/, "}}}"));
+    if (bare?.type !== "block") throw new Error("not a block");
+    expect(bare.totals).toBeNull();
+  });
+  test("a nodexch fees frame is the gateway's quote; one without targets is nothing", () => {
+    const parsed = parseCoinsetMessage(
+      '{"message":{"type":"dashboard","data":{"kind":"fees","estimates":[{"blocks":1,"fee_per_cost":3.0,"fee_for_typical_cost":15000000},{"blocks":3,"fee_per_cost":1.0,"fee_for_typical_cost":5000000},{"blocks":10,"fee_per_cost":0.0,"fee_for_typical_cost":0}],"min_fee_per_cost":0.0,"min_fee_for_typical_cost":0}}}'
+    );
+    expect(parsed).toEqual({
+      type: "fees",
+      quote: {
+        targets: [
+          { blocks: 1, feePerCost: 3 },
+          { blocks: 3, feePerCost: 1 },
+          { blocks: 10, feePerCost: 0 },
+        ],
+        minFeePerCost: 0,
+      },
+    });
+    expect(
+      parseCoinsetMessage('{"message":{"type":"dashboard","data":{"kind":"fees","estimates":[]}}}')
+    ).toBeNull();
+  });
   test("a nodexch peak frame also carries the header hash and the block's time", () => {
     expect(
       parseCoinsetMessage(

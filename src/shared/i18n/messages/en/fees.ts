@@ -7,6 +7,7 @@ const messages = {
     hint: "Chia fees are paid per CLVM cost, not per byte. Estimates are for a reference spend of {cost} cost (a typical single XCH send). Multiply the mojo-per-cost rate by your spend's cost for the fee.",
     targets: {
       nextBlock: "Next block",
+      threeMinutes: "~3 minutes",
       fiveMinutes: "~5 minutes",
       tenMinutes: "~10 minutes",
     },

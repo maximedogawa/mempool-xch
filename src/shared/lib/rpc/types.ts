@@ -102,10 +102,15 @@ export interface FeeEstimate {
   targetTimes: number[];
   /** Mojos per target, aligned with targetTimes, for the requested cost. */
   estimates: Mojos[];
-  currentFeeRate: number;
-  feeRateLastBlock: number;
-  feesLastBlock: Mojos;
-  lastBlockCost: number;
+  /**
+   * The node's own figures for its current rate and the last transaction block, from
+   * `get_fee_estimate`; null when the estimate came as a nodexch gateway's quote, which does
+   * not carry them.
+   */
+  currentFeeRate: number | null;
+  feeRateLastBlock: number | null;
+  feesLastBlock: Mojos | null;
+  lastBlockCost: number | null;
   lastTxBlockHeight: number;
   peakHeight: number;
   /** Total CLVM cost in the mempool (the RPC field is named mempool_size but holds cost). */
@@ -113,7 +118,7 @@ export interface FeeEstimate {
   /** Mempool capacity in cost. */
   mempoolMaxCost: number;
   mempoolFees: Mojos;
-  numSpends: number;
+  numSpends: number | null;
   nodeTimeUtc: number;
   synced: boolean;
 }

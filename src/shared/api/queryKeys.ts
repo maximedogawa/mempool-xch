@@ -14,6 +14,14 @@ export const queryKeys = {
   /** The block record alone, by height or header hash (the block page paints on it). */
   blockRecord: (network: NetworkId, id: string) =>
     ["chain", network, "block", id, "record"] as const,
+  /** A block's asset totals from one `source`: a `preview` (first page) or the whole block. */
+  blockTotals: (
+    network: NetworkId,
+    height: number,
+    hash: string,
+    source: string,
+    part: "preview" | "detail"
+  ) => ["chain", network, "block", "assetTotals", height, hash, source, part] as const,
   blockTxs: (network: NetworkId, height: number, cursor: string | null) =>
     ["chain", network, "blockTxs", height, cursor] as const,
   blockSpends: (network: NetworkId, hash: string) =>

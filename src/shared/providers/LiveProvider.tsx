@@ -16,10 +16,12 @@ import {
   type LiveStatus,
   type LiveTransport,
 } from "@/shared/lib/live/stream";
+import { fetchBlockchainState, seedBlockTotals } from "@/shared/api/gateway";
 import { queryKeys } from "@/shared/api/queryKeys";
 import { addRecentBlock, type RecentBlocksResult } from "@/shared/lib/blocks/recent";
 import { applyMempoolDelta } from "@/shared/lib/mempool/delta";
 import type { MempoolStateSummary, MempoolSummary } from "@/shared/lib/mempool/types";
+import { feeEstimateFromQuote } from "@/shared/lib/nodexch/dashboard";
 import type { BlockchainState } from "@/shared/lib/rpc/types";
 import { useSettings } from "./SettingsProvider";
 
@@ -155,10 +157,12 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     let statePushed = false;
     // The socket pushes each new block's record: the recent window takes them as they come.
     let blocksPushed = false;
+    // The socket pushes the gateway's fee quote when it changes: the fee cards follow it.
+    let feesPushed = false;
     const recentKey = [...queryKeys.chainRoot(network), "recent"] as const;
     const invalidateChain = throttled(() => {
       if (!statePushed) void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
+      if (!feesPushed) void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
       if (!blocksPushed) void queryClient.invalidateQueries({ queryKey: recentKey });
     }, 1_000);
     const invalidateMempool = throttled(
@@ -183,7 +187,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
         // (on its own signal: stopping the stream must not fail the shared query).
         const state = await queryClient.fetchQuery({
           queryKey: queryKeys.state(network),
-          queryFn: ({ signal: stateSignal }) => client.getBlockchainState(stateSignal),
+          queryFn: ({ signal: stateSignal }) => fetchBlockchainState(client, stateSignal),
           staleTime: 0,
         });
         signal.throwIfAborted();
@@ -204,6 +208,10 @@ export function LiveProvider({ children }: { children: ReactNode }) {
             // Frames were missed while the socket was away: ask for the state again.
             statePushed = false;
             void queryClient.invalidateQueries({ queryKey: queryKeys.state(network) });
+          }
+          if (event.status !== "live" && feesPushed) {
+            feesPushed = false;
+            void queryClient.invalidateQueries({ queryKey: queryKeys.fee(network) });
           }
           if (event.status !== "live" && deltaFed) {
             // Deltas were missed while the socket was away: read the mempool again.
@@ -280,11 +288,30 @@ export function LiveProvider({ children }: { children: ReactNode }) {
         } else if (event.type === "block") {
           blocksPushed = true;
           store.set({ lastEventAt });
+          if (event.totals)
+            seedBlockTotals(queryClient, network, [
+              { height: event.record.height, hash: event.record.headerHash, totals: event.totals },
+            ]);
           for (const query of queryClient.getQueryCache().findAll({ queryKey: recentKey })) {
             const prev = query.state.data as RecentBlocksResult | undefined;
             const count = Number(query.queryKey[3]);
             if (!prev || !Number.isFinite(count)) continue;
             queryClient.setQueryData(query.queryKey, addRecentBlock(prev, event.record, count));
+          }
+        } else if (event.type === "fees") {
+          feesPushed = true;
+          store.set({ lastEventAt });
+          const state = queryClient.getQueryData<BlockchainState>(queryKeys.state(network)) ?? null;
+          // The dashboard's fee queries (key: cost); the fees page's own targets keep their call.
+          for (const query of queryClient
+            .getQueryCache()
+            .findAll({ queryKey: queryKeys.fee(network) })) {
+            const cost = query.queryKey[3];
+            if (query.queryKey.length !== 4 || typeof cost !== "number") continue;
+            queryClient.setQueryData(
+              query.queryKey,
+              feeEstimateFromQuote(event.quote, cost, state)
+            );
           }
         } else if (event.type === "mempoolDelta") {
           store.set({ lastEventAt });

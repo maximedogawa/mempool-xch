@@ -35,22 +35,22 @@ test.describe("nodexch request footprint", () => {
     const counts = countByMethod(seen.requests);
     console.log(`nodexch requests in ${SETTLE_MS / 1000} s:`, seen.requests.length, counts);
 
-    // One call per kind of data, the mempool included: the gateway hands every pending
-    // transaction over at once and its socket says what changes. The exceptions: one
-    // get_block_transactions per recent block whose totals are not in localStorage yet (six
-    // in the mock), and get_reorgs twice on a first visit (the block time card, and the index
-    // probe, which is then remembered for an hour).
-    const once = [
+    // The load is one call: the gateway's dashboard answers the state, the fee quote, the
+    // recent blocks with their records and asset totals and the mempool items at once, and its
+    // socket says what changes. The exception: get_reorgs twice on a first visit (the block time
+    // card, and the index probe, which is then remembered for an hour).
+    expect(counts["x/node/v1/dashboard"] ?? 0, "the dashboard is asked once").toBe(1);
+    for (const method of [
       "get_blockchain_state",
       "get_fee_estimate",
       "get_block_records",
+      "get_block_transactions",
       "x/node/v1/mempool/items",
-    ];
-    for (const method of once)
-      expect(counts[method] ?? 0, `${method} is asked once`).toBeLessThanOrEqual(1);
-    for (const method of ["get_all_mempool_tx_ids", "get_mempool_item_by_tx_id"])
+      "get_all_mempool_tx_ids",
+      "get_mempool_item_by_tx_id",
+    ])
       expect(counts[method] ?? 0, `${method} is not needed`).toBe(0);
     expect(counts.get_reorgs ?? 0).toBeLessThanOrEqual(2);
-    expect(seen.requests.length, JSON.stringify(counts)).toBeLessThanOrEqual(12);
+    expect(seen.requests.length, JSON.stringify(counts)).toBeLessThanOrEqual(3);
   });
 });

@@ -26,7 +26,7 @@ function isTotals(v: unknown): v is BlockAssetTotals {
     typeof t.nfts === "number" &&
     typeof t.dids === "number" &&
     typeof t.singletons === "number" &&
-    (t.source === "coinset" || t.source === "rpc") &&
+    (t.source === "coinset" || t.source === "rpc" || t.source === "gateway") &&
     typeof t.count === "number" &&
     typeof t.partial === "boolean"
   );
@@ -60,8 +60,9 @@ export function saveCachedTotals(
   block: { height: number; hash: string },
   totals: BlockAssetTotals
 ): void {
-  // An empty total may just be the indexer lagging behind a fresh block: never pin it.
-  if (totals.count === 0) return;
+  // An empty total may just be the indexer lagging behind a fresh block: never pin it. The
+  // gateway's loop read the block itself: its empty total is the block's.
+  if (totals.count === 0 && totals.source !== "gateway") return;
   const key = `${TOTALS_CACHE_KEY_PREFIX}${network}`;
   try {
     const cache = readCache(storage, network);

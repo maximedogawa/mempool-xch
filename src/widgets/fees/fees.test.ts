@@ -27,7 +27,7 @@ describe("fee figures", () => {
       expect(rateA).toBeCloseTo(rateB, 6);
     });
     // The 1-minute estimate equals the estimator's current rate (time offset 1 s vs 60 s here agree).
-    expect(Number(a.estimates[0]) / 6_000_000).toBeCloseTo(a.currentFeeRate, 6);
+    expect(Number(a.estimates[0]) / 6_000_000).toBeCloseTo(a.currentFeeRate ?? NaN, 6);
     // What the fee cards display for the reference cost.
     expect(Number(a.estimates[0]) / CHIA.REFERENCE_SPEND_COST).toBeCloseTo(0.3737, 3);
   });

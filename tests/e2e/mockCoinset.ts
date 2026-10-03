@@ -756,6 +756,30 @@ export async function mockCustomNode(page: Page) {
   );
 }
 
+/** The fixture's pending transactions as a gateway gives them: compact, details included. */
+function gatewayMempoolItems() {
+  return Object.values(mempoolItems.mempool_items).map((item) => ({
+    id: item.spend_bundle_name,
+    first_seen_ms: NOW - 60_000,
+    fee_mojos: item.fee,
+    cost: item.cost,
+    spends: item.spend_bundle.coin_spends.length,
+    additions: item.additions.slice(0, 6),
+    removals: item.removals.slice(0, 6),
+    addition_count: item.additions.length,
+    removal_count: item.removals.length,
+    kind: "xch",
+    asset_ids: [],
+    assets: {
+      xch: String(item.removals.reduce((sum, coin) => sum + coin.amount, 0)),
+      cats: [],
+      nfts: 0,
+      dids: 0,
+      singletons: 0,
+    },
+  }));
+}
+
 export const NODEXCH_URL = "https://api.nodexch.space";
 export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
 
@@ -812,27 +836,59 @@ export async function mockNodexch(page: Page) {
       url: route.request().url(),
       authorization: route.request().headers().authorization ?? null,
     });
-    const items = Object.values(mempoolItems.mempool_items).map((item) => ({
-      id: item.spend_bundle_name,
-      first_seen_ms: NOW - 60_000,
-      fee_mojos: item.fee,
-      cost: item.cost,
-      spends: item.spend_bundle.coin_spends.length,
-      additions: item.additions.slice(0, 6),
-      removals: item.removals.slice(0, 6),
-      addition_count: item.additions.length,
-      removal_count: item.removals.length,
-      kind: "xch",
-      asset_ids: [],
-      assets: {
-        xch: String(item.removals.reduce((sum, coin) => sum + coin.amount, 0)),
-        cats: [],
-        nfts: 0,
-        dids: 0,
-        singletons: 0,
-      },
-    }));
+    const items = gatewayMempoolItems();
     return json(route, { size: items.length, items, success: true });
+  });
+  // An explorer's first load in one call (TASK-152): the state, the gateway's fee quote, the
+  // recent blocks with the node's records and the totals of the transaction blocks among them,
+  // and the mempool items. The fixture's dozen records are padded with eight older transaction
+  // blocks, as the gateway's memory of 32 blocks holds more than the row shows.
+  await page.route(/https:\/\/api\.nodexch\.space\/x\/node\/v1\/dashboard$/, (route) => {
+    seen.requests.push({
+      url: route.request().url(),
+      authorization: route.request().headers().authorization ?? null,
+    });
+    const items = gatewayMempoolItems();
+    const padded = Array.from({ length: 8 }, (_, i) => {
+      const height = blockRecords.block_records[0]!.height - 1 - i;
+      return {
+        ...syntheticBlockRecord(height, NAMED_POOL_PUZZLE_HASH),
+        timestamp: 1789478000 - i * 52,
+        fees: 0,
+      };
+    });
+    const blocks = [...blockRecords.block_records, ...padded]
+      .sort((a, b) => b.height - a.height)
+      .map((record) => ({
+        height: record.height,
+        header_hash: record.header_hash,
+        timestamp: record.timestamp,
+        fees: record.fees,
+        additions: record.timestamp === null ? 0 : 3,
+        removals: record.timestamp === null ? 0 : 2,
+        record,
+        ...(record.timestamp === null
+          ? {}
+          : {
+              spends: 2,
+              assets: { xch: "1500000000000", cats: [], nfts: 0, dids: 0, singletons: 0 },
+            }),
+      }));
+    return json(route, {
+      blockchain_state: blockchainState.blockchain_state,
+      fees: {
+        estimates: [
+          { blocks: 1, fee_per_cost: 0.062281, fee_for_typical_cost: 311405 },
+          { blocks: 3, fee_per_cost: 0.000286, fee_for_typical_cost: 1430 },
+          { blocks: 10, fee_per_cost: 0.000036, fee_for_typical_cost: 180 },
+        ],
+        min_fee_per_cost: 0,
+        min_fee_for_typical_cost: 0,
+      },
+      blocks,
+      mempool: { size: items.length, items },
+      success: true,
+    });
   });
   await page.route(/https:\/\/api\.nodexch\.space\/(?!x\/)[a-z_]+$/, (route) => {
     seen.requests.push({
