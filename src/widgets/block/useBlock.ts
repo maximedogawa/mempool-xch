@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import {
   assetTotalsFromSpends,
   assetTotalsFromSummaries,
@@ -123,6 +124,31 @@ const TOTALS_PAGES = 4;
 
 /** At most this many per-block indexed calls in flight per tab (recent cubes + blocks list). */
 const blockTotalsLimit = createLimiter(3);
+/**
+ * A block's spends carry every puzzle reveal (megabytes for a full block): one at a time, so
+ * that they never take the connection slots the page's own data needs.
+ */
+const blockSpendsLimit = createLimiter(1);
+
+/**
+ * The cubes' totals are decoration: they wait until the page around them has loaded (the
+ * browser is idle, or this long at most) instead of competing with it for the first paint.
+ */
+const TOTALS_DEFER_MS = 2_500;
+
+function useAfterFirstPaint(): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const done = () => setReady(true);
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(done, { timeout: TOTALS_DEFER_MS });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(done, TOTALS_DEFER_MS);
+    return () => window.clearTimeout(id);
+  }, []);
+  return ready;
+}
 
 function browserStorage(): Storage | null {
   try {
@@ -172,7 +198,9 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
         }
         return keep(assetTotalsFromSummaries(txs, partial));
       }
-      return keep(assetTotalsFromSpends(await client.getBlockSpends(hash!, signal)));
+      return keep(
+        assetTotalsFromSpends(await blockSpendsLimit(() => client.getBlockSpends(hash!, signal)))
+      );
     },
   });
 }
@@ -180,6 +208,7 @@ export function useBlockAssetTotals(height: number | null, hash: string | null, 
 /** Totals for several blocks at once (recent-block cubes, blocks list); first page of each only. */
 export function useBlocksAssetTotals(blocks: { height: number; hash: string }[]) {
   const { client, endpoints } = useSettings();
+  const ready = useAfterFirstPaint();
   return useQueries({
     queries: blocks.map((b) => ({
       queryKey: [
@@ -190,7 +219,16 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
         client.hasIndexed ? "coinset" : "rpc",
         "preview",
       ],
+      enabled: ready,
       staleTime: Infinity,
+      // Totals this browser already has show at once; only missing ones wait for the fetch.
+      initialData: () =>
+        loadCachedTotals(
+          browserStorage(),
+          endpoints.network,
+          b.hash,
+          client.hasIndexed ? "coinset" : "rpc"
+        ) ?? undefined,
       queryFn: async ({ signal }: { signal?: AbortSignal }): Promise<BlockAssetTotals> => {
         const source = client.hasIndexed ? "coinset" : "rpc";
         const cached = loadCachedTotals(browserStorage(), endpoints.network, b.hash, source);
@@ -205,7 +243,9 @@ export function useBlocksAssetTotals(blocks: { height: number; hash: string }[])
           );
           return keep(assetTotalsFromSummaries(list.transactions, list.nextCursor !== null));
         }
-        return keep(assetTotalsFromSpends(await client.getBlockSpends(b.hash, signal)));
+        return keep(
+          assetTotalsFromSpends(await blockSpendsLimit(() => client.getBlockSpends(b.hash, signal)))
+        );
       },
     })),
   });
