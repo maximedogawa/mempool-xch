@@ -5,7 +5,9 @@
  */
 import {
   NETWORKS,
-  NODEXCH_AUTO_FALLBACK,
+  fallbackEndpointUrl,
+  isCoinsetUrl,
+  needsNodexchKey,
   NETWORK_IDS,
   defaultEndpointUrl,
   isNodexchUrl,
@@ -95,9 +97,9 @@ export interface ResolvedEndpoints {
   /** The publishable key sent to a nodexch gateway; null otherwise. */
   apiKey: string | null;
   /**
-   * Where reads go when this endpoint fails: Coinset for the hosted nodexch gateway when the
-   * build turns the automatic fallback on (NODEXCH_AUTO_FALLBACK), nothing otherwise and nothing
-   * for an endpoint the visitor chose (a local node, their own gateway, Coinset itself).
+   * Where reads go when this endpoint fails: the fallback the server names for the site's main
+   * API (API_FALLBACK_URL_MAINNET, fallbackEndpointUrl), nothing without one and nothing for an
+   * endpoint the visitor chose instead (a local node, their own gateway).
    */
   fallback: ResolvedEndpoints | null;
 }
@@ -116,6 +118,24 @@ export function coinsetEndpoints(network: NetworkId): ResolvedEndpoints {
   };
 }
 
+/**
+ * The fallback of the hosted gateway: Coinset by its host, with its indexed API and WebSocket;
+ * any other URL is a plain full-node RPC, as a custom node is.
+ */
+export function fallbackEndpoints(network: NetworkId, url: string): ResolvedEndpoints {
+  if (isCoinsetUrl(network, url)) return coinsetEndpoints(network);
+  return {
+    network,
+    rpcUrl: url.replace(/\/$/, ""),
+    indexedUrl: null,
+    wsUrl: null,
+    provider: "custom",
+    isCoinset: false,
+    apiKey: null,
+    fallback: null,
+  };
+}
+
 /** A nodexch gateway's WebSocket: its own host, `/ws`, the key in the query (publishable keys only). */
 export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
   const url = new URL(`${rpcUrl.replace(/\/$/, "")}/ws`);
@@ -127,17 +147,26 @@ export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
 export function resolveEndpoints(
   settings: Settings,
   network: NetworkId = settings.network,
-  { autoFallback = NODEXCH_AUTO_FALLBACK }: { autoFallback?: boolean } = {}
+  { fallbackUrl = fallbackEndpointUrl(network) }: { fallbackUrl?: string | null } = {}
 ): ResolvedEndpoints {
   const endpoint = settings.endpoints[network];
   const rpcUrl = (endpoint?.rpcUrl?.trim() || defaultEndpointUrl(network)).replace(/\/$/, "");
   const provider = providerOf(network, rpcUrl, endpoint?.provider);
+  // Only the site's main API falls back (the hosted gateway, or the default the site starts on),
+  // never an endpoint the visitor chose instead.
+  const isMain =
+    isNodexchUrl(network, rpcUrl) || rpcUrl === defaultEndpointUrl(network).replace(/\/$/, "");
+  const fallback =
+    fallbackUrl && isMain && fallbackUrl.replace(/\/$/, "") !== rpcUrl
+      ? fallbackEndpoints(network, fallbackUrl)
+      : null;
   if (provider === "nodexch") {
     // The site's own key for the hosted gateway, the user's for theirs.
     const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
-    // The hosted gateway refuses every request without a key (401). Settings may still name it
-    // (stored while the site had its key, or picked without one): Coinset answers then.
-    if (!apiKey && isNodexchUrl(network, rpcUrl)) return coinsetEndpoints(network);
+    // nodexch.space refuses every request without a key (401). Settings may still name it
+    // (stored while the site had its key, or picked without one): the fallback or Coinset
+    // answers then.
+    if (!apiKey && needsNodexchKey(rpcUrl)) return fallback ?? coinsetEndpoints(network);
     return {
       network,
       rpcUrl,
@@ -146,7 +175,7 @@ export function resolveEndpoints(
       provider,
       isCoinset: false,
       apiKey,
-      fallback: autoFallback && isNodexchUrl(network, rpcUrl) ? coinsetEndpoints(network) : null,
+      fallback,
     };
   }
   const isCoinset = provider === "coinset";
@@ -158,7 +187,7 @@ export function resolveEndpoints(
     provider,
     isCoinset,
     apiKey: null,
-    fallback: null,
+    fallback,
   };
 }
 

@@ -43,7 +43,6 @@ release and on `workflow_dispatch`. Build args:
 | `NEXT_PUBLIC_COMMIT_SHA`             | Shown in the footer                                                              |
 | `NEXT_PUBLIC_APP_URL`                | Public origin, used for the Sage install URL and the summary API in the snapshot |
 | `NEXT_PUBLIC_FEATURE_GAMING_TESTNET` | `0` hides the nokitlan testnet gaming on `/gaming`; unset = on everywhere        |
-| `NEXT_PUBLIC_NODEXCH_AUTO_FALLBACK`  | `1`: a failing nodexch.space is answered by Coinset and Dexie; unset = off       |
 
 ## Runtime settings
 
@@ -53,10 +52,17 @@ serves any deployment and a changed value needs no rebuild.
 
 | Variable                    | Purpose                                                                                                                                                                                                                 |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `API_URL_MAINNET`           | The main API a mainnet visitor's reads start on: a nodexch gateway or Coinset (`https://…`). Empty: `https://api.nodexch.space` when `NODEXCH_KEY_MAINNET` is set, else Coinset.                                        |
+| `API_FALLBACK_URL_MAINNET`  | Where reads go while the main API fails (e.g. `https://api.coinset.org`), called without a key; the app returns to the main API once it answers. Dexie's paths fall back to Dexie too. Empty: no automatic fallback.    |
 | `NODEXCH_KEY_MAINNET`       | The site's publishable nodexch key (`nxp_…`, bound to the site's origin). The server hands it to the browser through `/runtime-config.js`. Without it the site starts on Coinset: the gateway refuses keyless requests. |
 | `NODEXCH_KEY_TESTNET11`     | The same for testnet11; unused while no hosted gateway runs there.                                                                                                                                                      |
 | `MEMPOOL_RPC_URL_<NETWORK>` | Transaction badge (`/api/badge/tx/<id>`): a Coinset-dialect endpoint the server asks; empty means Coinset.                                                                                                              |
 | `MEMPOOL_RPC_KEY_<NETWORK>` | Its key, sent by the server only.                                                                                                                                                                                       |
+
+A visitor who picked another endpoint in Settings keeps it; the fallback only covers the main
+API. A gateway on another host than `api.nodexch.space` is used without a key unless one is set,
+and its token icons only load once its host is added to `TRUSTED_IMAGE_HOSTS`
+(`src/shared/lib/trustedImage.ts`, which also builds the CSP).
 
 Only a publishable key (`nxp_…`) belongs in `NODEXCH_KEY_*`: it reaches every visitor's browser,
 and the server drops anything else. The Sage snapshot is a static export without a server, so it

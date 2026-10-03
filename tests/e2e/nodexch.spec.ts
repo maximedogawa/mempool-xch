@@ -153,6 +153,31 @@ test.describe("provider choice", () => {
     await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
   });
 
+  test("with a fallback named by the server, a failing main API is answered by it", async ({
+    page,
+  }) => {
+    const seen = await mockNodexch(page, { down: true });
+    // What the server answers with API_URL_MAINNET, API_FALLBACK_URL_MAINNET and the key set.
+    await page.route("**/runtime-config.js", (route) =>
+      route.fulfill({
+        contentType: "text/javascript",
+        body: `globalThis.__MEMPOOL_RUNTIME__=${JSON.stringify({
+          nodexchKeys: { mainnet: NODEXCH_KEY },
+          apiUrl: NODEXCH_URL,
+          fallbackUrl: "https://api.coinset.org",
+        })};`,
+      })
+    );
+    await page.addInitScript(() => localStorage.removeItem("mempool-xch:settings:v1"));
+    await page.goto("/");
+    await expect(
+      page.getByRole("list", { name: "Recent transaction blocks" }).getByRole("listitem").first()
+    ).toBeVisible({ timeout: 30_000 });
+    expect(seen.requests.length, "the main API is asked first").toBeGreaterThan(0);
+    expect(seen.coinset.length, "the fallback answers").toBeGreaterThan(0);
+    for (const r of seen.coinset) expect(r.authorization, r.url).toBeNull();
+  });
+
   test("a site without its key starts on Coinset; nodexch.space or an own node can be picked", async ({
     page,
   }) => {

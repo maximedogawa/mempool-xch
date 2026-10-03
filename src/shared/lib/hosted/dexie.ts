@@ -2,7 +2,7 @@
  * Dexie through a nodexch gateway (nodexch TASK-056 and TASK-057 AC 2): the gateway answers the
  * Dexie API paths this app reads (`/v1/assets`, `/v1/offers`, `/v3/prices/tickers`) under `/dexie`
  * in Dexie's own shapes, so a request moves by swapping the origin and adding the nodexch key.
- * With the automatic fallback on (NODEXCH_AUTO_FALLBACK) Dexie itself stays the fallback, per
+ * With a fallback named by the server (fallbackEndpointUrl) Dexie itself stays the fallback, per
  * request: a gateway that fails, times out or refuses is answered by api.dexie.space instead,
  * without the key, and the next request asks nodexch again. Without it the gateway's failure is
  * the answer.
