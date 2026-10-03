@@ -24,6 +24,7 @@ const messages = {
   endpoint: {
     addresses: "({prefix} addresses)",
     coinsetDefault: "Coinset default",
+    nodexchDefault: "nodexch default",
     customNode: "Custom node",
     test: "Test connection",
     save: "Save",

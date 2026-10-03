@@ -184,7 +184,7 @@ export function ApiPage() {
             </li>
             <li>
               <span className="text-fg-muted">{t("base.websocket")}</span>{" "}
-              <span className="mono">{WS_URL}</span>
+              <span className="mono break-all">{WS_URL}</span>
             </li>
           </ul>
           <p className="text-xs text-fg-faint">

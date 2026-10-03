@@ -23,6 +23,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   endpoint: {
     addresses: "（{prefix} 地址）",
     coinsetDefault: "Coinset 默认",
+    nodexchDefault: "nodexch 默认",
     customNode: "自定义节点",
     test: "测试连接",
     save: "保存",

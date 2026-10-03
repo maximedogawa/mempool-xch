@@ -172,14 +172,13 @@ function EndpointRow({ network }: { network: NetworkId }) {
   const config = NETWORKS[network];
   const saved = settings.endpoints[network];
   const value = saved.rpcUrl;
-  // The field follows the saved endpoint until the visitor types: the first render still sees
-  // the defaults (Coinset) before the stored settings are read, so a draft fixed at mount would
-  // show, and test, Coinset instead of the saved custom node (TASK-109).
+  // The fields follow the saved endpoint until the visitor types: the first render still sees
+  // the defaults before the stored settings are read, so a draft fixed at mount would show, and
+  // test, the default instead of the saved custom node (TASK-109).
   const [edited, setEdited] = useState<string | null>(null);
   const draft = edited ?? value;
   const setDraft = setEdited;
-  // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key:
-  // they follow the saved endpoint the same way.
+  // A nodexch gateway on a host the app does not know (self-hosted), and its publishable key.
   const [editedNodexch, setDraftNodexch] = useState<boolean | null>(null);
   const draftNodexch = editedNodexch ?? saved.provider === "nodexch";
   const [editedKey, setDraftKey] = useState<string | null>(null);
@@ -192,7 +191,7 @@ function EndpointRow({ network }: { network: NetworkId }) {
     draft.trim() !== value ||
     draftNodexch !== (saved.provider === "nodexch") ||
     draftKey.trim() !== (saved.apiKey ?? "");
-  const isDefault = value === config.rpcUrl && savedProvider === "coinset";
+  const isDefault = value === config.rpcUrl && savedProvider === providerOf(network, config.rpcUrl);
 
   /** What Save stores: the flag only where the host alone does not say nodexch. */
   const endpointOf = (rpcUrl: string): Endpoint => {
@@ -244,13 +243,15 @@ function EndpointRow({ network }: { network: NetworkId }) {
         <span
           className={cn(
             "rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase",
-            isDefault
+            savedProvider !== "custom"
               ? "bg-primary-soft text-primary"
               : "bg-[color-mix(in_srgb,var(--warning)_15%,transparent)] text-warning"
           )}
         >
           {isDefault
-            ? t("endpoint.coinsetDefault")
+            ? savedProvider === "nodexch"
+              ? t("endpoint.nodexchDefault")
+              : t("endpoint.coinsetDefault")
             : savedProvider === "coinset"
               ? "Coinset"
               : savedProvider === "nodexch"

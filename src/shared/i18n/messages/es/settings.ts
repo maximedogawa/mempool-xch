@@ -24,6 +24,7 @@ const messages: Translation<(typeof en)["messages"]> = {
   endpoint: {
     addresses: "(direcciones {prefix})",
     coinsetDefault: "Coinset por defecto",
+    nodexchDefault: "nodexch por defecto",
     customNode: "Nodo propio",
     test: "Probar conexión",
     save: "Guardar",
