@@ -1,6 +1,6 @@
 export { Amount } from "./Amount";
 export { AssetAmount } from "./AssetAmount";
-export { AssetBadge, AssetIcon, XchIcon } from "./AssetBadge";
+export { AssetBadge, AssetIcon } from "./AssetBadge";
 export { AssetImage } from "./AssetImage";
 export { CapacityBar } from "./CapacityBar";
 export { CatRef, useCatLabel } from "./CatRef";
@@ -9,7 +9,9 @@ export { Button } from "./Button";
 export { Card, CardBody, CardHeader } from "./Card";
 export { CopyButton } from "./CopyButton";
 export { EmptyState } from "./EmptyState";
+export { FlowTrace } from "./FlowTrace";
 export { Hash } from "./Hash";
+export { Popover } from "./Popover";
 export { Skeleton } from "./Skeleton";
 export { StatTile } from "./StatTile";
 export { Table, Td, Th, Tr } from "./Table";

@@ -24,7 +24,11 @@ function fakeClient(granted: string[], answers: Record<string, boolean>) {
 
 function memoryStorage() {
   const data = new Map<string, string>();
-  return { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v), data };
+  return {
+    getItem: (k: string) => data.get(k) ?? null,
+    setItem: (k: string, v: string) => void data.set(k, v),
+    data,
+  };
 }
 
 describe("CapabilityManager", () => {
@@ -71,9 +75,20 @@ describe("CapabilityManager", () => {
 import { CapabilityManager as CM } from "./capabilities";
 
 test("a remembered refusal is forgotten once Sage grants the capability", async () => {
-  const store = new Map<string, string>([["mempool-xch:sage-refused:v1", JSON.stringify(["wallet.get_asset_balance"])]]);
-  const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) } as unknown as Storage;
-  const client = { app: { getCapabilities: async () => ({ granted: ["wallet.get_asset_balance"] }), requestCapabilityGrant: async () => ({ granted: false }) } };
+  const store = new Map<string, string>([
+    ["mempool-xch:sage-refused:v1", JSON.stringify(["wallet.get_asset_balance"])],
+  ]);
+  const storage = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, v),
+    removeItem: (k: string) => void store.delete(k),
+  } as unknown as Storage;
+  const client = {
+    app: {
+      getCapabilities: async () => ({ granted: ["wallet.get_asset_balance"] }),
+      requestCapabilityGrant: async () => ({ granted: false }),
+    },
+  };
   const m = new CM(async () => client as never, storage);
   await m.load();
   expect(m.has("wallet.get_asset_balance")).toBe(true);

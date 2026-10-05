@@ -3,25 +3,50 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useMempoolSummary } from "@/shared/api/hooks";
-import { formatAmount, formatCost, formatFeeRate, formatNumber, formatPercent } from "@/shared/lib/chia/amounts";
+import {
+  formatAmount,
+  formatCost,
+  formatFeeRate,
+  formatNumber,
+  formatPercent,
+} from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
-import { AssetAmount, AssetBadge, Button, Card, CardBody, CardHeader, EmptyState, Hash, Skeleton, StatTile, Table, Td, Th, Tr } from "@/shared/ui";
+import {
+  AssetAmount,
+  AssetBadge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Hash,
+  Skeleton,
+  StatTile,
+  Table,
+  Td,
+  Th,
+  Tr,
+} from "@/shared/ui";
 import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { YoursChip } from "@/shared/ui/YoursChip";
+import { useT } from "@/shared/i18n/useT";
 import { sortMempoolItems, type MempoolSortKey, type SortDirection } from "./sort";
+import mempoolListNs from "@/shared/i18n/messages/en/mempoolList";
 
 const PAGE = 100;
 
-const COLUMNS: { key: MempoolSortKey; label: string; className?: string }[] = [
-  { key: "feeRate", label: "Fee / cost", className: "text-right" },
-  { key: "fee", label: "Fee", className: "hidden text-right sm:table-cell" },
-  { key: "cost", label: "Cost", className: "hidden text-right md:table-cell" },
-  { key: "age", label: "Age", className: "text-right" },
+/** Sortable columns; each key is also its label key under `columns`. */
+const COLUMNS: { key: MempoolSortKey; className?: string }[] = [
+  { key: "feeRate", className: "text-right" },
+  { key: "fee", className: "hidden text-right sm:table-cell" },
+  { key: "cost", className: "hidden text-right md:table-cell" },
+  { key: "age", className: "text-right" },
 ];
 
 export function MempoolList() {
+  const t = useT(mempoolListNs);
   const mine = useWalletPendingIds();
   const summary = useMempoolSummary();
   const [sortKey, setSortKey] = useState<MempoolSortKey>("feeRate");
@@ -35,10 +60,14 @@ export function MempoolList() {
 
   const data = summary.data;
   const items = useMemo(() => data?.items ?? [], [data]);
-  const sorted = useMemo(() => sortMempoolItems(items, sortKey, direction), [items, sortKey, direction]);
+  const sorted = useMemo(
+    () => sortMempoolItems(items, sortKey, direction),
+    [items, sortKey, direction]
+  );
   const shown = sorted.slice(0, limit);
   const state = summary.data?.state;
-  const fill = state && state.mempoolMaxTotalCost > 0 ? state.mempoolCost / state.mempoolMaxTotalCost : 0;
+  const fill =
+    state && state.mempoolMaxTotalCost > 0 ? state.mempoolCost / state.mempoolMaxTotalCost : 0;
   const now = Date.now();
 
   const toggle = (key: MempoolSortKey) => {
@@ -52,16 +81,64 @@ export function MempoolList() {
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <StatTile label="Spend bundles" value={state ? formatNumber(state.mempoolSize) : "…"} sub={state && items.length !== state.mempoolSize ? `${formatNumber(items.length)} summarised` : undefined} />
-        <StatTile label="Cost used" value={state ? formatPercent(fill) : "…"} sub={state ? `${formatCost(state.mempoolCost)} of ${formatCost(state.mempoolMaxTotalCost)}` : undefined} tone={fill > 0.9 ? "danger" : fill > 0.6 ? "warning" : "default"} />
-        <StatTile label="Total fees" value={state ? formatAmount(BigInt(state.mempoolFees)) : "…"} />
-        <StatTile label="Updated" value={summary.data ? formatAge(summary.data.generatedAt, now) : "…"} sub={summary.data ? (summary.data.source === "server" ? "summary API" : "direct from node") : undefined} />
+        <StatTile
+          label={t("spendBundles")}
+          value={state ? formatNumber(state.mempoolSize) : "…"}
+          sub={
+            state && items.length !== state.mempoolSize
+              ? t("summarised", { count: formatNumber(items.length) })
+              : undefined
+          }
+        />
+        <StatTile
+          label={t("costUsed")}
+          value={state ? formatPercent(fill) : "…"}
+          sub={
+            state
+              ? t("costOf", {
+                  used: formatCost(state.mempoolCost),
+                  max: formatCost(state.mempoolMaxTotalCost),
+                })
+              : undefined
+          }
+          tone={fill > 0.9 ? "danger" : fill > 0.6 ? "warning" : "default"}
+        />
+        <StatTile
+          label={t("totalFees")}
+          value={state ? formatAmount(BigInt(state.mempoolFees)) : "…"}
+        />
+        <StatTile
+          label={t("updated")}
+          value={summary.data ? formatAge(summary.data.generatedAt, now) : "…"}
+          sub={
+            summary.data
+              ? summary.data.source === "server"
+                ? t("source.server")
+                : summary.data.source === "snapshot"
+                  ? t("source.snapshot")
+                  : summary.data.source === "syncing"
+                    ? t("source.syncing")
+                    : t("source.node")
+              : undefined
+          }
+        />
       </div>
       <Card>
-        <CardHeader title="Pending spend bundles" action={<span className="text-xs text-fg-faint">{summary.isFetching ? "updating…" : "live"}</span>} />
+        <CardHeader
+          title={t("pendingTitle")}
+          action={
+            <span className="text-xs text-fg-faint">
+              {summary.isFetching ? t("updating") : t("live")}
+            </span>
+          }
+        />
         <CardBody className="flex flex-col gap-3">
           {summary.error && items.length === 0 ? (
-            <EmptyState tone="danger" title="Could not load the mempool" description={String((summary.error as Error).message)} />
+            <EmptyState
+              tone="danger"
+              title={t("loadError")}
+              description={String((summary.error as Error).message)}
+            />
           ) : summary.isLoading && items.length === 0 ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 10 }, (_, i) => (
@@ -69,19 +146,42 @@ export function MempoolList() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <EmptyState title="The mempool is empty" description="Every spend bundle has been included in a block." />
+            <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Tx id</Th>
-                  <Th>Kind</Th>
-                  <Th className="hidden text-right lg:table-cell">Value</Th>
+                  <Th>{t("columns.txId")}</Th>
+                  <Th>{t("columns.kind")}</Th>
+                  <Th className="hidden text-right lg:table-cell">{t("columns.value")}</Th>
                   {COLUMNS.map((c) => (
-                    <Th key={c.key} className={c.className} aria-sort={sortKey === c.key ? (direction === "desc" ? "descending" : "ascending") : "none"}>
-                      <button type="button" onClick={() => toggle(c.key)} className={cn("inline-flex items-center gap-1 uppercase hover:text-fg", sortKey === c.key && "text-fg")}>
-                        {c.label}
-                        {sortKey === c.key ? direction === "desc" ? <ArrowDown size={12} aria-hidden="true" /> : <ArrowUp size={12} aria-hidden="true" /> : null}
+                    <Th
+                      key={c.key}
+                      className={c.className}
+                      aria-sort={
+                        sortKey === c.key
+                          ? direction === "desc"
+                            ? "descending"
+                            : "ascending"
+                          : "none"
+                      }
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggle(c.key)}
+                        className={cn(
+                          "inline-flex items-center gap-1 uppercase hover:text-fg",
+                          sortKey === c.key && "text-fg"
+                        )}
+                      >
+                        {t(`columns.${c.key}`)}
+                        {sortKey === c.key ? (
+                          direction === "desc" ? (
+                            <ArrowDown size={12} aria-hidden="true" />
+                          ) : (
+                            <ArrowUp size={12} aria-hidden="true" />
+                          )
+                        ) : null}
                       </button>
                     </Th>
                   ))}
@@ -92,18 +192,41 @@ export function MempoolList() {
                   <Tr key={item.id}>
                     <Td className="whitespace-nowrap">
                       <span className="inline-flex items-center gap-2">
-                        <Hash value={item.id} href={routes.tx(item.id)} head={6} tail={4} className="break-normal" />
+                        <Hash
+                          value={item.id}
+                          href={routes.tx(item.id)}
+                          head={6}
+                          tail={4}
+                          className="break-normal"
+                        />
                         {mine.has(item.id) ? <YoursChip /> : null}
                       </span>
                     </Td>
                     <Td>
                       <AssetBadge kind={item.kind} assetId={item.assetIds[0]} />
                     </Td>
-                    <Td className="hidden text-right text-fg-muted lg:table-cell"><AssetAmount assets={item.assets} kind={item.kind} /></Td>
-                    <Td className="tabular text-right">{BigInt(item.fee) === 0n ? <span className="text-fg-faint">0</span> : formatFeeRate(item.feeRate)}</Td>
-                    <Td className="tabular hidden text-right sm:table-cell">{formatAmount(BigInt(item.fee))}</Td>
-                    <Td className="tabular hidden text-right md:table-cell">{formatCost(item.cost)}</Td>
-                    <Td className="tabular whitespace-nowrap text-right text-fg-faint" title="First observed by the mempoolxch.space server">{formatAge(item.firstSeen, now)}</Td>
+                    <Td className="hidden text-right text-fg-muted lg:table-cell">
+                      <AssetAmount assets={item.assets} kind={item.kind} />
+                    </Td>
+                    <Td className="tabular text-right">
+                      {BigInt(item.fee) === 0n ? (
+                        <span className="text-fg-faint">0</span>
+                      ) : (
+                        formatFeeRate(item.feeRate)
+                      )}
+                    </Td>
+                    <Td className="tabular hidden text-right sm:table-cell">
+                      {formatAmount(BigInt(item.fee))}
+                    </Td>
+                    <Td className="tabular hidden text-right md:table-cell">
+                      {formatCost(item.cost)}
+                    </Td>
+                    <Td
+                      className="tabular whitespace-nowrap text-right text-fg-faint"
+                      title={t("firstSeenTitle")}
+                    >
+                      {formatAge(item.firstSeen, now)}
+                    </Td>
                   </Tr>
                 ))}
               </tbody>
@@ -111,11 +234,9 @@ export function MempoolList() {
           )}
           {sorted.length > shown.length ? (
             <div className="flex items-center justify-between text-xs text-fg-faint">
-              <span>
-                Showing {shown.length} of {sorted.length}
-              </span>
+              <span>{t("showing", { shown: shown.length, total: sorted.length })}</span>
               <Button size="sm" onClick={() => setLimit((l) => l + PAGE)}>
-                Show more
+                {t("showMore")}
               </Button>
             </div>
           ) : null}

@@ -1,11 +1,13 @@
 /**
- * Pure helpers behind the dashboard's "your transactions in flight" panel (TASK-042): where a
+ * Pure helpers behind the dashboard's "your transactions in flight" panel: where a
  * wallet transaction stands relative to the mempool summary and the projected blocks, and
  * which ids just left the wallet's pending list (candidates for "confirmed").
  */
 import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 import { findProjectedPosition, type ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { feeBandFor, type FeeBand } from "@/shared/lib/mempool/feeBands";
+import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export type PendingPhase =
   /** Sage reports it pending but the summarised mempool has not seen it yet. */
@@ -33,12 +35,36 @@ export interface PendingStatus {
   blocksAhead: number;
 }
 
-export function describePending(txId: string, items: CompactMempoolItem[] | undefined, blocks: ProjectedBlock[]): PendingStatus {
+export function describePending(
+  txId: string,
+  items: CompactMempoolItem[] | undefined,
+  blocks: ProjectedBlock[]
+): PendingStatus {
   const id = txId.toLowerCase().replace(/^0x/, "");
   const item = items?.find((i) => i.id === id);
-  if (!item) return { phase: "broadcast", blockIndex: null, position: null, blockSize: null, etaSeconds: null, feeRate: null, band: null, blocksAhead: blocks.length };
+  if (!item)
+    return {
+      phase: "broadcast",
+      blockIndex: null,
+      position: null,
+      blockSize: null,
+      etaSeconds: null,
+      feeRate: null,
+      band: null,
+      blocksAhead: blocks.length,
+    };
   const found = findProjectedPosition(blocks, id);
-  if (!found) return { phase: "waiting", blockIndex: null, position: null, blockSize: null, etaSeconds: null, feeRate: item.feeRate, band: feeBandFor(item.feeRate), blocksAhead: blocks.length };
+  if (!found)
+    return {
+      phase: "waiting",
+      blockIndex: null,
+      position: null,
+      blockSize: null,
+      etaSeconds: null,
+      feeRate: item.feeRate,
+      band: feeBandFor(item.feeRate),
+      blocksAhead: blocks.length,
+    };
   return {
     phase: "queued",
     blockIndex: found.block.index,
@@ -59,7 +85,11 @@ export interface TrackedState {
 export const EMPTY_TRACKED: TrackedState = { seen: {} };
 
 /** Fold the wallet's current pending ids in; returns the ids that were pending before and are not now. */
-export function trackPending(state: TrackedState, pendingIds: string[], now: number): { state: TrackedState; left: string[] } {
+export function trackPending(
+  state: TrackedState,
+  pendingIds: string[],
+  now: number
+): { state: TrackedState; left: string[] } {
   const current = new Set(pendingIds.map((i) => i.toLowerCase()));
   const seen: Record<string, number> = {};
   const left: string[] = [];
@@ -73,18 +103,24 @@ export function trackPending(state: TrackedState, pendingIds: string[], now: num
   return { state: { seen }, left };
 }
 
-/** Human line for a status. */
 export function pendingLine(s: PendingStatus): string {
+  const t = plainT(commonNs);
   switch (s.phase) {
     case "broadcast":
-      return "Sent to the network, not seen in the mempool yet";
+      return t("pending.broadcast");
     case "waiting":
-      return "In the mempool, behind the projected blocks";
+      return t("pending.waiting");
     case "queued":
-      return s.blockIndex === 0 ? `Next block · position ${s.position} of ${s.blockSize}` : `Projected block ${(s.blockIndex ?? 0) + 1} · position ${s.position} of ${s.blockSize}`;
+      return s.blockIndex === 0
+        ? t("pending.nextBlock", { position: s.position ?? 0, size: s.blockSize ?? 0 })
+        : t("pending.projectedBlock", {
+            block: (s.blockIndex ?? 0) + 1,
+            position: s.position ?? 0,
+            size: s.blockSize ?? 0,
+          });
     case "confirmed":
-      return "Confirmed";
+      return t("pending.confirmed");
     case "gone":
-      return "No longer pending in the wallet";
+      return t("pending.gone");
   }
 }

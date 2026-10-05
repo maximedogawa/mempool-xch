@@ -1,5 +1,5 @@
 /**
- * What moved in a block, per asset (TASK-030).
+ * What moved in a block, per asset.
  *
  * With Coinset summaries: for every event, each participant's positive net inflow per asset
  * (received − sent, floored at 0) is summed. That is the amount that actually changed hands:
@@ -12,14 +12,24 @@ import type { CompactAssets } from "@/shared/lib/mempool/types";
 import type { CoinSpend, TxSummary } from "@/shared/lib/rpc/types";
 
 export interface BlockAssetTotals extends CompactAssets {
-  source: "coinset" | "rpc";
-  /** Number of transactions (Coinset) or coin spends (rpc) the totals cover. */
+  /** `gateway`: a nodexch gateway's loop summed the block's spends as `rpc` does (TASK-150). */
+  source: "coinset" | "rpc" | "gateway";
+  /** Number of transactions (Coinset) or coin spends (rpc, gateway) the totals cover. */
   count: number;
   /** True when not every transaction of the block was fetched. */
   partial: boolean;
 }
 
-export const EMPTY_TOTALS: BlockAssetTotals = { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0, source: "coinset", count: 0, partial: false };
+export const EMPTY_TOTALS: BlockAssetTotals = {
+  xch: "0",
+  cats: [],
+  nfts: 0,
+  dids: 0,
+  singletons: 0,
+  source: "coinset",
+  count: 0,
+  partial: false,
+};
 
 export function assetTotalsFromSummaries(txs: TxSummary[], partial = false): BlockAssetTotals {
   let xch = 0n;
@@ -39,7 +49,8 @@ export function assetTotalsFromSummaries(txs: TxSummary[], partial = false): Blo
       });
       // Mints have no receiving participant flow for the new asset in every schema version.
       const minted = (e.raw as { minted?: { asset_type?: string; asset_id?: string } }).minted;
-      if (minted?.asset_type === "nft" && minted.asset_id) nfts.add(minted.asset_id.replace(/^0x/, ""));
+      if (minted?.asset_type === "nft" && minted.asset_id)
+        nfts.add(minted.asset_id.replace(/^0x/, ""));
     })
   );
   return {
@@ -62,7 +73,11 @@ export function assetTotalsFromSpends(spends: CoinSpend[]): BlockAssetTotals {
   let singletons = 0;
   spends.forEach((spend) => {
     const c = classifyCoinSpend(spend);
-    if (c.kind === "cat") cats.set(c.assetId ?? "unknown", (cats.get(c.assetId ?? "unknown") ?? 0n) + spend.coin.amount);
+    if (c.kind === "cat")
+      cats.set(
+        c.assetId ?? "unknown",
+        (cats.get(c.assetId ?? "unknown") ?? 0n) + spend.coin.amount
+      );
     else if (c.kind === "nft") nfts += 1;
     else if (c.kind === "did") dids += 1;
     else if (c.kind === "singleton" || c.kind === "pool") singletons += 1;

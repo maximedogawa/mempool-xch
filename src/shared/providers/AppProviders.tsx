@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AssetRegistryLoader } from "@/shared/api/useTokenList";
+import { I18nProvider } from "@/shared/i18n/I18nProvider";
 import { ConsentProvider } from "./ConsentProvider";
 import { LiveProvider } from "./LiveProvider";
 import { QueryProvider } from "./QueryProvider";
@@ -17,7 +18,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
           <QueryProvider>
             <AssetRegistryLoader />
             <LiveProvider>
-              <ConsentProvider>{children}</ConsentProvider>
+              <ConsentProvider>
+                <I18nProvider>{children}</I18nProvider>
+              </ConsentProvider>
             </LiveProvider>
           </QueryProvider>
         </ThemeProvider>

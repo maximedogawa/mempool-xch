@@ -1,513 +1,513 @@
 {
- "block_records": [
-  {
-   "challenge_block_info_hash": "0x386b5a131a45184cd93aff578d2120d961d9b51ef1d3d933bc35cf0427cfaf89",
-   "challenge_vdf_output": {
-    "data": "0x0100298f2c5ed802ecc8ced0fff44a4c019e0c813a1a1a1843788454d8aa4fa1782f0d0f1db96318c22343a90b43b9f0a5f9eab0579dc0ed57dba3c131086cca415afff86c9448d4869d2d039b2c1793a24bccfc765f8865cb2faf4dcd53875b632e0100"
-   },
-   "deficit": 7,
-   "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xd84eb2c149591b3bb67d09b6403afffa9d21bd3ffc3618acac6b0d06b186b82c",
-   "height": 9295507,
-   "infused_challenge_vdf_output": {
-    "data": "0x0100395851e739c92c3c6d6d6aed8d42a9017bc0ac67f4680d1bf8edd072bb139e0aad4cc86de91ab7bc4a8cc5d851f1fb7424d420594feaac03b63655163a0f70218c43b8c7e682f4732117fa1f2ae86fdb6489aef047ad69faec31f23abee9e71f0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "prev_hash": "0x5e4c4a8b8c8ce37ca7985873921af8020a51aa60a3dacdda345da6a66389d53f",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295506,
-   "required_iters": 3772402,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0xf35d836ffe464a82e0b3374c433bef6fefe6793fcc06f4f379bc148d4104e078",
-   "signage_point_index": 16,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038458875890,
-   "weight": 56191615648
-  },
-  {
-   "challenge_block_info_hash": "0xf5d8e648e237747c75ca9ebf9ad1f7297ca97fec972fbfabc1862d7e22178b94",
-   "challenge_vdf_output": {
-    "data": "0x000079afeb23478d67a0b8371387ab83909908cc4ec06ebc1b2944475ea97fa487b069b36b183dc98436e93756ec36f5e462def0f8ac2a82208ed0a7859d0eeb9c2ad381fdb2e94831d3c5b6338904ac0671ab7f49ca52b37232fb25ee2772a06c0e0200"
-   },
-   "deficit": 6,
-   "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "fees": 0,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
-   "height": 9295508,
-   "infused_challenge_vdf_output": {
-    "data": "0x0200fd5553af2fd1028b3acd29876a674a05fba2f2c9e1354b02549f13c8b127944275016c4e21fc660842d74f7b7f6c03dcb3f05d577c0feeb71f2b7731ced6dd27e9628d6b1e9818ca01681a6c60460101974a5ddcb20d51bce586829d6507fc520100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "prev_hash": "0xd84eb2c149591b3bb67d09b6403afffa9d21bd3ffc3618acac6b0d06b186b82c",
-   "prev_transaction_block_hash": "0x5e4c4a8b8c8ce37ca7985873921af8020a51aa60a3dacdda345da6a66389d53f",
-   "prev_transaction_block_height": 9295506,
-   "required_iters": 2422732,
-   "reward_claims_incorporated": [
+  "block_records": [
     {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd692",
-     "puzzle_hash": "0x8d2acccf6de1795d71acba3e5f78041e029b6efbe58325a29cd8b1ad18205a20"
+      "challenge_block_info_hash": "0x386b5a131a45184cd93aff578d2120d961d9b51ef1d3d933bc35cf0427cfaf89",
+      "challenge_vdf_output": {
+        "data": "0x0100298f2c5ed802ecc8ced0fff44a4c019e0c813a1a1a1843788454d8aa4fa1782f0d0f1db96318c22343a90b43b9f0a5f9eab0579dc0ed57dba3c131086cca415afff86c9448d4869d2d039b2c1793a24bccfc765f8865cb2faf4dcd53875b632e0100"
+      },
+      "deficit": 7,
+      "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xd84eb2c149591b3bb67d09b6403afffa9d21bd3ffc3618acac6b0d06b186b82c",
+      "height": 9295507,
+      "infused_challenge_vdf_output": {
+        "data": "0x0100395851e739c92c3c6d6d6aed8d42a9017bc0ac67f4680d1bf8edd072bb139e0aad4cc86de91ab7bc4a8cc5d851f1fb7424d420594feaac03b63655163a0f70218c43b8c7e682f4732117fa1f2ae86fdb6489aef047ad69faec31f23abee9e71f0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "prev_hash": "0x5e4c4a8b8c8ce37ca7985873921af8020a51aa60a3dacdda345da6a66389d53f",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295506,
+      "required_iters": 3772402,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0xf35d836ffe464a82e0b3374c433bef6fefe6793fcc06f4f379bc148d4104e078",
+      "signage_point_index": 16,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038458875890,
+      "weight": 56191615648
     },
     {
-     "amount": 125200032786,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd692",
-     "puzzle_hash": "0xcc4136f0a9e809958b20c696f9e0db026257fb0a3c9f040554b41366f32c5a82"
+      "challenge_block_info_hash": "0xf5d8e648e237747c75ca9ebf9ad1f7297ca97fec972fbfabc1862d7e22178b94",
+      "challenge_vdf_output": {
+        "data": "0x000079afeb23478d67a0b8371387ab83909908cc4ec06ebc1b2944475ea97fa487b069b36b183dc98436e93756ec36f5e462def0f8ac2a82208ed0a7859d0eeb9c2ad381fdb2e94831d3c5b6338904ac0671ab7f49ca52b37232fb25ee2772a06c0e0200"
+      },
+      "deficit": 6,
+      "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "fees": 0,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
+      "height": 9295508,
+      "infused_challenge_vdf_output": {
+        "data": "0x0200fd5553af2fd1028b3acd29876a674a05fba2f2c9e1354b02549f13c8b127944275016c4e21fc660842d74f7b7f6c03dcb3f05d577c0feeb71f2b7731ced6dd27e9628d6b1e9818ca01681a6c60460101974a5ddcb20d51bce586829d6507fc520100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "prev_hash": "0xd84eb2c149591b3bb67d09b6403afffa9d21bd3ffc3618acac6b0d06b186b82c",
+      "prev_transaction_block_hash": "0x5e4c4a8b8c8ce37ca7985873921af8020a51aa60a3dacdda345da6a66389d53f",
+      "prev_transaction_block_height": 9295506,
+      "required_iters": 2422732,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd692",
+          "puzzle_hash": "0x8d2acccf6de1795d71acba3e5f78041e029b6efbe58325a29cd8b1ad18205a20"
+        },
+        {
+          "amount": 125200032786,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd692",
+          "puzzle_hash": "0xcc4136f0a9e809958b20c696f9e0db026257fb0a3c9f040554b41366f32c5a82"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd691",
+          "puzzle_hash": "0x0eb4079c86c49b6247feaf1acf26bb6ceb2eca1a54586bd7b934b5b7191f3227"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd691",
+          "puzzle_hash": "0x0eb4079c86c49b6247feaf1acf26bb6ceb2eca1a54586bd7b934b5b7191f3227"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd690",
+          "puzzle_hash": "0x6feecf211f1b2b2c5ff3e79b96703f8e478c42b0d75e264eafd1ff07d4a439fd"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd690",
+          "puzzle_hash": "0x3d82c9389a79cab139eb54b371cb132b1f08df9bdfb2796ac82ef5dcabbfc71f"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd68f",
+          "puzzle_hash": "0xc2e99cf8783b980dd9bb95ad069c67bc27316a208ddd2c4c0bd03b01ecb0d076"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd68f",
+          "puzzle_hash": "0x2885c1b60ed820dd66c5df77800c52cdf5bc904f67dcb1590235b6023a953ff3"
+        }
+      ],
+      "reward_infusion_new_challenge": "0x82939024fddb4433211f7b9dd375a63eb7ae785a7646f8919b7c5a4e8123954d",
+      "signage_point_index": 26,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478649,
+      "total_iters": 107038546655180,
+      "weight": 56191617808
     },
     {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd691",
-     "puzzle_hash": "0x0eb4079c86c49b6247feaf1acf26bb6ceb2eca1a54586bd7b934b5b7191f3227"
+      "challenge_block_info_hash": "0xffeaa41185ea069d4bca9704399becf3eefeb6cfca53787153c35b939cbfde6b",
+      "challenge_vdf_output": {
+        "data": "0x0300a22c3d7d0d8ffbfb9992224f83e0f90d6565e49ce02ade8a06f23f7163bda92bafbb114182a790b19a9f650be9b5c9c5bc0b72b2067c48b51aef602a19faae2b83ba0ac026f38fcbb4c93ac6d072810390d3ae8848328a01b8bbfdee3fc23c130100"
+      },
+      "deficit": 5,
+      "farmer_puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x96dc356bd36fc5d7a053cd8aeaed6a9852604dd7b363eddc117fc6c2305312f5",
+      "height": 9295509,
+      "infused_challenge_vdf_output": {
+        "data": "0x0000a7ddf8e98ef73d777552989a9a1c0cd6a80411a55d69c8670c031b9b5110ac146c5090db096271ddfd331e22577c050d55eefd7b80ada4bab332412722a3012d21d36faf70a0a7bbd603ecb4936da4146cd668a6c7a74c8f29dc2285bcdf622c0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4",
+      "prev_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295508,
+      "required_iters": 8743749,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0xad52b56dd0308bfb548ae5eb201d975056f8c5203acbf5f30efae7ce6165b7a8",
+      "signage_point_index": 27,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038561889093,
+      "weight": 56191619968
     },
     {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd691",
-     "puzzle_hash": "0x0eb4079c86c49b6247feaf1acf26bb6ceb2eca1a54586bd7b934b5b7191f3227"
+      "challenge_block_info_hash": "0xba4b1ce7a70c5586c985b9153c0aae77c47aa34a0dbbacfa530cd2299a695af4",
+      "challenge_vdf_output": {
+        "data": "0x0100af0eb4a32b16c9dd78869c967c9139ca4038d07d67a514848cf58e2e080fd7ec3be3c10daf92e5b17efd5896573a576686891f8fab82570abbfb14d1e6fe961dbf83b4240544f9f850305a5b4c6db342a1b45957dd2a538ba7a953e08619f4240100"
+      },
+      "deficit": 4,
+      "farmer_puzzle_hash": "0xcfac0265d51f2bfb21f71f6897073e019e77e0b81ec0bc0d3ad79f9d056431bd",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x367276ed6729d6981d184605e9abdbf5951ee095b6e3647b6c8f9d95d59a557d",
+      "height": 9295510,
+      "infused_challenge_vdf_output": {
+        "data": "0x0100fc6f3934f8d287781cb5702b150aa4eed79d2c73cec962d7f44d2d2b4d426c2a7dfa467c533ee6e49332362300af13f0ed3ad3dff0af617e96a07463beb19423654aa2e1e9cd1b98a7e4af28ce61b74419cd9e37c49b3fc1d3c3e8a75a2597250100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x21a9eff73eb557c5e1a2bff1005f91d39577eb2689515f53532fa8b3407b2c49",
+      "prev_hash": "0x96dc356bd36fc5d7a053cd8aeaed6a9852604dd7b363eddc117fc6c2305312f5",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295508,
+      "required_iters": 5045995,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0x60ff7d794030e09036720c84c5d38927933ce5d38b55a781fe0f6c0af91cb146",
+      "signage_point_index": 28,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038567104235,
+      "weight": 56191622128
     },
     {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd690",
-     "puzzle_hash": "0x6feecf211f1b2b2c5ff3e79b96703f8e478c42b0d75e264eafd1ff07d4a439fd"
+      "challenge_block_info_hash": "0xcf2e9200825134152289826a97a8014db02116181222e5841f293f2193333c29",
+      "challenge_vdf_output": {
+        "data": "0x010087f50c502f6d974455ca18f0dd147b4367d1c1188a84cefe1c483c3d988972246348be361bff991d0498215e8dfed6ad1a676728edf13e329423301c786462543e5f54cf7d62f4d5f1200f5b23aafbd0a17403891604b31f051545224d116f720100"
+      },
+      "deficit": 3,
+      "farmer_puzzle_hash": "0x916423f3c9f4599744ba7927733442ccaef00752785ec2324fc68b12927bffea",
+      "fees": 699999999,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
+      "height": 9295511,
+      "infused_challenge_vdf_output": {
+        "data": "0x0100c82dfb6b592b81e667820c159d6a0de74abd4624207bdb4337d48350b68736a379c1dcaed24ef69ad0f5a35bef26a803d0433887ae95e2e1db3496d2be177d033b7d5790d0e745e235549ad9d5faa64d7a7f3a70772a300d4f58ec34b9621d0f0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x56778934ffbd83da49478d2dd57aada5e52dcf99fcaee7d6cc990de7dedffdb6",
+      "prev_hash": "0x367276ed6729d6981d184605e9abdbf5951ee095b6e3647b6c8f9d95d59a557d",
+      "prev_transaction_block_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
+      "prev_transaction_block_height": 9295508,
+      "required_iters": 8732242,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd694",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd694",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd693",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd693",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        }
+      ],
+      "reward_infusion_new_challenge": "0x9360a47265bd6776136654c6a6d07a1d1cce1dda7988ed9a4df76292ec33adec",
+      "signage_point_index": 30,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478677,
+      "total_iters": 107038588616274,
+      "weight": 56191624288
     },
     {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd690",
-     "puzzle_hash": "0x3d82c9389a79cab139eb54b371cb132b1f08df9bdfb2796ac82ef5dcabbfc71f"
+      "challenge_block_info_hash": "0xca89d384232a3f425c22630dbc26523229a70ba53bf35200ad3a7e9b21d4e919",
+      "challenge_vdf_output": {
+        "data": "0x01001289142a986856e6b9f59d758aaae1572daaa1280f98f7bbd329e2829be5dae95bf876091df3975cc5dde919747796bd761a9541fefc12390518535b425341100bd31d1f52c99852b346fba449fc4dcd60b489ec42db88d29a55548af937dc1c0201"
+      },
+      "deficit": 2,
+      "farmer_puzzle_hash": "0xe45b89f8124b6bb1973a810c9f94d32608919e2952ee41c5530a9b825eed3edc",
+      "fees": 256537800,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
+      "height": 9295512,
+      "infused_challenge_vdf_output": {
+        "data": "0x0200411e582fc60d726f51864ff06903a9043645b36e82df235e7dbf3c0e25e9f38c776f29a0c1eb873b6a340e59119c34a47afc8ab0c4c5dfc54927580445cba50409d0918e574668206d24b1a069408d23b2f5d41c5c764fc33c6cefac0687f6000806"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x257ab4160f914968f12c867da3f17c5d265b1c23bf89c95d3f2d05998eb07857",
+      "prev_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
+      "prev_transaction_block_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
+      "prev_transaction_block_height": 9295511,
+      "required_iters": 6437652,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd697",
+          "puzzle_hash": "0x56778934ffbd83da49478d2dd57aada5e52dcf99fcaee7d6cc990de7dedffdb6"
+        },
+        {
+          "amount": 125699999999,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd697",
+          "puzzle_hash": "0x916423f3c9f4599744ba7927733442ccaef00752785ec2324fc68b12927bffea"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd696",
+          "puzzle_hash": "0x21a9eff73eb557c5e1a2bff1005f91d39577eb2689515f53532fa8b3407b2c49"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd696",
+          "puzzle_hash": "0xcfac0265d51f2bfb21f71f6897073e019e77e0b81ec0bc0d3ad79f9d056431bd"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd695",
+          "puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd695",
+          "puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4"
+        }
+      ],
+      "reward_infusion_new_challenge": "0xb054e151c48ccec40341660fdf41bba6673082b20489d891164e956ba30512f8",
+      "signage_point_index": 35,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478741,
+      "total_iters": 107038630886164,
+      "weight": 56191626448
     },
     {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd68f",
-     "puzzle_hash": "0xc2e99cf8783b980dd9bb95ad069c67bc27316a208ddd2c4c0bd03b01ecb0d076"
+      "challenge_block_info_hash": "0x5799e5c799b984d5d57a9401fbf826cd68b81f01b9888288010f6f7c0b42e504",
+      "challenge_vdf_output": {
+        "data": "0x0200c501e064f4f0204e36f0965f2179e5b0378f520c55cec7c5aa37d1dee8e8163fc18289c0d8eeb2d4c13ff044ee62287898e6f86df745d015768342d76352de0d2d127487512b0eee9f5302cb8b318c7fd3c49bfc95a7e373cbb0c1409fb4cb0b0502"
+      },
+      "deficit": 1,
+      "farmer_puzzle_hash": "0x7b116e62f22aaf6fabe06be18e63b626ad767a080121207ab85366473e20a3ad",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x8a1eeb90b68fc5f353ee57b88ee05092ff231e6f5d9fe65f3e89547ce972cae0",
+      "height": 9295513,
+      "infused_challenge_vdf_output": {
+        "data": "0x030085a58415c86c87f61f8a49448b6067b9a644eef845d16c2eafed56a7171bd3760f70ff2d2f6f14b56eb54eae73d9a14f3cf64b1e9e579b7886da0ef66b212d12464c4e3d02bfd2523c9d672991d96d6a147110e43cbb41176d3726e9d60f670d0201"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc",
+      "prev_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295512,
+      "required_iters": 3685953,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0x25c69e49e3de7a442c0a1568d9c8afd47262f7f418ae9d4b8b3018dd61a7d911",
+      "signage_point_index": 36,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038637047361,
+      "weight": 56191628608
     },
     {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd68f",
-     "puzzle_hash": "0x2885c1b60ed820dd66c5df77800c52cdf5bc904f67dcb1590235b6023a953ff3"
+      "challenge_block_info_hash": "0x5c680b995ba6fdfbf6d7a11f43117ab9621f646ceb3ea01235281ecac6503c21",
+      "challenge_vdf_output": {
+        "data": "0x0000ccd2b680d5b4f4f02dd1cc6a0dd746213205b116b473b7a5652f19d2f4f5bbb9497b482fdaa4631c7bd0bb640441adb0892d75866187ba02c7d4d946b796571df513a84f77d5bb1c40bc89133b62300e87245356778802f298ce3ff17fc0b7120100"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "fees": 604585170,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
+      "height": 9295514,
+      "infused_challenge_vdf_output": {
+        "data": "0x0200d7f7f9cac38e42b595de9462d44d38213df9714eb6307aa5dfa84524ab23767d8d5509261555d3729d0c00b5f2e95e81c68a6cc5dc428656f0677c9d88144a462b2fbaba1484411674409d7c7ab3f3435e7138135b6719e42c8539a088f8b6520100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "prev_hash": "0x8a1eeb90b68fc5f353ee57b88ee05092ff231e6f5d9fe65f3e89547ce972cae0",
+      "prev_transaction_block_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
+      "prev_transaction_block_height": 9295512,
+      "required_iters": 7495093,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd698",
+          "puzzle_hash": "0x257ab4160f914968f12c867da3f17c5d265b1c23bf89c95d3f2d05998eb07857"
+        },
+        {
+          "amount": 125256537800,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd698",
+          "puzzle_hash": "0xe45b89f8124b6bb1973a810c9f94d32608919e2952ee41c5530a9b825eed3edc"
+        }
+      ],
+      "reward_infusion_new_challenge": "0x06c5ebb4f7b668a17b80b843a05b99b52e02023b61674fd546201b0bb950770f",
+      "signage_point_index": 40,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478793,
+      "total_iters": 107038676508085,
+      "weight": 56191630768
+    },
+    {
+      "challenge_block_info_hash": "0x1c46e8d5268d789acab6e3ce24fd6990b6a9d3cf73fdc24726ff3dd5fee43a26",
+      "challenge_vdf_output": {
+        "data": "0x030035bfeb18bf5a8150c76a85dd4506ba1eeb8aa4fa77c240c90ac7fd81a0f5f91d8660d3149608a9856e5b62b219e3c87a90189c4032dcf3e87451b68e1c838b549fc6eccf93eeeb9d48f83b4817f2e2e3b427fde83dd16f98fa849a36c56b23090100"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x119d95627f70a95c6aa0407a5defeb0a3060368d607bd00df11bbfae7fde328e",
+      "fees": 0,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
+      "height": 9295515,
+      "infused_challenge_vdf_output": {
+        "data": "0x0000d37f06807e5a25ef9a71b86bc1ae1455856a4a91bb58603f94a1b3f8a6418a32184075d08afbcf49ebc458c9f7774b52d3fba3e3283bb2caf70f0caa309d28609282d2b0a0231c84fed062e4e0068de6d6048a835cfa1a343a026975c140e07f0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x2a556758843674345d98c96c4b7539a3a358753de6239b9f3a3286537a22f4cc",
+      "prev_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
+      "prev_transaction_block_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
+      "prev_transaction_block_height": 9295514,
+      "required_iters": 1911700,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd69a",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        },
+        {
+          "amount": 125604585170,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd69a",
+          "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
+        },
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd699",
+          "puzzle_hash": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd699",
+          "puzzle_hash": "0x7b116e62f22aaf6fabe06be18e63b626ad767a080121207ab85366473e20a3ad"
+        }
+      ],
+      "reward_infusion_new_challenge": "0xfd1e92d8550f80b169b08c7a080062ccccc4c8d3f312bad2a317c37392c46f4c",
+      "signage_point_index": 44,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478811,
+      "total_iters": 107038706576276,
+      "weight": 56191632928
+    },
+    {
+      "challenge_block_info_hash": "0xe8b0f4c2f9c5405c1c9f52e7cb0e49d5c4e103255adb675395cb5442e4340f42",
+      "challenge_vdf_output": {
+        "data": "0x0100d04552e923717aec47efdf38a12799d3e5df2b760b406ce443e5fc909c95dd3f127029ea3ae27dbbc1a29c4c1f5aa11e70baa2c89f4ae5028d80568983c77c1d11f6bfcc747fd65f3769708d5372aea2059ece1942679cec6f62b5286910463b0200"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xaee601d21510d8946110c2568184b969035935b6cfcda61075b46c82072a8324",
+      "height": 9295516,
+      "infused_challenge_vdf_output": {
+        "data": "0x020014cbfadd0b6b74cebc1a4475ed86cdbe7fc9fe173847b11448037d758f921bf05fcf12de4b20f0b3a0af694658f009cead1211b91ba36865ed92d9188c37743449619530fc79d0aac230403464f2be3f1852f60417f1a518f3874c80b94ac3370100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "prev_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295515,
+      "required_iters": 7473813,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0x87e373d7ae6ee49bf1b1215fb4d49e6621fb18002e63413f1fbade8a9073f052",
+      "signage_point_index": 45,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038721051285,
+      "weight": 56191635088
+    },
+    {
+      "challenge_block_info_hash": "0x708e1eb26c7d3b66cb2aaf45e28e7d85ffd2ac1ef67c1fbebf9e260375b8130f",
+      "challenge_vdf_output": {
+        "data": "0x0200c26909ef659299824eca0fc193520ce8d9bd7065a9be1907c66ae212cb308afb069c442f22f31f54111758246352820f9f021ffe8c121b8e7806bb3a7662ed2dbfd0fe48361b75f065b51bf56e9c77ece0888c158f2766c0a759dc73644f12330100"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "fees": 0,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0xcdd9f5e38c1a608f6cedcf42f28953e8884a98d606ed2457f4e2be80872881bd",
+      "height": 9295517,
+      "infused_challenge_vdf_output": {
+        "data": "0x0100d6ab4a4e1c760fa45feeea3a0fb3ce657871e1df72301a0fe3497fe24bd3a4603b19328286dacb0ac03bef9af7d00c5c789f8467d2125dfedba95b4bec59f6462b3debae735fce2b5fb47e0ed79fae98928fc6bb1f81900e554e12883315d70d0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
+      "prev_hash": "0xaee601d21510d8946110c2568184b969035935b6cfcda61075b46c82072a8324",
+      "prev_transaction_block_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
+      "prev_transaction_block_height": 9295515,
+      "required_iters": 1556080,
+      "reward_claims_incorporated": [
+        {
+          "amount": 875000000000,
+          "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd69b",
+          "puzzle_hash": "0x2a556758843674345d98c96c4b7539a3a358753de6239b9f3a3286537a22f4cc"
+        },
+        {
+          "amount": 125000000000,
+          "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd69b",
+          "puzzle_hash": "0x119d95627f70a95c6aa0407a5defeb0a3060368d607bd00df11bbfae7fde328e"
+        }
+      ],
+      "reward_infusion_new_challenge": "0x86be7706b59e93bd10885582be7b388a568a86b2a97c8f8fe4064dee0f7e8b45",
+      "signage_point_index": 49,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": 1789478866,
+      "total_iters": 107038750785136,
+      "weight": 56191637248
+    },
+    {
+      "challenge_block_info_hash": "0xea528644fee97e18632f5b289b276068f7c06ec57890ff9544143f38bdf1b346",
+      "challenge_vdf_output": {
+        "data": "0x00000abbb12ffbcbea6fe6d7dbdb957df8181269f95fa2140620889e96b024f15db7e1c51165b8f3566c03d18a9594e532c1c31ebb9ad2655735ec08af8bd8b2a71ca7f0ae424a7b7cf763ab648e916f434703c940ea4063799599672169721eb83a0100"
+      },
+      "deficit": 0,
+      "farmer_puzzle_hash": "0x145078bfc6a744dac691fa611c5c6baf4a431f145f5110555fe315b25320151d",
+      "fees": null,
+      "finished_challenge_slot_hashes": null,
+      "finished_infused_challenge_slot_hashes": null,
+      "finished_reward_slot_hashes": null,
+      "header_hash": "0x0e4994c1ff64d5fec874acc222a39508b2ac61aeddfdb45943388a0df1bf3091",
+      "height": 9295518,
+      "infused_challenge_vdf_output": {
+        "data": "0x030076f46c0ed51005e34b1022bb3e93be696997897b5ba14dcf9e585247325c869ff23d444230119642cf199e36c5444011843ce6afd0b208bfdc3c1d7067fc4a6ee348d1e8e8fd94a794f6ee64eb7aff50b35c27d145b0d165bdb44580982bdc7d0100"
+      },
+      "overflow": false,
+      "pool_puzzle_hash": "0x4e7fbb5ff6850837c1c469db2afa221e953280f7e7ff7d66941c3ae29e645cc8",
+      "prev_hash": "0xcdd9f5e38c1a608f6cedcf42f28953e8884a98d606ed2457f4e2be80872881bd",
+      "prev_transaction_block_hash": null,
+      "prev_transaction_block_height": 9295517,
+      "required_iters": 6915343,
+      "reward_claims_incorporated": null,
+      "reward_infusion_new_challenge": "0xa94da2362f3effd80e64b352388aee03cccc3aafbc5c37dfb201a1bdaec2da5a",
+      "signage_point_index": 49,
+      "sub_epoch_summary_included": null,
+      "sub_slot_iters": 570425344,
+      "timestamp": null,
+      "total_iters": 107038756144399,
+      "weight": 56191639408
     }
-   ],
-   "reward_infusion_new_challenge": "0x82939024fddb4433211f7b9dd375a63eb7ae785a7646f8919b7c5a4e8123954d",
-   "signage_point_index": 26,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478649,
-   "total_iters": 107038546655180,
-   "weight": 56191617808
-  },
-  {
-   "challenge_block_info_hash": "0xffeaa41185ea069d4bca9704399becf3eefeb6cfca53787153c35b939cbfde6b",
-   "challenge_vdf_output": {
-    "data": "0x0300a22c3d7d0d8ffbfb9992224f83e0f90d6565e49ce02ade8a06f23f7163bda92bafbb114182a790b19a9f650be9b5c9c5bc0b72b2067c48b51aef602a19faae2b83ba0ac026f38fcbb4c93ac6d072810390d3ae8848328a01b8bbfdee3fc23c130100"
-   },
-   "deficit": 5,
-   "farmer_puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x96dc356bd36fc5d7a053cd8aeaed6a9852604dd7b363eddc117fc6c2305312f5",
-   "height": 9295509,
-   "infused_challenge_vdf_output": {
-    "data": "0x0000a7ddf8e98ef73d777552989a9a1c0cd6a80411a55d69c8670c031b9b5110ac146c5090db096271ddfd331e22577c050d55eefd7b80ada4bab332412722a3012d21d36faf70a0a7bbd603ecb4936da4146cd668a6c7a74c8f29dc2285bcdf622c0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4",
-   "prev_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295508,
-   "required_iters": 8743749,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0xad52b56dd0308bfb548ae5eb201d975056f8c5203acbf5f30efae7ce6165b7a8",
-   "signage_point_index": 27,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038561889093,
-   "weight": 56191619968
-  },
-  {
-   "challenge_block_info_hash": "0xba4b1ce7a70c5586c985b9153c0aae77c47aa34a0dbbacfa530cd2299a695af4",
-   "challenge_vdf_output": {
-    "data": "0x0100af0eb4a32b16c9dd78869c967c9139ca4038d07d67a514848cf58e2e080fd7ec3be3c10daf92e5b17efd5896573a576686891f8fab82570abbfb14d1e6fe961dbf83b4240544f9f850305a5b4c6db342a1b45957dd2a538ba7a953e08619f4240100"
-   },
-   "deficit": 4,
-   "farmer_puzzle_hash": "0xcfac0265d51f2bfb21f71f6897073e019e77e0b81ec0bc0d3ad79f9d056431bd",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x367276ed6729d6981d184605e9abdbf5951ee095b6e3647b6c8f9d95d59a557d",
-   "height": 9295510,
-   "infused_challenge_vdf_output": {
-    "data": "0x0100fc6f3934f8d287781cb5702b150aa4eed79d2c73cec962d7f44d2d2b4d426c2a7dfa467c533ee6e49332362300af13f0ed3ad3dff0af617e96a07463beb19423654aa2e1e9cd1b98a7e4af28ce61b74419cd9e37c49b3fc1d3c3e8a75a2597250100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x21a9eff73eb557c5e1a2bff1005f91d39577eb2689515f53532fa8b3407b2c49",
-   "prev_hash": "0x96dc356bd36fc5d7a053cd8aeaed6a9852604dd7b363eddc117fc6c2305312f5",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295508,
-   "required_iters": 5045995,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0x60ff7d794030e09036720c84c5d38927933ce5d38b55a781fe0f6c0af91cb146",
-   "signage_point_index": 28,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038567104235,
-   "weight": 56191622128
-  },
-  {
-   "challenge_block_info_hash": "0xcf2e9200825134152289826a97a8014db02116181222e5841f293f2193333c29",
-   "challenge_vdf_output": {
-    "data": "0x010087f50c502f6d974455ca18f0dd147b4367d1c1188a84cefe1c483c3d988972246348be361bff991d0498215e8dfed6ad1a676728edf13e329423301c786462543e5f54cf7d62f4d5f1200f5b23aafbd0a17403891604b31f051545224d116f720100"
-   },
-   "deficit": 3,
-   "farmer_puzzle_hash": "0x916423f3c9f4599744ba7927733442ccaef00752785ec2324fc68b12927bffea",
-   "fees": 699999999,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
-   "height": 9295511,
-   "infused_challenge_vdf_output": {
-    "data": "0x0100c82dfb6b592b81e667820c159d6a0de74abd4624207bdb4337d48350b68736a379c1dcaed24ef69ad0f5a35bef26a803d0433887ae95e2e1db3496d2be177d033b7d5790d0e745e235549ad9d5faa64d7a7f3a70772a300d4f58ec34b9621d0f0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x56778934ffbd83da49478d2dd57aada5e52dcf99fcaee7d6cc990de7dedffdb6",
-   "prev_hash": "0x367276ed6729d6981d184605e9abdbf5951ee095b6e3647b6c8f9d95d59a557d",
-   "prev_transaction_block_hash": "0xcf61ad30185a83205741abf2bdcfceaef9a6f7a865409646c564a603f41d8cb8",
-   "prev_transaction_block_height": 9295508,
-   "required_iters": 8732242,
-   "reward_claims_incorporated": [
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd694",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd694",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    },
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd693",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd693",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    }
-   ],
-   "reward_infusion_new_challenge": "0x9360a47265bd6776136654c6a6d07a1d1cce1dda7988ed9a4df76292ec33adec",
-   "signage_point_index": 30,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478677,
-   "total_iters": 107038588616274,
-   "weight": 56191624288
-  },
-  {
-   "challenge_block_info_hash": "0xca89d384232a3f425c22630dbc26523229a70ba53bf35200ad3a7e9b21d4e919",
-   "challenge_vdf_output": {
-    "data": "0x01001289142a986856e6b9f59d758aaae1572daaa1280f98f7bbd329e2829be5dae95bf876091df3975cc5dde919747796bd761a9541fefc12390518535b425341100bd31d1f52c99852b346fba449fc4dcd60b489ec42db88d29a55548af937dc1c0201"
-   },
-   "deficit": 2,
-   "farmer_puzzle_hash": "0xe45b89f8124b6bb1973a810c9f94d32608919e2952ee41c5530a9b825eed3edc",
-   "fees": 256537800,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
-   "height": 9295512,
-   "infused_challenge_vdf_output": {
-    "data": "0x0200411e582fc60d726f51864ff06903a9043645b36e82df235e7dbf3c0e25e9f38c776f29a0c1eb873b6a340e59119c34a47afc8ab0c4c5dfc54927580445cba50409d0918e574668206d24b1a069408d23b2f5d41c5c764fc33c6cefac0687f6000806"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x257ab4160f914968f12c867da3f17c5d265b1c23bf89c95d3f2d05998eb07857",
-   "prev_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
-   "prev_transaction_block_hash": "0xe54ff973a97224b2e65a69dea28e9fbabc72000c3b68adf724293bce76c81b8b",
-   "prev_transaction_block_height": 9295511,
-   "required_iters": 6437652,
-   "reward_claims_incorporated": [
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd697",
-     "puzzle_hash": "0x56778934ffbd83da49478d2dd57aada5e52dcf99fcaee7d6cc990de7dedffdb6"
-    },
-    {
-     "amount": 125699999999,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd697",
-     "puzzle_hash": "0x916423f3c9f4599744ba7927733442ccaef00752785ec2324fc68b12927bffea"
-    },
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd696",
-     "puzzle_hash": "0x21a9eff73eb557c5e1a2bff1005f91d39577eb2689515f53532fa8b3407b2c49"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd696",
-     "puzzle_hash": "0xcfac0265d51f2bfb21f71f6897073e019e77e0b81ec0bc0d3ad79f9d056431bd"
-    },
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd695",
-     "puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd695",
-     "puzzle_hash": "0x405e4339bc6684e79b865b78ec13f5c343edbcb12b3544eacece440de3bf24e4"
-    }
-   ],
-   "reward_infusion_new_challenge": "0xb054e151c48ccec40341660fdf41bba6673082b20489d891164e956ba30512f8",
-   "signage_point_index": 35,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478741,
-   "total_iters": 107038630886164,
-   "weight": 56191626448
-  },
-  {
-   "challenge_block_info_hash": "0x5799e5c799b984d5d57a9401fbf826cd68b81f01b9888288010f6f7c0b42e504",
-   "challenge_vdf_output": {
-    "data": "0x0200c501e064f4f0204e36f0965f2179e5b0378f520c55cec7c5aa37d1dee8e8163fc18289c0d8eeb2d4c13ff044ee62287898e6f86df745d015768342d76352de0d2d127487512b0eee9f5302cb8b318c7fd3c49bfc95a7e373cbb0c1409fb4cb0b0502"
-   },
-   "deficit": 1,
-   "farmer_puzzle_hash": "0x7b116e62f22aaf6fabe06be18e63b626ad767a080121207ab85366473e20a3ad",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x8a1eeb90b68fc5f353ee57b88ee05092ff231e6f5d9fe65f3e89547ce972cae0",
-   "height": 9295513,
-   "infused_challenge_vdf_output": {
-    "data": "0x030085a58415c86c87f61f8a49448b6067b9a644eef845d16c2eafed56a7171bd3760f70ff2d2f6f14b56eb54eae73d9a14f3cf64b1e9e579b7886da0ef66b212d12464c4e3d02bfd2523c9d672991d96d6a147110e43cbb41176d3726e9d60f670d0201"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc",
-   "prev_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295512,
-   "required_iters": 3685953,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0x25c69e49e3de7a442c0a1568d9c8afd47262f7f418ae9d4b8b3018dd61a7d911",
-   "signage_point_index": 36,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038637047361,
-   "weight": 56191628608
-  },
-  {
-   "challenge_block_info_hash": "0x5c680b995ba6fdfbf6d7a11f43117ab9621f646ceb3ea01235281ecac6503c21",
-   "challenge_vdf_output": {
-    "data": "0x0000ccd2b680d5b4f4f02dd1cc6a0dd746213205b116b473b7a5652f19d2f4f5bbb9497b482fdaa4631c7bd0bb640441adb0892d75866187ba02c7d4d946b796571df513a84f77d5bb1c40bc89133b62300e87245356778802f298ce3ff17fc0b7120100"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "fees": 604585170,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
-   "height": 9295514,
-   "infused_challenge_vdf_output": {
-    "data": "0x0200d7f7f9cac38e42b595de9462d44d38213df9714eb6307aa5dfa84524ab23767d8d5509261555d3729d0c00b5f2e95e81c68a6cc5dc428656f0677c9d88144a462b2fbaba1484411674409d7c7ab3f3435e7138135b6719e42c8539a088f8b6520100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "prev_hash": "0x8a1eeb90b68fc5f353ee57b88ee05092ff231e6f5d9fe65f3e89547ce972cae0",
-   "prev_transaction_block_hash": "0x2e4f63ac18f6e0fff66829f0a9a7d82105438094cecec30425b1164ba3685455",
-   "prev_transaction_block_height": 9295512,
-   "required_iters": 7495093,
-   "reward_claims_incorporated": [
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd698",
-     "puzzle_hash": "0x257ab4160f914968f12c867da3f17c5d265b1c23bf89c95d3f2d05998eb07857"
-    },
-    {
-     "amount": 125256537800,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd698",
-     "puzzle_hash": "0xe45b89f8124b6bb1973a810c9f94d32608919e2952ee41c5530a9b825eed3edc"
-    }
-   ],
-   "reward_infusion_new_challenge": "0x06c5ebb4f7b668a17b80b843a05b99b52e02023b61674fd546201b0bb950770f",
-   "signage_point_index": 40,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478793,
-   "total_iters": 107038676508085,
-   "weight": 56191630768
-  },
-  {
-   "challenge_block_info_hash": "0x1c46e8d5268d789acab6e3ce24fd6990b6a9d3cf73fdc24726ff3dd5fee43a26",
-   "challenge_vdf_output": {
-    "data": "0x030035bfeb18bf5a8150c76a85dd4506ba1eeb8aa4fa77c240c90ac7fd81a0f5f91d8660d3149608a9856e5b62b219e3c87a90189c4032dcf3e87451b68e1c838b549fc6eccf93eeeb9d48f83b4817f2e2e3b427fde83dd16f98fa849a36c56b23090100"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x119d95627f70a95c6aa0407a5defeb0a3060368d607bd00df11bbfae7fde328e",
-   "fees": 0,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
-   "height": 9295515,
-   "infused_challenge_vdf_output": {
-    "data": "0x0000d37f06807e5a25ef9a71b86bc1ae1455856a4a91bb58603f94a1b3f8a6418a32184075d08afbcf49ebc458c9f7774b52d3fba3e3283bb2caf70f0caa309d28609282d2b0a0231c84fed062e4e0068de6d6048a835cfa1a343a026975c140e07f0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x2a556758843674345d98c96c4b7539a3a358753de6239b9f3a3286537a22f4cc",
-   "prev_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
-   "prev_transaction_block_hash": "0x7bcb5225f8b612363e3e4edfbe0699ed13135570336a23c694c57add8e778cef",
-   "prev_transaction_block_height": 9295514,
-   "required_iters": 1911700,
-   "reward_claims_incorporated": [
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd69a",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    },
-    {
-     "amount": 125604585170,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd69a",
-     "puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4"
-    },
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd699",
-     "puzzle_hash": "0xab14af9c3ed5eebe19d2ca15586bac0b85dabd3c640055bee1685e466a348adc"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd699",
-     "puzzle_hash": "0x7b116e62f22aaf6fabe06be18e63b626ad767a080121207ab85366473e20a3ad"
-    }
-   ],
-   "reward_infusion_new_challenge": "0xfd1e92d8550f80b169b08c7a080062ccccc4c8d3f312bad2a317c37392c46f4c",
-   "signage_point_index": 44,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478811,
-   "total_iters": 107038706576276,
-   "weight": 56191632928
-  },
-  {
-   "challenge_block_info_hash": "0xe8b0f4c2f9c5405c1c9f52e7cb0e49d5c4e103255adb675395cb5442e4340f42",
-   "challenge_vdf_output": {
-    "data": "0x0100d04552e923717aec47efdf38a12799d3e5df2b760b406ce443e5fc909c95dd3f127029ea3ae27dbbc1a29c4c1f5aa11e70baa2c89f4ae5028d80568983c77c1d11f6bfcc747fd65f3769708d5372aea2059ece1942679cec6f62b5286910463b0200"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xaee601d21510d8946110c2568184b969035935b6cfcda61075b46c82072a8324",
-   "height": 9295516,
-   "infused_challenge_vdf_output": {
-    "data": "0x020014cbfadd0b6b74cebc1a4475ed86cdbe7fc9fe173847b11448037d758f921bf05fcf12de4b20f0b3a0af694658f009cead1211b91ba36865ed92d9188c37743449619530fc79d0aac230403464f2be3f1852f60417f1a518f3874c80b94ac3370100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "prev_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295515,
-   "required_iters": 7473813,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0x87e373d7ae6ee49bf1b1215fb4d49e6621fb18002e63413f1fbade8a9073f052",
-   "signage_point_index": 45,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038721051285,
-   "weight": 56191635088
-  },
-  {
-   "challenge_block_info_hash": "0x708e1eb26c7d3b66cb2aaf45e28e7d85ffd2ac1ef67c1fbebf9e260375b8130f",
-   "challenge_vdf_output": {
-    "data": "0x0200c26909ef659299824eca0fc193520ce8d9bd7065a9be1907c66ae212cb308afb069c442f22f31f54111758246352820f9f021ffe8c121b8e7806bb3a7662ed2dbfd0fe48361b75f065b51bf56e9c77ece0888c158f2766c0a759dc73644f12330100"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "fees": 0,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0xcdd9f5e38c1a608f6cedcf42f28953e8884a98d606ed2457f4e2be80872881bd",
-   "height": 9295517,
-   "infused_challenge_vdf_output": {
-    "data": "0x0100d6ab4a4e1c760fa45feeea3a0fb3ce657871e1df72301a0fe3497fe24bd3a4603b19328286dacb0ac03bef9af7d00c5c789f8467d2125dfedba95b4bec59f6462b3debae735fce2b5fb47e0ed79fae98928fc6bb1f81900e554e12883315d70d0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x9fbde16e03f55c85ecf94cb226083fcfe2737d4e629a981e5db3ea0eb9907af4",
-   "prev_hash": "0xaee601d21510d8946110c2568184b969035935b6cfcda61075b46c82072a8324",
-   "prev_transaction_block_hash": "0xc489d02ac590377dcd1fbf5c0882dbab51006705ab6e19165ab1a86b13e3e719",
-   "prev_transaction_block_height": 9295515,
-   "required_iters": 1556080,
-   "reward_claims_incorporated": [
-    {
-     "amount": 875000000000,
-     "parent_coin_info": "0xccd5bb71183532bff220ba46c268991a000000000000000000000000008dd69b",
-     "puzzle_hash": "0x2a556758843674345d98c96c4b7539a3a358753de6239b9f3a3286537a22f4cc"
-    },
-    {
-     "amount": 125000000000,
-     "parent_coin_info": "0x3ff07eb358e8255a65c30a2dce0e5fbb000000000000000000000000008dd69b",
-     "puzzle_hash": "0x119d95627f70a95c6aa0407a5defeb0a3060368d607bd00df11bbfae7fde328e"
-    }
-   ],
-   "reward_infusion_new_challenge": "0x86be7706b59e93bd10885582be7b388a568a86b2a97c8f8fe4064dee0f7e8b45",
-   "signage_point_index": 49,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": 1789478866,
-   "total_iters": 107038750785136,
-   "weight": 56191637248
-  },
-  {
-   "challenge_block_info_hash": "0xea528644fee97e18632f5b289b276068f7c06ec57890ff9544143f38bdf1b346",
-   "challenge_vdf_output": {
-    "data": "0x00000abbb12ffbcbea6fe6d7dbdb957df8181269f95fa2140620889e96b024f15db7e1c51165b8f3566c03d18a9594e532c1c31ebb9ad2655735ec08af8bd8b2a71ca7f0ae424a7b7cf763ab648e916f434703c940ea4063799599672169721eb83a0100"
-   },
-   "deficit": 0,
-   "farmer_puzzle_hash": "0x145078bfc6a744dac691fa611c5c6baf4a431f145f5110555fe315b25320151d",
-   "fees": null,
-   "finished_challenge_slot_hashes": null,
-   "finished_infused_challenge_slot_hashes": null,
-   "finished_reward_slot_hashes": null,
-   "header_hash": "0x0e4994c1ff64d5fec874acc222a39508b2ac61aeddfdb45943388a0df1bf3091",
-   "height": 9295518,
-   "infused_challenge_vdf_output": {
-    "data": "0x030076f46c0ed51005e34b1022bb3e93be696997897b5ba14dcf9e585247325c869ff23d444230119642cf199e36c5444011843ce6afd0b208bfdc3c1d7067fc4a6ee348d1e8e8fd94a794f6ee64eb7aff50b35c27d145b0d165bdb44580982bdc7d0100"
-   },
-   "overflow": false,
-   "pool_puzzle_hash": "0x4e7fbb5ff6850837c1c469db2afa221e953280f7e7ff7d66941c3ae29e645cc8",
-   "prev_hash": "0xcdd9f5e38c1a608f6cedcf42f28953e8884a98d606ed2457f4e2be80872881bd",
-   "prev_transaction_block_hash": null,
-   "prev_transaction_block_height": 9295517,
-   "required_iters": 6915343,
-   "reward_claims_incorporated": null,
-   "reward_infusion_new_challenge": "0xa94da2362f3effd80e64b352388aee03cccc3aafbc5c37dfb201a1bdaec2da5a",
-   "signage_point_index": 49,
-   "sub_epoch_summary_included": null,
-   "sub_slot_iters": 570425344,
-   "timestamp": null,
-   "total_iters": 107038756144399,
-   "weight": 56191639408
-  }
- ],
- "success": true
+  ],
+  "success": true
 }

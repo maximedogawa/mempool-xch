@@ -1,0 +1,401 @@
+{
+  "success": true,
+  "count": 34,
+  "page": 1,
+  "page_size": 10,
+  "offers": [
+    {
+      "id": "BXXeNREdWNPyMEJSPmTfnXzSWpBwz6iUm6aQQxmDrhoL",
+      "status": 0,
+      "involved_coins": [
+        "0x0d1d34926c6b93dab4c1e2c5d7a33cfbd4a16ad772ce262378d3eb8405244a30",
+        "0xb0dc8289239d9e1d8655f1ea7c919f2e14c9f30cd9b14b980f9bb9cf33f34e46"
+      ],
+      "date_found": "2026-09-23T09:22:31.905Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-23T10:22:30+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.5780346820809249,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 0.173
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 0.1
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0xbbca26631bb793629d573038125073b6ff23df6ff4ea1eeab1584442bdba165e",
+      "known_taker": null
+    },
+    {
+      "id": "8GDFbocPwqjgNVs6yG7tFALcWsmbgcvywG9odP23W3RS",
+      "status": 0,
+      "involved_coins": [
+        "0x982d426a7f692c42a7ea3d90ffbaee95337cdbc48ccbbc642c64ce5ef34ed7ed",
+        "0x865beb76912c8bddc1644f2b95327ea80585da8b1f58df36f1ca71f5676045b4",
+        "0x0d1d34926c6b93dab4c1e2c5d7a33cfbd4a16ad772ce262378d3eb8405244a30",
+        "0x63abe5f8a3fe7aee14349927982e4c90bb19ba6c0d44c585f91d0a0cc1f4c4ef"
+      ],
+      "date_found": "2026-09-23T00:49:57.412Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-24T00:49:57+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.5873642645607108,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 4.052
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 2.38
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x6fa301ed10e5f25a7143fe93f8968ef0fae8338ed6c8a5bfde148404dde51b37",
+      "known_taker": null
+    },
+    {
+      "id": "3vUWtcBmhwacdMacu7uHPDJ6ZGSsuU8iyJ7AMxFN3LNh",
+      "status": 0,
+      "involved_coins": [
+        "0x982d426a7f692c42a7ea3d90ffbaee95337cdbc48ccbbc642c64ce5ef34ed7ed",
+        "0xb0dc8289239d9e1d8655f1ea7c919f2e14c9f30cd9b14b980f9bb9cf33f34e46"
+      ],
+      "date_found": "2026-09-23T09:22:32.624Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-23T10:22:30+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.591715976331361,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 0.169
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 0.1
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x02dd8762c112d27cc223bbe2b3126fbf8524b193a818aef354dbb3fa5bc2e006",
+      "known_taker": null
+    },
+    {
+      "id": "3J3PSv6hDPuY1jBoTD3iRsK1WyJn3oeGNrnpqxd1omhh",
+      "status": 0,
+      "involved_coins": [
+        "0x25b2b891a1f5cbd31c2c4efae8153bb464f5d0a8fab81ba4aa9d37d097a7775c",
+        "0xc880b0fe20e764254b6358f6f047f1870f3506d03f21a976b341a1e4ab310141"
+      ],
+      "date_found": "2026-09-22T11:57:49.798Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": null,
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6057866184448463,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 553
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 335
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0xda39c4e6291660f1de55d53291d10ff673a78b0fac82758969ae6bc8d3acafca",
+      "known_taker": null
+    },
+    {
+      "id": "7s8szVLk67ZfAU7ueQMNHnP4FXP1zTpdA5715U7zA5vd",
+      "status": 0,
+      "involved_coins": [
+        "0xfb20a88f4c0883186d862f80dd9b71053efa1170f9323342455ebcd4393809af",
+        "0xb88d6bc1d1e3f62e18a7acf9b79a31eb384808b8bd6782b9891b7fe600f16e0c",
+        "0x8d8334efadde2c6c0abe21334cc9c02bc3bc6c024ca450ddd068d0be679784be",
+        "0x4de8e8eea5522c836bce3434e517d5b5fef92093c7cd85adfbaa67caabe53f1b"
+      ],
+      "date_found": "2026-09-23T09:46:26.973Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-24T09:46:21+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6064281382656155,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 1.649
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 1
+        }
+      ],
+      "fees": 1.5e-5,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x6112204e6e36e562fa92791c75655d34a3304cc0075421e1a457c6e4a2e688ca",
+      "known_taker": null
+    },
+    {
+      "id": "4Qz11JR8siB49BsBAXyHysWHoqH1tvRHZzgdh1Rw3j38",
+      "status": 0,
+      "involved_coins": [
+        "0xc24601b9f4a441e2b16c04c0bf3016e96813fe5bb64c43329aed072eadf8f01d",
+        "0x257bcb659a9bd627d91c68f0ccd9408734abbec089f49f7bce09ae59783ecd4b",
+        "0x8216240d6bc9db02cf43a321cff0f8cdf8da82ee0c7f34e8c39cd404e72b3658",
+        "0xafb903588e1e53031b88ec4f7669adad24dfbdb0491cc5b7b9dbb434a33f2974",
+        "0x89cccc77df237a28ff8e09ebcdef5ec890866f1cad0d53cad685f9017e8da7ee",
+        "0x56ebe7015da988009e39b867199e2d128e646540103b7edbe9ef9d653e586e07",
+        "0x831973222a619022e5031b1d19464e861f869b64646dd398989520450675355d",
+        "0xa1f38946ad5019a009da6addfdb8b833cea7ffb5c3e23d88d9a4a6b767f2830a",
+        "0x4c353a7efdf9c1191b706545dfd2d5b039360bfcde1a761341f099cf893410df",
+        "0xc40c99922493297be45dd26192f912fee277027830e2f82dcdae1ad7458949d8",
+        "0x82ced0dca9dccd4e258e243fa842cc5a25964682ada8f3ad5cd050fed9a6cf0c",
+        "0xd3defeb55388bbe0f951f3afc25839f08e4d2e5b48229799bf1f4a96ce53cb11",
+        "0xe4959109a9cf3d8623f3b4b567d35d68106878462477e723b082d54ff9ac5dd0",
+        "0x4646d84a53c2d45481578b1af5a08b250835d39f066c1afbd5abb3af79e9929f",
+        "0x0cdf8c9fe2dbb3975c4de79a4b4af7bec1500462593a215399845d7fcd28a347",
+        "0xc194ba379fb000aaf746b41007ef5a2bbc57420031311a0530ca79948dc1f3ed",
+        "0xf3708650a6c471e513fa5a4a7766d4753736883c5e41d73b2571788a4404f6b7",
+        "0x0af1c6ede1f3beaa32dab65785af1b0eec427891b3be8cb8505e35b43fe4bd61",
+        "0x3e635e5bb4df00503b013ba3ea9217e03888e6ac50dc2c6bdfca26bcd6b5491b",
+        "0x71a8a38489585b608689680245d05811f1e9a363438ab6bb4884dd9bd144cfb5",
+        "0xcd88f84ce954302364c0d716cd4802ff6a5767650664803b04575d70b4564c87"
+      ],
+      "date_found": "2026-09-22T06:47:35.330Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-29T06:47:35+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.62,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 200
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 124
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x91ad179a219e5c671468c4ccf2ea727fea59c69549f46aa15bb3baa33696b7b8",
+      "known_taker": null
+    },
+    {
+      "id": "7vEQzKZYTeSuEPoFd73k5WK9WHsWVGuYPEEaVT3A1x7d",
+      "status": 0,
+      "involved_coins": [
+        "0xc24601b9f4a441e2b16c04c0bf3016e96813fe5bb64c43329aed072eadf8f01d",
+        "0xbf67493eb2fa194eb12ed0b4e909c3f26eb39b5cef68ac1322126ff83b0e061a"
+      ],
+      "date_found": "2026-09-21T10:53:38.706Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": "2026-09-28T10:53:39+00:00",
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6246834374472396,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 11.846
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 7.4
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0xa5252e5fcd52d14ef20018009f0456fa0651492b1b2f4d8ab05965c90784e1da",
+      "known_taker": null
+    },
+    {
+      "id": "2e3mjha3VX4nDRAXSGMV5mvL755pwWqx9i1a9AnkiM4W",
+      "status": 0,
+      "involved_coins": [
+        "0x73acb7290c4241b83d0dbf5c2542d650058276410dfce699a31dfe5d52c9091a",
+        "0xbc285e646d5bc52b8e2f29617ab4941de40911b8cfbe00418fc6c62b5d6ca7e6"
+      ],
+      "date_found": "2026-09-20T16:17:38.404Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": null,
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6275731822474032,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 1.059
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 0.6646
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0xae7620baaf13081785ce31956c8eb84ab6754cbb9352a422420be1dab3145730",
+      "known_taker": null
+    },
+    {
+      "id": "2TsmLPWTXnZ3ySpZzaqTcpPhPJUHz6DdhRRxEkn7knP3",
+      "status": 0,
+      "involved_coins": [
+        "0x3d26dc11a9debcdda346b89ea5b1f346b005acb7b22225915fddd44be8b2fa16",
+        "0x67c204ec4073d31ea3bade2ca6cc019abad8dca0ba1c64dcfdc8bcdbfe19d870"
+      ],
+      "date_found": "2026-09-20T15:38:31.112Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": null,
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6305052430886559,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 1.049
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 0.6614
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x4c13a96c495a39bbcf06f8405f23cbc223d13b6b342b24a7a3aa5dfebee894b8",
+      "known_taker": null
+    },
+    {
+      "id": "8kTUR7WymHQ2pSMqF9TwWXX7Aw2gZsMsBir2bwk1thpA",
+      "status": 0,
+      "involved_coins": [
+        "0x4ec574068c3a22ab46c7ce51acc31ed8fdc7fdd6c165938c3fec5c214c23513f",
+        "0xf8fd4f9d2f8049668adea5638f875735968464d602729c29d70b65758c36cf99"
+      ],
+      "date_found": "2026-09-20T07:32:22.256Z",
+      "date_completed": null,
+      "date_pending": null,
+      "date_expiry": null,
+      "block_expiry": null,
+      "spent_block_index": null,
+      "price": 0.6325335892514395,
+      "offered": [
+        {
+          "id": "ae1536f56760e471ad85ead45f00d680ff9cca73b8cc3407be778f1c0c606eac",
+          "code": "BYC",
+          "name": "Bytecash",
+          "amount": 1.042
+        }
+      ],
+      "requested": [
+        {
+          "id": "xch",
+          "code": "XCH",
+          "name": "Chia",
+          "amount": 0.6591
+        }
+      ],
+      "fees": 0,
+      "mempool": null,
+      "related_offers": [],
+      "mod_version": 2,
+      "trade_id": "0x1a5a4cb47875f57668c392cb338dcb9ad42e9ce537e54fab19e798209d6d6b89",
+      "known_taker": null
+    }
+  ]
+}

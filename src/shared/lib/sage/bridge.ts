@@ -6,6 +6,7 @@
  * bridge failure resolves to null instead of throwing into the UI.
  */
 import type { NetworkId } from "@/shared/config/networks";
+import { browserStorage } from "@/shared/lib/browserStorage";
 import { CapabilityManager, type CapabilityClient } from "./capabilities";
 import { isSageRuntime, mapSageNetwork, mapSageTheme, receiveAddressFrom } from "./mappers";
 
@@ -51,7 +52,9 @@ export async function fetchSageTheme(): Promise<"light" | "dark" | null> {
   }
 }
 
-export async function listenSageTheme(handler: (theme: "light" | "dark") => void): Promise<() => void> {
+export async function listenSageTheme(
+  handler: (theme: "light" | "dark") => void
+): Promise<() => void> {
   const client = await getSage();
   if (!client) return () => {};
   try {
@@ -64,7 +67,7 @@ export async function listenSageTheme(handler: (theme: "light" | "dark") => void
 /** Process-wide capability manager bound to the Sage client (asks once, remembers refusals). */
 export const capabilities = new CapabilityManager(
   () => getSage() as Promise<CapabilityClient | null>,
-  typeof window !== "undefined" ? window.localStorage : null
+  browserStorage()
 );
 
 /** Receive address of the connected wallet once wallet.get_sync_status is granted; null otherwise. */
@@ -90,7 +93,8 @@ export async function openExternalUrl(url: string): Promise<boolean> {
     return true;
   }
   const client = await getSage();
-  const environment = client?.environment as unknown as { openExternalUrl?: (input: { url: string }) => Promise<unknown> } | undefined;
+  const environment = client?.environment as unknown as
+    { openExternalUrl?: (input: { url: string }) => Promise<unknown> } | undefined;
   if (!environment?.openExternalUrl) return false;
   try {
     await environment.openExternalUrl({ url });

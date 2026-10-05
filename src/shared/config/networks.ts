@@ -1,5 +1,13 @@
-/** Networks the app knows about. Endpoints can be overridden per network in settings (TASK-021). */
+import { runtimeApiUrl, runtimeFallbackUrl, runtimeNodexchKey } from "./runtime";
+
+/** Networks the app knows about. Endpoints can be overridden per network in settings. */
 export type NetworkId = "mainnet" | "testnet11";
+
+/**
+ * Who answers an endpoint. Coinset and nodexch speak the same dialect (full-node RPC, the
+ * indexed API and the WebSocket on one host); a custom node has the full-node RPC only.
+ */
+export type Provider = "coinset" | "nodexch" | "custom";
 
 export interface NetworkConfig {
   id: NetworkId;
@@ -14,7 +22,20 @@ export interface NetworkConfig {
   wsUrl: string;
   /** Hosts recognised as Coinset: unlock the indexed API, the WebSocket and the summary API. */
   coinsetHosts: string[];
+  /**
+   * The hosted nodexch gateway for this network (the settings preset); null where none runs. On
+   * mainnet the server may name another one at run time (API_URL_MAINNET).
+   */
+  readonly nodexchUrl: string | null;
+  /**
+   * Its publishable key for this site, handed over by the server at run time
+   * (src/shared/config/runtime.ts); empty without one.
+   */
+  readonly nodexchKey: string;
 }
+
+/** nodexch.space's own gateway: it refuses every request without a key (401). */
+const NODEXCH_SPACE = "https://api.nodexch.space";
 
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
@@ -25,6 +46,13 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     indexedUrl: "https://api.coinset.org",
     wsUrl: "wss://api.coinset.org/ws",
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
+    get nodexchUrl() {
+      const configured = runtimeApiUrl();
+      return configured && !isCoinsetUrl("mainnet", configured) ? configured : NODEXCH_SPACE;
+    },
+    get nodexchKey() {
+      return runtimeNodexchKey("mainnet");
+    },
   },
   testnet11: {
     id: "testnet11",
@@ -34,6 +62,10 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     indexedUrl: "https://testnet11.api.coinset.org",
     wsUrl: "wss://testnet11.api.coinset.org/ws",
     coinsetHosts: ["testnet11.api.coinset.org"],
+    nodexchUrl: null,
+    get nodexchKey() {
+      return runtimeNodexchKey("testnet11");
+    },
   },
 };
 
@@ -50,6 +82,67 @@ export function isCoinsetUrl(network: NetworkId, url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** True when the base URL is the hosted nodexch gateway of this network. */
+export function isNodexchUrl(network: NetworkId, url: string): boolean {
+  const preset = NETWORKS[network].nodexchUrl;
+  if (!preset) return false;
+  try {
+    return new URL(preset).host === new URL(url).host;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Where a network's reads go when its hosted gateway fails, as the server says at run time
+ * (API_FALLBACK_URL_MAINNET); null without one: the gateway's failures show, and Coinset is one
+ * click away in Settings. With one, Dexie's paths fall back to Dexie itself too.
+ */
+export function fallbackEndpointUrl(network: NetworkId): string | null {
+  return (network === "mainnet" && runtimeFallbackUrl()) || null;
+}
+
+/** True for a gateway that refuses keyless requests: nodexch.space's own. */
+export function needsNodexchKey(url: string): boolean {
+  try {
+    return new URL(url).host === new URL(NODEXCH_SPACE).host;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when this site can use the hosted nodexch gateway of a network: one runs there, and the
+ * server handed over the site's publishable key if the gateway asks for one. nodexch.space
+ * answers 401 to a request without a key, so a site without one must not send its visitors there.
+ */
+export function hasHostedNodexch(network: NetworkId): boolean {
+  const { nodexchUrl, nodexchKey } = NETWORKS[network];
+  return Boolean(nodexchUrl && (nodexchKey || !needsNodexchKey(nodexchUrl)));
+}
+
+/**
+ * The endpoint a network starts on: on mainnet the main API the server names (API_URL_MAINNET),
+ * else the hosted nodexch gateway where this site can use it (mainnet, with the site's key), else
+ * Coinset (testnet11, a server without the key, the Sage export).
+ */
+export function defaultEndpointUrl(network: NetworkId): string {
+  const { nodexchUrl, rpcUrl } = NETWORKS[network];
+  const configured = network === "mainnet" ? runtimeApiUrl() : "";
+  if (configured && isCoinsetUrl(network, configured)) return configured;
+  return nodexchUrl && hasHostedNodexch(network) ? nodexchUrl : rpcUrl;
+}
+
+/**
+ * Who answers `url`: Coinset by host, nodexch by host or because the user said so for their own
+ * gateway (`declared`), anything else a custom node.
+ */
+export function providerOf(network: NetworkId, url: string, declared?: Provider): Provider {
+  if (isCoinsetUrl(network, url)) return "coinset";
+  if (declared === "nodexch" || isNodexchUrl(network, url)) return "nodexch";
+  return "custom";
 }
 
 /** Chia consensus constants used by the visualisations. */

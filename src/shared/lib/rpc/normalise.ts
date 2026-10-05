@@ -6,6 +6,8 @@ import type {
   BlockRecord,
   BlockchainState,
   CatBalance,
+  ClawbackCoin,
+  ClawbackList,
   Coin,
   CoinDetails,
   CoinRecord,
@@ -13,8 +15,16 @@ import type {
   FeeEstimate,
   FullBlockSummary,
   MempoolItem,
+  OfferList,
+  OfferSide,
+  OfferState,
+  OfferStatus,
   ParticipantFlow,
+  PeerConnection,
   RawCoinRef,
+  RawTransaction,
+  ReorgEvent,
+  ReorgList,
   SingletonInfo,
   TxList,
   TxSummary,
@@ -22,6 +32,7 @@ import type {
   TxSummaryKind,
   XchBalance,
 } from "./types";
+import { OFFER_STATUSES } from "./types";
 
 type Raw = Record<string, unknown>;
 const asRaw = (v: unknown): Raw => (v && typeof v === "object" ? (v as Raw) : {});
@@ -111,6 +122,9 @@ export function normaliseBlockRecord(raw: unknown): BlockRecord {
       : null,
     overflow: Boolean(r.overflow),
     signagePointIndex: num(r.signage_point_index),
+    deficit: num(r.deficit),
+    subEpochSummaryIncluded:
+      r.sub_epoch_summary_included !== null && r.sub_epoch_summary_included !== undefined,
     isTransactionBlock: timestamp !== null,
   };
 }
@@ -120,7 +134,12 @@ export function normaliseFullBlock(raw: unknown): FullBlockSummary {
   const ftb = r.foliage_transaction_block ? asRaw(r.foliage_transaction_block) : null;
   const info = r.transactions_info ? asRaw(r.transactions_info) : null;
   const rewardChain = asRaw(r.reward_chain_block);
+  // Coinset leaves transactions_generator out of get_block, so a non-zero generator root (or
+  // any cost) is the reliable sign that the block carries spends.
   const generator = str(r.transactions_generator);
+  const generatorRoot = info ? str(info.generator_root).replace(/^0x/, "") : "";
+  const hasGenerator =
+    generator.length > 2 || /[1-9a-f]/i.test(generatorRoot) || (info ? num(info.cost) > 0 : false);
   return {
     headerHash: hex(r.header_hash),
     height: num(rewardChain.height),
@@ -129,7 +148,7 @@ export function normaliseFullBlock(raw: unknown): FullBlockSummary {
     cost: info ? num(info.cost) : 0,
     fees: info ? big(info.fees) : 0n,
     rewardClaimsIncorporated: info ? arr(info.reward_claims_incorporated).map(normaliseCoin) : [],
-    hasGenerator: generator.length > 2,
+    hasGenerator,
     prevTransactionBlockHash: ftb ? hex(ftb.prev_transaction_block_hash) : null,
   };
 }
@@ -151,6 +170,11 @@ export function normaliseBlockchainState(raw: unknown): BlockchainState {
     mempoolMaxTotalCost: num(r.mempool_max_total_cost, 110_000_000_000),
     mempoolMinFees: Object.fromEntries(Object.entries(minFees).map(([k, v]) => [k, num(v)])),
     synced: sync.synced === undefined ? true : Boolean(sync.synced),
+    syncMode: Boolean(sync.sync_mode),
+    syncTipHeight:
+      sync.sync_tip_height === undefined || sync.sync_tip_height === null
+        ? null
+        : num(sync.sync_tip_height),
     nodeId: hex(r.node_id),
   };
 }
@@ -317,5 +341,138 @@ export function normaliseSingletonInfo(raw: unknown): SingletonInfo {
     launcherId: hex(r.launcher_id),
     singletonType: r.singleton_type ? str(r.singleton_type) : null,
     coinRecord: r.coin_record ? asRaw(r.coin_record) : null,
+  };
+}
+
+export function normalisePeerConnection(raw: unknown): PeerConnection {
+  const r = asRaw(raw);
+  return {
+    nodeId: hex(r.node_id),
+    peerHost: str(r.peer_host),
+    // A nodexch gateway publishes the peer's listening port only (`peer_server_port`).
+    peerPort: num(r.peer_port ?? r.peer_server_port),
+    type: num(r.type),
+    bytesRead: num(r.bytes_read),
+    bytesWritten: num(r.bytes_written),
+    peakHeight: nullableNum(r.peak_height),
+    creationTimeS: nullableNum(r.creation_time),
+  };
+}
+
+/* ---- Coinset offers, clawbacks, reorgs, raw transactions ---- */
+
+const nullableHex = (v: unknown): string | null => (typeof v === "string" && v ? hex(v) : null);
+
+function normaliseOfferSide(
+  assetIds: unknown,
+  xchMojos: unknown,
+  catMojos: unknown,
+  nftIds: unknown
+): OfferSide {
+  const cats = asRaw(catMojos);
+  const ids = arr(assetIds).map(hex);
+  return {
+    xch: big(xchMojos),
+    cats: ids.map((assetId) => ({ assetId, amount: big(cats[assetId] ?? cats[`0x${assetId}`]) })),
+    nfts: arr(nftIds).map(hex),
+  };
+}
+
+export function normaliseOfferState(raw: unknown): OfferState {
+  const r = asRaw(raw);
+  const status = str(r.status, "open");
+  return {
+    offerId: hex(r.offer_id),
+    status: (OFFER_STATUSES as readonly string[]).includes(status)
+      ? (status as OfferStatus)
+      : "open",
+    firstSeenMs: num(r.first_seen_ms),
+    lastUpdatedMs: num(r.last_updated_ms),
+    makerP2s: arr(r.maker_p2s).map(hex),
+    offered: normaliseOfferSide(
+      r.offered_cat_asset_ids,
+      r.offered_xch_mojos,
+      r.offered_cat_mojos,
+      r.offered_nft_ids
+    ),
+    requested: normaliseOfferSide(
+      r.requested_cat_asset_ids,
+      r.requested_xch_mojos,
+      r.requested_cat_mojos,
+      r.requested_nft_ids
+    ),
+    feeMojos: big(r.fee_mojos),
+    expiresBeforeHeight: nullableNum(r.expires_before_height),
+    expiresBeforeTimeMs: nullableNum(r.expires_before_time_ms),
+    pendingTxId: nullableHex(r.pending_tx_id),
+    confirmedTxId: nullableHex(r.confirmed_tx_id),
+    confirmedHeight: nullableNum(r.confirmed_height),
+    confirmedAtMs: nullableNum(r.confirmed_at_ms),
+    cancelledByTxId: nullableHex(r.cancelled_by_tx_id),
+    cancelledHeight: nullableNum(r.cancelled_height),
+    cancelledAtMs: nullableNum(r.cancelled_at_ms),
+    expiredAtHeight: nullableNum(r.expired_at_height),
+  };
+}
+
+export function normaliseOfferList(raw: unknown): OfferList {
+  const r = asRaw(raw);
+  return {
+    offers: arr(r.offers).map(normaliseOfferState),
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
+}
+
+export function normaliseClawbackList(raw: unknown): ClawbackList {
+  const r = asRaw(raw);
+  const clawbacks = arr(r.clawbacks).map((c): ClawbackCoin => {
+    const x = asRaw(c);
+    const kind = str(x.asset_kind, "xch");
+    return {
+      coinId: hex(x.coin_id),
+      receiverP2: hex(x.receiver_p2),
+      senderP2: hex(x.sender_p2),
+      seconds: num(x.seconds),
+      amount: big(x.amount),
+      assetKind: kind === "cat" || kind === "nft" ? kind : "xch",
+      assetId: nullableHex(x.asset_id),
+      revocable: Boolean(x.revocable),
+    };
+  });
+  return {
+    clawbacks,
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
+}
+
+export function normaliseReorgEvent(raw: unknown): ReorgEvent {
+  const r = asRaw(raw);
+  return {
+    id: str(r.id),
+    detectedAtMs: num(r.detected_at_ms),
+    oldPeakHeight: num(r.old_peak_height),
+    oldPeakHash: hex(r.old_peak_hash),
+    newPeakHeight: num(r.new_peak_height),
+    newPeakHash: hex(r.new_peak_hash),
+    depth: num(r.reorg_depth, Math.max(0, num(r.old_peak_height) - num(r.new_peak_height))),
+  };
+}
+
+export function normaliseReorgList(raw: unknown): ReorgList {
+  const r = asRaw(raw);
+  return {
+    reorgs: arr(r.reorgs).map(normaliseReorgEvent),
+    truncated: Boolean(r.truncated),
+    nextCursor: typeof r.next_cursor === "string" ? r.next_cursor : null,
+  };
+}
+
+export function normaliseRawTransaction(raw: unknown): RawTransaction {
+  const r = asRaw(raw);
+  return {
+    source: r.source === "inferred" ? "inferred" : "mempool",
+    item: normaliseMempoolItem(r.item),
   };
 }

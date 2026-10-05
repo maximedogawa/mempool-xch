@@ -1,0 +1,394 @@
+"use client";
+
+import { useState } from "react";
+import arcade from "@/shared/config/arcade.json";
+import { formatAmount, formatNumber } from "@/shared/lib/chia/amounts";
+import { cn } from "@/shared/lib/cn";
+import { formatAge } from "@/shared/lib/format/time";
+import { useT } from "@/shared/i18n/useT";
+import { gamingProviderFor } from "@/shared/config/gaming";
+import { useSettings } from "@/shared/providers/SettingsProvider";
+import { Badge, Card, CardBody, CardHeader, Tooltip } from "@/shared/ui";
+import { ExternalLink } from "@/shared/ui/ExternalLink";
+import { DuelsView } from "./DuelsView";
+import { PotPotatoCard } from "./PotPotatoCard";
+import {
+  ROOMS_LIVE,
+  ROOMS_REFRESH_MS,
+  useArcadeRooms,
+  type ArcadeRoom,
+  type RoomPhase,
+} from "./useArcadeRooms";
+import arcadeNs from "@/shared/i18n/messages/en/arcade";
+
+interface Game {
+  id: string;
+  name: string;
+  version: string | null;
+  description: string;
+  instructions: string | null;
+  icon: string | null;
+  developer: { name: string; url: string | null } | null;
+  license: string | null;
+  playUrl: string | null;
+  homepage: string | null;
+  repository: string | null;
+  gameType: string | null;
+  genre: string | null;
+  status: string | null;
+  stakeTier: string | null;
+  verified: boolean;
+  active: boolean;
+  stats: { totalPlays?: number; activePlayers?: number } | null;
+}
+
+/** The manifest icon as an image, never as inline markup: a data: SVG in an <img> cannot run script. */
+function GameIcon({ game }: { game: Game }) {
+  if (!game.icon) {
+    return (
+      <span
+        aria-hidden="true"
+        className="flex h-12 w-12 items-center justify-center rounded-sm bg-surface-2 text-lg font-semibold text-fg-muted"
+      >
+        {game.name.slice(0, 1)}
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- a data: URI, nothing for next/image to optimise
+    <img
+      src={`data:image/svg+xml;utf8,${encodeURIComponent(game.icon)}`}
+      alt=""
+      width={48}
+      height={48}
+      className="h-12 w-12 rounded-sm"
+    />
+  );
+}
+
+function GameCard({ game }: { game: Game }) {
+  const t = useT(arcadeNs);
+  const [open, setOpen] = useState(false);
+  return (
+    <li
+      className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
+      data-testid={`game-${game.id}`}
+    >
+      <div className="flex items-start gap-3">
+        <GameIcon game={game} />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-fg">{game.name}</h3>
+            {game.status ? (
+              <Badge tone={game.status === "live" ? "primary" : "neutral"}>{game.status}</Badge>
+            ) : null}
+            {game.genre ? <Badge tone="info">{game.genre}</Badge> : null}
+            {game.verified ? <Badge tone="primary">{t("game.verified")}</Badge> : null}
+          </div>
+          <p className="text-sm text-fg-muted">{game.description}</p>
+        </div>
+      </div>
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-fg-muted sm:grid-cols-4">
+        <dt className="text-fg-faint">{t("game.developer")}</dt>
+        <dd className="truncate">
+          {game.developer ? (
+            game.developer.url ? (
+              <ExternalLink href={game.developer.url} className="hover:text-fg">
+                {game.developer.name}
+              </ExternalLink>
+            ) : (
+              game.developer.name
+            )
+          ) : (
+            "—"
+          )}
+        </dd>
+        <dt className="text-fg-faint">{t("game.stake")}</dt>
+        <dd>{game.stakeTier ?? "—"}</dd>
+        <dt className="text-fg-faint">{t("game.licence")}</dt>
+        <dd>{game.license ?? "—"}</dd>
+        <dt className="text-fg-faint">{t("game.plays")}</dt>
+        <dd className="tabular">
+          {game.stats?.totalPlays !== undefined ? formatNumber(game.stats.totalPlays) : "—"}
+        </dd>
+      </dl>
+      {game.instructions ? (
+        <div>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="text-xs font-medium text-accent hover:underline"
+          >
+            {open ? t("game.hideHowToPlay") : t("game.howToPlay")}
+          </button>
+          {open ? <p className="mt-1 text-sm text-fg-muted">{game.instructions}</p> : null}
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-3 text-xs">
+        {/* The game's own page opens the bare game; playing needs an arcade21 account and a
+            wallet connected with WalletConnect, which the arcade21 website sets up first. */}
+        <ExternalLink
+          href={arcade.tracker.url}
+          title={t("game.playHint")}
+          className="rounded-full border border-primary bg-primary-soft px-3 py-1 font-semibold text-primary hover:underline"
+        >
+          {t("game.play", { site: arcade.tracker.name })}
+        </ExternalLink>
+        {game.homepage ? (
+          <ExternalLink href={game.homepage} className="text-accent hover:underline">
+            {t("game.homepage")}
+          </ExternalLink>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+const PHASES: RoomPhase[] = ["waiting", "playing", "closed"];
+
+function matchesRoom(room: ArcadeRoom, needle: string): boolean {
+  if (!needle) return true;
+  const q = needle.toLowerCase();
+  return (
+    (room.gameName ?? "").toLowerCase().includes(q) ||
+    room.players.some((p) => p.toLowerCase().includes(q)) ||
+    room.id.toLowerCase().includes(q) ||
+    room.status.toLowerCase().includes(q)
+  );
+}
+
+function RoomRow({ room }: { room: ArcadeRoom }) {
+  const t = useT(arcadeNs);
+  return (
+    <li className="flex flex-col gap-0.5 py-1.5 text-xs">
+      <span className="flex items-center justify-between gap-2">
+        <span className="truncate font-medium text-fg">{room.gameName ?? t("rooms.table")}</span>
+        {room.joinUrl && room.phase !== "closed" ? (
+          <ExternalLink href={room.joinUrl} className="shrink-0 text-accent hover:underline">
+            {room.joinable ? t("rooms.join") : t("rooms.watch")}
+          </ExternalLink>
+        ) : null}
+      </span>
+      <span className="flex flex-wrap items-center gap-x-2 text-fg-muted">
+        <span>
+          {room.players.length > 0
+            ? room.players.join(t("rooms.versusSeparator"))
+            : t("rooms.noPlayers")}
+        </span>
+        {room.online > 0 ? (
+          <span className="text-primary">{t("rooms.online", { count: room.online })}</span>
+        ) : null}
+        {room.wagerMojos !== null ? (
+          <span>{t("rooms.wager", { amount: formatAmount(room.wagerMojos) })}</span>
+        ) : null}
+        {room.gamesPlayed > 0 ? (
+          <span>{t("rooms.gamesPlayed", { count: room.gamesPlayed })}</span>
+        ) : null}
+        {room.updatedAt ? <span className="text-fg-faint">{formatAge(room.updatedAt)}</span> : null}
+      </span>
+    </li>
+  );
+}
+
+/**
+ * Live rooms from the tracker (hosted build), searchable, one accordion section per phase;
+ * the snapshot summary when there are no rewrites (Sage export) or the tracker is down.
+ */
+function RoomsCard() {
+  const t = useT(arcadeNs);
+  const rooms = useArcadeRooms();
+  const [needle, setNeedle] = useState("");
+  const snapshot = arcade.rooms.byStatus as Record<string, number>;
+  const view = rooms.data;
+  const filtered = (view?.rooms ?? []).filter((r) => matchesRoom(r, needle.trim()));
+  return (
+    <Card className="lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
+      <CardHeader
+        title={t("rooms.title")}
+        action={
+          <span className="flex items-center gap-1.5 text-[11px] text-fg-faint">
+            <span
+              className={cn(
+                "inline-block h-2 w-2 rounded-full",
+                view ? "bg-primary" : "bg-fg-faint"
+              )}
+              aria-hidden="true"
+            />
+            {view
+              ? t("rooms.live", { seconds: ROOMS_REFRESH_MS / 1000 })
+              : rooms.isLoading && ROOMS_LIVE
+                ? t("rooms.loading")
+                : t("rooms.snapshot", { date: arcade.snapshotAt })}
+          </span>
+        }
+      />
+      <CardBody className="flex flex-col gap-2">
+        {view ? (
+          <>
+            <input
+              type="search"
+              value={needle}
+              onChange={(e) => setNeedle(e.target.value)}
+              placeholder={t("rooms.searchPlaceholder")}
+              aria-label={t("rooms.searchLabel")}
+              className="field w-full"
+            />
+            {PHASES.map((phase) => {
+              const list = filtered.filter((r) => r.phase === phase);
+              return (
+                <details
+                  key={phase}
+                  open={phase !== "closed"}
+                  className="group rounded-sm border border-border bg-bg"
+                  data-testid={`rooms-${phase}`}
+                >
+                  <summary className="flex cursor-pointer select-none items-center justify-between gap-2 px-2.5 py-1.5 text-xs font-medium text-fg">
+                    <span>
+                      {t(`rooms.phases.${phase}`)}
+                      <span
+                        className="ml-1.5 tabular text-fg-muted"
+                        data-testid={`rooms-${phase}-count`}
+                      >
+                        {needle.trim()
+                          ? t("rooms.countOf", {
+                              shown: list.length,
+                              total: view.counts[phase],
+                            })
+                          : formatNumber(list.length)}
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="text-fg-faint transition-transform group-open:rotate-180"
+                    >
+                      ⌄
+                    </span>
+                  </summary>
+                  {list.length === 0 ? (
+                    <p className="px-2.5 pb-2 text-xs text-fg-faint">
+                      {needle.trim() ? t("rooms.noMatch") : t("rooms.noneNow")}
+                    </p>
+                  ) : (
+                    <ul
+                      className="flex flex-col divide-y divide-border/60 px-2.5 pb-1"
+                      aria-label={t(`rooms.phases.${phase}`)}
+                    >
+                      {list.slice(0, 20).map((room) => (
+                        <RoomRow key={room.id} room={room} />
+                      ))}
+                    </ul>
+                  )}
+                </details>
+              );
+            })}
+          </>
+        ) : (
+          <p className="text-xs text-fg-muted">
+            {t.rich("rooms.announced", {
+              count: arcade.rooms.total,
+              breakdown:
+                Object.keys(snapshot).length > 0
+                  ? t("rooms.breakdown", {
+                      list: Object.entries(snapshot)
+                        .map(([status, n]) => `${formatNumber(n)} ${status}`)
+                        .join(", "),
+                    })
+                  : "",
+              b: (c) => <span className="tabular font-semibold text-fg">{c}</span>,
+            })}
+          </p>
+        )}
+        <ExternalLink
+          href={arcade.tracker.roomsUrl}
+          className="text-[11px] text-accent hover:underline"
+        >
+          {t("rooms.openArcade")}
+        </ExternalLink>
+      </CardBody>
+    </Card>
+  );
+}
+
+/** The arcade21 catalogue (snapshot, bun run arcade) and its live rooms: always shown on mainnet. */
+function Arcade21Section() {
+  const t = useT(arcadeNs);
+  const games = arcade.games as Game[];
+  const [genre, setGenre] = useState<string>("all");
+  const genres = [...new Set(games.map((g) => g.genre).filter((g): g is string => !!g))].sort();
+  const shown = games.filter((g) => genre === "all" || g.genre === genre);
+
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">{t("games")}</h2>
+            <div role="group" aria-label={t("filterByGenre")} className="flex flex-wrap gap-1">
+              {["all", ...genres].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  aria-pressed={genre === g}
+                  onClick={() => setGenre(g)}
+                  className={cn("seg rounded-full text-[11px] capitalize", genre === g && "seg-on")}
+                >
+                  {g === "all" ? t("allGenres") : g}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label={t("games")}>
+            {shown.map((g) => (
+              <GameCard key={g.id} game={g} />
+            ))}
+          </ul>
+        </section>
+        <RoomsCard />
+      </div>
+
+      <p className="text-xs text-fg-faint">
+        {t.rich("disclaimer", {
+          tracker: arcade.tracker.name,
+          link: (c) => (
+            <ExternalLink href={arcade.tracker.url} className="text-accent hover:underline">
+              {c}
+            </ExternalLink>
+          ),
+        })}
+      </p>
+    </>
+  );
+}
+
+/**
+ * /gaming follows the selected network. A network with a live gaming provider (Testnet11:
+ * nokitlan) shows its duels; mainnet shows Pot Potato, read from the chain, and the arcade21
+ * catalogue and rooms, with no flag. A network without either shows the heading alone.
+ */
+export function ArcadePage() {
+  const t = useT(arcadeNs);
+  const { settings, networkConfig } = useSettings();
+  const provider = gamingProviderFor(settings.network);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-wrap items-center gap-2">
+        <h1 className="page-title">{t("title")}</h1>
+        <Tooltip text={t("titleHint")} placement="bottom" />
+        <Badge tone={settings.network === "mainnet" ? "neutral" : "warning"}>
+          {networkConfig.label}
+        </Badge>
+      </header>
+
+      {provider ? (
+        <DuelsView provider={provider} />
+      ) : settings.network === "mainnet" ? (
+        <>
+          <PotPotatoCard />
+          <Arcade21Section />
+        </>
+      ) : null}
+    </div>
+  );
+}

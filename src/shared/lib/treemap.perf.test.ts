@@ -3,7 +3,10 @@ import { squarify } from "./treemap";
 
 describe("treemap performance", () => {
   test("lays out 500 cells in well under 100 ms", () => {
-    const inputs = Array.from({ length: 500 }, (_, i) => ({ item: i, weight: 1_000_000 + ((i * 7919) % 50_000_000) }));
+    const inputs = Array.from({ length: 500 }, (_, i) => ({
+      item: i,
+      weight: 1_000_000 + ((i * 7919) % 50_000_000),
+    }));
     const started = performance.now();
     const cells = squarify(inputs, 800, 170);
     const ms = performance.now() - started;

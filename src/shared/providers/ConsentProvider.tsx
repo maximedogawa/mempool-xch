@@ -1,7 +1,20 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { getConsentStore, resolveConsent, type ConsentCategory, type ConsentState } from "@/shared/lib/consent/store";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import {
+  getConsentStore,
+  resolveConsent,
+  type ConsentCategory,
+  type ConsentState,
+} from "@/shared/lib/consent/store";
 
 export interface ConsentContextValue extends ConsentState {
   save: (choice: Record<ConsentCategory, boolean>) => void;

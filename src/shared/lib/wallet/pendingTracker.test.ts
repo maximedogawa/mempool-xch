@@ -4,8 +4,32 @@ import type { ProjectedBlock } from "@/shared/lib/mempool/packing";
 import { describePending, EMPTY_TRACKED, pendingLine, trackPending } from "./pendingTracker";
 
 const item = (id: string, feeRate: number): CompactMempoolItem =>
-  ({ id, fee: "1", cost: 10, feeRate, spends: 1, additions: [], removals: [], additionCount: 0, removalCount: 0, assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 }, firstSeen: 0, kind: "xch", assetIds: [] }) as unknown as CompactMempoolItem;
-const block = (index: number, items: CompactMempoolItem[], eta: number): ProjectedBlock => ({ index, items, totalCost: 1, fill: 0.5, totalFee: 1n, minFeeRate: 0, maxFeeRate: 1, medianFeeRate: 0.5, etaSeconds: eta });
+  ({
+    id,
+    fee: "1",
+    cost: 10,
+    feeRate,
+    spends: 1,
+    additions: [],
+    removals: [],
+    additionCount: 0,
+    removalCount: 0,
+    assets: { xch: "0", cats: [], nfts: 0, dids: 0, singletons: 0 },
+    firstSeen: 0,
+    kind: "xch",
+    assetIds: [],
+  }) as unknown as CompactMempoolItem;
+const block = (index: number, items: CompactMempoolItem[], eta: number): ProjectedBlock => ({
+  index,
+  items,
+  totalCost: 1,
+  fill: 0.5,
+  totalFee: 1n,
+  minFeeRate: 0,
+  maxFeeRate: 1,
+  medianFeeRate: 0.5,
+  etaSeconds: eta,
+});
 
 describe("describePending", () => {
   const a = item("aa", 5);

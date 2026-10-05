@@ -1,4 +1,7 @@
-/** Errors distinguish network failures, non-success RPC responses and malformed JSON (TASK-002). */
+/** Errors distinguish network failures, non-success RPC responses and malformed JSON. */
+import { plainT } from "@/shared/i18n/plain";
+import commonNs from "@/shared/i18n/messages/en/common";
+
 export type RpcErrorKind = "network" | "http" | "rpc" | "malformed" | "not_found" | "aborted";
 
 export class RpcError extends Error {
@@ -6,12 +9,16 @@ export class RpcError extends Error {
   readonly method: string;
   readonly status?: number;
   readonly detail?: unknown;
+  /** How long the server asked to wait (its `retry-after`), in ms. */
+  readonly retryAfterMs?: number;
+  /** Transport already exhausted its bounded retries; avoid multiplying them in Query. */
+  retryHandled = false;
 
   constructor(
     kind: RpcErrorKind,
     method: string,
     message: string,
-    extra?: { status?: number; detail?: unknown }
+    extra?: { status?: number; detail?: unknown; retryAfterMs?: number }
   ) {
     super(message);
     this.name = "RpcError";
@@ -19,23 +26,27 @@ export class RpcError extends Error {
     this.method = method;
     this.status = extra?.status;
     this.detail = extra?.detail;
+    this.retryAfterMs = extra?.retryAfterMs;
   }
 
   /** Short user-facing description. */
   get userMessage(): string {
+    const t = plainT(commonNs);
     switch (this.kind) {
       case "network":
-        return "Could not reach the node. Check your connection or the configured endpoint.";
+        return t("rpcError.network");
       case "http":
-        return `The node answered with HTTP ${this.status ?? "error"}.`;
+        return this.status === undefined
+          ? t("rpcError.httpUnknown")
+          : t("rpcError.http", { status: String(this.status) });
       case "rpc":
         return this.message;
       case "malformed":
-        return "The node returned a response that could not be parsed.";
+        return t("rpcError.malformed");
       case "not_found":
-        return "Not found.";
+        return t("rpcError.notFound");
       case "aborted":
-        return "Request cancelled.";
+        return t("rpcError.aborted");
     }
   }
 }

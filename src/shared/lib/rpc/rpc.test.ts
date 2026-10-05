@@ -4,6 +4,7 @@ import blockRecords from "@/test-utils/fixtures/block_records.json";
 import blockTransactions from "@/test-utils/fixtures/block_transactions.json";
 import feeEstimate from "@/test-utils/fixtures/fee_estimate.json";
 import fullBlock from "@/test-utils/fixtures/full_block.json";
+import fullBlockTx from "@/test-utils/fixtures/full_block_tx.json";
 import mempoolItems from "@/test-utils/fixtures/mempool_items.json";
 import xchBalance from "@/test-utils/fixtures/xch_balance.json";
 import catBalances from "@/test-utils/fixtures/cat_balances.json";
@@ -47,6 +48,25 @@ describe("normalisers with recorded Coinset fixtures", () => {
     expect(s.mempoolFees).toBe(511752094n);
     expect(s.mempoolMinFees.cost_5000000).toBe(0);
     expect(s.synced).toBe(true);
+    expect(s.syncMode).toBe(false);
+  });
+  test("blockchain state of a syncing node keeps how far it is", () => {
+    // The sync block a real node reports while catching up (owner's node, 2026-09-27).
+    const s = normaliseBlockchainState({
+      ...blockchainState.blockchain_state,
+      sync: {
+        sync_mode: true,
+        sync_progress_height: 9329726,
+        sync_tip_height: 9350823,
+        synced: false,
+      },
+    });
+    expect(s.synced).toBe(false);
+    expect(s.syncMode).toBe(true);
+    expect(s.syncTipHeight).toBe(9350823);
+    const missing = normaliseBlockchainState({ ...blockchainState.blockchain_state, sync: {} });
+    expect(missing.syncTipHeight).toBeNull();
+    expect(missing.synced).toBe(true);
   });
   test("block records distinguish transaction blocks", () => {
     const records = blockRecords.block_records.map(normaliseBlockRecord);
@@ -66,6 +86,10 @@ describe("normalisers with recorded Coinset fixtures", () => {
     expect(b.timestamp).toBe(1789478866);
     expect(b.cost).toBe(0);
     expect(b.hasGenerator).toBe(false);
+    // Coinset omits transactions_generator; the generator root still shows the block has spends.
+    const tx = normaliseFullBlock(fullBlockTx.block);
+    expect(tx.cost).toBe(35419356);
+    expect(tx.hasGenerator).toBe(true);
   });
   test("mempool items", () => {
     const items = Object.values(mempoolItems.mempool_items).map(normaliseMempoolItem);
@@ -110,7 +134,9 @@ describe("normalisers with recorded Coinset fixtures", () => {
   });
 });
 
-function mockFetch(handler: (url: string, body: Record<string, unknown>) => Response | Promise<Response>): FetchLike {
+function mockFetch(
+  handler: (url: string, body: Record<string, unknown>) => Response | Promise<Response>
+): FetchLike {
   return async (input, init) => {
     const url = String(input);
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
@@ -130,9 +156,15 @@ describe("createRpcClient", () => {
       fetchImpl: mockFetch((url, body) => {
         calls.push({ url, body });
         if (url.endsWith("/get_blockchain_state")) return json(blockchainState);
-        if (url.endsWith("/get_all_mempool_tx_ids")) return json({ tx_ids: ["0xaa", "bb"], success: true });
-        if (url.endsWith("/get_block_record_by_height")) return json({ block_record: blockRecords.block_records.find((r) => r.height === 9295514), success: true });
-        if (url.endsWith("/get_transaction")) return json({ transaction: blockTransactions.transactions[0], success: true });
+        if (url.endsWith("/get_all_mempool_tx_ids"))
+          return json({ tx_ids: ["0xaa", "bb"], success: true });
+        if (url.endsWith("/get_block_record_by_height"))
+          return json({
+            block_record: blockRecords.block_records.find((r) => r.height === 9295514),
+            success: true,
+          });
+        if (url.endsWith("/get_transaction"))
+          return json({ transaction: blockTransactions.transactions[0], success: true });
         if (url.endsWith("/get_fee_estimate")) return json(feeEstimate);
         return json({ success: false, error: "unknown" }, 200);
       }),
@@ -144,7 +176,9 @@ describe("createRpcClient", () => {
     const record = await client.getBlockRecordByHeight(9295514);
     expect(record.height).toBe(9295514);
     expect(calls[2]!.body).toEqual({ height: 9295514 });
-    const tx = await client.getTransaction("b379124c34f5843bc709e460abddcbebeda648ba4b0978b44fac20fb8eb14df5");
+    const tx = await client.getTransaction(
+      "b379124c34f5843bc709e460abddcbebeda648ba4b0978b44fac20fb8eb14df5"
+    );
     expect(tx.kind).toBe("transfer");
     const fee = await client.getFeeEstimate(1_000_000, [60, 300]);
     expect(calls[4]!.body).toEqual({ cost: 1_000_000, target_times: [60, 300] });
@@ -158,15 +192,20 @@ describe("createRpcClient", () => {
       fetchImpl: mockFetch((url) => {
         if (url.endsWith("/get_blockchain_state")) throw new TypeError("fetch failed");
         if (url.endsWith("/get_block_record")) return new Response("nope", { status: 503 });
-        if (url.endsWith("/get_coin_record_by_name")) return json({ success: false, error: "Coin record 0xaa not found" });
-        if (url.endsWith("/get_block")) return json({ success: false, error: "Something exploded" });
+        if (url.endsWith("/get_coin_record_by_name"))
+          return json({ success: false, error: "Coin record 0xaa not found" });
+        if (url.endsWith("/get_block"))
+          return json({ success: false, error: "Something exploded" });
         return new Response("<html>", { status: 200 });
       }),
     });
     await expect(client.getBlockchainState()).rejects.toMatchObject({ kind: "network" });
     await expect(client.getBlockRecord("aa")).rejects.toMatchObject({ kind: "http", status: 503 });
     await expect(client.getCoinRecordByName("aa")).rejects.toMatchObject({ kind: "not_found" });
-    await expect(client.getBlock("aa")).rejects.toMatchObject({ kind: "rpc", message: "Something exploded" });
+    await expect(client.getBlock("aa")).rejects.toMatchObject({
+      kind: "rpc",
+      message: "Something exploded",
+    });
     await expect(client.getAllMempoolTxIds()).rejects.toMatchObject({ kind: "malformed" });
     await expect(client.getTransaction("aa")).rejects.toBeInstanceOf(RpcError);
     expect(client.hasIndexed).toBe(false);
@@ -181,4 +220,48 @@ describe("createRpcClient", () => {
     await expect(client.getTransaction("aa")).rejects.toMatchObject({ kind: "not_found" });
     await expect(client.getMempoolItemByTxId("aa")).rejects.toMatchObject({ kind: "not_found" });
   });
+});
+
+test("an already aborted RPC never reaches the transport", async () => {
+  let calls = 0;
+  const client = createRpcClient({
+    rpcUrl: "https://node.example",
+    indexedUrl: null,
+    fetchImpl: async () => {
+      calls++;
+      return new Response("{}");
+    },
+  });
+  const controller = new AbortController();
+  controller.abort();
+  await expect(client.getBlockchainState(controller.signal)).rejects.toMatchObject({
+    kind: "aborted",
+  });
+  expect(calls).toBe(0);
+});
+
+test("RPC timeout covers a stalled response body after headers arrive", async () => {
+  let aborted = false;
+  const client = createRpcClient({
+    rpcUrl: "https://node.example",
+    indexedUrl: null,
+    timeoutMs: 10,
+    fetchImpl: async (_, init) =>
+      ({
+        ok: true,
+        text: () =>
+          new Promise<string>((_, reject) => {
+            init!.signal!.addEventListener(
+              "abort",
+              () => {
+                aborted = true;
+                reject(new Error("aborted body"));
+              },
+              { once: true }
+            );
+          }),
+      }) as Response,
+  });
+  await expect(client.getBlockchainState()).rejects.toThrow();
+  expect(aborted).toBe(true);
 });

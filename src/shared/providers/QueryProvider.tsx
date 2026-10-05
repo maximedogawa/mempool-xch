@@ -14,7 +14,11 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             staleTime: 5_000,
             gcTime: 5 * 60_000,
             refetchOnWindowFocus: true,
-            retry: (count, error) => !isRpcError(error, "not_found") && count < 2,
+            retry: (count, error) =>
+              !(
+                isRpcError(error) &&
+                (error.kind === "not_found" || error.kind === "aborted" || error.retryHandled)
+              ) && count < 2,
           },
         },
       })

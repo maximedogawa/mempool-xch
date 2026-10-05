@@ -164,7 +164,8 @@ export function validateSourceManifest(manifest: SageManifest): string[] {
   }
 
   for (const name of required) {
-    if (optional.includes(name)) problems.push(`capability "${name}" is both required and optional`);
+    if (optional.includes(name))
+      problems.push(`capability "${name}" is both required and optional`);
   }
 
   const network = manifest.permissions?.network;

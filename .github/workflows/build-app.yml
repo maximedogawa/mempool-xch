@@ -1,7 +1,8 @@
 name: Build App (Docker)
 
-# Builds and pushes the app image to ghcr.io. Deploying is a one-time `once deploy` on the
-# server (deployment/README.md); ONCE then auto-updates from the registry.
+# Builds the app image and pushes it to ghcr.io on a published release and on a manual
+# workflow_dispatch run. `:latest` moves with every push except a GitHub prerelease, because
+# the server auto-updates from it: deploying is a one-time `once deploy` (deployment/README.md).
 
 on:
   release:
@@ -35,24 +36,35 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata
         id: meta
+        # Untrusted strings (tag names, dispatch input) reach the script as env vars, never
+        # interpolated into it, and must be a valid Docker tag.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+          COMMIT_SHA: ${{ github.sha }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.ref_name }}"
-          else
-            TAG_IN="${{ github.event.inputs.tag }}"
-            TAG="${TAG_IN:-latest}"
+          if [ "$EVENT_NAME" = "release" ]; then TAG="$REF_NAME"; else TAG="${TAG_INPUT:-latest}"; fi
+          if ! printf '%s' "$TAG" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'; then
+            echo "::error::'$TAG' is not a valid image tag"
+            exit 1
           fi
-          COMMIT_SHA="${{ github.sha }}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "commit_sha=${COMMIT_SHA:0:7}" >> "$GITHUB_OUTPUT"
-      - uses: docker/build-push-action@v6
+          {
+            echo "tag=$TAG"
+            echo "commit_sha=${COMMIT_SHA:0:7}"
+            echo "tags<<EOF"
+            echo "$IMAGE:$TAG"
+            if [ "$PRERELEASE" != "true" ] && [ "$TAG" != "latest" ]; then echo "$IMAGE:latest"; fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: ./deployment/Dockerfile
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |

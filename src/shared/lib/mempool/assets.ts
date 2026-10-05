@@ -1,5 +1,7 @@
 import { formatAmount, formatCat } from "@/shared/lib/chia/amounts";
+import { plainT } from "@/shared/i18n/plain";
 import type { CompactAssets, TxKindHint } from "./types";
+import commonNs from "@/shared/i18n/messages/en/common";
 
 export interface PrimaryAsset {
   kind: TxKindHint;
@@ -19,13 +21,20 @@ export function safeAssets(assets: CompactAssets | undefined | null): CompactAss
   return assets && Array.isArray(assets.cats) ? assets : EMPTY;
 }
 
-export function primaryAsset(input: CompactAssets | undefined | null, fallbackKind: TxKindHint = "xch"): PrimaryAsset {
+export function primaryAsset(
+  input: CompactAssets | undefined | null,
+  fallbackKind: TxKindHint = "xch"
+): PrimaryAsset {
   const assets = safeAssets(input);
   const cats = [...assets.cats].sort((a, b) => (BigInt(b.amount) > BigInt(a.amount) ? 1 : -1));
   if (cats[0]) return { kind: "cat", assetId: cats[0].assetId, amount: BigInt(cats[0].amount) };
   if (assets.nfts > 0) return { kind: "nft", amount: BigInt(assets.nfts) };
   if (assets.dids > 0) return { kind: "did", amount: BigInt(assets.dids) };
-  if (assets.singletons > 0) return { kind: fallbackKind === "pool" ? "pool" : "singleton", amount: BigInt(assets.singletons) };
+  if (assets.singletons > 0)
+    return {
+      kind: fallbackKind === "pool" ? "pool" : "singleton",
+      amount: BigInt(assets.singletons),
+    };
   return { kind: fallbackKind === "offer" ? "offer" : "xch", amount: BigInt(assets.xch) };
 }
 
@@ -35,26 +44,32 @@ export function formatPrimaryAsset(asset: PrimaryAsset, ticker?: string | null):
     case "cat":
       return `${formatCat(asset.amount)} ${ticker ?? "CAT"}`;
     case "nft":
-      return `${asset.amount.toString()} NFT${asset.amount === 1n ? "" : "s"}`;
+      return plainT(commonNs)("assets.nfts", { count: asset.amount });
     case "did":
-      return `${asset.amount.toString()} DID${asset.amount === 1n ? "" : "s"}`;
+      return plainT(commonNs)("assets.dids", { count: asset.amount });
     case "singleton":
-      return `${asset.amount.toString()} singleton${asset.amount === 1n ? "" : "s"}`;
+      return plainT(commonNs)("assets.singletons", { count: asset.amount });
     case "pool":
-      return `${asset.amount.toString()} pool claim${asset.amount === 1n ? "" : "s"}`;
+      return plainT(commonNs)("assets.poolClaims", { count: asset.amount });
     default:
       return formatAmount(asset.amount);
   }
 }
 
 /** Short multi-asset summary, e.g. "1.234 SBX + 0.0104 XCH" or "1 NFT + 0.00001 XCH". */
-export function formatAssets(input: CompactAssets | undefined | null, tickers: Record<string, string | undefined> = {}): string {
+export function formatAssets(
+  input: CompactAssets | undefined | null,
+  tickers: Record<string, string | undefined> = {}
+): string {
   const assets = safeAssets(input);
+  const t = plainT(commonNs);
   const parts: string[] = [];
-  assets.cats.forEach((c) => parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`));
-  if (assets.nfts) parts.push(`${assets.nfts} NFT${assets.nfts === 1 ? "" : "s"}`);
-  if (assets.dids) parts.push(`${assets.dids} DID${assets.dids === 1 ? "" : "s"}`);
-  if (assets.singletons) parts.push(`${assets.singletons} singleton${assets.singletons === 1 ? "" : "s"}`);
+  assets.cats.forEach((c) =>
+    parts.push(`${formatCat(BigInt(c.amount))} ${tickers[c.assetId] ?? "CAT"}`)
+  );
+  if (assets.nfts) parts.push(t("assets.nfts", { count: assets.nfts }));
+  if (assets.dids) parts.push(t("assets.dids", { count: assets.dids }));
+  if (assets.singletons) parts.push(t("assets.singletons", { count: assets.singletons }));
   if (BigInt(assets.xch) > 0n || parts.length === 0) parts.push(formatAmount(BigInt(assets.xch)));
   return parts.join(" + ");
 }

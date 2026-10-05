@@ -12,7 +12,7 @@ export const DEXIE_ICON_BASE = "https://icons.dexie.space";
 export const DEXIE_PAGE_SIZE = 100;
 /** Hard stop for the page loop (943 CATs ≈ 10 pages in 2026). */
 export const DEXIE_MAX_PAGES = 40;
-export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v2";
+export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v3";
 export const TOKEN_LIST_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface TokenInfo {
@@ -22,6 +22,8 @@ export interface TokenInfo {
   iconUrl: string | null;
   website: string | null;
   description: string | null;
+  /** XCH side of Dexie's open-offer liquidity for the token, as of the registry load (≤ 24 h). */
+  liquidityXch?: number | null;
 }
 
 export type TokenMap = Record<string, TokenInfo>;
@@ -33,6 +35,8 @@ interface DexieAsset {
   denom?: number;
   website?: string;
   description?: string;
+  /** [XCH, token] */
+  liquidity?: unknown;
 }
 
 interface DexiePage {
@@ -54,7 +58,11 @@ export function dexiePageUrl(page: number): string {
 
 /** Normalise one Dexie page (or a bare `assets` array) into the registry map. */
 export function normaliseTokenList(raw: unknown): TokenMap {
-  const assets: DexieAsset[] = Array.isArray(raw) ? (raw as DexieAsset[]) : raw && typeof raw === "object" && Array.isArray((raw as DexiePage).assets) ? ((raw as DexiePage).assets ?? []) : [];
+  const assets: DexieAsset[] = Array.isArray(raw)
+    ? (raw as DexieAsset[])
+    : raw && typeof raw === "object" && Array.isArray((raw as DexiePage).assets)
+      ? ((raw as DexiePage).assets ?? [])
+      : [];
   const map: TokenMap = {};
   assets.forEach((t) => {
     const assetId = typeof t.id === "string" ? t.id.toLowerCase().replace(/^0x/, "") : "";
@@ -65,7 +73,10 @@ export function normaliseTokenList(raw: unknown): TokenMap {
       symbol: typeof t.code === "string" && t.code.trim() ? t.code.trim().toUpperCase() : "CAT",
       iconUrl: dexieIconUrl(assetId),
       website: typeof t.website === "string" && /^https?:\/\//.test(t.website) ? t.website : null,
-      description: typeof t.description === "string" && t.description.trim() ? t.description.trim() : null,
+      description:
+        typeof t.description === "string" && t.description.trim() ? t.description.trim() : null,
+      liquidityXch:
+        Array.isArray(t.liquidity) && typeof t.liquidity[0] === "number" ? t.liquidity[0] : null,
     };
   });
   return map;
@@ -78,7 +89,9 @@ export interface MinimalResponse {
 }
 
 /** Fetch every Dexie CAT page and merge; throws when the first page fails or is empty. */
-export async function fetchDexieTokenMap(fetchImpl: (url: string) => Promise<MinimalResponse>): Promise<TokenMap> {
+export async function fetchDexieTokenMap(
+  fetchImpl: (url: string) => Promise<MinimalResponse>
+): Promise<TokenMap> {
   const map: TokenMap = {};
   for (let page = 1; page <= DEXIE_MAX_PAGES; page += 1) {
     const response = await fetchImpl(dexiePageUrl(page));
@@ -98,21 +111,37 @@ interface CacheEntry {
   tokens: TokenMap;
 }
 
-export function readTokenCache(storage: Pick<Storage, "getItem"> | null, now = Date.now()): TokenMap | null {
+export function readTokenCache(
+  storage: Pick<Storage, "getItem"> | null,
+  now = Date.now()
+): TokenMap | null {
   try {
     const raw = storage?.getItem(TOKEN_LIST_CACHE_KEY);
     if (!raw) return null;
     const entry = JSON.parse(raw) as CacheEntry;
-    if (!entry || typeof entry.savedAt !== "number" || !entry.tokens || now - entry.savedAt > TOKEN_LIST_TTL_MS) return null;
+    if (
+      !entry ||
+      typeof entry.savedAt !== "number" ||
+      !entry.tokens ||
+      now - entry.savedAt > TOKEN_LIST_TTL_MS
+    )
+      return null;
     return entry.tokens;
   } catch {
     return null;
   }
 }
 
-export function writeTokenCache(storage: Pick<Storage, "setItem"> | null, tokens: TokenMap, now = Date.now()): void {
+export function writeTokenCache(
+  storage: Pick<Storage, "setItem"> | null,
+  tokens: TokenMap,
+  now = Date.now()
+): void {
   try {
-    storage?.setItem(TOKEN_LIST_CACHE_KEY, JSON.stringify({ savedAt: now, tokens } satisfies CacheEntry));
+    storage?.setItem(
+      TOKEN_LIST_CACHE_KEY,
+      JSON.stringify({ savedAt: now, tokens } satisfies CacheEntry)
+    );
   } catch {
     // Quota exceeded or storage unavailable: the in-memory copy still serves this session.
   }
@@ -121,11 +150,17 @@ export function writeTokenCache(storage: Pick<Storage, "setItem"> | null, tokens
 let inflight: Promise<TokenMap> | null = null;
 
 /** Fetch the token list once per session (deduplicated), falling back to the cache and then to {}. */
-export function loadTokenList(fetchImpl: typeof fetch = fetch, storage: Storage | null = typeof window !== "undefined" ? window.localStorage : null): Promise<TokenMap> {
+export function loadTokenList(
+  fetchImpl: (url: string, init?: RequestInit) => Promise<Response> = (url, init) =>
+    fetch(url, init),
+  storage: Storage | null = typeof window !== "undefined" ? window.localStorage : null
+): Promise<TokenMap> {
   const cached = readTokenCache(storage);
   if (cached) return Promise.resolve(cached);
   if (!inflight) {
-    inflight = fetchDexieTokenMap((url) => fetchImpl(url, { headers: { accept: "application/json" } }))
+    inflight = fetchDexieTokenMap((url) =>
+      fetchImpl(url, { headers: { accept: "application/json" } })
+    )
       .then((tokens) => {
         writeTokenCache(storage, tokens);
         return tokens;

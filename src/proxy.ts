@@ -9,8 +9,20 @@ import { join, resolve } from "node:path";
  * sage-manifest.json are served; everything else falls through to the normal app. The
  * snapshot's `_next/static/<hash>/…` files never clash with the hosted build's because every
  * build has its own hash.
+ *
+ * The turbopackIgnore comments keep Next's output file tracing away from these reads: it cannot
+ * resolve a runtime path, so it would copy the whole repository into .next/standalone (and the
+ * Docker image). The snapshot is not traced output anyway; the Dockerfile copies it in.
+ *
+ * `next dev` has no ./sage-snapshot, so it falls back to the local `bun run build:sage` output in
+ * out/ and re-reads the manifest on every request, so a rebuilt snapshot is picked up without a
+ * restart.
  */
-const SNAPSHOT_DIR = resolve(process.cwd(), process.env.SAGE_SNAPSHOT_DIR || "sage-snapshot");
+const isDev = process.env.NODE_ENV !== "production";
+const SNAPSHOT_DIR = resolve(
+  /*turbopackIgnore: true*/ process.cwd(),
+  process.env.SAGE_SNAPSHOT_DIR || (isDev ? "out" : "sage-snapshot")
+);
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -29,9 +41,14 @@ let servable: ReadonlySet<string> | undefined;
 function servablePaths(): ReadonlySet<string> {
   if (servable) return servable;
   try {
-    const manifest = JSON.parse(readFileSync(join(SNAPSHOT_DIR, "sage-manifest.json"), "utf8")) as { files?: { path: string }[] };
-    const paths = new Set<string>(["sage-manifest.json", ...(manifest.files ?? []).map((f) => f.path)]);
-    servable = paths;
+    const manifest = JSON.parse(
+      readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, "sage-manifest.json"), "utf8")
+    ) as { files?: { path: string }[] };
+    const paths = new Set<string>([
+      "sage-manifest.json",
+      ...(manifest.files ?? []).map((f) => f.path),
+    ]);
+    if (!isDev) servable = paths;
     return paths;
   } catch {
     return new Set();
@@ -42,9 +59,12 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname.replace(/^\/+/, "");
   if (path === "" || !servablePaths().has(path)) return NextResponse.next();
   try {
-    const body = readFileSync(join(SNAPSHOT_DIR, path));
+    const body = readFileSync(join(/*turbopackIgnore: true*/ SNAPSHOT_DIR, path));
     const dot = path.lastIndexOf(".");
-    const type = dot === -1 ? "application/octet-stream" : (MIME[path.slice(dot)] ?? "application/octet-stream");
+    const type =
+      dot === -1
+        ? "application/octet-stream"
+        : (MIME[path.slice(dot)] ?? "application/octet-stream");
     return new NextResponse(body, {
       status: 200,
       headers: {
@@ -58,6 +78,8 @@ export function proxy(request: NextRequest) {
   }
 }
 
+// No api/ exclusion: the snapshot's /api docs page ships api/__next.*.txt files that Sage
+// fetches on install, and anything not listed in the manifest falls through untouched anyway.
 export const config = {
-  matcher: ["/sage-manifest.json", "/((?!api/|up$).*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))"],
+  matcher: ["/sage-manifest.json", "/(.*\\.(?:html|js|css|json|txt|png|svg|ico|woff2))"],
 };

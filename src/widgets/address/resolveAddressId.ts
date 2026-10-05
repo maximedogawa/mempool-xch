@@ -1,7 +1,11 @@
 /**
  * The address page accepts an xch/txch address, a raw 32-byte puzzle hash or a did:chia: id.
  */
-import { didIdToLauncherId, puzzleHashToAddress, resolvePuzzleHash } from "@/shared/lib/chia/address";
+import {
+  didIdToLauncherId,
+  puzzleHashToAddress,
+  resolvePuzzleHash,
+} from "@/shared/lib/chia/address";
 
 export interface ResolvedAddressId {
   kind: "address" | "did";

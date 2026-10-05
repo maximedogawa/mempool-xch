@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { resolveTheme, SCHEME_THEMES } from "@/shared/theme";
 import { useSage } from "./SageProvider";
 import { useSettings } from "./SettingsProvider";
 
@@ -12,15 +13,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const apply = () => {
       if (sageTheme) {
-        root.setAttribute("data-theme", sageTheme);
+        root.setAttribute("data-theme", SCHEME_THEMES[sageTheme]);
         return;
       }
-      const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
-      const theme = settings.theme === "system" ? (prefersLight ? "light" : "dark") : settings.theme;
-      root.setAttribute("data-theme", theme);
+      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+      root.setAttribute("data-theme", resolveTheme(settings.theme, prefersDark));
     };
     apply();
-    const mq = window.matchMedia?.("(prefers-color-scheme: light)");
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
     mq?.addEventListener?.("change", apply);
     return () => mq?.removeEventListener?.("change", apply);
   }, [settings.theme, sageTheme]);

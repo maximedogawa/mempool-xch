@@ -3,7 +3,11 @@ import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
 export type MempoolSortKey = "feeRate" | "fee" | "cost" | "age";
 export type SortDirection = "asc" | "desc";
 
-export function sortMempoolItems(items: CompactMempoolItem[], key: MempoolSortKey, direction: SortDirection): CompactMempoolItem[] {
+export function sortMempoolItems(
+  items: CompactMempoolItem[],
+  key: MempoolSortKey,
+  direction: SortDirection
+): CompactMempoolItem[] {
   const sign = direction === "desc" ? -1 : 1;
   const cmp = (a: CompactMempoolItem, b: CompactMempoolItem): number => {
     switch (key) {

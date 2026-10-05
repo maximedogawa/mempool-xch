@@ -1,7 +1,7 @@
 /**
  * Compact mempool view shared by the summary API (server) and the browser fallback. It is what
  * the dashboard, the projected blocks and the mempool table consume: no puzzle reveals, amounts
- * as decimal strings so the JSON stays exact (TASK-025).
+ * as decimal strings so the JSON stays exact.
  */
 export type TxKindHint = "xch" | "cat" | "nft" | "did" | "offer" | "pool" | "singleton" | "unknown";
 
@@ -70,7 +70,12 @@ export interface MempoolSummary {
   network: string;
   /** Unix ms when the summary was assembled. */
   generatedAt: number;
-  source: "server" | "browser";
+  /**
+   * "snapshot": the last visit's summary from localStorage, shown until the first sync lands.
+   * "syncing": a cold tab's first sync in progress, `items` is what has arrived so far.
+   * Neither is a full view of the mempool: do not sample or persist them.
+   */
+  source: "server" | "browser" | "snapshot" | "syncing";
   state: MempoolStateSummary;
   items: CompactMempoolItem[];
 }
