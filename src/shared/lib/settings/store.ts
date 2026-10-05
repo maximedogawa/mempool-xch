@@ -291,6 +291,17 @@ export function createSettingsStore(
   };
 }
 
+/**
+ * The network a link asks for: `?network=testnet11` (or `mainnet`). Wallets and dApps link a
+ * transaction with it (`/tx/<id>?network=testnet11`), because the network is otherwise a
+ * setting of the visitor's own and a testnet id looked up on mainnet is "not found". The
+ * provider also writes it into the address bar while on testnet, so copied links carry it.
+ */
+export function networkFromSearch(search: string): NetworkId | null {
+  const value = new URLSearchParams(search).get("network");
+  return value === "mainnet" || value === "testnet11" ? value : null;
+}
+
 let browserStore: SettingsStore | null = null;
 
 /** Singleton store bound to window.localStorage (in-memory during SSR). */

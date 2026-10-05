@@ -13,6 +13,7 @@ import {
 import {
   SSR_SETTINGS,
   getSettingsStore,
+  networkFromSearch,
   resolveEndpoints,
   type ResolvedEndpoints,
   type Settings,
@@ -76,6 +77,24 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     () => true,
     () => false
   );
+  // A link that names its network (`?network=testnet11`) switches to it once on load.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    const wanted = networkFromSearch(window.location.search);
+    if (wanted && wanted !== store.get().network) store.set({ network: wanted });
+  }, [hydrated, store]);
+  // And the other way: off the default network the address bar says which one, so a copied
+  // link opens on the same chain. Mainnet (the default) keeps clean URLs.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const shown = url.searchParams.get("network");
+    const wanted = settings.network === "mainnet" ? null : settings.network;
+    if (shown === wanted) return;
+    if (wanted) url.searchParams.set("network", wanted);
+    else url.searchParams.delete("network");
+    window.history.replaceState(window.history.state, "", url);
+  }, [hydrated, settings.network]);
   const resolved = useMemo(() => resolveEndpoints(settings), [settings]);
   // The hosted nodexch gateway falls back to Coinset by itself (TASK-113): one failover per
   // primary/fallback pair; the active endpoints follow its state.
