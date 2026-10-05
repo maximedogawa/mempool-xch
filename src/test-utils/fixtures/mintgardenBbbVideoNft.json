@@ -1,0 +1,60 @@
+{
+  "id": "00c6ea4c395fd29941db25f6a9b4bfc45007e03a69ad54f4a5cad527bbeb44e2",
+  "encoded_id": "nft1qrrw5npetlffjswmyhm2nd9lc3gq0cp6dxk4fa99et2j0wltgn3q9jyj28",
+  "is_blocked": false,
+  "data": {
+    "data_uris": [
+      "https://ipfs.mintgarden.io/ipfs/bafybeifkatimxvw4abpujmwwc44gbuyilykbujoj57onb2efstnq3zc5l4/454.mp4",
+      "ipfs://bafybeifkatimxvw4abpujmwwc44gbuyilykbujoj57onb2efstnq3zc5l4/454.mp4"
+    ],
+    "data_hash": "37157e8cd11841726517dcf31d035295e812b02ed4bc9b8c77a4bc5cae71f5bb",
+    "data_type": 3,
+    "thumbnail_uri": "https://assets.mainnet.mintgarden.io/thumbnails/37157e8cd11841726517dcf31d035295e812b02ed4bc9b8c77a4bc5cae71f5bb_512.webp",
+    "preview_uri": null,
+    "integrity_state": 1,
+    "metadata_hash": "cc077a365d559b5323ed607ca0dae7f6bd7a7fa232499319874e22a627182242",
+    "metadata_json": {
+      "name": "BBB #454",
+      "format": "CHIP-0007",
+      "attributes": [],
+      "collection": {
+        "id": "8ad45b2f-a56e-4f6c-9df5-1c7c50a812dd",
+        "name": "BBB",
+        "attributes": [
+          {
+            "type": "description",
+            "value": "Boobs & Bubble Butt Collection (NSFW 18+)."
+          },
+          {
+            "type": "icon",
+            "value": "https://ipfs.mintgarden.io/ipfs/bafybeighouz6ocr7rz2np4si5epnwp66cnxuflxheoqije6ylrcv2ukpxm/Profil.gif"
+          },
+          {
+            "type": "banner",
+            "value": "https://ipfs.mintgarden.io/ipfs/bafybeianrwyyy3kpe2ibmz6xf6id74xt4kacf3p7yd7jni3j3fmc2cbn3m/banner.png"
+          }
+        ]
+      },
+      "description": "Boobs & Bubble Butt Collection (NSFW 18+).",
+      "minting_tool": "mintgarden-studio",
+      "sensitive_content": false
+    },
+    "license_hash": "",
+    "license_integrity_state": 0,
+    "edition_number": 1,
+    "edition_total": 1
+  },
+  "collection": {
+    "id": "col146q0rawm9zkurqyvcyt9rqeqrxdm2rez82wr5wn9v8ff56ju3srszjpd9p",
+    "name": "BBB",
+    "sensitive_content": true,
+    "blocked_content": false,
+    "blocked_content_reason": null
+  },
+  "creator": {
+    "name": "LegendChia",
+    "minting_blocked": true,
+    "minting_blocked_reason": "Terms of service violation: Pornographic content"
+  },
+  "royalty_percentage": 1000
+}

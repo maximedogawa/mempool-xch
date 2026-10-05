@@ -2,6 +2,14 @@
 // surprises and no accidental network access from the RPC client.
 import { afterEach, beforeEach } from "bun:test";
 
+import { runtimeConfigScript } from "@/shared/config/runtime";
+
+// A site with its nodexch key, so the defaults are those of production: what the server's
+// /runtime-config.js does in a browser, before any module reads it.
+new Function(
+  runtimeConfigScript({ nodexchKeys: { mainnet: "nxp_unitTestKey0123456789abcdef" } })
+)();
+
 const realFetch = globalThis.fetch;
 
 beforeEach(() => {

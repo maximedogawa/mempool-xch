@@ -1,7 +1,10 @@
 "use client";
 
+import { formatFixed } from "@/shared/i18n/number";
 import { formatCost, formatPercent } from "@/shared/lib/chia/amounts";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
+import uiNs from "@/shared/i18n/messages/en/ui";
 
 /**
  * Mempool capacity, in the spirit of mempool.space's memory-usage bar: a track split into
@@ -13,7 +16,7 @@ export function CapacityBar({
   used,
   max,
   segmentCost,
-  label = "Mempool capacity",
+  label: labelProp,
   compact = false,
   className,
 }: {
@@ -25,6 +28,8 @@ export function CapacityBar({
   compact?: boolean;
   className?: string;
 }) {
+  const t = useT(uiNs);
+  const label = labelProp ?? t("capacity.label");
   const ratio = max > 0 ? Math.min(1, used / max) : 0;
   const segments = segmentCost && segmentCost > 0 ? Math.max(1, Math.round(max / segmentCost)) : 10;
   const tone = ratio > 0.9 ? "hot" : ratio > 0.6 ? "warm" : "cool";
@@ -37,10 +42,17 @@ export function CapacityBar({
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       {!compact ? (
-        <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
+        <div className="flex items-baseline justify-between gap-2 text-[11px] font-medium eyebrow text-fg-muted">
           <span>{label}</span>
-          <span className={cn("tabular text-xs normal-case tracking-normal", text)} title={`${formatCost(used)} of ${formatCost(max)} cost`}>
-            {formatPercent(ratio)} · {(ratio * segments).toFixed(1)}/{segments} blocks
+          <span
+            className={cn("tabular text-xs normal-case tracking-normal", text)}
+            title={t("capacity.costOf", { used: formatCost(used), max: formatCost(max) })}
+          >
+            {t("capacity.blocks", {
+              percent: formatPercent(ratio),
+              filled: formatFixed(ratio * segments, 1),
+              segments,
+            })}
           </span>
         </div>
       ) : null}
@@ -50,8 +62,15 @@ export function CapacityBar({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={Math.round(used)}
-        aria-valuetext={`${formatCost(used)} of ${formatCost(max)} cost, ${formatPercent(ratio)}`}
-        className={cn("relative w-full overflow-hidden rounded-full border border-border bg-bg", compact ? "h-2.5" : "h-3.5")}
+        aria-valuetext={t("capacity.valueText", {
+          used: formatCost(used),
+          max: formatCost(max),
+          percent: formatPercent(ratio),
+        })}
+        className={cn(
+          "relative w-full overflow-hidden rounded-full border border-border bg-bg",
+          compact ? "h-2.5" : "h-3.5"
+        )}
       >
         <div
           className="capacity-fill absolute inset-y-0 left-0 rounded-full"

@@ -1,93 +1,11 @@
 @import "tailwindcss";
+@import "../shared/theme/themes.generated.css";
 
 /*
- * mempoolxch.space design tokens (decision-003): mempool.space's dark navy base with the accent
- * shifted to Chia green. Dark is the default; `[data-theme="light"]` flips the surfaces.
- * Every colour used by components is a token here so Sage's theme can remap them later.
+ * Theme tokens come from src/shared/theme (one file per theme, generated into
+ * themes.generated.css by `bun run themes`). This file only maps them onto Tailwind and holds
+ * the component styles, which read tokens and never a colour of their own.
  */
-:root {
-  color-scheme: dark;
-
-  --bg: #0f1220;
-  --bg-elevated: #171a2b;
-  --surface: #1c2033;
-  --surface-2: #232842;
-  --surface-hover: #2a3050;
-  --border: #2c3350;
-  --border-strong: #3b4468;
-
-  --fg: #e8ebf5;
-  --fg-muted: #9aa3c2;
-  --fg-faint: #8d96b5;
-
-  --primary: #5ece7b;
-  --primary-strong: #3aac59;
-  --primary-soft: rgba(94, 206, 123, 0.14);
-  --primary-fg: #06210f;
-
-  --accent: #7dd3fc;
-  --warning: #f5c542;
-  --danger: #f0616d;
-  --danger-soft: rgba(240, 97, 109, 0.14);
-  --info: #8aa4ff;
-
-  /* Fee-band gradient: 0 fee (grey-green) → low → medium → high → extreme */
-  --fee-0: #4c5b7b;
-  --fee-1: #3aac59;
-  --fee-2: #8fd35c;
-  --fee-3: #f5c542;
-  --fee-4: #f2903b;
-  --fee-5: #f0616d;
-
-  /* Block cube faces */
-  --block-face: #1f2540;
-  --block-side: #131730;
-  --block-top: #2a3157;
-  --block-empty: #1a1e33;
-  --projected-face: #17283a;
-
-  --kind-xch: #5ece7b;
-  --kind-cat: #8aa4ff;
-  --kind-nft: #d68cf5;
-  --kind-did: #f5c542;
-  --kind-offer: #7dd3fc;
-  --kind-unknown: #67708f;
-
-  --radius: 10px;
-  --radius-sm: 6px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --header-h: 64px;
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f6fb;
-  --bg-elevated: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #eef1f8;
-  --surface-hover: #e4e8f3;
-  --border: #d9deec;
-  --border-strong: #b9c1d9;
-  --fg: #10142a;
-  --fg-muted: #4d5674;
-  --fg-faint: #5f6886;
-  --primary: #2f9a4d;
-  --primary-strong: #237a3b;
-  --primary-soft: rgba(47, 154, 77, 0.12);
-  --primary-fg: #ffffff;
-  --accent: #0a7ea4;
-  --warning: #b78a00;
-  --danger: #c93a47;
-  --danger-soft: rgba(201, 58, 71, 0.12);
-  --info: #4a63d8;
-  --fee-0: #9aa3c2;
-  --block-face: #dfe5f4;
-  --block-side: #b9c3de;
-  --block-top: #eef1f8;
-  --block-empty: #e8ecf6;
-  --projected-face: #d5e9f5;
-  --shadow: 0 10px 30px rgba(20, 30, 60, 0.12);
-}
 
 @theme inline {
   --color-bg: var(--bg);
@@ -97,13 +15,18 @@
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-rule: var(--rule);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
   --color-fg-faint: var(--fg-faint);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
+  --color-primary-tint: var(--primary-tint);
   --color-primary-soft: var(--primary-soft);
   --color-primary-fg: var(--primary-fg);
+  --color-cta: var(--cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-cta-fg: var(--cta-fg);
   --color-accent: var(--accent);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -123,9 +46,14 @@
   --color-kind-unknown: var(--kind-unknown);
   --radius-card: var(--radius);
   --radius-sm: var(--radius-sm);
+  --radius-control: var(--radius-control);
   --shadow-card: var(--shadow);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-sans:
+    var(--font-inter), Inter, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Motion (doc-001 v2): 160-240ms for common UI transitions; 200ms ease-out by default. */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 html,
@@ -143,13 +71,21 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Layered, so a text colour utility on a link (text-accent, text-primary-fg…) wins over it. */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* A link inside running text needs more than colour to stand out (WCAG 1.4.1). */
+  p a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }
 
 ::selection {
-  background: var(--primary-soft);
+  background: color-mix(in srgb, var(--cta) 22%, transparent);
 }
 
 .mono {
@@ -161,8 +97,103 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Typography (doc-001): product copy stays in Inter; IBM Plex Mono is for machine-readable
+ * metadata only. `.eyebrow` labels a section, `.page-title` is the one display line per page.
+ * Layered as components, so a size or colour utility on the element still wins.
+ */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Text inputs and selects (doc-001 v2): 44px minimum, neutral default, identity-colour focus
+     ring. Width, padding for an icon or a mono face stay utilities on the element. */
+  .field {
+    min-height: 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--fg);
+    padding-inline: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    transition:
+      border-color 200ms ease-out,
+      outline-color 200ms ease-out;
+  }
+
+  .field::placeholder {
+    color: var(--fg-faint);
+  }
+
+  .field:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  .field:focus,
+  .field:focus-visible {
+    border-color: var(--focus);
+    outline: 2px solid var(--focus);
+    outline-offset: 0;
+  }
+
+  /* Segmented options and filter chips: instrument tabs with a thin border, the selected one
+     tinted. 32px with a mouse, 44px on touch screens. Size or shape utilities still apply. */
+  .seg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition:
+      color 200ms ease-out,
+      border-color 200ms ease-out,
+      background-color 200ms ease-out;
+  }
+
+  .seg:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .seg.seg-on {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  @media (pointer: coarse) {
+    .seg {
+      min-height: 2.75rem;
+    }
+  }
+
+  .page-title {
+    font-size: clamp(1.75rem, 3vw, 3.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 780;
+    text-wrap: balance;
+  }
+}
+
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -176,39 +207,86 @@ a {
   }
 }
 
+/* Market battlefield: a fill lands on the side it took (a dot that fades, a ring that spreads). */
+@keyframes market-hit {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes market-hit-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.market-hit,
+.market-hit-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+
+.market-hit {
+  animation: market-hit 1.4s ease-out forwards;
+}
+
+.market-hit-ring {
+  animation: market-hit-ring 1.4s ease-out forwards;
+}
+
+/* A confirmed block slides into the queue and settles well inside 450ms. */
 @keyframes block-in {
   from {
     opacity: 0;
-    transform: translateX(-24px) scale(0.96);
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
 }
 
 .animate-block-in {
-  animation: block-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: block-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+/* A fresh row leaves a thin cyan trace on its edge (rows using it pad their left edge to
+   keep it clear of the text) plus a tint light enough that the text stays AA, then settles. The
+   bar is inset because the lists sit in scroll containers, which clip anything outside the row. */
 @keyframes row-in {
   from {
-    background: var(--primary-soft);
+    background: var(--row-flash);
+    box-shadow: inset 2px 0 0 var(--primary);
   }
   to {
     background: transparent;
+    box-shadow: inset 2px 0 0 transparent;
   }
 }
 
 .animate-row-in {
-  animation: row-in 1.6s ease-out;
+  animation: row-in 1.4s ease-out;
 }
 
-/* Capacity bar: eased fill, travelling sheen */
+/* Capacity bar: an eased fill. */
 .capacity-fill {
-  transition: width 900ms cubic-bezier(0.2, 0.8, 0.2, 1), background 600ms ease;
+  transition:
+    width 600ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background 400ms ease-out;
 }
 
+/* A travelling highlight, for themes that set --sheen (quiet themes set it to none). */
 @keyframes sheen {
   0% {
     transform: translateX(-100%);
@@ -220,12 +298,15 @@ a {
 
 .capacity-sheen {
   width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  background: var(--sheen);
   animation: sheen 2.8s ease-in-out infinite;
+  animation-play-state: var(--ambient);
 }
 
-/* Live indicator ring */
-@keyframes ping-ring {
+/* Live indicator: a ring in the theme's primary colour pulses out of the dot while the live
+   connection is up. It is status, not decoration, so it runs in every theme; reduced motion
+   stops it like every animation. */
+@keyframes live-ping {
   0% {
     transform: scale(1);
     opacity: 0.7;
@@ -242,38 +323,29 @@ a {
   inset: 0;
   border-radius: 9999px;
   background: var(--primary);
-  animation: ping-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: live-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-@keyframes radar {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-radar {
-  animation: radar 2.4s linear infinite;
-}
-
-/* Page flair: soft green glow at the top, gradient hairline under the header */
+/* Depth: a soft identity-colour light falling on the top of the page, behind every card. */
 body {
-  background-image: radial-gradient(1200px 420px at 50% -120px, rgba(94, 206, 123, 0.12), transparent 70%);
+  background-image: radial-gradient(1200px 420px at 50% -120px, var(--page-glow), transparent 70%);
   background-repeat: no-repeat;
 }
 
+/* Header: the theme decides between a plain hairline and a gradient. */
 .header-hairline {
-  background: linear-gradient(90deg, transparent, var(--primary) 30%, var(--accent) 70%, transparent);
-  opacity: 0.55;
+  background: var(--header-line);
 }
 
-/* Glow that follows the cube silhouette (drop-shadow respects the transformed faces) */
+/* The next block breathes a soft glow in the theme's --glow along the cube silhouette (drop-shadow
+   follows the transformed faces). Stops under reduced motion like every animation. */
 @keyframes cube-glow {
   0%,
   100% {
-    filter: drop-shadow(0 0 0 rgba(94, 206, 123, 0));
+    filter: drop-shadow(0 0 0 transparent);
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(94, 206, 123, 0.55));
+    filter: drop-shadow(0 0 14px var(--glow));
   }
 }
 
@@ -281,40 +353,708 @@ body {
   animation: cube-glow 3s ease-in-out infinite;
 }
 
-/* Treemap cells slide to their new place instead of jumping */
-.treemap-cell rect {
-  transition:
-    x 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    y 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    fill 300ms ease;
+/* Flow trace (src/shared/ui/FlowTrace.tsx): a patch of 1-bit print dither beside the linework. */
+.flow-dither {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--fg) 16%, transparent) 0.6px,
+    transparent 0.8px
+  );
+  background-size: 4px 4px;
 }
 
-@keyframes cell-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
+/*
+ * Block row (src/widgets/blocks/BlocksRow.tsx). Blocks and the inflection point snap to the
+ * centre with proximity snapping, so free scrolling still works; a mouse drag switches snapping
+ * off until release. Edges fade while more blocks lie beyond them.
+ */
+.blocks-scroller {
+  --fade-before: 0px;
+  --fade-after: 0px;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 16px;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-before),
+    #000 calc(100% - var(--fade-after)),
+    transparent 100%
+  );
+}
+
+.blocks-scroller[data-fade-before] {
+  --fade-before: 48px;
+}
+
+.blocks-scroller[data-fade-after] {
+  --fade-after: 48px;
+}
+
+.blocks-scroller[data-dragging] {
+  scroll-snap-type: none;
+}
+
+.blocks-snap {
+  scroll-snap-align: center;
+}
+
+/* The projected side: a ruled queue zone fading toward the far end, and a flow line with
+   direction marks running under the cubes into the inflection point. */
+.blocks-queue {
+  position: relative;
+}
+
+.blocks-queue-zone {
+  position: absolute;
+  inset: 24px 0 0 0;
+  pointer-events: none;
+  border-radius: 6px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 11px,
+    var(--cube-grid) 11px 12px
+  );
+  mask-image: linear-gradient(to right, transparent, #000 45%);
+}
+
+.blocks-flow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  height: 8px;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--cta) 55%, transparent);
+  /* Chevrons pointing toward the chain, drawn as a mask so the theme colour shows through. */
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8'%3E%3Cpath d='M9 1l3 3-3 3' fill='none' stroke='black' stroke-width='1.2'/%3E%3Cpath d='M0 4h24' stroke='black' stroke-width='0.8' stroke-dasharray='2 3'/%3E%3C/svg%3E"),
+    linear-gradient(to right, transparent, #000 30%);
+  mask-composite: intersect;
+  mask-repeat: repeat-x, no-repeat;
+  mask-size:
+    24px 8px,
+    100% 100%;
+  animation: blocks-flow 1.6s linear infinite;
+  animation-play-state: var(--ambient);
+}
+
+@keyframes blocks-flow {
   to {
-    opacity: 1;
-    transform: scale(1);
+    mask-position:
+      24px 0,
+      0 0;
   }
 }
 
-.treemap-cell {
-  animation: cell-in 350ms ease-out both;
+/* The inflection point: where the mempool becomes chain. */
+.blocks-inflection {
+  position: relative;
+  flex: none;
+  width: 56px;
+}
+
+.blocks-inflection-band {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 96px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--cta) 9%, transparent),
+    transparent
+  );
+}
+
+.blocks-inflection-line,
+.blocks-inflection-ticks {
+  position: absolute;
+  inset-block: 4px 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+
+/* A double hairline: two ruled edges, 4px apart. */
+.blocks-inflection-line {
+  width: 5px;
+  border-inline: 1px solid color-mix(in srgb, var(--fg) 34%, transparent);
+}
+
+/* Ruler ticks across the double line, every 12px. */
+.blocks-inflection-ticks {
+  width: 11px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--fg) 26%, transparent) 0 1px,
+    transparent 1px 12px
+  );
+}
+
+/* The "now" node at cube height (the middle of a cube's front face). */
+.blocks-inflection-node {
+  position: absolute;
+  left: 50%;
+  bottom: 93px;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, 50%);
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1.5px var(--cta),
+    0 0 0 5px color-mix(in srgb, var(--cta) 16%, transparent),
+    0 0 12px var(--glow);
+}
+
+.blocks-inflection-node::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 9999px;
+  background: var(--cta);
+}
+
+.blocks-inflection-now {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--cta);
+  color: var(--cta-fg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 200ms ease-out;
+}
+
+.blocks-inflection-now:hover {
+  background: var(--cta-hover);
+}
+
+/* Where the queue's flow line arrives. */
+.blocks-inflection-stop {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, 50%);
+  border-radius: 9999px;
+  background: var(--cta);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/*
+ * Next-block goggles (src/widgets/goggles). The block is drawn like the cubes in the block row:
+ * a lit top face, a shaded side face and a square front face holding the treemap. Tiles are
+ * absolutely positioned and placed with transforms; GogglesTiles animates them with the Web
+ * Animations API (transform and opacity only). No will-change: a full block has ~1,000 tiles
+ * and layers are promoted per animation.
+ */
+.goggles-face-top {
+  background: linear-gradient(to right, var(--cube-top-hi), var(--block-top));
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+  border-top-right-radius: 3px;
+  /* A hairline edge, so a light top face does not dissolve into a light card. */
+  box-shadow:
+    inset 0 1px 0 var(--cube-top-line),
+    inset 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+.goggles-face-side {
+  background: linear-gradient(to bottom, var(--cube-side-from), var(--cube-side-to));
+  transform: skewY(-45deg);
+  transform-origin: top left;
+  border-bottom-right-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+/* The front face: tiles sit on it one pixel apart, so the face shows as hairline gaps. */
+.goggles-canvas {
+  contain: layout paint;
+  overflow: hidden;
+  border-radius: 3px;
+  border-top-right-radius: 0;
+  background: var(--block-face);
+  box-shadow: var(--cube-edge), var(--cube-drop);
+}
+
+/* The empty capacity: glass with fine ruled lines, shrinking as the block fills. */
+.goggles-capacity {
+  background-color: var(--cube-glass);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 11px,
+    var(--cube-grid) 11px 12px
+  );
+  transition: height 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Capacity marks at 25/50/75% of the block cost limit. */
+.goggles-rule {
+  height: 0;
+  pointer-events: none;
+  border-top: 1px dashed color-mix(in srgb, var(--fg) 22%, transparent);
+}
+
+.goggles-rule-label {
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The waterline: the fill level in the theme's action colour, easing to each new level. */
+.goggles-fill-line {
+  height: 0;
+  pointer-events: none;
+  border-top: 1.5px solid var(--cta);
+  transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.goggles-fill-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 10px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cta) 22%, transparent), transparent);
+}
+
+.goggles-fill-label {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 3;
+  border-radius: 4px;
+  padding: 2px 5px;
+  background: var(--cta);
+  color: var(--cta-fg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tiles: flat fills in the theme's fee or kind colours, no gloss. */
+.goggles-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  transform-origin: 0 0;
+  transition:
+    opacity 200ms ease-out,
+    filter 200ms ease-out,
+    background-color 200ms ease-out;
+}
+
+.goggles-tile[data-dim] {
+  opacity: 0.18;
+  filter: saturate(0.4);
+}
+
+.goggles-tile:hover {
+  z-index: 1;
+  filter: brightness(1.08) saturate(1.1);
+}
+
+.goggles-tile:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.goggles-tile-image {
+  opacity: 0.9;
+}
+
+/* A round badge of fixed size: the icon sits centred in it and is clipped to the circle. */
+.goggles-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 12%, transparent);
+  line-height: 0;
+}
+
+/* Yours: a double ring (a shape, not only a colour). New: a small dot that rings three times. */
+.goggles-mark-yours {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px var(--cta),
+    inset 0 0 0 3px var(--surface);
+}
+
+@keyframes goggles-new-pulse {
+  0% {
+    box-shadow:
+      0 0 0 1px var(--fg),
+      0 0 0 0 color-mix(in srgb, var(--cta) 60%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px var(--fg),
+      0 0 0 6px color-mix(in srgb, var(--cta) 0%, transparent);
+  }
+}
+
+.goggles-mark-new {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--fg);
+  animation: goggles-new-pulse 1.6s ease-out 3;
+}
+
+/* Background tab: CSS animations hold still (the JS ones are not started at all). */
+.goggles-paused * {
+  animation-play-state: paused !important;
+}
+
+.goggles-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+}
+
+.goggles-frame-label,
+.goggles-depart-label {
+  position: absolute;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--fg) 86%, transparent);
+  color: var(--bg);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.goggles-frame-label {
+  left: 3px;
+  top: 3px;
+  max-width: calc(100% - 6px);
+  padding: 2px 4px;
+  font-size: 10px;
+}
+
+.goggles-depart-label {
+  right: 8px;
+  top: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.goggles-legend-new {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--fg);
+}
+
+.goggles-legend-yours {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 2px var(--cta),
+    inset 0 0 0 3px var(--surface);
+}
+
+/* Network map ------------------------------------------------------------- */
+
+/* A live event ripples out of the countries it is modelled to reach (transform + opacity only). */
+@keyframes map-pulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.map-pulse {
+  animation: map-pulse 1.5s ease-out both;
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.card-lift {
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+/* Modelled reach arcs: a slow dash crawl, never a claim about a real packet route. */
+@keyframes map-arc-drift {
+  to {
+    stroke-dashoffset: -28;
+  }
 }
 
-.card-lift:hover {
-  transform: translateY(-1px);
+.map-arc {
+  stroke-opacity: 0.18;
+  stroke-dasharray: 2 6;
+  animation: map-arc-drift 2.4s linear infinite;
+  /* Decorative loop: only themes whose --ambient is "running" keep it moving. */
+  animation-play-state: var(--ambient);
+}
+
+.map-canvas {
+  outline: none;
+}
+
+.map-canvas:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.map-node {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 200ms ease-out;
+}
+
+.map-node circle {
+  transition:
+    r 200ms ease-out,
+    fill-opacity 200ms ease-out;
+}
+
+.map-node-dim {
+  opacity: 0.16;
+  cursor: default;
+}
+
+.map-node:focus-visible circle:nth-of-type(1) {
+  stroke: var(--fg);
+  stroke-width: 2;
+}
+
+.map-label {
+  fill: var(--fg);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--map-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+@keyframes map-peer-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.map-peer-ring {
+  animation: map-peer-ring 2.6s ease-out infinite;
+  animation-play-state: var(--ambient);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* A country that is new since the last snapshot or scan grows in; one whose count moved rings. */
+@keyframes map-node-enter {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.map-node-enter {
+  animation: map-node-enter 700ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes map-node-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.map-node-ring {
+  animation: map-node-ring 700ms ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* Hidden tab or map scrolled away: every map animation holds, including the endless ones. */
+.map-viewport[data-paused="true"] *,
+.map-viewport[data-paused="true"] *::before,
+.map-viewport[data-paused="true"] *::after {
+  animation-play-state: paused !important;
+}
+
+.map-viewport {
+  background-color: var(--map-bg);
+  background-image:
+    linear-gradient(var(--map-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--map-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.map-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  border-right: 1px solid var(--border);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.map-control:last-child {
+  border-right: 0;
+}
+
+.map-control:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.map-control:disabled {
+  color: var(--fg-faint);
+  cursor: not-allowed;
+}
+
+.map-control-wide {
+  min-width: 3.5rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.map-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  transition:
+    color 200ms ease-out,
+    border-color 200ms ease-out,
+    background-color 200ms ease-out;
+}
+
+.map-toggle:hover,
+.map-toggle-active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+/* Region legend chips double as filters; the dot carries the region's map colour. */
+.map-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  color: var(--fg-muted);
+  font-size: 0.7rem;
+  transition:
+    color 200ms ease-out,
+    border-color 200ms ease-out,
+    background-color 200ms ease-out;
+}
+
+.map-legend-chip:hover {
   border-color: var(--border-strong);
+  color: var(--fg);
+}
+
+.map-legend-chip-active {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: var(--fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse,
+  .map-arc,
+  .map-peer-ring,
+  .map-node-enter,
+  .map-node-ring {
+    animation: none;
+  }
+
+  .map-pulse {
+    opacity: 0.5;
+  }
+
+  .map-node-ring {
+    display: none;
+  }
+
+  .map-node,
+  .map-node circle {
+    transition: none;
+  }
+}
+
+.card-lift {
+  transition:
+    box-shadow 200ms ease-out,
+    border-color 200ms ease-out;
 }
 
 /* Hidden but functional scrollbars (block queue) */
@@ -324,4 +1064,39 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * The sensitive-content veil (src/shared/ui/AssetImage.tsx) obscures artwork with
+ * `backdrop-filter`, which some engines disable and which Chromium drops when printing. Without
+ * this the full-resolution artwork would show through a mostly transparent tint. Where the
+ * filter cannot apply, the glass becomes opaque instead: the silhouette is lost, never the veil.
+ */
+/* Keeps the veil's wording legible over whatever artwork shows through the glass. */
+.veil-text {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.9);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .veil-glass {
+    background: var(--surface);
+  }
+}
+
+/*
+ * Printing is the dangerous case: Chrome and Safari drop backgrounds unless the reader turns
+ * "Background graphics" on, and they drop backdrop-filter outright — so a veil that relies on
+ * either would print the artwork in full. The artwork itself is hidden instead, which needs no
+ * cooperation from the print settings, and the wording is forced to print with it.
+ */
+@media print {
+  .veil-glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .veil-art {
+    visibility: hidden !important;
+  }
 }

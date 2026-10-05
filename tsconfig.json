@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,18 +15,14 @@
     "jsx": "react-jsx",
     "incremental": true,
     "tsBuildInfoFile": ".next/cache/.tsbuildinfo",
-    "types": [
-      "bun-types"
-    ],
+    "types": ["bun-types"],
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -43,10 +35,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "out",
-    "sage-snapshot"
-  ]
+  "exclude": ["node_modules", ".next", "out", "sage-snapshot"]
 }

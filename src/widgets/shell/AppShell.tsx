@@ -1,15 +1,23 @@
 import type { ReactNode } from "react";
+import { ConsentBanner } from "@/widgets/legal/ConsentBanner";
+import { DisclaimerBanner } from "@/widgets/legal/DisclaimerBanner";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
+import { NodeSyncNotice } from "./NodeSyncNotice";
+import { SkipLink } from "./SkipLink";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
+      <SkipLink />
+      <DisclaimerBanner />
       <Header />
       <main id="main" className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-5">
+        <NodeSyncNotice />
         {children}
       </main>
       <Footer />
+      <ConsentBanner />
     </div>
   );
 }

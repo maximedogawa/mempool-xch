@@ -1,154 +1,275 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useProjectedBlocks } from "@/shared/api/hooks";
-import { formatAmount, formatCost, formatFeeRate } from "@/shared/lib/chia/amounts";
+import { useTokenList } from "@/shared/api/useTokenList";
+import { formatCost, formatPercent } from "@/shared/lib/chia/amounts";
 import { cn } from "@/shared/lib/cn";
-import { shortId } from "@/shared/lib/chia/hex";
 import { formatEta } from "@/shared/lib/format/time";
-import { feeBandFor } from "@/shared/lib/mempool/feeBands";
-import type { CompactMempoolItem, TxKindHint } from "@/shared/lib/mempool/types";
-import { routes } from "@/shared/lib/routes";
-import { squarify } from "@/shared/lib/treemap";
+import { FEE_BANDS } from "@/shared/lib/mempool/feeBands";
+import type { CompactMempoolItem } from "@/shared/lib/mempool/types";
+import { useWalletPendingIds } from "@/shared/lib/sage/usePendingIds";
 import { Card, CardBody, CardHeader, Skeleton } from "@/shared/ui";
+import { useT } from "@/shared/i18n/useT";
+import { BlockSummary } from "./BlockSummary";
+import { GogglesFilterBar } from "./GogglesFilters";
+import { GogglesLegend } from "./GogglesLegend";
+import { GogglesTreemap, type TreemapContext } from "./GogglesTreemap";
+import { useGogglesPrefs, useNftInfo, useNow, usePageVisible } from "./hooks";
+import {
+  assetKeysOf,
+  assetMix,
+  assetOptions,
+  EMPTY_FILTERS,
+  isFiltering,
+  isFreshItem,
+  kindCounts,
+  matchesFilters,
+  primaryAssetKey,
+  summariseMatches,
+  type ColourMode,
+  type MatchContext,
+} from "./model";
+import gogglesNs from "@/shared/i18n/messages/en/goggles";
 
-const W = 800;
-const H = 170;
-
-type Filter = "all" | TxKindHint;
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "xch", label: "XCH" },
-  { id: "cat", label: "CAT" },
-  { id: "nft", label: "NFT" },
-  { id: "offer", label: "Offers" },
-  { id: "did", label: "DID" },
-];
-
-const KIND_COLOR: Record<TxKindHint, string> = {
-  xch: "var(--kind-xch)",
-  cat: "var(--kind-cat)",
-  nft: "var(--kind-nft)",
-  did: "var(--kind-did)",
-  offer: "var(--kind-offer)",
-  singleton: "var(--kind-did)",
-  unknown: "var(--kind-unknown)",
-};
+/** Bundles first seen more recently than this count as "new" and carry the arrival marker. */
+const FRESH_MS = 90_000;
 
 /**
- * "Goggles" for the next projected block, after mempool.space's block composition view: every
- * spend bundle that will make it into the next transaction block as a cell sized by CLVM cost
- * and coloured by fee band; the filter chips highlight one asset kind and dim the rest.
+ * "Goggles" for the next projected block: every spend bundle that will make the next
+ * transaction block is a tile sized by CLVM cost and coloured by fee band or asset kind, with no
+ * text on it; details live in the tooltip anchored to each tile and in the block card above.
+ * Composition only: the pure logic is in ./model.ts and ./format.ts, drawing and animation in
+ * GogglesTreemap and GogglesTiles, the controls in GogglesFilterBar.
  */
 export function NextBlockGoggles() {
+  const t = useT(gogglesNs);
   const { blocks, summary, isLoading } = useProjectedBlocks(8);
-  const [filter, setFilter] = useState<Filter>("all");
-  const [hover, setHover] = useState<CompactMempoolItem | null>(null);
+  const [prefs, setPrefs] = useGogglesPrefs();
+  const tokens = useTokenList();
+  const mine = useWalletPendingIds();
+  const visible = usePageVisible();
+  const now = useNow(visible);
   const next = blocks[0];
+  const items = useMemo(() => next?.items ?? [], [next]);
   const blockMax = summary?.state.blockMaxCost ?? 11_000_000_000;
-  const cells = useMemo(() => (next ? squarify(next.items.map((item) => ({ item, weight: item.cost })), W, H * Math.max(0.15, next.fill)) : []), [next]);
-  const counts = useMemo(() => {
-    const c: Partial<Record<Filter, number>> = { all: next?.items.length ?? 0 };
-    next?.items.forEach((i) => {
-      c[i.kind] = (c[i.kind] ?? 0) + 1;
+  const txHeight = summary?.state.lastTxBlockHeight ?? null;
+
+  // Everything in the first snapshot was already waiting when this tab opened: only bundles
+  // observed after it count as arrivals. (The last visit's snapshot is not a sync of this tab.)
+  const baseline = useRef<number | null>(null);
+  if (
+    summary &&
+    summary.source !== "snapshot" &&
+    summary.source !== "syncing" &&
+    baseline.current === null
+  )
+    baseline.current = summary.generatedAt;
+  const baselineAt = baseline.current;
+
+  const nft = useNftInfo(items);
+  const tokenMap = tokens.data;
+  const ticker = useCallback((assetId: string) => tokenMap?.[assetId]?.symbol, [tokenMap]);
+  const collectionOf = useCallback((l: string) => nft.collection(l)?.id ?? null, [nft]);
+  const assetKeys = useCallback(
+    (item: CompactMempoolItem) => assetKeysOf(item, collectionOf),
+    [collectionOf]
+  );
+  const assetKey = useCallback(
+    (item: CompactMempoolItem) => primaryAssetKey(item, collectionOf),
+    [collectionOf]
+  );
+
+  const ctx = useMemo<MatchContext & TreemapContext>(() => {
+    const names = (item: CompactMempoolItem): string[] => {
+      const out: string[] = [];
+      (item.assets?.cats ?? []).forEach((c) => {
+        const token = tokenMap?.[c.assetId];
+        if (token) out.push(token.name, token.symbol);
+      });
+      if (item.kind === "nft")
+        item.assetIds.forEach((l) => {
+          const name = nft.name(l);
+          const collection = nft.collection(l)?.name;
+          if (name) out.push(name);
+          if (collection) out.push(collection);
+        });
+      return out;
+    };
+    return {
+      now,
+      isNew: (item) => isFreshItem(item, baselineAt, now, FRESH_MS),
+      isFresh: (item) => isFreshItem(item, baselineAt, now, FRESH_MS),
+      isYours: (item) => mine.has(item.id),
+      assetKeys,
+      names,
+      assetKey,
+      groupLabel: () => null,
+      ticker,
+      nftImage: nft.image,
+      nftName: nft.name,
+      collectionName: (l) => nft.collection(l)?.name ?? null,
+      nftVerdict: nft.verdict,
+    };
+  }, [now, baselineAt, mine, assetKeys, assetKey, tokenMap, nft, ticker]);
+
+  /** Display name of an asset or group key. */
+  const collectionNames = useMemo(() => {
+    const map = new Map<string, string>();
+    items.forEach((item) => {
+      if (item.kind !== "nft") return;
+      item.assetIds.forEach((l) => {
+        const c = nft.collection(l);
+        if (c?.name) map.set(c.id, c.name);
+      });
     });
-    return c;
-  }, [next]);
-  const fillHeight = next ? H * Math.max(0.15, next.fill) : 0;
+    return map;
+  }, [items, nft]);
+  const assetName = useCallback(
+    (key: string): string => {
+      const [type, id = ""] = key.split(":");
+      if (type === "cat") {
+        const token = tokenMap?.[id];
+        return token ? token.symbol || token.name : t("unknownCat", { id: id.slice(0, 6) });
+      }
+      if (type === "nft") return collectionNames.get(id) ?? t("unknownCollection");
+      if (type === "kind") return t(`kinds.${id as CompactMempoolItem["kind"]}`);
+      return key;
+    },
+    [tokenMap, collectionNames, t]
+  );
+  const groupLabel = useCallback(
+    (key: string): string | null => {
+      if (prefs.groupBy === "fee") {
+        const band = FEE_BANDS.find((b) => b.id === key);
+        return band
+          ? band.id === "zero"
+            ? t("zeroFee")
+            : t("bandChip", { band: band.label })
+          : null;
+      }
+      if (prefs.groupBy === "kind") return t(`kinds.${key as CompactMempoolItem["kind"]}`);
+      if (prefs.groupBy === "asset") return assetName(key);
+      return null;
+    },
+    [prefs.groupBy, assetName, t]
+  );
+  const treemapCtx = useMemo(() => ({ ...ctx, groupLabel }), [ctx, groupLabel]);
+
+  const filtering = isFiltering(prefs.filters);
+  const matched = useMemo(
+    () => (filtering ? items.filter((i) => matchesFilters(i, prefs.filters, ctx)) : null),
+    [filtering, items, prefs.filters, ctx]
+  );
+  const matchedIds = useMemo(() => (matched ? new Set(matched.map((i) => i.id)) : null), [matched]);
+  const matchSummary = useMemo(
+    () => (matched ? summariseMatches(items, matched) : null),
+    [items, matched]
+  );
+  const counts = useMemo(() => kindCounts(items), [items]);
+  const mix = useMemo(() => assetMix(items), [items]);
+  const options = useMemo(() => assetOptions(items, ctx.assetKeys), [items, ctx.assetKeys]);
+  const freshCount = useMemo(() => items.filter(ctx.isNew).length, [items, ctx]);
+  const yoursCount = useMemo(() => items.filter(ctx.isYours).length, [items, ctx]);
+
   const label = next
-    ? `Next block composition: ${next.items.length} spend bundles, ${formatCost(next.totalCost)} of ${formatCost(blockMax)} cost, ${formatEta(next.etaSeconds)}`
-    : "Next block composition";
+    ? t("ariaLabel", {
+        count: next.items.length,
+        cost: formatCost(next.totalCost),
+        max: formatCost(blockMax),
+        percent: formatPercent(next.fill),
+        eta: formatEta(next.etaSeconds),
+      })
+    : t("ariaLabelEmpty");
+
+  const setColour = (colour: ColourMode) => setPrefs((p) => ({ ...p, colour }));
 
   return (
-    <Card>
+    <Card data-testid="goggles">
       <CardHeader
-        title={
-          <span className="inline-flex items-center gap-2">
-            Next block
-            {next ? <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] normal-case tracking-normal text-primary">{formatEta(next.etaSeconds)}</span> : null}
-          </span>
-        }
+        title={t("title")}
         action={
-          <div role="group" aria-label="Filter by asset kind" className="flex flex-wrap gap-1">
-            {FILTERS.filter((f) => f.id === "all" || (counts[f.id] ?? 0) > 0).map((f) => (
+          <div
+            role="group"
+            aria-label={t("colourBy")}
+            className="inline-flex overflow-hidden rounded-full border border-border"
+          >
+            {(["fee", "kind"] as const).map((m) => (
               <button
-                key={f.id}
+                key={m}
                 type="button"
-                aria-pressed={filter === f.id}
-                onClick={() => setFilter(f.id)}
+                aria-pressed={prefs.colour === m}
+                onClick={() => setColour(m)}
                 className={cn(
-                  "rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
-                  filter === f.id ? "border-primary bg-primary-soft text-primary" : "border-border text-fg-muted hover:text-fg"
+                  "seg rounded-none border-0 text-[11px]",
+                  prefs.colour === m && "seg-on"
                 )}
               >
-                {f.label} <span className="tabular font-normal text-fg-faint">{counts[f.id] ?? 0}</span>
+                {m === "fee" ? t("modeFee") : t("modeKind")}
               </button>
             ))}
           </div>
         }
       />
-      <CardBody>
+      <CardBody className="min-w-0">
         {isLoading && !next ? (
-          <Skeleton className="h-[120px] w-full" />
+          <div className="grid gap-6 md:grid-cols-[minmax(0,276px)_minmax(0,1fr)]">
+            <Skeleton className="mx-auto aspect-square w-full max-w-[276px]" />
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-12 w-32" />
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </div>
         ) : !next ? (
-          <p className="py-10 text-center text-sm text-fg-faint">The mempool is empty: the next transaction block will carry no spends.</p>
+          <p className="py-10 text-center text-sm text-fg-faint">{t("empty")}</p>
         ) : (
-          <div className="relative">
-            <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-label={label} className="block h-auto w-full rounded-sm bg-bg">
-              <title>{label}</title>
-              {/* unused block space */}
-              <rect x={0} y={fillHeight} width={W} height={Math.max(0, H - fillHeight)} fill="url(#emptyHatch)" />
-              <defs>
-                <pattern id="emptyHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                  <line x1="0" y1="0" x2="0" y2="10" stroke="var(--border)" strokeWidth="1" />
-                </pattern>
-              </defs>
-              {cells.map((cell, cellIndex) => {
-                const item = cell.item;
-                const band = feeBandFor(item.feeRate);
-                const dim = filter !== "all" && item.kind !== filter;
-                const big = cell.width > 60 && cell.height > 24;
-                return (
-                  <Link key={item.id} href={routes.tx(item.id)} aria-label={`Spend bundle ${shortId(item.id)}, ${item.kind}, cost ${formatCost(item.cost)}, ${formatFeeRate(item.feeRate)} mojo per cost`}>
-                    <g
-                      className="treemap-cell"
-                      onMouseEnter={() => setHover(item)}
-                      onMouseLeave={() => setHover(null)}
-                      onFocus={() => setHover(item)}
-                      onBlur={() => setHover(null)}
-                      style={{ opacity: dim ? 0.18 : 1, transition: "opacity 200ms", animationDelay: `${Math.min(cellIndex, 40) * 12}ms` }}
-                    >
-                      <rect x={cell.x + 1} y={cell.y + 1} width={Math.max(0, cell.width - 2)} height={Math.max(0, cell.height - 2)} rx={2} fill={`var(${band.cssVar})`} fillOpacity={0.85} stroke={KIND_COLOR[item.kind]} strokeWidth={item.kind === "xch" ? 0 : 2} />
-                      {big ? (
-                        <>
-                          <text x={cell.x + 6} y={cell.y + 15} fontSize="11" fontWeight="600" fill="#0a0d18" className="pointer-events-none">
-                            {shortId(item.id, 5, 3)}
-                          </text>
-                          <text x={cell.x + 6} y={cell.y + 28} fontSize="10" fill="#0a0d18" fillOpacity="0.8" className="pointer-events-none">
-                            {formatCost(item.cost)} · {formatFeeRate(item.feeRate)} m/c
-                          </text>
-                        </>
-                      ) : null}
-                    </g>
-                  </Link>
-                );
-              })}
-            </svg>
-            {hover ? (
-              <div role="status" className="pointer-events-none absolute left-2 top-2 rounded-sm border border-border bg-bg-elevated px-2.5 py-2 text-xs shadow-card">
-                <div className="mono font-medium text-fg">{shortId(hover.id, 10, 6)}</div>
-                <div className="text-fg-muted">
-                  {hover.kind.toUpperCase()} · {formatCost(hover.cost)} cost · fee {formatAmount(BigInt(hover.fee))} ({formatFeeRate(hover.feeRate)} m/c)
+          // The block beside its figures on a wide screen, above them on a phone.
+          <div className="grid items-start gap-5 md:grid-cols-[minmax(0,276px)_minmax(0,1fr)]">
+            <GogglesTreemap
+              items={items}
+              matched={matchedIds}
+              nonMatching={prefs.nonMatching}
+              groupBy={prefs.groupBy}
+              colour={prefs.colour}
+              blockMaxCost={blockMax}
+              txHeight={txHeight}
+              label={label}
+              ctx={treemapCtx}
+              emptyState={
+                <div className="flex max-w-sm flex-col items-center gap-2">
+                  <p className="text-sm font-semibold text-fg">{t("emptyFiltered")}</p>
+                  <p className="text-xs text-fg-muted">{t("emptyFilteredHint")}</p>
+                  <button
+                    type="button"
+                    onClick={() => setPrefs((p) => ({ ...p, filters: EMPTY_FILTERS }))}
+                    className="seg rounded-full text-primary"
+                  >
+                    {t("clearAll")}
+                  </button>
                 </div>
-                <div className="text-fg-faint">moves {formatAmount(BigInt(hover.value))} · {hover.spends} coin spend{hover.spends === 1 ? "" : "s"}</div>
-              </div>
-            ) : null}
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-fg-faint">
-              <span>
-                {next.items.length} bundles · {formatCost(next.totalCost)} of {formatCost(blockMax)} cost ({Math.round(next.fill * 100)}%) · fees {formatAmount(next.totalFee)}
-              </span>
-              <span>cell size = cost · colour = fee band · outline = asset kind</span>
+              }
+            />
+            <div className="flex min-w-0 flex-col gap-3">
+              <BlockSummary
+                block={next}
+                blockMaxCost={blockMax}
+                mix={mix}
+                freshCount={freshCount}
+                freshSeconds={Math.round(FRESH_MS / 1000)}
+              />
+              <GogglesFilterBar
+                prefs={prefs}
+                onChange={setPrefs}
+                kindCounts={counts}
+                assets={options}
+                assetName={assetName}
+                freshCount={freshCount}
+                yoursCount={yoursCount}
+                total={items.length}
+                summary={matchSummary}
+              />
+              <GogglesLegend colour={prefs.colour} kinds={mix.map((m) => m.kind)} />
             </div>
           </div>
         )}

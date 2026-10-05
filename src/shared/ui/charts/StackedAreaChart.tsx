@@ -1,7 +1,31 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useT } from "@/shared/i18n/useT";
 import { cn } from "@/shared/lib/cn";
+import uiNs from "@/shared/i18n/messages/en/ui";
+import { ChartPlaceholder } from "./ChartPlaceholder";
+
+/**
+ * Runs of points close enough in time to be drawn as one area: samples further apart than a
+ * few usual intervals (the tab was closed, or the source did not answer) are not joined by a
+ * long made-up slope; the chart leaves the gap open instead.
+ */
+export function segmentsOf(times: number[], minGapMs = 2 * 60_000): number[][] {
+  if (times.length === 0) return [];
+  const steps = times
+    .slice(1)
+    .map((t, i) => t - times[i]!)
+    .sort((a, b) => a - b);
+  const usual = steps[Math.floor(steps.length / 2)] ?? 0;
+  const gap = Math.max(minGapMs, usual * 4);
+  const runs: number[][] = [[0]];
+  for (let i = 1; i < times.length; i++) {
+    if (times[i]! - times[i - 1]! > gap) runs.push([]);
+    runs[runs.length - 1]!.push(i);
+  }
+  return runs;
+}
 
 export interface StackedSeries {
   id: string;
@@ -36,6 +60,7 @@ export function StackedAreaChart({
   className?: string;
 }) {
   const id = useId();
+  const t = useT(uiNs);
   const [hover, setHover] = useState<number | null>(null);
   const width = 800;
   const pad = { l: 44, r: 8, t: 8, b: 22 };
@@ -57,32 +82,57 @@ export function StackedAreaChart({
         return { x: x(p.t), y0: y(below), y1: y(below + (p.values[si] ?? 0)) };
       })
     );
-    const paths = stacks.map((stack) => {
-      const top = stack.map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`).join(" ");
-      const bottom = [...stack].reverse().map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`).join(" ");
-      return `${top} ${bottom} Z`;
-    });
+    const runs = segmentsOf(points.map((p) => p.t));
+    const paths = stacks.map((stack) =>
+      runs
+        .map((run) => {
+          // A lone sample is drawn as a sliver, not as nothing.
+          const part =
+            run.length === 1
+              ? [-1.5, 1.5].map((dx) => ({ ...stack[run[0]!]!, x: stack[run[0]!]!.x + dx }))
+              : run.map((i) => stack[i]!);
+          const top = part
+            .map((s, i) => `${i === 0 ? "M" : "L"}${s.x.toFixed(1)},${s.y1.toFixed(1)}`)
+            .join(" ");
+          const bottom = [...part]
+            .reverse()
+            .map((s) => `L${s.x.toFixed(1)},${s.y0.toFixed(1)}`)
+            .join(" ");
+          return `${top} ${bottom} Z`;
+        })
+        .join(" ")
+    );
+    const gaps = runs.slice(1).map((run, i) => ({
+      from: x(points[runs[i]![runs[i]!.length - 1]!]!.t),
+      to: x(points[run[0]!]!.t),
+    }));
     const ticks = [0, 0.5, 1].map((f) => ({ v: max * f, y: y(max * f) }));
-    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({ t: t0 + span * f, x: pad.l + innerW * f }));
-    return { paths, ticks, timeTicks, x, totals, max };
+    const timeTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({
+      t: t0 + span * f,
+      x: pad.l + innerW * f,
+    }));
+    return { paths, gaps, ticks, timeTicks, x, totals, max };
   }, [points, series, innerH, innerW, pad.l, pad.t]);
 
   if (!model || points.length < 2) {
-    return (
-      <div className={cn("flex items-center justify-center text-sm text-fg-faint", className)} style={{ height }}>
-        Collecting samples… history starts when the app is opened.
-      </div>
-    );
+    return <ChartPlaceholder label={t("chart.collecting")} height={height} className={className} />;
   }
 
   const hoverPoint = hover !== null ? points[hover] : null;
-  const summary = `${ariaLabel}. ${points.length} samples from ${formatTime(points[0]!.t)} to ${formatTime(points[points.length - 1]!.t)}. Latest total ${formatValue(model.totals[model.totals.length - 1] ?? 0)}.`;
+  const summary = t("chart.stackedSummary", {
+    label: ariaLabel,
+    count: points.length,
+    from: formatTime(points[0]!.t),
+    to: formatTime(points[points.length - 1]!.t),
+    latest: formatValue(model.totals[model.totals.length - 1] ?? 0),
+  });
 
   const onMove = (clientX: number, target: SVGSVGElement) => {
     const rect = target.getBoundingClientRect();
     const px = ((clientX - rect.left) / rect.width) * width;
     const nearest = points.reduce(
-      (best, p, i) => (Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best),
+      (best, p, i) =>
+        Math.abs(model.x(p.t) - px) < Math.abs(model.x(points[best]!.t) - px) ? i : best,
       0
     );
     setHover(nearest);
@@ -109,22 +159,76 @@ export function StackedAreaChart({
         <title>{summary}</title>
         {model.ticks.map((tick) => (
           <g key={tick.v}>
-            <line x1={pad.l} x2={width - pad.r} y1={tick.y} y2={tick.y} stroke="var(--border)" strokeDasharray="3 3" />
-            <text x={pad.l - 6} y={tick.y + 4} textAnchor="end" fontSize="10" fill="var(--fg-faint)">
+            <line
+              x1={pad.l}
+              x2={width - pad.r}
+              y1={tick.y}
+              y2={tick.y}
+              stroke="var(--border)"
+              strokeDasharray="3 3"
+            />
+            <text
+              x={pad.l - 6}
+              y={tick.y + 4}
+              textAnchor="end"
+              fontSize="10"
+              fill="var(--fg-faint)"
+            >
               {formatValue(tick.v)}
             </text>
           </g>
         ))}
         {model.timeTicks.map((tick) => (
-          <text key={tick.t} x={tick.x} y={height - 6} textAnchor="middle" fontSize="10" fill="var(--fg-faint)">
+          <text
+            key={tick.t}
+            x={tick.x}
+            y={height - 6}
+            textAnchor="middle"
+            fontSize="10"
+            fill="var(--fg-faint)"
+          >
             {formatTime(tick.t)}
           </text>
         ))}
+        {model.gaps.map((gap) => (
+          <g key={gap.from}>
+            <rect
+              x={gap.from}
+              y={pad.t}
+              width={Math.max(0, gap.to - gap.from)}
+              height={innerH}
+              fill="var(--surface-2)"
+              opacity={0.5}
+            />
+            <line
+              x1={gap.from}
+              x2={gap.to}
+              y1={pad.t + innerH}
+              y2={pad.t + innerH}
+              stroke="var(--fg-faint)"
+              strokeDasharray="2 4"
+            />
+          </g>
+        ))}
         {model.paths.map((d, i) => (
-          <path key={series[i]!.id} d={d} fill={series[i]!.color} fillOpacity={0.85} stroke={series[i]!.color} strokeWidth={0.5} />
+          <path
+            key={series[i]!.id}
+            d={d}
+            fill={series[i]!.color}
+            fillOpacity={0.85}
+            stroke={series[i]!.color}
+            strokeWidth={0.5}
+          />
         ))}
         {hoverPoint ? (
-          <line x1={model.x(hoverPoint.t)} x2={model.x(hoverPoint.t)} y1={pad.t} y2={pad.t + innerH} stroke="var(--fg-muted)" strokeWidth={1} />
+          <line
+            x1={model.x(hoverPoint.t)}
+            x2={model.x(hoverPoint.t)}
+            y1={pad.t}
+            y2={pad.t + innerH}
+            stroke="var(--fg-muted)"
+            strokeWidth={1}
+          />
         ) : null}
       </svg>
       {hoverPoint ? (
@@ -141,12 +245,18 @@ export function StackedAreaChart({
             .reverse()
             .map(({ s, v }) => (
               <div key={s.id} className="flex items-center gap-1.5 text-fg-muted">
-                <span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.color }} aria-hidden="true" />
+                <span
+                  className="inline-block h-2 w-2 rounded-sm"
+                  style={{ background: s.color }}
+                  aria-hidden="true"
+                />
                 <span>{s.label}</span>
                 <span className="tabular ml-auto pl-3 text-fg">{formatValue(v)}</span>
               </div>
             ))}
-          <div className="mt-1 border-t border-border pt-1 text-fg">Total {formatValue(hoverPoint.values.reduce((a, b) => a + b, 0))}</div>
+          <div className="mt-1 border-t border-border pt-1 text-fg">
+            {t("chart.total", { value: formatValue(hoverPoint.values.reduce((a, b) => a + b, 0)) })}
+          </div>
         </div>
       ) : null}
     </div>

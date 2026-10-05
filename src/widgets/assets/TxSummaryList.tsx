@@ -7,9 +7,19 @@ import { cn } from "@/shared/lib/cn";
 import { formatAge } from "@/shared/lib/format/time";
 import { routes } from "@/shared/lib/routes";
 import type { TxSummary } from "@/shared/lib/rpc/types";
-import { Button, EmptyState, Hash, Skeleton, StatusBadge, SummaryKindBadge } from "@/shared/ui";
+import {
+  Button,
+  CatRef,
+  EmptyState,
+  Hash,
+  Skeleton,
+  StatusBadge,
+  SummaryKindBadge,
+} from "@/shared/ui";
 import { deriveAddressFlow } from "@/widgets/address/deriveFlow";
-import { tokenLabel, type TokenMap } from "@/shared/api/tokenList";
+import type { TokenMap } from "@/shared/api/tokenList";
+import { useT } from "@/shared/i18n/useT";
+import assetsNs from "@/shared/i18n/messages/en/assets";
 
 export interface TxSummaryListProps {
   transactions: TxSummary[];
@@ -25,9 +35,13 @@ export interface TxSummaryListProps {
 }
 
 function Direction({ dir }: { dir: "in" | "out" | "self" | "none" }) {
-  if (dir === "in") return <ArrowDownLeft size={14} className="text-primary" aria-label="incoming" />;
-  if (dir === "out") return <ArrowUpRight size={14} className="text-danger" aria-label="outgoing" />;
-  if (dir === "self") return <Repeat size={14} className="text-fg-faint" aria-label="self" />;
+  const t = useT(assetsNs);
+  if (dir === "in")
+    return <ArrowDownLeft size={14} className="text-primary" aria-label={t("txList.incoming")} />;
+  if (dir === "out")
+    return <ArrowUpRight size={14} className="text-danger" aria-label={t("txList.outgoing")} />;
+  if (dir === "self")
+    return <Repeat size={14} className="text-fg-faint" aria-label={t("txList.self")} />;
   return null;
 }
 
@@ -36,7 +50,17 @@ function signed(amount: bigint, format: (v: bigint) => string): string {
   return `${amount > 0n ? "+" : amount < 0n ? "−" : ""}${format(abs)}`;
 }
 
-export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, emptyText, hasMore, onLoadMore, loadingMore }: TxSummaryListProps) {
+export function TxSummaryList({
+  transactions,
+  loading,
+  error,
+  viewedP2,
+  emptyText,
+  hasMore,
+  onLoadMore,
+  loadingMore,
+}: TxSummaryListProps) {
+  const t = useT(assetsNs);
   if (loading && transactions.length === 0) {
     return (
       <div className="flex flex-col gap-2">
@@ -47,11 +71,22 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, 
     );
   }
   if (error && transactions.length === 0) {
-    return <EmptyState tone="danger" title="Could not load transactions" description={error instanceof Error ? error.message : String(error)} />;
+    return (
+      <EmptyState
+        tone="danger"
+        title={t("txList.loadError")}
+        description={error instanceof Error ? error.message : String(error)}
+      />
+    );
   }
   if (transactions.length === 0) return <EmptyState title={emptyText} />;
   return (
     <div className="flex flex-col gap-2">
+      {error ? (
+        <p role="alert" className="text-xs text-danger">
+          {t("txList.refreshError")}
+        </p>
+      ) : null}
       <ul className="divide-y divide-border/60">
         {transactions.map((tx) => {
           const flow = viewedP2 ? deriveAddressFlow(tx, viewedP2) : null;
@@ -66,29 +101,53 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, 
                 {flow ? (
                   <>
                     {flow.xch !== 0n ? (
-                      <span className={cn("tabular font-medium", flow.xch > 0n ? "text-primary" : "text-danger")}>{signed(flow.xch, formatAmount)}</span>
+                      <span
+                        className={cn(
+                          "tabular font-medium",
+                          flow.xch > 0n ? "text-primary" : "text-danger"
+                        )}
+                      >
+                        {signed(flow.xch, formatAmount)}
+                      </span>
                     ) : null}
                     {flow.cats.map((c) => (
-                      <Link key={c.assetId} href={routes.cat(c.assetId)} className={cn("tabular text-xs hover:underline", c.amount > 0n ? "text-primary" : "text-danger")}>
-                        {signed(c.amount, formatCat)} {tokens?.[c.assetId]?.symbol ?? tokenLabel(undefined, c.assetId)}
-                      </Link>
+                      <CatRef
+                        key={c.assetId}
+                        assetId={c.assetId}
+                        amountText={signed(c.amount, formatCat)}
+                        size={14}
+                        className={cn("text-xs", c.amount > 0n ? "text-primary" : "text-danger")}
+                      />
                     ))}
                     {flow.nftsIn.map((n) => (
-                      <Link key={n} href={routes.nft(n)} className="text-xs text-primary hover:underline">
+                      <Link
+                        key={n}
+                        href={routes.nft(n)}
+                        className="text-xs text-primary hover:underline"
+                      >
                         +1 NFT {n.slice(0, 8)}…
                       </Link>
                     ))}
                     {flow.nftsOut.map((n) => (
-                      <Link key={n} href={routes.nft(n)} className="text-xs text-danger hover:underline">
+                      <Link
+                        key={n}
+                        href={routes.nft(n)}
+                        className="text-xs text-danger hover:underline"
+                      >
                         −1 NFT {n.slice(0, 8)}…
                       </Link>
                     ))}
-                    {flow.xch === 0n && flow.cats.length === 0 && flow.nftsIn.length === 0 && flow.nftsOut.length === 0 ? (
-                      <span className="text-xs text-fg-faint">no net change</span>
+                    {flow.xch === 0n &&
+                    flow.cats.length === 0 &&
+                    flow.nftsIn.length === 0 &&
+                    flow.nftsOut.length === 0 ? (
+                      <span className="text-xs text-fg-faint">{t("txList.noNetChange")}</span>
                     ) : null}
                   </>
                 ) : (
-                  <span className="tabular text-fg-muted">fee {formatAmount(tx.feeMojos)}</span>
+                  <span className="tabular text-fg-muted">
+                    {t("txList.fee", { amount: formatAmount(tx.feeMojos) })}
+                  </span>
                 )}
               </span>
               <span className="tabular w-[7.5rem] text-right text-xs text-fg-faint">
@@ -97,7 +156,7 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, 
                     #{formatNumber(tx.confirmedHeight)}
                   </Link>
                 ) : (
-                  "pending"
+                  t("txList.pending")
                 )}
                 {when ? <span className="block">{formatAge(when)}</span> : null}
               </span>
@@ -106,8 +165,14 @@ export function TxSummaryList({ transactions, loading, error, viewedP2, tokens, 
         })}
       </ul>
       {hasMore && onLoadMore ? (
-        <Button variant="secondary" size="sm" onClick={onLoadMore} disabled={loadingMore} className="self-center">
-          {loadingMore ? "Loading…" : "Load more"}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onLoadMore}
+          disabled={loadingMore}
+          className="self-center"
+        >
+          {loadingMore ? t("txList.loading") : t("txList.loadMore")}
         </Button>
       ) : null}
     </div>

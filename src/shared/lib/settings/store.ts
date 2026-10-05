@@ -1,18 +1,58 @@
 /**
- * User settings (TASK-021): active network, RPC endpoint per network, theme. Persisted in
+ * User settings: active network, RPC endpoint per network, theme, language. Persisted in
  * localStorage; a tiny external store so React reads it with useSyncExternalStore and the
  * non-React data layer can read it too.
  */
-import { isCoinsetUrl, NETWORKS, NETWORK_IDS, type NetworkId } from "@/shared/config/networks";
+import {
+  NETWORKS,
+  fallbackEndpointUrl,
+  isCoinsetUrl,
+  needsNodexchKey,
+  NETWORK_IDS,
+  defaultEndpointUrl,
+  isNodexchUrl,
+  providerOf,
+  type NetworkId,
+  type Provider,
+} from "@/shared/config/networks";
+import { PUBLISHABLE_KEY } from "@/shared/config/runtime";
+import { browserStorage } from "@/shared/lib/browserStorage";
+import { isLocale, type LocalePreference } from "@/shared/i18n/config";
+import { DEFAULT_THEME, isThemeId, type ThemePreference } from "@/shared/theme";
 
-export type ThemePreference = "dark" | "light" | "system";
+export type { ThemePreference } from "@/shared/theme";
+
+/** One network's endpoint: its URL, whether it is a nodexch gateway, and its publishable key. */
+export interface Endpoint {
+  rpcUrl: string;
+  /** Set for a nodexch gateway on a host the app does not know (self-hosted). */
+  provider?: "nodexch";
+  /** A nodexch publishable key (`nxp_…`), bound to this site's origin. Never a secret key. */
+  apiKey?: string;
+}
+
+export { PUBLISHABLE_KEY };
+
+/**
+ * 2: the default endpoint is the network's default provider (nodexch.space on mainnet); settings
+ * written before (1) still hold the old Coinset default and move to it once.
+ */
+export const PROVIDERS_VERSION = 2;
 
 export interface Settings {
   network: NetworkId;
-  endpoints: Record<NetworkId, { rpcUrl: string }>;
+  endpoints: Record<NetworkId, Endpoint>;
+  /** Which endpoint defaults these settings were written with (PROVIDERS_VERSION). */
+  providersVersion: number;
   theme: ThemePreference;
   /** Number of recent blocks on the dashboard strip. */
   recentBlocks: number;
+  /** Soft chime when one of the connected wallet's transactions lands in a block. */
+  sounds: boolean;
+  /** Opt-in browser notifications for the watchlist. Off until the visitor turns it on. */
+  notifications: boolean;
+  /** UI language; "auto" follows the browser's languages. */
+  locale: LocalePreference;
 }
 
 export const STORAGE_KEY = "mempool-xch:settings:v1";
@@ -20,55 +60,183 @@ export const STORAGE_KEY = "mempool-xch:settings:v1";
 export const DEFAULT_SETTINGS: Settings = {
   network: "mainnet",
   endpoints: {
+    mainnet: { rpcUrl: defaultEndpointUrl("mainnet") },
+    testnet11: { rpcUrl: defaultEndpointUrl("testnet11") },
+  },
+  providersVersion: PROVIDERS_VERSION,
+  theme: DEFAULT_THEME,
+  recentBlocks: 8,
+  sounds: true,
+  notifications: false,
+  locale: "auto",
+};
+
+/**
+ * What the server rendered with, and so what the browser's hydration render must see: the server
+ * never has the site's nodexch key (it reaches the browser at run time), so its defaults are
+ * Coinset, while DEFAULT_SETTINGS in a browser with the key name the hosted gateway.
+ */
+export const SSR_SETTINGS: Settings = {
+  ...DEFAULT_SETTINGS,
+  endpoints: {
     mainnet: { rpcUrl: NETWORKS.mainnet.rpcUrl },
     testnet11: { rpcUrl: NETWORKS.testnet11.rpcUrl },
   },
-  theme: "dark",
-  recentBlocks: 8,
 };
 
 export interface ResolvedEndpoints {
   network: NetworkId;
   rpcUrl: string;
-  /** Null when the endpoint is not Coinset (indexed API unavailable). */
+  /** Null when the endpoint has no indexed API (a custom node). */
   indexedUrl: string | null;
-  /** Null when the endpoint is not Coinset (WebSocket unavailable → polling). */
+  /** Null without a WebSocket (a custom node: polling). A nodexch key rides in its query. */
   wsUrl: string | null;
-  /** Summary API on the hosted origin; null when the endpoint is custom (browser fallback). */
-  summaryUrl: string | null;
+  provider: Provider;
+  /** Coinset itself: its read budget, its summary API and its wording. */
   isCoinset: boolean;
+  /** The publishable key sent to a nodexch gateway; null otherwise. */
+  apiKey: string | null;
+  /**
+   * Where reads go when this endpoint fails: the fallback the server names for the site's main
+   * API (API_FALLBACK_URL_MAINNET, fallbackEndpointUrl), nothing without one and nothing for an
+   * endpoint the visitor chose instead (a local node, their own gateway).
+   */
+  fallback: ResolvedEndpoints | null;
 }
 
-/** Origin of the hosted app for the Sage snapshot; same-origin ("") for the hosted build. */
-export function apiOrigin(): string {
-  return (process.env.NEXT_PUBLIC_API_ORIGIN ?? "").replace(/\/$/, "");
-}
-
-export function resolveEndpoints(settings: Settings, network: NetworkId = settings.network): ResolvedEndpoints {
-  const rpcUrl = settings.endpoints[network]?.rpcUrl?.trim() || NETWORKS[network].rpcUrl;
-  const isCoinset = isCoinsetUrl(network, rpcUrl);
+/** Coinset for a network: the hosted gateway's fallback and the provider of the same name. */
+export function coinsetEndpoints(network: NetworkId): ResolvedEndpoints {
   return {
     network,
-    rpcUrl: rpcUrl.replace(/\/$/, ""),
+    rpcUrl: NETWORKS[network].rpcUrl,
+    indexedUrl: NETWORKS[network].indexedUrl,
+    wsUrl: NETWORKS[network].wsUrl,
+    provider: "coinset",
+    isCoinset: true,
+    apiKey: null,
+    fallback: null,
+  };
+}
+
+/**
+ * The fallback of the hosted gateway: Coinset by its host, with its indexed API and WebSocket;
+ * any other URL is a plain full-node RPC, as a custom node is.
+ */
+export function fallbackEndpoints(network: NetworkId, url: string): ResolvedEndpoints {
+  if (isCoinsetUrl(network, url)) return coinsetEndpoints(network);
+  return {
+    network,
+    rpcUrl: url.replace(/\/$/, ""),
+    indexedUrl: null,
+    wsUrl: null,
+    provider: "custom",
+    isCoinset: false,
+    apiKey: null,
+    fallback: null,
+  };
+}
+
+/** A nodexch gateway's WebSocket: its own host, `/ws`, the key in the query (publishable keys only). */
+export function nodexchWsUrl(rpcUrl: string, apiKey: string | null): string {
+  const url = new URL(`${rpcUrl.replace(/\/$/, "")}/ws`);
+  url.protocol = url.protocol === "http:" ? "ws:" : "wss:";
+  if (apiKey) url.searchParams.set("key", apiKey);
+  return url.toString();
+}
+
+export function resolveEndpoints(
+  settings: Settings,
+  network: NetworkId = settings.network,
+  { fallbackUrl = fallbackEndpointUrl(network) }: { fallbackUrl?: string | null } = {}
+): ResolvedEndpoints {
+  const endpoint = settings.endpoints[network];
+  const rpcUrl = (endpoint?.rpcUrl?.trim() || defaultEndpointUrl(network)).replace(/\/$/, "");
+  const provider = providerOf(network, rpcUrl, endpoint?.provider);
+  // Only the site's main API falls back (the hosted gateway, or the default the site starts on),
+  // never an endpoint the visitor chose instead.
+  const isMain =
+    isNodexchUrl(network, rpcUrl) || rpcUrl === defaultEndpointUrl(network).replace(/\/$/, "");
+  const fallback =
+    fallbackUrl && isMain && fallbackUrl.replace(/\/$/, "") !== rpcUrl
+      ? fallbackEndpoints(network, fallbackUrl)
+      : null;
+  if (provider === "nodexch") {
+    // The site's own key for the hosted gateway, the user's for theirs.
+    const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
+    // nodexch.space refuses every request without a key (401). Settings may still name it
+    // (stored while the site had its key, or picked without one): the fallback or Coinset
+    // answers then.
+    if (!apiKey && needsNodexchKey(rpcUrl)) return fallback ?? coinsetEndpoints(network);
+    return {
+      network,
+      rpcUrl,
+      indexedUrl: rpcUrl,
+      wsUrl: nodexchWsUrl(rpcUrl, apiKey),
+      provider,
+      isCoinset: false,
+      apiKey,
+      fallback,
+    };
+  }
+  const isCoinset = provider === "coinset";
+  return {
+    network,
+    rpcUrl,
     indexedUrl: isCoinset ? NETWORKS[network].indexedUrl : null,
     wsUrl: isCoinset ? NETWORKS[network].wsUrl : null,
-    summaryUrl: isCoinset ? `${apiOrigin()}/api/${network}/mempool` : null,
+    provider,
     isCoinset,
+    apiKey: null,
+    fallback,
   };
 }
 
 function sanitise(raw: unknown): Settings {
   const r = raw && typeof raw === "object" ? (raw as Partial<Settings>) : {};
-  const network = NETWORK_IDS.includes(r.network as NetworkId) ? (r.network as NetworkId) : DEFAULT_SETTINGS.network;
+  const network = NETWORK_IDS.includes(r.network as NetworkId)
+    ? (r.network as NetworkId)
+    : DEFAULT_SETTINGS.network;
+  const written = typeof r.providersVersion === "number" ? r.providersVersion : 1;
   const endpoints = Object.fromEntries(
     NETWORK_IDS.map((id) => {
-      const url = r.endpoints?.[id]?.rpcUrl;
-      return [id, { rpcUrl: typeof url === "string" && url.trim() ? url.trim() : NETWORKS[id].rpcUrl }];
+      const raw = r.endpoints?.[id];
+      const url = typeof raw?.rpcUrl === "string" ? raw.rpcUrl.trim() : "";
+      // Before version 2 the Coinset URL was simply the default nobody chose: move it to the
+      // network's default provider once. A custom URL or an own gateway is a choice and stays.
+      const oldDefault =
+        written < PROVIDERS_VERSION &&
+        url.replace(/\/$/, "") === NETWORKS[id].rpcUrl &&
+        raw?.provider !== "nodexch";
+      const endpoint: Endpoint = {
+        rpcUrl: url && !oldDefault ? url : defaultEndpointUrl(id),
+      };
+      if (raw?.provider === "nodexch") endpoint.provider = "nodexch";
+      // Only a publishable key is kept: a secret key must never sit in a browser.
+      if (typeof raw?.apiKey === "string" && PUBLISHABLE_KEY.test(raw.apiKey.trim())) {
+        endpoint.apiKey = raw.apiKey.trim();
+      }
+      return [id, endpoint];
     })
   ) as Settings["endpoints"];
-  const theme: ThemePreference = r.theme === "light" || r.theme === "system" ? r.theme : "dark";
-  const recentBlocks = typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20 ? r.recentBlocks : 8;
-  return { network, endpoints, theme, recentBlocks };
+  const theme: ThemePreference =
+    r.theme === "system" || isThemeId(r.theme) ? r.theme : DEFAULT_THEME;
+  const recentBlocks =
+    typeof r.recentBlocks === "number" && r.recentBlocks >= 3 && r.recentBlocks <= 20
+      ? r.recentBlocks
+      : 8;
+  const sounds = r.sounds !== false;
+  const notifications = r.notifications === true;
+  const locale: LocalePreference = isLocale(r.locale) ? r.locale : "auto";
+  return {
+    network,
+    endpoints,
+    providersVersion: PROVIDERS_VERSION,
+    theme,
+    recentBlocks,
+    sounds,
+    notifications,
+    locale,
+  };
 }
 
 type Listener = () => void;
@@ -80,7 +248,9 @@ export interface SettingsStore {
   subscribe: (listener: Listener) => () => void;
 }
 
-export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null): SettingsStore {
+export function createSettingsStore(
+  storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null
+): SettingsStore {
   let current: Settings = DEFAULT_SETTINGS;
   const listeners = new Set<Listener>();
   try {
@@ -110,7 +280,7 @@ export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem"
       try {
         storage?.removeItem(STORAGE_KEY);
       } catch {
-        // ignore
+        // Storage unavailable: the defaults still apply for this tab.
       }
       emit();
     },
@@ -121,13 +291,23 @@ export function createSettingsStore(storage: Pick<Storage, "getItem" | "setItem"
   };
 }
 
+/**
+ * The network a link asks for: `?network=testnet11` (or `mainnet`). Wallets and dApps link a
+ * transaction with it (`/tx/<id>?network=testnet11`), because the network is otherwise a
+ * setting of the visitor's own and a testnet id looked up on mainnet is "not found". The
+ * provider also writes it into the address bar while on testnet, so copied links carry it.
+ */
+export function networkFromSearch(search: string): NetworkId | null {
+  const value = new URLSearchParams(search).get("network");
+  return value === "mainnet" || value === "testnet11" ? value : null;
+}
+
 let browserStore: SettingsStore | null = null;
 
 /** Singleton store bound to window.localStorage (in-memory during SSR). */
 export function getSettingsStore(): SettingsStore {
   if (!browserStore) {
-    const storage = typeof window !== "undefined" ? window.localStorage : null;
-    browserStore = createSettingsStore(storage);
+    browserStore = createSettingsStore(browserStorage());
   }
   return browserStore;
 }

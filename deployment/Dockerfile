@@ -1,6 +1,8 @@
 # mempoolxch.space - Docker image for ONCE (https://github.com/basecamp/once).
 # Build stage: bun installs and builds the standalone Next.js server plus the Sage snapshot.
-FROM oven/bun:1.3-alpine AS builder
+# Pinned >=1.4: 1.3.14 segfaults at the end of `next build` (napi threadsafe-function
+# use-after-free in next-swc's Turbopack binding, fixed upstream in 1.4.0 - oven-sh/bun#36866).
+FROM oven/bun:1.4-alpine AS builder
 
 WORKDIR /app
 
@@ -15,6 +17,13 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
 ENV NEXT_PUBLIC_COMMIT_SHA=$NEXT_PUBLIC_COMMIT_SHA
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+
+# Feature flags (src/shared/config/features.ts); empty keeps the built-in default.
+ARG NEXT_PUBLIC_FEATURE_GAMING_TESTNET
+ENV NEXT_PUBLIC_FEATURE_GAMING_TESTNET=$NEXT_PUBLIC_FEATURE_GAMING_TESTNET
+# The main API, its fallback and the site's nodexch key are not build args: the running container
+# reads API_URL_MAINNET, API_FALLBACK_URL_MAINNET and NODEXCH_KEY_MAINNET from its environment
+# (src/shared/config/runtime.ts).
 
 # Sage static snapshot first (its own `next build` with output: export into ./out), then the
 # standalone server. Both invoke `next build`, so they must run in sequence.

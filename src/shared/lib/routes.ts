@@ -1,5 +1,5 @@
 /**
- * Route helpers (decision-004). The hosted server rewrites pretty URLs (`/tx/<id>`) onto
+ * Route helpers. The hosted server rewrites pretty URLs (`/tx/<id>`) onto
  * query-param pages (`/tx?id=<id>`); the static Sage export has no rewrites, so links there use
  * the query form directly. Every link in the app goes through these helpers.
  */
@@ -31,9 +31,35 @@ export const routes = {
   coin: (id: string) => detail("coin", id),
   cat: (assetId: string) => detail("cat", assetId),
   nft: (nftId: string) => detail("nft", nftId),
+  handle: (handle: string) => detail("handle", handle),
+  offer: (offerId: string) => detail("offer", offerId),
+  nftHome: () => page("nfts"),
+  ownedNfts: (address: string) => detail("nfts/owned", address),
+  nftCollections: () => page("nfts/collections"),
+  nftActivity: () => page("nfts/activity"),
+  nftMints: () => page("nfts/mints"),
   blocks: () => page("blocks"),
   mempool: () => page("mempool"),
+  charts: () => page("charts"),
+  market: () => page("market"),
+  fees: () => page("fees"),
+  pools: () => page("pools"),
+  tokens: () => page("tokens"),
+  portfolio: () => page("portfolio"),
   settings: () => page("settings"),
   wallet: () => page("wallet"),
   docs: () => page("docs"),
+  api: () => page("api"),
+  map: () => page("map"),
+  learn: () => page("learn"),
+  learnArticle: (slug: string) => page(`learn/${slug}`),
+  prefarm: () => page("prefarm"),
+  vaults: () => page("vaults"),
+  gaming: () => page("gaming"),
+  status: () => page("status"),
+  changelog: () => page("changelog"),
+  legalTerms: () => page("legal/terms"),
+  legalNotice: () => page("legal/notice"),
+  legalPrivacy: () => page("legal/privacy"),
+  legalCookies: () => page("legal/cookies"),
 };

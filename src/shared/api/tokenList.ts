@@ -1,11 +1,18 @@
 /**
- * CAT token metadata (name, ticker, icon) from the Spacescan token list. Verified 2026-09-15:
- * https://api.spacescan.io/tokens answers with `access-control-allow-origin: *` (icons live on
- * https://assets.spacescan.io). Both hosts must be on the Sage network whitelist. The endpoint
- * is rate limited, so the list is fetched once per session and cached in localStorage for a day.
+ * CAT token metadata (name, ticker, icon) from Dexie. Verified 2026-09-16:
+ * https://api.dexie.space/v1/assets?type=cat answers with `access-control-allow-origin: *`,
+ * 100 assets per page (943 CATs on mainnet), and icons live at
+ * https://icons.dexie.space/<asset_id>.webp — a deterministic URL per asset id (404 when Dexie
+ * has none), so an icon can be shown even for a CAT that is not on the list. Spacescan was
+ * dropped the same day: its list rate-limits (429) and its icon CDN refuses direct requests
+ * (403), which is what an installed Sage app sees. Both Dexie hosts are on the Sage whitelist.
  */
-export const TOKEN_LIST_URL = "https://api.spacescan.io/tokens";
-export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v1";
+export const DEXIE_ASSETS_URL = "https://api.dexie.space/v1/assets";
+export const DEXIE_ICON_BASE = "https://icons.dexie.space";
+export const DEXIE_PAGE_SIZE = 100;
+/** Hard stop for the page loop (943 CATs ≈ 10 pages in 2026). */
+export const DEXIE_MAX_PAGES = 40;
+export const TOKEN_LIST_CACHE_KEY = "mempool-xch:tokens:v3";
 export const TOKEN_LIST_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface TokenInfo {
@@ -15,34 +22,87 @@ export interface TokenInfo {
   iconUrl: string | null;
   website: string | null;
   description: string | null;
+  /** XCH side of Dexie's open-offer liquidity for the token, as of the registry load (≤ 24 h). */
+  liquidityXch?: number | null;
 }
 
 export type TokenMap = Record<string, TokenInfo>;
 
-interface SpacescanToken {
-  asset_id?: string;
+interface DexieAsset {
+  id?: string;
+  code?: string;
   name?: string;
-  symbol?: string;
-  preview_url?: string;
+  denom?: number;
   website?: string;
   description?: string;
+  /** [XCH, token] */
+  liquidity?: unknown;
 }
 
+interface DexiePage {
+  success?: boolean;
+  count?: number;
+  page?: number;
+  page_size?: number;
+  assets?: DexieAsset[];
+}
+
+/** Dexie's icon for an asset id; exists for every listed CAT and for many unlisted ones. */
+export function dexieIconUrl(assetId: string): string {
+  return `${DEXIE_ICON_BASE}/${assetId.toLowerCase().replace(/^0x/, "")}.webp`;
+}
+
+export function dexiePageUrl(page: number): string {
+  return `${DEXIE_ASSETS_URL}?type=cat&page_size=${DEXIE_PAGE_SIZE}&page=${page}`;
+}
+
+/** Normalise one Dexie page (or a bare `assets` array) into the registry map. */
 export function normaliseTokenList(raw: unknown): TokenMap {
-  const cats = raw && typeof raw === "object" && Array.isArray((raw as { cats?: unknown }).cats) ? ((raw as { cats: SpacescanToken[] }).cats ?? []) : [];
+  const assets: DexieAsset[] = Array.isArray(raw)
+    ? (raw as DexieAsset[])
+    : raw && typeof raw === "object" && Array.isArray((raw as DexiePage).assets)
+      ? ((raw as DexiePage).assets ?? [])
+      : [];
   const map: TokenMap = {};
-  cats.forEach((t) => {
-    const assetId = typeof t.asset_id === "string" ? t.asset_id.toLowerCase().replace(/^0x/, "") : "";
-    if (assetId.length !== 64) return;
+  assets.forEach((t) => {
+    const assetId = typeof t.id === "string" ? t.id.toLowerCase().replace(/^0x/, "") : "";
+    if (!/^[0-9a-f]{64}$/.test(assetId)) return;
     map[assetId] = {
       assetId,
       name: typeof t.name === "string" && t.name.trim() ? t.name.trim() : "Unknown token",
-      symbol: typeof t.symbol === "string" && t.symbol.trim() ? t.symbol.trim().toUpperCase() : "CAT",
-      iconUrl: typeof t.preview_url === "string" && /^https:\/\//.test(t.preview_url) ? t.preview_url : null,
+      symbol: typeof t.code === "string" && t.code.trim() ? t.code.trim().toUpperCase() : "CAT",
+      iconUrl: dexieIconUrl(assetId),
       website: typeof t.website === "string" && /^https?:\/\//.test(t.website) ? t.website : null,
-      description: typeof t.description === "string" && t.description.trim() ? t.description.trim() : null,
+      description:
+        typeof t.description === "string" && t.description.trim() ? t.description.trim() : null,
+      liquidityXch:
+        Array.isArray(t.liquidity) && typeof t.liquidity[0] === "number" ? t.liquidity[0] : null,
     };
   });
+  return map;
+}
+
+export interface MinimalResponse {
+  ok: boolean;
+  status: number;
+  text: () => Promise<string>;
+}
+
+/** Fetch every Dexie CAT page and merge; throws when the first page fails or is empty. */
+export async function fetchDexieTokenMap(
+  fetchImpl: (url: string) => Promise<MinimalResponse>
+): Promise<TokenMap> {
+  const map: TokenMap = {};
+  for (let page = 1; page <= DEXIE_MAX_PAGES; page += 1) {
+    const response = await fetchImpl(dexiePageUrl(page));
+    if (!response.ok) throw new Error(`Dexie assets answered ${response.status}`);
+    const body = JSON.parse(await response.text()) as DexiePage;
+    Object.assign(map, normaliseTokenList(body));
+    const size = body.page_size ?? DEXIE_PAGE_SIZE;
+    const count = body.count ?? 0;
+    if ((body.assets?.length ?? 0) < size || page * size >= count) break;
+  }
+  if (Object.keys(map).length === 0) throw new Error("Dexie asset list was empty");
   return map;
 }
 
@@ -51,21 +111,37 @@ interface CacheEntry {
   tokens: TokenMap;
 }
 
-export function readTokenCache(storage: Pick<Storage, "getItem"> | null, now = Date.now()): TokenMap | null {
+export function readTokenCache(
+  storage: Pick<Storage, "getItem"> | null,
+  now = Date.now()
+): TokenMap | null {
   try {
     const raw = storage?.getItem(TOKEN_LIST_CACHE_KEY);
     if (!raw) return null;
     const entry = JSON.parse(raw) as CacheEntry;
-    if (!entry || typeof entry.savedAt !== "number" || !entry.tokens || now - entry.savedAt > TOKEN_LIST_TTL_MS) return null;
+    if (
+      !entry ||
+      typeof entry.savedAt !== "number" ||
+      !entry.tokens ||
+      now - entry.savedAt > TOKEN_LIST_TTL_MS
+    )
+      return null;
     return entry.tokens;
   } catch {
     return null;
   }
 }
 
-export function writeTokenCache(storage: Pick<Storage, "setItem"> | null, tokens: TokenMap, now = Date.now()): void {
+export function writeTokenCache(
+  storage: Pick<Storage, "setItem"> | null,
+  tokens: TokenMap,
+  now = Date.now()
+): void {
   try {
-    storage?.setItem(TOKEN_LIST_CACHE_KEY, JSON.stringify({ savedAt: now, tokens } satisfies CacheEntry));
+    storage?.setItem(
+      TOKEN_LIST_CACHE_KEY,
+      JSON.stringify({ savedAt: now, tokens } satisfies CacheEntry)
+    );
   } catch {
     // Quota exceeded or storage unavailable: the in-memory copy still serves this session.
   }
@@ -74,15 +150,19 @@ export function writeTokenCache(storage: Pick<Storage, "setItem"> | null, tokens
 let inflight: Promise<TokenMap> | null = null;
 
 /** Fetch the token list once per session (deduplicated), falling back to the cache and then to {}. */
-export function loadTokenList(fetchImpl: typeof fetch = fetch, storage: Storage | null = typeof window !== "undefined" ? window.localStorage : null): Promise<TokenMap> {
+export function loadTokenList(
+  fetchImpl: (url: string, init?: RequestInit) => Promise<Response> = (url, init) =>
+    fetch(url, init),
+  storage: Storage | null = typeof window !== "undefined" ? window.localStorage : null
+): Promise<TokenMap> {
   const cached = readTokenCache(storage);
   if (cached) return Promise.resolve(cached);
   if (!inflight) {
-    inflight = fetchImpl(TOKEN_LIST_URL)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`token list ${response.status}`);
-        const tokens = normaliseTokenList(await response.json());
-        if (Object.keys(tokens).length > 0) writeTokenCache(storage, tokens);
+    inflight = fetchDexieTokenMap((url) =>
+      fetchImpl(url, { headers: { accept: "application/json" } })
+    )
+      .then((tokens) => {
+        writeTokenCache(storage, tokens);
         return tokens;
       })
       .catch(() => ({}) as TokenMap)

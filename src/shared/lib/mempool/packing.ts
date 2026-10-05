@@ -1,5 +1,5 @@
 /**
- * Projected next blocks (TASK-006): pack mempool items by descending fee per cost into blocks
+ * Projected next blocks: pack mempool items by descending fee per cost into blocks
  * bounded by block_max_cost, the same greedy order the Chia node uses when it fills a
  * transaction block. Pure and deterministic so it can be unit tested with fixtures.
  */
@@ -42,7 +42,9 @@ function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2 : (sorted[mid] ?? 0);
+  return sorted.length % 2 === 0
+    ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2
+    : (sorted[mid] ?? 0);
 }
 
 function summarise(
@@ -67,26 +69,33 @@ function summarise(
 }
 
 /**
- * Greedy first-fit in fee-rate order: an item that does not fit the current block opens the
- * next one (items larger than a block are impossible on chain and are skipped).
+ * Packs the way chia's Mempool.create_block_generator does: walk items in fee-per-cost order
+ * (ties by arrival), take every item that still fits the block and skip the ones that do not;
+ * skipped items are the first candidates for the following block. Items larger than a block
+ * are impossible on chain and are dropped. (The node additionally compresses the generator, so
+ * a real block's cost is at or below the sum of its items' costs.)
  */
 export function packProjectedBlocks(
   items: CompactMempoolItem[],
   options: PackingOptions
 ): ProjectedBlock[] {
-  const sorted = sortByFeeRate(items).filter((i) => i.cost <= options.blockMaxCost);
+  let remaining = sortByFeeRate(items).filter((i) => i.cost <= options.blockMaxCost);
   const buckets: CompactMempoolItem[][] = [];
-  const used: number[] = [];
-  sorted.forEach((item) => {
-    const last = buckets.length - 1;
-    if (last >= 0 && (used[last] ?? 0) + item.cost <= options.blockMaxCost) {
-      buckets[last]!.push(item);
-      used[last] = (used[last] ?? 0) + item.cost;
-    } else {
-      buckets.push([item]);
-      used.push(item.cost);
-    }
-  });
+  while (remaining.length > 0) {
+    const block: CompactMempoolItem[] = [];
+    const skipped: CompactMempoolItem[] = [];
+    let used = 0;
+    remaining.forEach((item) => {
+      if (used + item.cost <= options.blockMaxCost) {
+        block.push(item);
+        used += item.cost;
+      } else {
+        skipped.push(item);
+      }
+    });
+    buckets.push(block);
+    remaining = skipped;
+  }
   const maxBlocks = options.maxBlocks ?? 8;
   const visible = buckets.slice(0, maxBlocks);
   const overflow = buckets.slice(maxBlocks).flat();
@@ -97,7 +106,10 @@ export function packProjectedBlocks(
 }
 
 /** Which projected block a tx id would land in, or null when it is not in the mempool. */
-export function findProjectedPosition(blocks: ProjectedBlock[], txId: string): { block: ProjectedBlock; position: number } | null {
+export function findProjectedPosition(
+  blocks: ProjectedBlock[],
+  txId: string
+): { block: ProjectedBlock; position: number } | null {
   const id = txId.toLowerCase().replace(/^0x/, "");
   const found = blocks
     .map((block) => ({ block, position: block.items.findIndex((i) => i.id === id) }))
