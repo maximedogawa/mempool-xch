@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { NETWORKS, defaultEndpointUrl, hasHostedNodexch } from "@/shared/config/networks";
 import { runtimeConfigScript } from "@/shared/config/runtime";
-import { createSettingsStore, DEFAULT_SETTINGS, resolveEndpoints, STORAGE_KEY } from "./store";
+import {
+  createSettingsStore,
+  DEFAULT_SETTINGS,
+  networkFromSearch,
+  resolveEndpoints,
+  STORAGE_KEY,
+} from "./store";
 
 /** What the server's /runtime-config.js does in a browser. */
 const setSiteKeys = (nodexchKeys: Record<string, string>) =>
@@ -308,5 +314,14 @@ describe("nodexch endpoints", () => {
     expect(e.provider).toBe("coinset");
     expect(e.isCoinset).toBe(true);
     expect(e.apiKey).toBeNull();
+  });
+});
+
+describe("networkFromSearch", () => {
+  test("reads the network a link names, and nothing else", () => {
+    expect(networkFromSearch("?network=testnet11")).toBe("testnet11");
+    expect(networkFromSearch("?id=1&network=mainnet")).toBe("mainnet");
+    expect(networkFromSearch("")).toBeNull();
+    expect(networkFromSearch("?network=devnet")).toBeNull();
   });
 });
