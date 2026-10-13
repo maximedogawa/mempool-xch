@@ -6,6 +6,7 @@ export function EmptyState({
   title,
   description,
   action,
+  art,
   tone = "neutral",
   plain = false,
   className,
@@ -13,6 +14,8 @@ export function EmptyState({
   title: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
+  /** A picture above the title, such as a brand sticker. */
+  art?: ReactNode;
   tone?: "neutral" | "danger";
   /** No flow trace: for empty states inside dense panels. */
   plain?: boolean;
@@ -35,6 +38,7 @@ export function EmptyState({
         // where the arc would otherwise end as a stray sliver against the border.
         <FlowTrace className="absolute inset-x-0 bottom-0 h-24 opacity-70 [mask-composite:intersect] [mask-image:linear-gradient(to_top,black_35%,transparent),linear-gradient(to_left,transparent,black_15%)]" />
       ) : null}
+      {art ? <div className="relative">{art}</div> : null}
       <div className="relative text-base font-semibold">{title}</div>
       {description ? (
         <div className="relative max-w-md text-sm text-fg-faint">{description}</div>
