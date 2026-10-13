@@ -10,6 +10,7 @@ import { Tooltip } from "@/shared/ui/Tooltip";
 import { useT } from "@/shared/i18n/useT";
 import { formatXchDecimal } from "./format";
 import { NftEventRow } from "./NftEventRow";
+import { NftSticker } from "./NftSticker";
 import { useNftEvents, useTopCollections } from "./useNftSection";
 import nftNs from "@/shared/i18n/messages/en/nft";
 
@@ -28,19 +29,14 @@ export function NftHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header
-        className="flex flex-col gap-2 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6"
-        style={{
-          backgroundImage:
-            "radial-gradient(900px 260px at 20% -10%, color-mix(in srgb, var(--info) 20%, transparent), transparent 70%), radial-gradient(700px 240px at 90% 10%, color-mix(in srgb, var(--cta) 20%, transparent), transparent 70%)",
-        }}
-      >
+      <header className="flex items-center justify-between gap-4 rounded-card border border-border bg-bg-elevated px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex items-center gap-2">
           <h1 className="page-title">
             NFT<span className="text-accent">s</span>
           </h1>
           <Tooltip text={t("home.intro")} placement="bottom" />
         </div>
+        <NftSticker kind="block" size={88} className="-my-3 shrink-0 sm:w-[104px]" />
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -86,7 +82,7 @@ export function NftHomePage() {
           ) : collections.isLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {Array.from({ length: 6 }, (_, i) => (
-                <Skeleton key={i} className="aspect-square w-full rounded-xl" />
+                <Skeleton key={i} className="aspect-square w-full rounded-card" />
               ))}
             </div>
           ) : collections.data && collections.data.collections.length > 0 ? (
@@ -97,7 +93,7 @@ export function NftHomePage() {
                   href={mintGardenCollectionUrl(c.id)}
                   target="_blank"
                   rel="noreferrer"
-                  className="group relative isolate flex aspect-square flex-col justify-end overflow-hidden rounded-xl shadow-card ring-1 ring-border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-primary/50"
+                  className="group relative isolate flex aspect-square flex-col justify-end overflow-hidden rounded-card ring-1 ring-border transition-all duration-200 hover:ring-2 hover:ring-primary"
                 >
                   <AssetImage
                     urls={c.thumbnailUrl ? [c.thumbnailUrl] : []}
@@ -125,7 +121,10 @@ export function NftHomePage() {
               ))}
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-fg-faint">{t("home.noCollections")}</p>
+            <div className="flex flex-col items-center gap-2 py-4 text-center text-sm text-fg-faint">
+                <NftSticker kind="spark" size={64} />
+                {t("home.noCollections")}
+              </div>
           )}
         </CardBody>
       </Card>
@@ -156,7 +155,10 @@ export function NftHomePage() {
                 ))}
               </ul>
             ) : (
-              <p className="py-4 text-center text-sm text-fg-faint">{t("home.noActivity")}</p>
+              <div className="flex flex-col items-center gap-2 py-4 text-center text-sm text-fg-faint">
+                <NftSticker kind="spark" size={64} />
+                {t("home.noActivity")}
+              </div>
             )}
           </CardBody>
         </Card>
@@ -185,7 +187,10 @@ export function NftHomePage() {
                 ))}
               </ul>
             ) : (
-              <p className="py-4 text-center text-sm text-fg-faint">{t("noRecentMints")}</p>
+              <div className="flex flex-col items-center gap-2 py-4 text-center text-sm text-fg-faint">
+                <NftSticker kind="spark" size={64} />
+                {t("noRecentMints")}
+              </div>
             )}
           </CardBody>
         </Card>

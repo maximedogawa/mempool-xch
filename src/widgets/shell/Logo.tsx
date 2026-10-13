@@ -1,6 +1,11 @@
 import { cn } from "@/shared/lib/cn";
 
-/** Isometric block mark: a 3D cube shaded by face colour alone, the top in the theme's accent. */
+/**
+ * The mempoolxch mark (studio plate p151): a soft isometric block, the top in gold, the left face in
+ * ink, the right in verdigris, and one red light on the top corner, the next block's signal.
+ * Colours are the brand's own, not the theme's; only the ink face follows `--fg`, so on Nacht it
+ * turns cream and the cube still reads.
+ */
 export function LogoMark({ size = 34, className }: { size?: number; className?: string }) {
   return (
     <svg
@@ -9,15 +14,13 @@ export function LogoMark({ size = 34, className }: { size?: number; className?: 
       viewBox="0 0 32 32"
       aria-hidden="true"
       className={cn("shrink-0", className)}
+      strokeLinejoin="round"
+      strokeWidth={2.6}
     >
-      <path d="M16 3 29 10v12L16 29 3 22V10z" fill="var(--block-side)" />
-      <path d="M16 3 29 10 16 17 3 10z" fill="var(--primary)" />
-      <path d="M16 17v12L3 22V10z" fill="var(--primary-strong)" opacity="0.85" />
-      {/* A touch of accent in the lit face, so it still reads against a light header. */}
-      <path
-        d="M16 17v12l13-7V10z"
-        fill="color-mix(in srgb, var(--primary) 22%, var(--block-top))"
-      />
+      <path d="M16 16.6V29.4L4.6 22.8V9.9z" fill="var(--fg)" stroke="var(--fg)" />
+      <path d="M16 16.6V29.4l11.4-6.6V9.9z" fill="#4f9a86" stroke="#4f9a86" />
+      <path d="M16 3.3 27.4 9.9 16 16.6 4.6 9.9z" fill="#c69c66" stroke="#c69c66" />
+      <circle cx="22.6" cy="9.7" r="1.7" fill="#e75839" />
     </svg>
   );
 }

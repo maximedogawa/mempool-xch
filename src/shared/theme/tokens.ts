@@ -97,9 +97,9 @@ export type ThemeToken = (typeof THEME_TOKENS)[number];
 
 /** Geometry shared by every theme unless a theme overrides it. */
 export const BASE_TOKENS = {
-  radius: "12px",
-  "radius-sm": "8px",
-  "radius-control": "10px",
+  radius: "2px",
+  "radius-sm": "2px",
+  "radius-control": "2px",
   "header-h": "72px",
 } as const;
 

@@ -47,9 +47,21 @@
   --radius-card: var(--radius);
   --radius-sm: var(--radius-sm);
   --radius-control: var(--radius-control);
+  /* Beidwerk kit: square corners and borders, not shadows. Tailwind's own radius and shadow
+     steps resolve to the kit's 2px and to nothing, so no utility brings them back. */
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
   --shadow-card: var(--shadow);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
   --font-sans:
-    var(--font-inter), Inter, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+    var(--font-archivo), Archivo, "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   /* Motion (doc-001 v2): 160-240ms for common UI transitions; 200ms ease-out by default. */
   --default-transition-duration: 200ms;
@@ -98,7 +110,7 @@ body {
 }
 
 /*
- * Typography (doc-001): product copy stays in Inter; IBM Plex Mono is for machine-readable
+ * Typography (doc-001): product copy stays in Archivo; IBM Plex Mono is for machine-readable
  * metadata only. `.eyebrow` labels a section, `.page-title` is the one display line per page.
  * Layered as components, so a size or colour utility on the element still wins.
  */

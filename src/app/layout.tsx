@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import Script from "next/script";
 import type { ReactNode } from "react";
 import { RUNTIME_CONFIG_PATH } from "@/shared/config/runtime";
@@ -9,7 +9,7 @@ import { AppShell } from "@/widgets/shell/AppShell";
 import "./globals.css";
 
 // Self-hosted at build time, so no request reaches Google and the Sage CSP (font-src 'self') holds.
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo", display: "swap" });
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       lang="en"
       data-app="mempoolxch"
       data-theme={DEFAULT_THEME}
-      className={`${inter.variable} ${plexMono.variable}`}
+      className={`${archivo.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
       <body>

@@ -6,6 +6,7 @@ import { useDetailId } from "@/shared/hooks/useDetailId";
 import { routes } from "@/shared/lib/routes";
 import { useSettings } from "@/shared/providers/SettingsProvider";
 import { EmptyState, Hash } from "@/shared/ui";
+import { NftSticker } from "./NftSticker";
 import { AddressNfts } from "@/widgets/address/AddressNfts";
 import { resolveAddressId } from "@/widgets/address/resolveAddressId";
 import { useT } from "@/shared/i18n/useT";
@@ -48,7 +49,11 @@ export function OwnedNftsPage() {
           owner={{ kind: resolved.kind, id: resolved.puzzleHash }}
         />
       ) : (
-        <EmptyState title={t("owned.mainnetTitle")} description={t("owned.mainnetDescription")} />
+        <EmptyState
+          art={<NftSticker kind="block" size={80} />}
+          title={t("owned.mainnetTitle")}
+          description={t("owned.mainnetDescription")}
+        />
       )}
     </div>
   );
