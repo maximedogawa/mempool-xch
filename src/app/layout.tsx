@@ -19,12 +19,28 @@ const plexMono = IBM_Plex_Mono({
 
 const IS_SAGE_BUILD = process.env.NEXT_PUBLIC_SAGE_BUILD === "1";
 
+/** Names the mark the app icons show (Beidwerk p151, the cube). Not in the Sage snapshot, which
+ *  serves its files by exact path. */
+const ICON_QUERY = IS_SAGE_BUILD ? "" : "?v=p151";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://mempoolxch.space"),
   title: { default: "mempoolxch.space · Chia mempool explorer", template: "%s · mempoolxch.space" },
   description: "A mempool.space-style explorer for the Chia (XCH) network",
   applicationName: "mempoolxch.space",
-  icons: { icon: "/icons/icon.svg" },
+  // iOS ignores the SVG and, without an apple icon, puts a screenshot on the home screen. The
+  // query changes with the mark, so a phone that cached an older icon fetches this one.
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: `/icons/icon-32.png${ICON_QUERY}`, sizes: "32x32", type: "image/png" },
+      { url: `/icons/icon-192.png${ICON_QUERY}`, sizes: "192x192", type: "image/png" },
+      { url: `/icons/icon-512.png${ICON_QUERY}`, sizes: "512x512", type: "image/png" },
+    ],
+    apple: { url: `/icons/icon-180.png${ICON_QUERY}`, sizes: "180x180", type: "image/png" },
+  },
+  // The name under the icon on the home screen.
+  appleWebApp: { title: "mempoolxch" },
 };
 
 export const viewport: Viewport = {
