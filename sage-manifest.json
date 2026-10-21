@@ -36,7 +36,7 @@
       },
       "whitelistByNetwork": {
         "mainnet": {
-          "required": ["https://api.nodexch.space", "wss://api.nodexch.space"],
+          "required": ["https://api.nodexch.com", "wss://api.nodexch.com", "https://api.nodexch.space", "wss://api.nodexch.space"],
           "optional": []
         },
         "testnet11": {

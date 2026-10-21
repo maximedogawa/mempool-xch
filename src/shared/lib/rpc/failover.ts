@@ -1,6 +1,6 @@
 /**
  * Automatic fallback for the hosted nodexch gateway (TASK-113, nodexch TASK-057 AC 2): reads go to
- * nodexch.space first; when it fails they go to Coinset, which speaks the same dialect on one host,
+ * nodexch.com first; when it fails they go to Coinset, which speaks the same dialect on one host,
  * so a request moves by swapping the origin and dropping the nodexch key. The fallback is visible
  * (state + subscribe) and ends by itself: while on it, the owner probes the primary and calls
  * recover() once it answers.
@@ -38,7 +38,7 @@ export function createFailover({
   timeoutMs = 8_000,
   now = Date.now,
 }: {
-  /** The primary origin, e.g. https://nodexch.space. */
+  /** The primary origin, e.g. https://nodexch.com. */
   primary: string;
   /** The fallback origin, e.g. https://api.coinset.org. */
   fallback: string;

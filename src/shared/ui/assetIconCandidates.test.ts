@@ -18,7 +18,7 @@ describe("catIconCandidates", () => {
   });
 
   test("with a nodexch gateway the icon comes from the gateway alone, nothing from Dexie", () => {
-    const gateway = "https://api.nodexch.space/dexie/icons/abc.webp";
+    const gateway = "https://api.nodexch.com/dexie/icons/abc.webp";
     expect(
       catIconCandidates({
         walletIconUrl: "https://wallet.example/icon.png",

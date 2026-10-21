@@ -14,7 +14,7 @@ const messages: Translation<(typeof en)["messages"]> = {
     title: "全节点 RPC 端点",
     sage: "<strong>在 Sage 中：</strong>您的余额、币和交易来自钱包本身。Sage 的应用桥不提供节点 RPC（无法查询最新高度、内存池或区块），因此全链数据来自下方的端点；保存自定义端点时会在 Sage 中将其加入白名单。",
     intro:
-      "默认情况下，mempoolxch.space 直接在你的浏览器中通过公共 nodexch 网关 <strong>nodexch.space</strong> 读取链数据，无需自己的节点。若它无响应，读取会自动切换到 <coinset>Coinset</coinset> 的公共全节点 RPC，恢复后再切回。你也可以直接选择 Coinset，或为每个网络指定你自己的节点或网关。需要索引 API 的功能（语义化交易摘要、地址历史和 WebSocket 推送）在普通节点上会关闭，应用改为轮询并在浏览器中获取原始内存池。",
+      "默认情况下，mempoolxch.space 直接在你的浏览器中通过公共 nodexch 网关 <strong>nodexch.com</strong> 读取链数据，无需自己的节点。若它无响应，读取会自动切换到 <coinset>Coinset</coinset> 的公共全节点 RPC，恢复后再切回。你也可以直接选择 Coinset，或为每个网络指定你自己的节点或网关。需要索引 API 的功能（语义化交易摘要、地址历史和 WebSocket 推送）在普通节点上会关闭，应用改为轮询并在浏览器中获取原始内存池。",
     ownNode:
       "<strong>使用自己的节点？</strong>标准的 Chia 全节点在 <code>https://localhost:8555</code> 上以双向 TLS 监听：它要求提供节点的客户端证书（浏览器无法提供），并且不发送 CORS 头。请在其前面放置一个小型反向代理，用客户端证书终止 TLS 并添加 <code>Access-Control-Allow-Origin</code>，然后在此处用 IP 地址输入代理 URL，例如 <code>http://127.0.0.1:8556</code>：<code>localhost</code> 可能解析为 IPv6，从而连不到监听 127.0.0.1 的代理。<guide>分步指南</guide>。",
     nodexch:
@@ -39,18 +39,18 @@ const messages: Translation<(typeof en)["messages"]> = {
     nodexch: "nodexch",
     nodexchToggle: "此端点是 nodexch 网关",
     apiKey: "可公开密钥",
-    apiKeyHint: "nxp_…（使用 api.nodexch.space 预设时可选）",
+    apiKeyHint: "nxp_…（使用 api.nodexch.com 预设时可选）",
     apiKeyInvalid: "浏览器中只能使用可公开密钥（nxp_…）。",
     okNodexch: "峰值 {height}，耗时 {ms} ms · nodexch：索引 API 和 WebSocket 已开启",
     providers: "提供方",
-    pickNodexch: "nodexch.space",
+    pickNodexch: "nodexch.com",
     pickNodexchHint: "默认 · Coinset 自动备用",
     pickCoinset: "Coinset",
     pickCoinsetHint: "公共全节点 RPC",
     pickOwn: "自己的节点",
     pickOwnHint: "本地节点或你自己的网关",
-    nodexchDefault: "默认：nodexch.space",
-    fallback: "nodexch.space 无响应（{reason}）：在其恢复前改从 Coinset 读取。",
+    nodexchDefault: "默认：nodexch.com",
+    fallback: "nodexch.com 无响应（{reason}）：在其恢复前改从 Coinset 读取。",
   },
   appearance: {
     title: "外观",

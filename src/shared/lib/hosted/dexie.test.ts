@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { FetchLike } from "@/shared/lib/rpc/client";
 import { createDexieFetch, nodexchDexieIconUrl, nodexchDexieUrl, type DexieRoute } from "./dexie";
 
-const GATEWAY = "https://nodexch.space";
+const GATEWAY = "https://nodexch.com";
 const TICKERS = "https://api.dexie.space/v3/prices/tickers";
 const ROUTE: DexieRoute = { gateway: GATEWAY, apiKey: "nxp_key" };
 
@@ -46,8 +46,8 @@ describe("nodexchDexieUrl", () => {
 
 describe("nodexchDexieIconUrl", () => {
   test("a CAT's icon is the gateway's file for its asset id", () => {
-    expect(nodexchDexieIconUrl("https://api.nodexch.space/", `0x${"AB".repeat(32)}`)).toBe(
-      `https://api.nodexch.space/dexie/icons/${"ab".repeat(32)}.webp`
+    expect(nodexchDexieIconUrl("https://api.nodexch.com/", `0x${"AB".repeat(32)}`)).toBe(
+      `https://api.nodexch.com/dexie/icons/${"ab".repeat(32)}.webp`
     );
   });
 });

@@ -34,7 +34,7 @@ export interface Endpoint {
 export { PUBLISHABLE_KEY };
 
 /**
- * 2: the default endpoint is the network's default provider (nodexch.space on mainnet); settings
+ * 2: the default endpoint is the network's default provider (nodexch.com on mainnet); settings
  * written before (1) still hold the old Coinset default and move to it once.
  */
 export const PROVIDERS_VERSION = 2;
@@ -163,7 +163,7 @@ export function resolveEndpoints(
   if (provider === "nodexch") {
     // The site's own key for the hosted gateway, the user's for theirs.
     const apiKey = endpoint?.apiKey || NETWORKS[network].nodexchKey || null;
-    // nodexch.space refuses every request without a key (401). Settings may still name it
+    // nodexch.com refuses every request without a key (401). Settings may still name it
     // (stored while the site had its key, or picked without one): the fallback or Coinset
     // answers then.
     if (!apiKey && needsNodexchKey(rpcUrl)) return fallback ?? coinsetEndpoints(network);

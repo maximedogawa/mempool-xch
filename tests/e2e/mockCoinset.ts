@@ -653,8 +653,8 @@ export async function seedConsent(page: Page) {
 
 /**
  * Intercepts every Coinset call; anything unknown answers not found. The app's default provider
- * is nodexch.space (TASK-113): these specs run on Coinset chosen outright, unless a spec seeds its
- * own endpoints, and nodexch.space is unreachable so a leak falls back instead of going out.
+ * is nodexch.com (TASK-113): these specs run on Coinset chosen outright, unless a spec seeds its
+ * own endpoints, and nodexch.com is unreachable so a leak falls back instead of going out.
  */
 export async function mockCoinset(page: Page, { consent = true }: { consent?: boolean } = {}) {
   if (consent) await seedConsent(page);
@@ -798,7 +798,7 @@ function gatewayMempoolItems() {
   }));
 }
 
-export const NODEXCH_URL = "https://api.nodexch.space";
+export const NODEXCH_URL = "https://api.nodexch.com";
 export const NODEXCH_KEY = "nxp_e2eTestKey0123456789abcdef";
 
 /**

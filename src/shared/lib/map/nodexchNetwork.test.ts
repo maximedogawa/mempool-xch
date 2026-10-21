@@ -36,7 +36,7 @@ const NETWORK = {
   chain_time: 1790902147,
 };
 
-const OPTIONS = { network: "mainnet", source: "https://nodexch.space" } as const;
+const OPTIONS = { network: "mainnet", source: "https://nodexch.com" } as const;
 
 describe("parseNodexchNetwork", () => {
   test("the latest count becomes a snapshot the map's own checks accept", () => {
@@ -45,7 +45,7 @@ describe("parseNodexchNetwork", () => {
     const { snapshot } = parsed!;
     expect(parseSnapshot(snapshot)).toEqual(snapshot);
     expect(snapshot).toMatchObject({
-      source: "https://nodexch.space",
+      source: "https://nodexch.com",
       observedAt: "2026-10-02T00:52:33.786Z",
       network: "mainnet",
       total: 18665,
@@ -105,18 +105,18 @@ describe("parseNodexchNetwork", () => {
 describe("fetchNodexchNetwork", () => {
   test("asks the gateway's network route with the key", async () => {
     const calls: { url: string; auth: string | null }[] = [];
-    const body = await fetchNodexchNetwork("https://nodexch.space/", "nxp_key", (url, init) => {
+    const body = await fetchNodexchNetwork("https://nodexch.com/", "nxp_key", (url, init) => {
       calls.push({ url, auth: new Headers(init?.headers).get("authorization") });
       return Promise.resolve(Response.json(NETWORK));
     });
     expect(calls).toEqual([
-      { url: "https://nodexch.space/x/node/v1/network", auth: "Bearer nxp_key" },
+      { url: "https://nodexch.com/x/node/v1/network", auth: "Bearer nxp_key" },
     ]);
     expect(parseNodexchNetwork(body, OPTIONS)).not.toBeNull();
   });
 
   test("a gateway without a count throws, which leaves the page on its snapshot", async () => {
     const answer = () => Promise.resolve(new Response("{}", { status: 502 }));
-    await expect(fetchNodexchNetwork("https://nodexch.space", null, answer)).rejects.toThrow("502");
+    await expect(fetchNodexchNetwork("https://nodexch.com", null, answer)).rejects.toThrow("502");
   });
 });
