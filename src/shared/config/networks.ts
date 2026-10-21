@@ -37,12 +37,6 @@ export interface NetworkConfig {
 /** nodexch.com's own gateway: it refuses every request without a key (401). */
 const NODEXCH_API = "https://api.nodexch.com";
 
-/**
- * The hosts that count as nodexch's own gateway: the current one, and the first domain
- * (nodexch.space) that stored settings and exported Sage apps may still name (TASK-121).
- */
-const NODEXCH_HOSTS = [new URL(NODEXCH_API).host, "api.nodexch.space"];
-
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     id: "mainnet",
@@ -113,7 +107,7 @@ export function fallbackEndpointUrl(network: NetworkId): string | null {
 /** True for a gateway that refuses keyless requests: nodexch.com's own. */
 export function needsNodexchKey(url: string): boolean {
   try {
-    return NODEXCH_HOSTS.includes(new URL(url).host);
+    return new URL(url).host === new URL(NODEXCH_API).host;
   } catch {
     return false;
   }

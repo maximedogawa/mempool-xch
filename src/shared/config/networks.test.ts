@@ -2,9 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { needsNodexchKey } from "./networks";
 
 describe("needsNodexchKey", () => {
-  test("names the gateway on nodexch.com and the first domain, which stored settings may still hold", () => {
+  test("names the gateway on nodexch.com", () => {
     expect(needsNodexchKey("https://api.nodexch.com")).toBe(true);
-    expect(needsNodexchKey("https://api.nodexch.space")).toBe(true);
   });
 
   test("not another host, and not a malformed address", () => {
