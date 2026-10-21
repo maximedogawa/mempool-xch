@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createFailover, type FetchLike } from "./failover";
 
-const PRIMARY = "https://nodexch.space";
+const PRIMARY = "https://nodexch.com";
 const FALLBACK = "https://api.coinset.org";
 
 /** A fake fetch that answers per origin and records every call. */

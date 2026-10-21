@@ -438,8 +438,8 @@ describe("streamUrl", () => {
     );
   });
   test("a nodexch key in the query survives", () => {
-    expect(streamUrl("wss://api.nodexch.space/ws?key=nxp_abc")).toBe(
-      "wss://api.nodexch.space/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
+    expect(streamUrl("wss://api.nodexch.com/ws?key=nxp_abc")).toBe(
+      "wss://api.nodexch.com/ws?key=nxp_abc&events=peak,transaction,reorg,dashboard,vault"
     );
   });
 });
@@ -456,7 +456,7 @@ describe("createLiveStream: quiet polling", () => {
     const timers = fakeTimers();
     let polls = 0;
     const stream = createLiveStream({
-      wsUrl: "wss://api.nodexch.space/ws",
+      wsUrl: "wss://api.nodexch.com/ws",
       poll: async () => {
         polls += 1;
         return { peakHeight: 10, peakIsTx: false, mempoolSize: 3 };

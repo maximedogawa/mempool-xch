@@ -61,7 +61,7 @@ describe("runtime config", () => {
       new Function(runtimeConfigScript(config))();
     const key = NETWORKS.mainnet.nodexchKey;
     try {
-      // Another gateway than nodexch.space: the site's default, with no key asked for.
+      // Another gateway than nodexch.com: the site's default, with no key asked for.
       run({
         nodexchKeys: {},
         apiUrl: "https://gw.example.test",
@@ -76,10 +76,10 @@ describe("runtime config", () => {
       // Coinset as the main API: the default, whatever key there is.
       run({ nodexchKeys: { mainnet: KEY }, apiUrl: "https://api.coinset.org" });
       expect(defaultEndpointUrl("mainnet")).toBe("https://api.coinset.org");
-      expect(NETWORKS.mainnet.nodexchUrl).toBe("https://api.nodexch.space");
+      expect(NETWORKS.mainnet.nodexchUrl).toBe("https://api.nodexch.com");
       expect(fallbackEndpointUrl("mainnet")).toBeNull();
-      // nodexch.space named without its key: Coinset, since it would refuse every request.
-      run({ nodexchKeys: {}, apiUrl: "https://api.nodexch.space" });
+      // nodexch.com named without its key: Coinset, since it would refuse every request.
+      run({ nodexchKeys: {}, apiUrl: "https://api.nodexch.com" });
       expect(defaultEndpointUrl("mainnet")).toBe("https://api.coinset.org");
     } finally {
       run({ nodexchKeys: { mainnet: key } });

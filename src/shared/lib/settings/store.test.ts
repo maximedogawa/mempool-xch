@@ -39,8 +39,8 @@ describe("settings store", () => {
     });
     expect(reloaded.get().network).toBe("mainnet");
     expect(reloaded.get().recentBlocks).toBe(8);
-    // A blank endpoint is the network's default provider: nodexch.space on mainnet (TASK-113).
-    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
+    // A blank endpoint is the network's default provider: nodexch.com on mainnet (TASK-113).
+    expect(reloaded.get().endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.com");
     expect(reloaded.get().endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
     reloaded.reset();
     expect(reloaded.get()).toEqual(DEFAULT_SETTINGS);
@@ -57,7 +57,7 @@ describe("resolveEndpoints", () => {
   test("the default is the hosted nodexch gateway, without a fallback: Coinset is a choice", () => {
     const r = resolveEndpoints(DEFAULT_SETTINGS);
     expect(r.provider).toBe("nodexch");
-    expect(r.rpcUrl).toBe("https://api.nodexch.space");
+    expect(r.rpcUrl).toBe("https://api.nodexch.com");
     expect(r.fallback).toBeNull();
   });
   test("a site without its key never sends a visitor to the hosted gateway", () => {
@@ -81,7 +81,7 @@ describe("resolveEndpoints", () => {
         ...DEFAULT_SETTINGS,
         endpoints: {
           ...DEFAULT_SETTINGS.endpoints,
-          mainnet: { rpcUrl: "https://api.nodexch.space", apiKey: "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt" },
+          mainnet: { rpcUrl: "https://api.nodexch.com", apiKey: "nxp_Zk3vQ0aBq1v0m3J2o0r8c5Tt" },
         },
       });
       expect(own.provider).toBe("nodexch");
@@ -106,8 +106,8 @@ describe("resolveEndpoints", () => {
       fallbackUrl: "https://api.coinset.org",
     });
     expect(r.provider).toBe("nodexch");
-    expect(r.rpcUrl).toBe("https://api.nodexch.space");
-    expect(r.indexedUrl).toBe("https://api.nodexch.space");
+    expect(r.rpcUrl).toBe("https://api.nodexch.com");
+    expect(r.indexedUrl).toBe("https://api.nodexch.com");
     expect(r.fallback).toMatchObject({
       provider: "coinset",
       rpcUrl: "https://api.coinset.org",
@@ -136,7 +136,7 @@ describe("resolveEndpoints", () => {
     });
     // The main API never falls back to itself.
     expect(
-      resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { fallbackUrl: "https://api.nodexch.space/" })
+      resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { fallbackUrl: "https://api.nodexch.com/" })
         .fallback
     ).toBeNull();
     // A site that starts on Coinset (no key) falls back from Coinset.
@@ -156,7 +156,7 @@ describe("resolveEndpoints", () => {
       );
       expect(coinset.provider).toBe("coinset");
       expect(coinset.fallback?.rpcUrl).toBe("https://node.example.test");
-      // nodexch.space stored without any key: the fallback answers instead of Coinset.
+      // nodexch.com stored without any key: the fallback answers instead of Coinset.
       expect(
         resolveEndpoints(DEFAULT_SETTINGS, "mainnet", { fallbackUrl: "https://node.example.test" })
           .rpcUrl
@@ -206,7 +206,7 @@ describe("resolveEndpoints", () => {
       })
     );
     const migrated = createSettingsStore(storage).get();
-    expect(migrated.endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.space");
+    expect(migrated.endpoints.mainnet.rpcUrl).toBe("https://api.nodexch.com");
     expect(migrated.endpoints.testnet11.rpcUrl).toBe("https://testnet11.api.coinset.org");
     expect(migrated.providersVersion).toBe(2);
     // A custom node chosen before stays.
@@ -266,15 +266,15 @@ describe("nodexch endpoints", () => {
     ).get();
 
   test("the hosted gateway is nodexch by its host: indexed API and WebSocket on its own host", () => {
-    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://api.nodexch.space/" }));
+    const e = resolveEndpoints(withMainnet({ rpcUrl: "https://api.nodexch.com/" }));
     expect(e.provider).toBe("nodexch");
     expect(e.isCoinset).toBe(false);
-    expect(e.rpcUrl).toBe("https://api.nodexch.space");
-    expect(e.indexedUrl).toBe("https://api.nodexch.space");
+    expect(e.rpcUrl).toBe("https://api.nodexch.com");
+    expect(e.indexedUrl).toBe("https://api.nodexch.com");
     // The site's own key (handed over by the server at run time) rides in the socket URL.
     const key = NETWORKS.mainnet.nodexchKey;
     expect(e.wsUrl).toBe(
-      key ? `wss://api.nodexch.space/ws?key=${key}` : "wss://api.nodexch.space/ws"
+      key ? `wss://api.nodexch.com/ws?key=${key}` : "wss://api.nodexch.com/ws"
     );
   });
 
@@ -293,11 +293,11 @@ describe("nodexch endpoints", () => {
 
   test("only a publishable key is kept; a secret key never is", () => {
     const secret = withMainnet({
-      rpcUrl: "https://api.nodexch.space",
+      rpcUrl: "https://api.nodexch.com",
       apiKey: "nxs_Zk3vQ0aBq1v0m3J2o0r8c5Tt",
     });
     expect(secret.endpoints.mainnet.apiKey).toBeUndefined();
-    const kept = withMainnet({ rpcUrl: "https://api.nodexch.space", apiKey: ` ${PUBLISHABLE} ` });
+    const kept = withMainnet({ rpcUrl: "https://api.nodexch.com", apiKey: ` ${PUBLISHABLE} ` });
     expect(kept.endpoints.mainnet.apiKey).toBe(PUBLISHABLE);
   });
 

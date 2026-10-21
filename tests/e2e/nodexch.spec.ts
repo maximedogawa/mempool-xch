@@ -22,7 +22,7 @@ test.describe("nodexch provider", () => {
     });
     await expect.poll(() => seen.sockets.length, { timeout: 20_000 }).toBeGreaterThan(0);
     const socket = new URL(seen.sockets[0]!);
-    expect(socket.host).toBe("api.nodexch.space");
+    expect(socket.host).toBe("api.nodexch.com");
     expect(socket.searchParams.get("key")).toBe(NODEXCH_KEY);
     expect(socket.searchParams.get("events")).toContain("peak");
     expect(seen.requests.length).toBeGreaterThan(0);
@@ -47,7 +47,7 @@ test.describe("nodexch provider", () => {
   test("the status page checks Dexie where it is asked: on the gateway", async ({ page }) => {
     await mockNodexch(page);
     await page.goto("/status");
-    await expect(page.getByText("api.nodexch.space/dexie")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("api.nodexch.com/dexie")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("status-dexie")).toHaveText("Operational", { timeout: 20_000 });
   });
 
@@ -90,7 +90,7 @@ test.describe("nodexch provider", () => {
     await expect(page.getByText("1,234").first()).toBeVisible();
   });
 
-  test("when nodexch.space fails, nothing moves to Coinset or Dexie by itself; Coinset is picked in Settings", async ({
+  test("when nodexch.com fails, nothing moves to Coinset or Dexie by itself; Coinset is picked in Settings", async ({
     page,
   }) => {
     const seen = await mockNodexch(page, { down: true });
@@ -128,7 +128,7 @@ test.describe("nodexch provider", () => {
 });
 
 test.describe("provider choice", () => {
-  test("with the key the server hands over at run time, a new visitor starts on nodexch.space", async ({
+  test("with the key the server hands over at run time, a new visitor starts on nodexch.com", async ({
     page,
   }) => {
     const seen = await mockNodexch(page);
@@ -149,7 +149,7 @@ test.describe("provider choice", () => {
     await page.goto("/settings");
     const mainnet = page.locator("fieldset").first();
     await expect(mainnet.getByRole("radio", { name: /^nodexch\.space/ })).toBeChecked();
-    await expect(page.getByText("nodexch.space default")).toBeVisible();
+    await expect(page.getByText("nodexch.com default")).toBeVisible();
     await expect(page.locator("#rpc-mainnet")).toHaveValue(NODEXCH_URL);
   });
 
@@ -178,7 +178,7 @@ test.describe("provider choice", () => {
     for (const r of seen.coinset) expect(r.authorization, r.url).toBeNull();
   });
 
-  test("a site without its key starts on Coinset; nodexch.space or an own node can be picked", async ({
+  test("a site without its key starts on Coinset; nodexch.com or an own node can be picked", async ({
     page,
   }) => {
     await mockNodexch(page);

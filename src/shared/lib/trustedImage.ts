@@ -16,6 +16,8 @@
 /** Also used to build the hosted app's CSP img-src (next.config.ts) — one source of truth. */
 export const TRUSTED_IMAGE_HOSTS = new Set([
   // The hosted nodexch gateway: Dexie's icons under /dexie/icons while it is the provider.
+  "api.nodexch.com",
+  // The first domain, named by stored settings while they move (TASK-121).
   "api.nodexch.space",
   "icons.dexie.space",
   "assets.mainnet.mintgarden.io",

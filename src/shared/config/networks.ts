@@ -34,8 +34,14 @@ export interface NetworkConfig {
   readonly nodexchKey: string;
 }
 
-/** nodexch.space's own gateway: it refuses every request without a key (401). */
-const NODEXCH_SPACE = "https://api.nodexch.space";
+/** nodexch.com's own gateway: it refuses every request without a key (401). */
+const NODEXCH_API = "https://api.nodexch.com";
+
+/**
+ * The hosts that count as nodexch's own gateway: the current one, and the first domain
+ * (nodexch.space) that stored settings and exported Sage apps may still name (TASK-121).
+ */
+const NODEXCH_HOSTS = [new URL(NODEXCH_API).host, "api.nodexch.space"];
 
 export const NETWORKS: Record<NetworkId, NetworkConfig> = {
   mainnet: {
@@ -48,7 +54,7 @@ export const NETWORKS: Record<NetworkId, NetworkConfig> = {
     coinsetHosts: ["api.coinset.org", "coinset.org", "www.coinset.org"],
     get nodexchUrl() {
       const configured = runtimeApiUrl();
-      return configured && !isCoinsetUrl("mainnet", configured) ? configured : NODEXCH_SPACE;
+      return configured && !isCoinsetUrl("mainnet", configured) ? configured : NODEXCH_API;
     },
     get nodexchKey() {
       return runtimeNodexchKey("mainnet");
@@ -104,10 +110,10 @@ export function fallbackEndpointUrl(network: NetworkId): string | null {
   return (network === "mainnet" && runtimeFallbackUrl()) || null;
 }
 
-/** True for a gateway that refuses keyless requests: nodexch.space's own. */
+/** True for a gateway that refuses keyless requests: nodexch.com's own. */
 export function needsNodexchKey(url: string): boolean {
   try {
-    return new URL(url).host === new URL(NODEXCH_SPACE).host;
+    return NODEXCH_HOSTS.includes(new URL(url).host);
   } catch {
     return false;
   }
@@ -115,7 +121,7 @@ export function needsNodexchKey(url: string): boolean {
 
 /**
  * True when this site can use the hosted nodexch gateway of a network: one runs there, and the
- * server handed over the site's publishable key if the gateway asks for one. nodexch.space
+ * server handed over the site's publishable key if the gateway asks for one. nodexch.com
  * answers 401 to a request without a key, so a site without one must not send its visitors there.
  */
 export function hasHostedNodexch(network: NetworkId): boolean {
